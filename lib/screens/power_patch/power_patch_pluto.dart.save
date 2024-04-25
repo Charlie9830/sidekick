@@ -1,0 +1,130 @@
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:pluto_grid/pluto_grid.dart';
+import 'package:sidekick/screens/power_patch/power_patch_column_names.dart';
+import 'package:sidekick/view_models/power_patch_view_model.dart';
+
+class PowerPatch extends StatefulWidget {
+  final PowerPatchViewModel vm;
+  const PowerPatch({Key? key, required this.vm}) : super(key: key);
+
+  @override
+  State<PowerPatch> createState() => _PowerPatchState();
+}
+
+class _PowerPatchState extends State<PowerPatch> {
+  late final PlutoGridStateManager stateManager;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          height: 48,
+          child: Card(
+              child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              ElevatedButton.icon(
+                icon: const Icon(Icons.cable),
+                label: const Text('Patch'),
+                onPressed: widget.vm.onGeneratePatch,
+              ),
+              IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: () {},
+              ),
+            ],
+          )),
+        ),
+        Expanded(
+            child: PlutoGrid(
+          configuration: const PlutoGridConfiguration.dark(),
+          columns: _buildPlutoColumns(context, widget.vm),
+          rows: _buildPlutoRows(context, widget.vm),
+          noRowsWidget: const Center(
+            child: Text('No Patches'),
+          ),
+          onLoaded: (event) {
+            stateManager = event.stateManager;
+          },
+        )),
+      ],
+    );
+  }
+
+  bool _isNthRow(int nth, int index) {
+    if (index == 0) {
+      return true;
+    }
+
+    return index % nth == 0;
+  }
+
+  List<PlutoColumn> _buildPlutoColumns(
+      BuildContext context, PowerPatchViewModel vm) {
+    return [
+      PlutoColumn(
+        title: 'Multi Outlet',
+        field: Columns.multiOutlet,
+        type: PlutoColumnType.text(defaultValue: ""),
+        readOnly: true,
+        enableEditingMode: false,
+        enableSorting: false,
+      ),
+      PlutoColumn(
+        title: 'Patch Outlet',
+        field: Columns.patchOutlet,
+        type: PlutoColumnType.number(),
+        readOnly: true,
+        enableEditingMode: false,
+        enableSorting: false,
+      ),
+      PlutoColumn(
+        title: 'Fixture #',
+        field: Columns.fixtureId,
+        type: PlutoColumnType.text(),
+        readOnly: true,
+        enableEditingMode: false,
+        enableSorting: false,
+      ),
+      PlutoColumn(
+        title: 'Fixture Type',
+        field: Columns.fixtureType,
+        type: PlutoColumnType.text(),
+        readOnly: true,
+        enableEditingMode: false,
+        enableSorting: false,
+      ),
+      PlutoColumn(
+        title: 'Amps',
+        field: Columns.amps,
+        type: PlutoColumnType.number(),
+        readOnly: true,
+        enableEditingMode: false,
+        enableSorting: false,
+      ),
+    ];
+  }
+
+  List<PlutoRow> _buildPlutoRows(BuildContext context, PowerPatchViewModel vm) {
+    return vm.patches.mapIndexed((index, patch) {
+      final multiOutlet = ((index + 1) / 6).ceil();
+      final isFirstMultiOutletRow = _isNthRow(6, index);
+
+      return PlutoRow(cells: {
+        Columns.multiOutlet:
+            PlutoCell(value: isFirstMultiOutletRow ? multiOutlet : '-'),
+        Columns.patchOutlet: PlutoCell(value: index + 1),
+        Columns.fixtureId: PlutoCell(
+            value: patch.fixtures.map((fixture) => fixture.fid).join(', ')),
+        Columns.fixtureType: PlutoCell(
+          value:
+              patch.fixtures.isNotEmpty ? patch.fixtures.first.type.name : '',
+        ),
+        Columns.amps: PlutoCell(value: patch.amps)
+      });
+    }).toList();
+  }
+}

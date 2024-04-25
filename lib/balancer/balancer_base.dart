@@ -1,0 +1,13 @@
+import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/power_outlet_model.dart';
+import 'package:sidekick/redux/models/power_patch_model.dart';
+
+abstract class BalancerBase {
+  List<PowerPatchModel> generatePatches({
+    required List<FixtureModel> fixtures,
+    required double maxAmpsPerCircuit,
+  });
+
+  List<PowerOutletModel> assignToOutlets(
+      List<PowerPatchModel> patches, List<PowerOutletModel> outlets);
+}
