@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:sidekick/balancer/naive_balancer.dart';
@@ -37,8 +38,35 @@ ThunkAction<AppState> generatePatch() {
               child: PowerPatchModel.empty(),
             ));
 
-    final outlets = balancer.assignToOutlets(powerPatches, initialOutlets);
+    final outlets = balancer.assignToOutlets(
+        powerPatches,
+        store.state.fixtureState.outlets.isNotEmpty
+            ? store.state.fixtureState.outlets
+            : initialOutlets);
 
     store.dispatch(SetPowerOutlets(outlets));
+  };
+}
+
+ThunkAction<AppState> addSpareOutlet(int index) {
+  return (Store<AppState> store) async {
+    final existingOutlets = store.state.fixtureState.outlets.toList();
+    existingOutlets.insert(
+        index,
+        PowerOutletModel(
+            uid: getUid(),
+            isSpare: true,
+            phase: getPhaseFromIndex(index),
+            child: PowerPatchModel.empty()));
+
+    final reIndexedOutlets = existingOutlets
+        .mapIndexed(
+            (index, outlet) => outlet.copyWith(phase: getPhaseFromIndex(index)))
+        .toList();
+
+    final balancer = NaiveBalancer();
+
+    store.dispatch(SetPowerOutlets(balancer.assignToOutlets(
+        store.state.fixtureState.patches, reIndexedOutlets)));
   };
 }

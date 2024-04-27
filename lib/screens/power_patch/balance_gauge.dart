@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:sidekick/utils/electrical_equations.dart';
 
 class BalanceGauge extends StatelessWidget {
   final double phaseALoad;
@@ -21,30 +22,17 @@ class BalanceGauge extends StatelessWidget {
       return const SizedBox();
     }
 
-    double aSquared = phaseALoad * phaseALoad;
-    double bSquared = phaseBLoad * phaseBLoad;
-    double cSquared = phaseCLoad * phaseCLoad;
-
-    double abMulti = phaseALoad * phaseBLoad;
-    double acMulti = phaseALoad * phaseCLoad;
-    double bcMulti = phaseBLoad * phaseCLoad;
-
-    final neutralCurrent =
-        sqrt((aSquared + bSquared + cSquared - abMulti - acMulti - bcMulti));
-
-    final imbalanceValue =
-        ((neutralCurrent / (phaseALoad + phaseBLoad + phaseCLoad)));
-
     return Row(
       children: [
-        Text('${neutralCurrent.floor()}A'),
+        Text(
+            '${calculateNeutralCurrent(phaseALoad, phaseBLoad, phaseCLoad).floor()}A'),
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: SizedBox(
             height: 24,
             width: 24,
             child: CircularProgressIndicator(
-              value: imbalanceValue,
+              value: calculateBalanceRatio(phaseALoad, phaseBLoad, phaseCLoad),
               strokeWidth: 5,
               backgroundColor: Colors.blue,
               color: Colors.orange,

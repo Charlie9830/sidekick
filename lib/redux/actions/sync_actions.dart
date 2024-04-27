@@ -25,8 +25,3 @@ class SelectPatchRow {
   SelectPatchRow(this.uid);
 }
 
-class AddSpareOutlet {
-  final int index;
-
-  AddSpareOutlet(this.index);
-}

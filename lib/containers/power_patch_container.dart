@@ -24,7 +24,7 @@ class PowerPatchContainer extends StatelessWidget {
             outlets: store.state.fixtureState.outlets,
             onRowSelected: (uid) => store.dispatch(SelectPatchRow(uid)),
             onGeneratePatch: () => store.dispatch(generatePatch()),
-            onAddSpareOutlet: (index) => store.dispatch(AddSpareOutlet(index)) );
+            onAddSpareOutlet: (index) => store.dispatch(addSpareOutlet(index)));
       },
     );
   }
