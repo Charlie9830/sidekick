@@ -22,6 +22,8 @@ class PowerPatchContainer extends StatelessWidget {
         return PowerPatchViewModel(
             patches: store.state.fixtureState.patches,
             outlets: store.state.fixtureState.outlets,
+            maxSequenceBreak: store.state.fixtureState.maxSequenceBreak,
+            onMaxSequenceBreakChanged: (newValue) => store.dispatch(SetMaxSequenceBreak(newValue)),
             balanceTolerancePercent:
                 (store.state.fixtureState.balanceTolerance * 100)
                     .round()

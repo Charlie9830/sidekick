@@ -11,6 +11,9 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic action) {
     SetBalanceTolerance a => state.copyWith(
         balanceTolerance:
             _convertBalanceTolerance(a.value, state.balanceTolerance)),
+    SetMaxSequenceBreak a => state.copyWith(
+        maxSequenceBreak:
+            _convertMaxSequenceBreak(a.value, state.maxSequenceBreak)),
 
     // Default
     _ => state
@@ -29,4 +32,14 @@ double _convertBalanceTolerance(String newValue, double existingValue) {
   }
 
   return asInt / 100;
+}
+
+int _convertMaxSequenceBreak(String newValue, int existingValue) {
+  final asInt = int.tryParse(newValue.trim());
+
+  if (asInt == null) {
+    return existingValue;
+  }
+
+  return asInt;
 }

@@ -29,19 +29,19 @@ ThunkAction<AppState> generatePatch() {
   return (Store<AppState> store) async {
     final fixtures = store.state.fixtureState.fixtures.values.toList();
     final balancer = NaiveBalancer();
-    final powerPatches =
-        balancer.generatePatches(fixtures: fixtures, maxAmpsPerCircuit: 16);
+    final powerPatches = balancer.generatePatches(
+        fixtures: fixtures,
+        maxAmpsPerCircuit: 16,
+        maxSequenceBreak: store.state.fixtureState.maxSequenceBreak);
 
-    final multiOutletCount =
-        powerPatches.isEmpty ? 0 : (powerPatches.length / 6).round();
-
-    final initialOutlets = List<PowerOutletModel>.generate(
-        multiOutletCount * 6,
-        (index) => PowerOutletModel(
+    final initialOutlets = powerPatches
+        .mapIndexed((index, patch) => PowerOutletModel(
               uid: getUid(),
+              child: patch,
               phase: getPhaseFromIndex(index),
-              child: PowerPatchModel.empty(),
-            ));
+              isSpare: false,
+            ))
+        .toList();
 
     final outlets = balancer.assignToOutlets(
       patches: powerPatches,

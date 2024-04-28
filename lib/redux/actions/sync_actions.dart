@@ -30,3 +30,9 @@ class SetBalanceTolerance {
 
   SetBalanceTolerance(this.value);
 }
+
+class SetMaxSequenceBreak {
+  final String value;
+
+  SetMaxSequenceBreak(this.value);
+}

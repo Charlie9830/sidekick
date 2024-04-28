@@ -6,10 +6,12 @@ abstract class BalancerBase {
   List<PowerPatchModel> generatePatches({
     required List<FixtureModel> fixtures,
     required double maxAmpsPerCircuit,
+    int maxSequenceBreak,
   });
 
-  List<PowerOutletModel> assignToOutlets(
-      {required List<PowerPatchModel> patches,
-      required List<PowerOutletModel> outlets,
-      double imbalanceTolerance});
+  List<PowerOutletModel> assignToOutlets({
+    required List<PowerPatchModel> patches,
+    required List<PowerOutletModel> outlets,
+    double imbalanceTolerance,
+  });
 }

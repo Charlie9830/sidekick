@@ -92,6 +92,15 @@ class _PowerPatchState extends State<PowerPatch> {
                 onBlur: widget.vm.onBalanceToleranceChanged,
               ),
             ),
+            const SizedBox(width: 16),
+            SizedBox(
+                width: 124,
+                child: PropertyField(
+                  textAlign: TextAlign.center,
+                  label: 'Max Piggyback Break',
+                  value: widget.vm.maxSequenceBreak.toString(),
+                  onBlur: widget.vm.onMaxSequenceBreakChanged,
+                )),
             Expanded(
                 child: Row(
               mainAxisAlignment: MainAxisAlignment.end,

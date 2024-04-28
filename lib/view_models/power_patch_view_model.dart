@@ -5,12 +5,14 @@ class PowerPatchViewModel {
   final List<PowerPatchModel> patches;
   final List<PowerOutletModel> outlets;
   final String balanceTolerancePercent;
+  final int maxSequenceBreak;
 
   final void Function() onGeneratePatch;
   final void Function(String uid) onRowSelected;
   final void Function(int index) onAddSpareOutlet;
   final void Function(int index) onDeleteSpareOutlet;
   final void Function(String newValue) onBalanceToleranceChanged;
+  final void Function(String newValue) onMaxSequenceBreakChanged;
 
   PowerPatchViewModel({
     required this.balanceTolerancePercent,
@@ -21,5 +23,7 @@ class PowerPatchViewModel {
     required this.onAddSpareOutlet,
     required this.onDeleteSpareOutlet,
     required this.onBalanceToleranceChanged,
+    required this.onMaxSequenceBreakChanged,
+    required this.maxSequenceBreak,
   });
 }

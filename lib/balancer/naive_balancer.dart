@@ -7,15 +7,45 @@ import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/models/power_patch_model.dart';
 import 'package:sidekick/utils/electrical_equations.dart';
+import 'package:sidekick/utils/round_up_to_nearest_multi_break.dart';
 
 const int _maxAttempts = 3;
 
 class NaiveBalancer implements BalancerBase {
   @override
-  List<PowerPatchModel> generatePatches(
-      {required List<FixtureModel> fixtures,
-      required double maxAmpsPerCircuit}) {
-    return performPiggybacking(fixtures, 4);
+  List<PowerPatchModel> generatePatches({
+    required List<FixtureModel> fixtures,
+    required double maxAmpsPerCircuit,
+    int maxSequenceBreak = 4,
+  }) {
+    final fixturesByLocation =
+        fixtures.groupListsBy((fixture) => fixture.location);
+
+    final patchesByLocation = fixturesByLocation.map((location, fixtures) {
+      return MapEntry(
+          location, performPiggybacking(fixtures, maxSequenceBreak));
+    });
+
+    final gapFilledPatchesByLocation =
+        patchesByLocation.map((location, patches) {
+      final desiredNumberOfPatches = roundUpToNearestMultiBreak(patches.length);
+
+      if (patches.length == desiredNumberOfPatches) {
+        return MapEntry(location, patches);
+      }
+
+      if (patches.length > desiredNumberOfPatches) {
+        throw "Something has gone wrong. patches.length is greater than desiredNumberOfPatches.";
+      }
+
+      final difference = desiredNumberOfPatches - patches.length;
+      final gapFillers = List<PowerPatchModel>.generate(
+          difference, (index) => PowerPatchModel.empty());
+
+      return MapEntry(location, patches.toList()..addAll(gapFillers));
+    });
+
+    return gapFilledPatchesByLocation.values.expand((i) => i).toList();
   }
 
   @override
