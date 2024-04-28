@@ -70,57 +70,63 @@ class _HomeState extends State<Home> {
       Text('-'),
     );
 
-    return DataTable(
-      columns: const [
-        DataColumn(label: Text('Sequence #')),
-        DataColumn(label: Text('Fixture #')),
-        DataColumn(label: Text('Type')),
-        DataColumn(label: Text('Amps')),
-        DataColumn(
-          label: Row(children: [
-            Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
-            const SizedBox(width: 4),
-            Text('Multi'),
-          ]),
-        ),
-        DataColumn(
-          label: Row(children: [
-            Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
-            const SizedBox(width: 4),
-            Text('Patch'),
-          ]),
-        ),
-        DataColumn(
-          label: Row(children: [
-            Icon(Icons.settings_input_svideo, color: Colors.blue, size: 16),
-            const SizedBox(width: 4),
-            Text('Multi'),
-          ]),
-        ),
-        DataColumn(
-          label: Row(children: [
-            Icon(Icons.settings_input_svideo, color: Colors.blue, size: 16),
-            const SizedBox(width: 4),
-            Text('Patch'),
-          ]),
-        ),
-      ],
-      rows: widget.vm.fixtures.values.mapIndexed((index, fixture) {
-        return DataRow(cells: [
-          DataCell(Text('${index + 1}')),
-          DataCell(Text(fixture.fid.toString())),
-          DataCell(
-            Text(fixture.type.name),
+    return SingleChildScrollView(
+      child: DataTable(
+        columns: const [
+          DataColumn(label: Text('Sequence #')),
+          DataColumn(label: Text('Fixture #')),
+          DataColumn(label: Text('Type')),
+          DataColumn(label: Text('Location')),
+          DataColumn(label: Text('Amps')),
+          DataColumn(
+            label: Row(children: [
+              Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
+              SizedBox(width: 4),
+              Text('Multi'),
+            ]),
           ),
-          DataCell(
-            Text(fixture.type.amps.toString()),
+          DataColumn(
+            label: Row(children: [
+              Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
+              SizedBox(width: 4),
+              Text('Patch'),
+            ]),
           ),
-          placeholderCell, // Power Multi
-          placeholderCell, // Power Patch
-          placeholderCell, // Data Multi
-          placeholderCell, // Data Patch
-        ]);
-      }).toList(),
+          DataColumn(
+            label: Row(children: [
+              Icon(Icons.settings_input_svideo, color: Colors.blue, size: 16),
+              SizedBox(width: 4),
+              Text('Multi'),
+            ]),
+          ),
+          DataColumn(
+            label: Row(children: [
+              Icon(Icons.settings_input_svideo, color: Colors.blue, size: 16),
+              SizedBox(width: 4),
+              Text('Patch'),
+            ]),
+          ),
+        ],
+        rows: widget.vm.fixtures.values.mapIndexed((index, fixture) {
+          return DataRow(cells: [
+            DataCell(Text('${index + 1}')),
+            DataCell(Text(fixture.fid.toString())),
+            DataCell(
+              Text(fixture.type.name),
+            ),
+            DataCell(
+              Text(fixture.location),
+            ),
+            DataCell(
+              Text(fixture.type.amps.toString()),
+            ),
+            placeholderCell, // Power Multi
+            placeholderCell, // Power Patch
+            placeholderCell, // Data Multi
+            placeholderCell, // Data Patch
+          ]);
+        }).toList(),
+      ),
     );
   }
 }

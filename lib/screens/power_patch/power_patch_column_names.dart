@@ -6,4 +6,5 @@ class Columns {
   static const fixtureType = 'fixture-type';
   static const amps = 'amps';
   static const phaseNumber = 'phase-number';
+  static const location = 'location';
 }

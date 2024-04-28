@@ -38,6 +38,14 @@ class PowerOutletDataSource extends DataGridSource {
           DataGridCell<int>(
               columnName: Columns.phaseNumber, value: outlet.phase),
           DataGridCell<String>(
+            columnName: Columns.location,
+            value: outlet.child.fixtures.isNotEmpty
+                ? outlet.child.fixtures
+                    .map((fixture) => fixture.location)
+                    .join(', ')
+                : '',
+          ),
+          DataGridCell<String>(
               columnName: Columns.fixtureId,
               value: outlet.child.fixtures.isEmpty
                   ? ''

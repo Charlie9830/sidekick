@@ -9,5 +9,7 @@ abstract class BalancerBase {
   });
 
   List<PowerOutletModel> assignToOutlets(
-      List<PowerPatchModel> patches, List<PowerOutletModel> outlets);
+      {required List<PowerPatchModel> patches,
+      required List<PowerOutletModel> outlets,
+      double imbalanceTolerance});
 }

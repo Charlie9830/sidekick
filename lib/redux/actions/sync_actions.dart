@@ -25,3 +25,8 @@ class SelectPatchRow {
   SelectPatchRow(this.uid);
 }
 
+class SetBalanceTolerance {
+  final String value;
+
+  SetBalanceTolerance(this.value);
+}

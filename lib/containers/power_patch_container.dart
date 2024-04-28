@@ -22,9 +22,17 @@ class PowerPatchContainer extends StatelessWidget {
         return PowerPatchViewModel(
             patches: store.state.fixtureState.patches,
             outlets: store.state.fixtureState.outlets,
+            balanceTolerancePercent:
+                (store.state.fixtureState.balanceTolerance * 100)
+                    .round()
+                    .toString(),
+            onBalanceToleranceChanged: (newValue) =>
+                store.dispatch(SetBalanceTolerance(newValue)),
             onRowSelected: (uid) => store.dispatch(SelectPatchRow(uid)),
             onGeneratePatch: () => store.dispatch(generatePatch()),
-            onAddSpareOutlet: (index) => store.dispatch(addSpareOutlet(index)));
+            onAddSpareOutlet: (index) => store.dispatch(addSpareOutlet(index)),
+            onDeleteSpareOutlet: (index) =>
+                store.dispatch(deleteSpareOutlet(index)));
       },
     );
   }

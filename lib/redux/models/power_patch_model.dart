@@ -63,4 +63,14 @@ class PowerPatchModel {
 
   @override
   String toString() => 'PowerPatchModel(fixtures: $fixtures)';
+
+  int compareByFid(PowerPatchModel other) {
+    const maxInt = 0x7FFFFFFFFFFFFFFF;
+    //const minInt = -0x8000000000000000;
+
+    final a = fixtures.isEmpty ? maxInt : fixtures.first.fid;
+    final b = other.fixtures.isEmpty ? maxInt : other.fixtures.first.fid;
+
+    return a - b;
+  }
 }

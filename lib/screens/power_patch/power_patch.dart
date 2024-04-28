@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sidekick/screens/power_patch/balance_gauge.dart';
 import 'package:sidekick/screens/power_patch/power_outlet_data_source.dart';
 import 'package:sidekick/screens/power_patch/power_patch_column_names.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';
+import 'package:sidekick/widgets/property_field.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class PowerPatch extends StatefulWidget {
@@ -55,10 +57,11 @@ class _PowerPatchState extends State<PowerPatch> {
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       SizedBox(
-        height: 48,
+        height: 64,
         child: Card(
             child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             ElevatedButton.icon(
               icon: const Icon(Icons.cable),
@@ -69,6 +72,26 @@ class _PowerPatchState extends State<PowerPatch> {
                 icon: const Icon(Icons.add_circle),
                 onPressed: () =>
                     widget.vm.onAddSpareOutlet(_controller.selectedIndex)),
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () =>
+                  widget.vm.onDeleteSpareOutlet(_controller.selectedIndex),
+            ),
+            const VerticalDivider(
+              indent: 8,
+              endIndent: 8,
+            ),
+            const SizedBox(width: 16),
+            SizedBox(
+              width: 110,
+              child: PropertyField(
+                textAlign: TextAlign.center,
+                label: 'Balance Tolerance',
+                suffix: '%',
+                value: widget.vm.balanceTolerancePercent,
+                onBlur: widget.vm.onBalanceToleranceChanged,
+              ),
+            ),
             Expanded(
                 child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -124,6 +147,9 @@ class _PowerPatchState extends State<PowerPatch> {
         label: const Align(alignment: Alignment.center, child: Text('Phase')),
         columnWidthMode: ColumnWidthMode.fitByColumnName,
       ),
+      GridColumn(
+          columnName: Columns.location,
+          label: alignLeft(const Text('Location'))),
       GridColumn(
         columnName: Columns.fixtureId,
         label: alignLeft(const Text('Fixture #')),

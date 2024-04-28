@@ -1,6 +1,3 @@
-import 'dart:math';
-
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:sidekick/utils/electrical_equations.dart';
 
@@ -22,36 +19,61 @@ class BalanceGauge extends StatelessWidget {
       return const SizedBox();
     }
 
+    const divider = VerticalDivider(endIndent: 4, indent: 4);
+    final imbalanceRatio =
+        calculateImbalanceRatio(phaseALoad, phaseBLoad, phaseCLoad);
+    final imbalancePercent = (imbalanceRatio * 100).round();
+
     return Row(
       children: [
-        Text(
-            '${calculateNeutralCurrent(phaseALoad, phaseBLoad, phaseCLoad).floor()}A'),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: SizedBox(
-            height: 24,
-            width: 24,
-            child: CircularProgressIndicator(
-              value: calculateBalanceRatio(phaseALoad, phaseBLoad, phaseCLoad),
-              strokeWidth: 5,
-              backgroundColor: Colors.blue,
-              color: Colors.orange,
-            ),
-          ),
+        Text('${phaseALoad.round().toString()}A',
+            style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                  color: Colors.red,
+                )),
+        divider,
+        Text('${phaseBLoad.round().toString()}A',
+            style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                  color: Colors.white,
+                )),
+        divider,
+        Text('${phaseCLoad.round().toString()}A',
+            style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                  color: Colors.blueAccent,
+                )),
+        const SizedBox(width: 24),
+        FocusCard(
+          '${calculateNeutralCurrent(phaseALoad, phaseBLoad, phaseCLoad).floor()}A',
         ),
+        const SizedBox(width: 8),
+        FocusCard('${imbalancePercent.toString()}%'),
       ],
     );
   }
+}
 
-  double _selectGreatestDeviation(double a, double b, double c) {
-    if (a < b && a < c) {
-      return a;
-    }
+class FocusCard extends StatelessWidget {
+  final String text;
 
-    if (b < a && b < c) {
-      return b;
-    }
+  const FocusCard(
+    this.text, {
+    super.key,
+  });
 
-    return c;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: Alignment.center,
+      width: 60,
+      height: 32,
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        color: Theme.of(context).highlightColor,
+      ),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.titleLarge,
+        textAlign: TextAlign.center,
+      ),
+    );
   }
 }

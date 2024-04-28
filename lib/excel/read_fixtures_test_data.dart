@@ -23,33 +23,48 @@ Future<Map<String, FixtureModel>> readFixturesTestData(
 
   final sheet = excel.tables['Fixtures']!;
 
-  final list = sheet.rows.sublist(1).map((row) {
-    final int sequenceNumber = switch (row[0]) {
-      IntCellValue v => v.value,
-      _ => 0,
-    };
+  final list = sheet.rows
+      .sublist(1)
+      .map((row) {
+        final int sequenceNumber = switch (row[0]?.value) {
+          IntCellValue v => v.value,
+          TextCellValue v => int.tryParse(v.value.trim()) ?? 0,
+          _ => 0,
+        };
 
-    final int fixtureId = switch (row[1]?.value) {
-      IntCellValue v => v.value,
-      TextCellValue v => int.parse(v.value),
-      _ => 0,
-    };
+        if (sequenceNumber == 0) {
+          // Ignore the Row.
+          return null;
+        }
 
-    final String fixtureTypeName = switch (row[2]?.value) {
-      TextCellValue v => v.value.trim(),
-      _ => '',
-    };
+        final int fixtureId = switch (row[1]?.value) {
+          IntCellValue v => v.value,
+          TextCellValue v => int.parse(v.value),
+          _ => 0,
+        };
 
+        final String fixtureTypeName = switch (row[2]?.value) {
+          TextCellValue v => v.value.trim(),
+          _ => '',
+        };
 
-    final fixtureType =
-        fixtureTypes[fixtureTypeName] ?? const FixtureTypeModel.unknown();
+        final String location = switch (row[3]?.value) {
+          TextCellValue v => v.value.trim(),
+          _ => '',
+        };
 
-    return FixtureModel(
-      uid: getUid(),
-      fid: fixtureId,
-      type: fixtureType,
-    );
-  }).toList();
+        final fixtureType =
+            fixtureTypes[fixtureTypeName] ?? const FixtureTypeModel.unknown();
+
+        return FixtureModel(
+          uid: getUid(),
+          fid: fixtureId,
+          type: fixtureType,
+          location: location,
+        );
+      })
+      .nonNulls
+      .toList();
 
   return Map<String, FixtureModel>.fromEntries(
       list.map((fixture) => MapEntry(fixture.uid, fixture)));

@@ -20,6 +20,8 @@ ThunkAction<AppState> initializeApp() {
         path: testDataPath, fixtureTypes: fixtureTypes);
 
     store.dispatch(SetFixtures(fixtures));
+    store.dispatch(SetPowerPatches([]));
+    store.dispatch(SetPowerOutlets([]));
   };
 }
 
@@ -30,8 +32,11 @@ ThunkAction<AppState> generatePatch() {
     final powerPatches =
         balancer.generatePatches(fixtures: fixtures, maxAmpsPerCircuit: 16);
 
+    final multiOutletCount =
+        powerPatches.isEmpty ? 0 : (powerPatches.length / 6).round();
+
     final initialOutlets = List<PowerOutletModel>.generate(
-        96,
+        multiOutletCount * 6,
         (index) => PowerOutletModel(
               uid: getUid(),
               phase: getPhaseFromIndex(index),
@@ -39,10 +44,12 @@ ThunkAction<AppState> generatePatch() {
             ));
 
     final outlets = balancer.assignToOutlets(
-        powerPatches,
-        store.state.fixtureState.outlets.isNotEmpty
-            ? store.state.fixtureState.outlets
-            : initialOutlets);
+      patches: powerPatches,
+      outlets: store.state.fixtureState.outlets.isNotEmpty
+          ? store.state.fixtureState.outlets
+          : initialOutlets,
+      imbalanceTolerance: store.state.fixtureState.balanceTolerance,
+    );
 
     store.dispatch(SetPowerOutlets(outlets));
   };
@@ -59,14 +66,46 @@ ThunkAction<AppState> addSpareOutlet(int index) {
             phase: getPhaseFromIndex(index),
             child: PowerPatchModel.empty()));
 
-    final reIndexedOutlets = existingOutlets
-        .mapIndexed(
-            (index, outlet) => outlet.copyWith(phase: getPhaseFromIndex(index)))
-        .toList();
-
     final balancer = NaiveBalancer();
 
-    store.dispatch(SetPowerOutlets(balancer.assignToOutlets(
-        store.state.fixtureState.patches, reIndexedOutlets)));
+    store.dispatch(
+      SetPowerOutlets(
+        balancer.assignToOutlets(
+          patches: store.state.fixtureState.patches,
+          outlets: _reIndexOutletPhases(existingOutlets),
+          imbalanceTolerance: store.state.fixtureState.balanceTolerance,
+        ),
+      ),
+    );
   };
+}
+
+ThunkAction<AppState> deleteSpareOutlet(int index) {
+  return (Store<AppState> store) async {
+    final existingOutlets = store.state.fixtureState.outlets.toList();
+
+    if (existingOutlets.elementAtOrNull(index) == null ||
+        existingOutlets[index].isSpare == false) {
+      return;
+    }
+
+    existingOutlets.removeAt(index);
+    store.dispatch(
+      SetPowerOutlets(
+        NaiveBalancer().assignToOutlets(
+          patches: store.state.fixtureState.patches,
+          outlets: _reIndexOutletPhases(existingOutlets),
+          imbalanceTolerance: store.state.fixtureState.balanceTolerance,
+        ),
+      ),
+    );
+  };
+}
+
+List<PowerOutletModel> _reIndexOutletPhases(
+    Iterable<PowerOutletModel> outlets) {
+  return outlets
+      .mapIndexed(
+          (index, outlet) => outlet.copyWith(phase: getPhaseFromIndex(index)))
+      .toList();
 }
