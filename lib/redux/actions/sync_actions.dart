@@ -1,4 +1,5 @@
 import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/models/power_patch_model.dart';
 
@@ -35,4 +36,17 @@ class SetMaxSequenceBreak {
   final String value;
 
   SetMaxSequenceBreak(this.value);
+}
+
+class UpdateLocationMultiPrefix {
+  final String location;
+  final String newValue;
+
+  UpdateLocationMultiPrefix(this.location, this.newValue);
+}
+
+class CommitLocationPowerPatch {
+  final LocationModel location;
+
+  CommitLocationPowerPatch(this.location);
 }

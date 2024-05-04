@@ -16,6 +16,8 @@ class PowerPatchModel {
 
   bool get isEmpty => fixtures.isEmpty;
 
+  bool get isNotEmpty => fixtures.isNotEmpty;
+
   double get amps => fixtures
       .map((fixture) => fixture.type.amps)
       .fold(0, (value, element) => value + element);

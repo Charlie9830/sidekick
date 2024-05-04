@@ -14,7 +14,7 @@ class FixtureModel {
   final String dataMulti;
   final String dataPatch;
   final String powerMulti;
-  final String powerPatch;
+  final int powerPatch;
 
   FixtureModel({
     this.uid = '',
@@ -26,7 +26,7 @@ class FixtureModel {
     this.dataMulti = '',
     this.dataPatch = '',
     this.powerMulti = '',
-    this.powerPatch = '',
+    this.powerPatch = 0,
   });
 
   FixtureModel copyWith({
@@ -39,7 +39,7 @@ class FixtureModel {
     String? dataMulti,
     String? dataPatch,
     String? powerMulti,
-    String? powerPatch,
+    int? powerPatch,
   }) {
     return FixtureModel(
       uid: uid ?? this.uid,

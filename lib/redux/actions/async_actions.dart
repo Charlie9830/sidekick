@@ -8,8 +8,11 @@ import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/models/power_patch_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
+import 'package:sidekick/utils/get_multi_outlet_from_index.dart';
+import 'package:sidekick/utils/get_multi_patch_from_index.dart';
 import 'package:sidekick/utils/get_phase_from_index.dart';
 import 'package:sidekick/utils/get_uid.dart';
+import 'package:sidekick/utils/round_up_outlets_to_multi_break.dart';
 
 ThunkAction<AppState> initializeApp() {
   return (Store<AppState> store) async {
@@ -38,6 +41,8 @@ ThunkAction<AppState> generatePatch() {
         .mapIndexed((index, patch) => PowerOutletModel(
               uid: getUid(),
               child: patch,
+              multiOutlet: getMultiOutletFromIndex(index),
+              multiPatch: getMultiPatchFromIndex(index),
               phase: getPhaseFromIndex(index),
               isSpare: false,
             ))
@@ -63,6 +68,8 @@ ThunkAction<AppState> addSpareOutlet(int index) {
         PowerOutletModel(
             uid: getUid(),
             isSpare: true,
+            multiOutlet: getMultiOutletFromIndex(index),
+            multiPatch: getMultiPatchFromIndex(index),
             phase: getPhaseFromIndex(index),
             child: PowerPatchModel.empty()));
 
@@ -72,7 +79,8 @@ ThunkAction<AppState> addSpareOutlet(int index) {
       SetPowerOutlets(
         balancer.assignToOutlets(
           patches: store.state.fixtureState.patches,
-          outlets: _reIndexOutletPhases(existingOutlets),
+          outlets: _reIndexOutletPhases(
+              roundUpOutletsToNearestMultiBreak(existingOutlets)),
           imbalanceTolerance: store.state.fixtureState.balanceTolerance,
         ),
       ),
@@ -84,17 +92,25 @@ ThunkAction<AppState> deleteSpareOutlet(int index) {
   return (Store<AppState> store) async {
     final existingOutlets = store.state.fixtureState.outlets.toList();
 
-    if (existingOutlets.elementAtOrNull(index) == null ||
-        existingOutlets[index].isSpare == false) {
+    final outlet = existingOutlets.elementAtOrNull(index);
+
+    if (outlet == null || outlet.isSpare == false) {
       return;
     }
 
-    existingOutlets.removeAt(index);
+    existingOutlets[index] = outlet.copyWith(isSpare: false);
+
     store.dispatch(
       SetPowerOutlets(
         NaiveBalancer().assignToOutlets(
           patches: store.state.fixtureState.patches,
-          outlets: _reIndexOutletPhases(existingOutlets),
+          outlets: _reIndexOutletPhases(
+            // Heal the list back to the nearest upper multi break.
+            roundUpOutletsToNearestMultiBreak(
+              // Trim off any empty outlets on the end of the list.
+              _trimTrailingEmptyOutlets(existingOutlets),
+            ),
+          ),
           imbalanceTolerance: store.state.fixtureState.balanceTolerance,
         ),
       ),
@@ -105,7 +121,23 @@ ThunkAction<AppState> deleteSpareOutlet(int index) {
 List<PowerOutletModel> _reIndexOutletPhases(
     Iterable<PowerOutletModel> outlets) {
   return outlets
-      .mapIndexed(
-          (index, outlet) => outlet.copyWith(phase: getPhaseFromIndex(index)))
+      .mapIndexed((index, outlet) => outlet.copyWith(
+          multiOutlet: getMultiOutletFromIndex(index),
+          multiPatch: getMultiPatchFromIndex(index),
+          phase: getPhaseFromIndex(index)))
       .toList();
+}
+
+List<PowerOutletModel> _trimTrailingEmptyOutlets(
+    List<PowerOutletModel> existing) {
+  final lastUsedOutlet =
+      existing.lastWhereOrNull((element) => element.child.isNotEmpty);
+
+  if (lastUsedOutlet == null) {
+    return existing.toList();
+  }
+
+  final lastUsedIndex = existing.indexOf(lastUsedOutlet);
+
+  return existing.sublist(0, lastUsedIndex + 1);
 }

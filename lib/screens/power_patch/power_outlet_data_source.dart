@@ -19,21 +19,21 @@ class PowerOutletDataSource extends DataGridSource {
 
   List<DataGridRow> _mapRows(List<PowerOutletModel> outlets) {
     return outlets.mapIndexed((index, outlet) {
-      final multiOutlet = ((index + 1) / 6).ceil();
       final isFirstMultiOutletRow = _isNthRow(6, index);
-      final patchNumber = index + 1;
 
-      return DataGridRow(
+      return PowerOutletDataGridRow(
+        index: index,
+        drawBottomBorder: outlet.multiPatch == 6,
+        isSpare: outlet.isSpare,
         cells: [
-          DataGridCell<int>(
-              columnName: Columns.patchNumber, value: patchNumber),
+          DataGridCell<int>(columnName: Columns.patchNumber, value: index + 1),
           DataGridCell<String>(
             columnName: Columns.multiOutlet,
-            value: isFirstMultiOutletRow ? multiOutlet.toString() : '-',
+            value: isFirstMultiOutletRow ? outlet.multiOutlet.toString() : '-',
           ),
           DataGridCell<int>(
             columnName: Columns.multiCircuit,
-            value: _getMultiCircuit(patchNumber),
+            value: outlet.multiPatch,
           ),
           DataGridCell<int>(
               columnName: Columns.phaseNumber, value: outlet.phase),
@@ -69,17 +69,45 @@ class PowerOutletDataSource extends DataGridSource {
 
   @override
   DataGridRowAdapter? buildRow(DataGridRow row) {
+    if (row is! PowerOutletDataGridRow) {
+      throw "Row is not of type PowerOutletDataGridRow";
+    }
+
     return DataGridRowAdapter(
         cells: row.getCells().map<Widget>((e) {
-      if (e.columnName == Columns.phaseNumber) {
-        return PhaseIcon(phaseNumber: e.value as int);
+      Widget bottomBorder(Widget child) => row.drawBottomBorder
+          ? Container(
+              decoration: const BoxDecoration(
+                border:
+                    Border(bottom: BorderSide(color: Colors.grey, width: 1)),
+              ),
+              child: child,
+            )
+          : child;
+
+      if (e.columnName == Columns.patchNumber) {
+        return bottomBorder(Row(children: [
+          if (row.isSpare)
+            const Padding(
+              padding: EdgeInsets.only(left: 8.0, right: 8.0),
+              child: Icon(Icons.sports_martial_arts_outlined),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(e.value.toString()),
+          )
+        ]));
       }
 
-      return Container(
+      if (e.columnName == Columns.phaseNumber) {
+        return bottomBorder(PhaseIcon(phaseNumber: e.value as int));
+      }
+
+      return bottomBorder(Container(
         alignment: Alignment.centerLeft,
         padding: const EdgeInsets.all(8.0),
         child: Text(e.value.toString()),
-      );
+      ));
     }).toList());
   }
 
@@ -90,14 +118,17 @@ class PowerOutletDataSource extends DataGridSource {
 
     return index % nth == 0;
   }
+}
 
-  int _getMultiCircuit(int patchNumber) {
-    final circuitNumber = patchNumber % 6;
+class PowerOutletDataGridRow extends DataGridRow {
+  final int index;
+  final bool drawBottomBorder;
+  final bool isSpare;
 
-    if (circuitNumber == 0) {
-      return 6;
-    }
-
-    return circuitNumber;
-  }
+  PowerOutletDataGridRow({
+    required super.cells,
+    required this.isSpare,
+    required this.index,
+    required this.drawBottomBorder,
+  });
 }

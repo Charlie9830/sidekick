@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:sidekick/containers/loom_names_container.dart';
 import 'package:sidekick/containers/power_patch_container.dart';
 import 'package:sidekick/view_models/home_view_model.dart';
 
@@ -25,11 +26,11 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return DefaultTabController(
       animationDuration: Duration.zero,
-      length: 3,
+      length: 4,
       initialIndex: 0,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Sidekick'),
+          title: const Text("It's just a phase!"),
           primary: true,
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           bottom: const TabBar(
@@ -47,6 +48,10 @@ class _HomeState extends State<Home> {
                 Tab(
                     icon: Icon(Icons.settings_input_svideo),
                     child: Text('Patch')),
+                Tab(
+                  icon: Icon(Icons.label),
+                  child: Text('Labels'),
+                )
               ]),
         ),
         body: TabBarView(
@@ -55,6 +60,7 @@ class _HomeState extends State<Home> {
             _buildFixtureTable(context),
             const PowerPatchContainer(),
             const Text('Data Patch'),
+            const LoomNamesContainer(),
           ],
         ),
         floatingActionButton: FloatingActionButton(
@@ -120,8 +126,10 @@ class _HomeState extends State<Home> {
             DataCell(
               Text(fixture.type.amps.toString()),
             ),
-            placeholderCell, // Power Multi
-            placeholderCell, // Power Patch
+            DataCell(Text(fixture.powerMulti)), // Power Multi
+            DataCell(Text(
+              fixture.powerPatch == 0 ? '' : fixture.powerPatch.toString(),
+            )), // Power Patch
             placeholderCell, // Data Multi
             placeholderCell, // Data Patch
           ]);

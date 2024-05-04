@@ -8,7 +8,7 @@ class HomeScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Sidekick',
+        title: "It's just a Phase!",
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
               seedColor: Colors.indigoAccent, brightness: Brightness.dark),
