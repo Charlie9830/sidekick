@@ -58,6 +58,7 @@ Future<Map<String, FixtureModel>> readFixturesTestData(
 
         return FixtureModel(
           uid: getUid(),
+          sequence: sequenceNumber,
           fid: fixtureId,
           type: fixtureType,
           location: location,

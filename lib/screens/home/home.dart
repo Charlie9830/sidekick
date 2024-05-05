@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:sidekick/containers/export_container.dart';
 import 'package:sidekick/containers/loom_names_container.dart';
 import 'package:sidekick/containers/power_patch_container.dart';
 import 'package:sidekick/view_models/home_view_model.dart';
@@ -26,7 +27,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return DefaultTabController(
       animationDuration: Duration.zero,
-      length: 4,
+      length: 5,
       initialIndex: 0,
       child: Scaffold(
         appBar: AppBar(
@@ -51,6 +52,10 @@ class _HomeState extends State<Home> {
                 Tab(
                   icon: Icon(Icons.label),
                   child: Text('Labels'),
+                ),
+                Tab(
+                  icon: Icon(Icons.save_alt),
+                  child: Text('Export'),
                 )
               ]),
         ),
@@ -61,6 +66,7 @@ class _HomeState extends State<Home> {
             const PowerPatchContainer(),
             const Text('Data Patch'),
             const LoomNamesContainer(),
+            const ExportContainer(),
           ],
         ),
         floatingActionButton: FloatingActionButton(

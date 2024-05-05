@@ -352,14 +352,15 @@ class NaiveBalancer implements BalancerBase {
       final originIndexes =
           outlets.map((outlet) => sliceCopy.indexOf(outlet)).toList();
 
-      // Sort the outlets by the Fixture Id, then store them as a Queue (Using a queue saves us having to
+      // Sort the outlets by the Sequence Numebr, then store them as a Queue (Using a queue saves us having to
       // instantiate another variable for tracking the index).
-      final sortedByFid = Queue<PowerOutletModel>.from(
-          outlets.sorted((a, b) => a.child.compareByFid(b.child)).toList());
+      final sortedBySequenceNumber = Queue<PowerOutletModel>.from(outlets
+          .sorted((a, b) => a.child.compareBySequence(b.child))
+          .toList());
 
       // Iterate through the origin indexes.
       for (var originalIndex in originIndexes) {
-        final sourceOutlet = sortedByFid.removeFirst();
+        final sourceOutlet = sortedBySequenceNumber.removeFirst();
 
         // At the Original Index, swap in the new Child and isSpare flag.
         // We are pulling the SourceOutlet from the sortedByFID queue, which is... well sorted by FID.

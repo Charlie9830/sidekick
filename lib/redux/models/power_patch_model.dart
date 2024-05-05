@@ -75,4 +75,13 @@ class PowerPatchModel {
 
     return a - b;
   }
+
+  int compareBySequence(PowerPatchModel other) {
+    const maxInt = 0x7FFFFFFFFFFFFFFF;
+
+    final a = fixtures.isEmpty ? maxInt : fixtures.first.sequence;
+    final b = other.fixtures.isEmpty ? maxInt : other.fixtures.first.sequence;
+
+    return a - b;
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:sidekick/balancer/naive_balancer.dart';
@@ -13,10 +14,27 @@ import 'package:sidekick/utils/get_multi_patch_from_index.dart';
 import 'package:sidekick/utils/get_phase_from_index.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:sidekick/utils/round_up_outlets_to_multi_break.dart';
+import 'package:path/path.dart' as p;
+import 'package:clipboard/clipboard.dart';
+
+ThunkAction<AppState> copyPowerPatchToClipboard(BuildContext context) {
+  return (Store<AppState> store) async {
+    final String tab = String.fromCharCode(9);
+
+    final buffer = StringBuffer();
+
+    // Header Row
+    buffer.writeln('LoomID${tab}CHL${tab}Fixture${tab}Fix. No.${tab}Location');
+    
+    FlutterClipboard.copy(buffer.toString());
+  };
+}
 
 ThunkAction<AppState> initializeApp() {
   return (Store<AppState> store) async {
-    const String testDataPath = './test_data/fixtures.xlsx';
+    const String testDataDirectory = './test_data/';
+    const String testFileName = 'fixtures.xlsx';
+    final String testDataPath = p.join(testDataDirectory, testFileName);
 
     final fixtureTypes = await readFixtureTypeTestData(testDataPath);
     final fixtures = await readFixturesTestData(
