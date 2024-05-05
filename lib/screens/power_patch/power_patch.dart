@@ -26,25 +26,28 @@ class _PowerPatchState extends State<PowerPatch> {
   @override
   void initState() {
     _controller = DataGridController();
-    _dataSource = PowerOutletDataSource(outlets: widget.vm.outlets);
+    _dataSource = PowerOutletDataSource(widget.vm.rowViewModels);
 
     super.initState();
   }
 
   @override
   void didUpdateWidget(covariant PowerPatch oldWidget) {
-    if (oldWidget.vm.outlets != widget.vm.outlets) {
-      _dataSource.update(widget.vm.outlets);
+    if (oldWidget.vm.rowViewModels != widget.vm.rowViewModels) {
+      _dataSource.update(widget.vm.rowViewModels);
 
-      _phaseALoad = (widget.vm.outlets
+      final outlets =
+          widget.vm.rowViewModels.map((rowVm) => rowVm.outlet).toList();
+
+      _phaseALoad = (outlets
           .where((outlet) => outlet.phase == 1)
           .map((outlet) => outlet.child.amps)
           .fold(0, (prev, value) => prev + value));
-      _phaseBLoad = (widget.vm.outlets
+      _phaseBLoad = (outlets
           .where((outlet) => outlet.phase == 2)
           .map((outlet) => outlet.child.amps)
           .fold(0, (prev, value) => prev + value));
-      _phaseCLoad = (widget.vm.outlets
+      _phaseCLoad = (outlets
           .where((outlet) => outlet.phase == 3)
           .map((outlet) => outlet.child.amps)
           .fold(0, (prev, value) => prev + value));

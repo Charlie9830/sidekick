@@ -1,6 +1,6 @@
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/models/power_patch_model.dart';
-import 'package:sidekick/utils/get_multi_outlet_from_index.dart';
+
 import 'package:sidekick/utils/get_multi_patch_from_index.dart';
 import 'package:sidekick/utils/get_phase_from_index.dart';
 import 'package:sidekick/utils/get_uid.dart';
@@ -25,7 +25,8 @@ List<PowerOutletModel> roundUpOutletsToNearestMultiBreak(
       (index) => PowerOutletModel(
             uid: getUid(),
             child: PowerPatchModel.empty(),
-            multiOutlet: getMultiOutletFromIndex(outletCount - 1 + index),
+            multiOutletId:
+                '', // TODO: This likely needs to lookup an actual value,
             multiPatch: getMultiPatchFromIndex(outletCount - 1 + index),
             phase: getPhaseFromIndex(outletCount - 1 + index),
           ));

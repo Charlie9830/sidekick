@@ -1,8 +1,5 @@
 import 'dart:convert';
-
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
-
 import 'package:sidekick/redux/models/fixture_model.dart';
 
 class PowerPatchModel {
@@ -68,7 +65,6 @@ class PowerPatchModel {
 
   int compareByFid(PowerPatchModel other) {
     const maxInt = 0x7FFFFFFFFFFFFFFF;
-    //const minInt = -0x8000000000000000;
 
     final a = fixtures.isEmpty ? maxInt : fixtures.first.fid;
     final b = other.fixtures.isEmpty ? maxInt : other.fixtures.first.fid;

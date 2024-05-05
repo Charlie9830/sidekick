@@ -13,7 +13,7 @@ List<FixtureModel> getMockFixtures() {
     mode: FixtureModeModel(name: 'default'),
     dataMulti: '',
     dataPatch: '',
-    location: '',
+    locationId: '',
     powerMulti: '',
     powerPatch: 0,
     fid: 1,

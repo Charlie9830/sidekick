@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:sidekick/redux/models/dmx_address_model.dart';
 import 'package:sidekick/redux/models/fixture_mode_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
+import 'package:sidekick/redux/models/location_model.dart';
 
 class FixtureModel {
   final String uid;
@@ -11,7 +12,7 @@ class FixtureModel {
   final DMXAddressModel dmxAddress;
   final FixtureTypeModel type;
   final FixtureModeModel mode;
-  final String location;
+  final String locationId;
   final String dataMulti;
   final String dataPatch;
   final String powerMulti;
@@ -24,12 +25,16 @@ class FixtureModel {
     this.dmxAddress = const DMXAddressModel.unknown(),
     this.type = const FixtureTypeModel.unknown(),
     this.mode = const FixtureModeModel.unknown(),
-    this.location = '',
+    this.locationId = '',
     this.dataMulti = '',
     this.dataPatch = '',
     this.powerMulti = '',
     this.powerPatch = 0,
   });
+
+  LocationModel lookupLocation(Map<String, LocationModel> locations) {
+    return locations[locationId] ?? const LocationModel.none();
+  }
 
   FixtureModel copyWith({
     String? uid,
@@ -38,7 +43,7 @@ class FixtureModel {
     DMXAddressModel? dmxAddress,
     FixtureTypeModel? type,
     FixtureModeModel? mode,
-    String? location,
+    String? locationId,
     String? dataMulti,
     String? dataPatch,
     String? powerMulti,
@@ -51,7 +56,7 @@ class FixtureModel {
       dmxAddress: dmxAddress ?? this.dmxAddress,
       type: type ?? this.type,
       mode: mode ?? this.mode,
-      location: location ?? this.location,
+      locationId: locationId ?? this.locationId,
       dataMulti: dataMulti ?? this.dataMulti,
       dataPatch: dataPatch ?? this.dataPatch,
       powerMulti: powerMulti ?? this.powerMulti,
@@ -67,7 +72,7 @@ class FixtureModel {
       'dmxAddress': dmxAddress.toMap(),
       'type': type.toMap(),
       'mode': mode.toMap(),
-      'location': location,
+      'locationId': locationId,
       'dataMulti': dataMulti,
       'dataPatch': dataPatch,
       'powerMulti': powerMulti,
@@ -83,7 +88,7 @@ class FixtureModel {
       dmxAddress: DMXAddressModel.fromMap(map['dmxAddress']),
       type: FixtureTypeModel.fromMap(map['type']),
       mode: FixtureModeModel.fromMap(map['mode']),
-      location: map['location'] ?? '',
+      locationId: map['locationId'] ?? '',
       dataMulti: map['dataMulti'] ?? '',
       dataPatch: map['dataPatch'] ?? '',
       powerMulti: map['powerMulti'] ?? '',
@@ -98,7 +103,7 @@ class FixtureModel {
 
   @override
   String toString() {
-    return 'FixtureModel(uid: $uid, fid: $fid, sequence: $sequence, dmxAddress: $dmxAddress, type: $type, mode: $mode, location: $location, dataMulti: $dataMulti, dataPatch: $dataPatch, powerMulti: $powerMulti, powerPatch: $powerPatch)';
+    return 'FixtureModel(uid: $uid, fid: $fid, sequence: $sequence, dmxAddress: $dmxAddress, type: $type, mode: $mode, locationId: $locationId, dataMulti: $dataMulti, dataPatch: $dataPatch, powerMulti: $powerMulti, powerPatch: $powerPatch)';
   }
 
   @override
@@ -112,7 +117,7 @@ class FixtureModel {
         other.dmxAddress == dmxAddress &&
         other.type == type &&
         other.mode == mode &&
-        other.location == location &&
+        other.locationId == locationId &&
         other.dataMulti == dataMulti &&
         other.dataPatch == dataPatch &&
         other.powerMulti == powerMulti &&
@@ -127,7 +132,7 @@ class FixtureModel {
         dmxAddress.hashCode ^
         type.hashCode ^
         mode.hashCode ^
-        location.hashCode ^
+        locationId.hashCode ^
         dataMulti.hashCode ^
         dataPatch.hashCode ^
         powerMulti.hashCode ^

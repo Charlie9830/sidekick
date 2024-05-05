@@ -1,15 +1,17 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/screens/power_patch/phase_icon.dart';
 import 'package:sidekick/screens/power_patch/power_patch_column_names.dart';
+import 'package:sidekick/view_models/power_patch_row_view_model.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class PowerOutletDataSource extends DataGridSource {
   List<DataGridRow> _rows = [];
 
-  PowerOutletDataSource({required List<PowerOutletModel> outlets}) {
-    _rows = _mapRows(outlets);
+  PowerOutletDataSource(
+    List<PowerPatchRowViewModel> rowVms,
+  ) {
+    _rows = _mapRows(rowVms);
   }
 
   @override
@@ -17,54 +19,53 @@ class PowerOutletDataSource extends DataGridSource {
 
   PowerOutletDataSource.initial() : _rows = [];
 
-  List<DataGridRow> _mapRows(List<PowerOutletModel> outlets) {
-    return outlets.mapIndexed((index, outlet) {
+  List<DataGridRow> _mapRows(List<PowerPatchRowViewModel> rowVms) {
+    return rowVms.mapIndexed((index, vm) {
       final isFirstMultiOutletRow = _isNthRow(6, index);
 
       return PowerOutletDataGridRow(
         index: index,
-        drawBottomBorder: outlet.multiPatch == 6,
-        isSpare: outlet.isSpare,
+        drawBottomBorder: vm.outlet.multiPatch == 6,
+        isSpare: vm.outlet.isSpare,
         cells: [
           DataGridCell<int>(columnName: Columns.patchNumber, value: index + 1),
           DataGridCell<String>(
             columnName: Columns.multiOutlet,
-            value: isFirstMultiOutletRow ? outlet.multiOutlet.toString() : '-',
+            value: isFirstMultiOutletRow ? vm.multiOutlet.name : '-',
           ),
           DataGridCell<int>(
             columnName: Columns.multiCircuit,
-            value: outlet.multiPatch,
+            value: vm.outlet.multiPatch,
           ),
           DataGridCell<int>(
-              columnName: Columns.phaseNumber, value: outlet.phase),
+              columnName: Columns.phaseNumber, value: vm.outlet.phase),
           DataGridCell<String>(
             columnName: Columns.location,
-            value: outlet.child.fixtures.isNotEmpty
-                ? outlet.child.fixtures.first.location
-                : '',
+            value: vm.location.name,
           ),
           DataGridCell<String>(
               columnName: Columns.fixtureId,
-              value: outlet.child.fixtures.isEmpty
+              value: vm.outlet.child.fixtures.isEmpty
                   ? ''
-                  : outlet.child.fixtures
+                  : vm.outlet.child.fixtures
                       .map((fixture) => fixture.fid)
                       .join(', ')),
           DataGridCell<String>(
               columnName: Columns.fixtureType,
-              value: outlet.child.fixtures.isEmpty
+              value: vm.outlet.child.fixtures.isEmpty
                   ? ''
-                  : outlet.child.fixtures.first.type.name),
+                  : vm.outlet.child.fixtures.first.type.name),
           DataGridCell<double>(
-              columnName: Columns.amps, value: outlet.child.amps),
+              columnName: Columns.amps, value: vm.outlet.child.amps),
         ],
       );
     }).toList();
   }
 
-  void update(List<PowerOutletModel> outlet) {
+  void update(List<PowerPatchRowViewModel> rowVms) {
+    // TODO Maybe a performance issue here. Clearing and recreating the entire collection.
     _rows.clear();
-    _rows.addAll(_mapRows(outlet));
+    _rows.addAll(_mapRows(rowVms));
   }
 
   @override

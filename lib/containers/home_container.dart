@@ -20,6 +20,7 @@ class HomeContainer extends StatelessWidget {
       converter: (Store<AppState> store) {
         return HomeViewModel(
             fixtures: store.state.fixtureState.fixtures,
+            locations: store.state.fixtureState.locations,
             onAppInitialize: () => store.dispatch(initializeApp()));
       },
     );

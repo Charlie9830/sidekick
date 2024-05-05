@@ -11,27 +11,28 @@ import 'package:sidekick/utils/round_up_to_nearest_multi_break.dart';
 
 const int _maxAttempts = 3;
 
-class NaiveBalancer implements BalancerBase {
+class NaiveBalancer implements Balancer {
   @override
-  List<PowerPatchModel> generatePatches({
+  Map<String, List<PowerPatchModel>> generatePatches({
     required List<FixtureModel> fixtures,
     required double maxAmpsPerCircuit,
     int maxSequenceBreak = 4,
   }) {
-    final fixturesByLocation =
-        fixtures.groupListsBy((fixture) => fixture.location);
+    final fixturesByLocationId =
+        fixtures.groupListsBy((fixture) => fixture.locationId);
 
-    final patchesByLocation = fixturesByLocation.map((location, fixtures) {
+    final patchesByLocationId =
+        fixturesByLocationId.map((locationId, fixtures) {
       return MapEntry(
-          location, performPiggybacking(fixtures, maxSequenceBreak));
+          locationId, performPiggybacking(fixtures, maxSequenceBreak));
     });
 
-    final gapFilledPatchesByLocation =
-        patchesByLocation.map((location, patches) {
+    final gapFilledPatchesByLocationId =
+        patchesByLocationId.map((locationId, patches) {
       final desiredNumberOfPatches = roundUpToNearestMultiBreak(patches.length);
 
       if (patches.length == desiredNumberOfPatches) {
-        return MapEntry(location, patches);
+        return MapEntry(locationId, patches);
       }
 
       if (patches.length > desiredNumberOfPatches) {
@@ -42,64 +43,73 @@ class NaiveBalancer implements BalancerBase {
       final gapFillers = List<PowerPatchModel>.generate(
           difference, (index) => PowerPatchModel.empty());
 
-      return MapEntry(location, patches.toList()..addAll(gapFillers));
+      return MapEntry(locationId, patches.toList()..addAll(gapFillers));
     });
 
-    return gapFilledPatchesByLocation.values.expand((i) => i).toList();
+    return gapFilledPatchesByLocationId;
   }
 
   @override
-  List<PowerOutletModel> assignToOutlets({
-    required List<PowerPatchModel> patches,
+  Map<String, List<PowerOutletModel>> assignToOutlets({
+    required Map<String, List<PowerPatchModel>> patchesByLocationId,
     required List<PowerOutletModel> outlets,
     double imbalanceTolerance = 0.1,
   }) {
-    // Slice the list of Outlets up into 6 (Socapex Ammount). Then "massage" each slice to get as close to
-    // balanced as we can.
-    final outletSlices = outlets.slices(6);
-    final patchesQueue = Queue.from(patches);
-
     // Instantiate some variables to track our total load by phase as we iterate through and balance each slice.
     // Each slice gets balanced with respect to the Slices before it.
+    // TODO: These should probably be moved outside the method and provided as Parameters so we can keep tracking of
+    // phase load across independant calls to this method.
     double phaseARunningTotal = 0;
     double phaseBRunningTotal = 0;
     double phaseCRunningTotal = 0;
 
-    final rawSlices = outletSlices.mapIndexed((index, slice) {
-      // Pre assign Patches to Outlets. But only if the outlet is not a spare and we have
-      // patches available.
-      final populatedOutlets = slice.map((outlet) {
-        if (outlet.isSpare || patchesQueue.isEmpty) {
-          return outlet;
-        }
+    return Map<String, List<PowerOutletModel>>.fromEntries(
+        patchesByLocationId.entries.map((entry) {
+      final locationId = entry.key;
+      final patches = entry.value;
 
-        return outlet.copyWith(child: patchesQueue.removeFirst());
+      // Slice the list of Outlets up into 6 (Socapex Ammount). Then "massage" each slice to get as close to
+      // balanced as we can.
+      final outletSlices = outlets.slices(6);
+      final patchesQueue = Queue.from(patches);
+
+      final rawSlices = outletSlices.mapIndexed((index, slice) {
+        // Pre assign Patches to Outlets. But only if the outlet is not a spare and we have
+        // patches available.
+        final populatedOutlets = slice.map((outlet) {
+          if (outlet.isSpare || patchesQueue.isEmpty) {
+            return outlet;
+          }
+
+          return outlet.copyWith(child: patchesQueue.removeFirst());
+        }).toList();
+
+        final balancedSlice = _balanceSlice(
+          populatedOutlets.toList(),
+          imbalanceTolerance: imbalanceTolerance,
+          currentPhaseALoad: phaseARunningTotal,
+          currentPhaseBLoad: phaseBRunningTotal,
+          currentPhaseCLoad: phaseCRunningTotal,
+        );
+
+        // Update the running Phase Totals.
+        phaseARunningTotal = _calculateNewRunningPhaseTotal(
+            balancedSlice, 1, phaseARunningTotal);
+        phaseBRunningTotal = _calculateNewRunningPhaseTotal(
+            balancedSlice, 2, phaseBRunningTotal);
+        phaseCRunningTotal = _calculateNewRunningPhaseTotal(
+            balancedSlice, 3, phaseCRunningTotal);
+
+        // Before we return this slice. Ensure that we have a good FID ordering.
+        // We do this in 2 passes. Maybe the second pass [_assertInterPhaseNumericOrdering] is redundant.
+        // TODO: This should use Sequence number instead of Fixture Id.
+        return _assertInterPhaseNumericOrdering(
+          _assertCrossPhaseNumericOrdering(balancedSlice),
+        );
       }).toList();
 
-      final balancedSlice = _balanceSlice(
-        populatedOutlets.toList(),
-        imbalanceTolerance: imbalanceTolerance,
-        currentPhaseALoad: phaseARunningTotal,
-        currentPhaseBLoad: phaseBRunningTotal,
-        currentPhaseCLoad: phaseCRunningTotal,
-      );
-
-      // Update the running Phase Totals.
-      phaseARunningTotal =
-          _calculateNewRunningPhaseTotal(balancedSlice, 1, phaseARunningTotal);
-      phaseBRunningTotal =
-          _calculateNewRunningPhaseTotal(balancedSlice, 2, phaseBRunningTotal);
-      phaseCRunningTotal =
-          _calculateNewRunningPhaseTotal(balancedSlice, 3, phaseCRunningTotal);
-
-      // Before we return this slice. Ensure that we have a good FID ordering.
-      // We do this in 2 passes. Maybe the second pass [_assertInterPhaseNumericOrdering] is redundant.
-      return _assertInterPhaseNumericOrdering(
-        _assertCrossPhaseNumericOrdering(balancedSlice),
-      );
-    }).toList();
-
-    return rawSlices.expand((slice) => slice).toList();
+      return MapEntry(locationId, rawSlices.expand((slice) => slice).toList());
+    }));
   }
 
   double _calculateNewRunningPhaseTotal(

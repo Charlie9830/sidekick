@@ -127,7 +127,7 @@ class _HomeState extends State<Home> {
               Text(fixture.type.name),
             ),
             DataCell(
-              Text(fixture.location),
+              Text(fixture.lookupLocation(widget.vm.locations).name),
             ),
             DataCell(
               Text(fixture.type.amps.toString()),

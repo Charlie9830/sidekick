@@ -1,9 +1,9 @@
-import 'package:sidekick/redux/models/power_outlet_model.dart';
-import 'package:sidekick/redux/models/power_patch_model.dart';
+import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
+import 'package:sidekick/view_models/power_patch_row_view_model.dart';
 
 class PowerPatchViewModel {
-  final List<PowerPatchModel> patches;
-  final List<PowerOutletModel> outlets;
+  final List<PowerPatchRowViewModel> rowViewModels;
   final String balanceTolerancePercent;
   final int maxSequenceBreak;
 
@@ -16,8 +16,7 @@ class PowerPatchViewModel {
 
   PowerPatchViewModel({
     required this.balanceTolerancePercent,
-    required this.patches,
-    required this.outlets,
+    required this.rowViewModels,
     required this.onGeneratePatch,
     required this.onRowSelected,
     required this.onAddSpareOutlet,

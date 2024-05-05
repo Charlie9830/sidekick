@@ -1,6 +1,5 @@
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/power_patch_model.dart';
-import 'package:sidekick/utils/get_uid.dart';
 
 ///
 /// Given a list of [FixtureModel]'s, will return a List of [PowerPatchModel] with the fixtures

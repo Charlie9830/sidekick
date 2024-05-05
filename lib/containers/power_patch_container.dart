@@ -3,8 +3,11 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
+import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/power_patch/power_patch.dart';
+import 'package:sidekick/view_models/power_patch_row_view_model.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';
 
 class PowerPatchContainer extends StatelessWidget {
@@ -20,10 +23,10 @@ class PowerPatchContainer extends StatelessWidget {
       },
       converter: (Store<AppState> store) {
         return PowerPatchViewModel(
-            patches: store.state.fixtureState.patches,
-            outlets: store.state.fixtureState.outlets,
+            rowViewModels: _selectRowViewModels(store),
             maxSequenceBreak: store.state.fixtureState.maxSequenceBreak,
-            onMaxSequenceBreakChanged: (newValue) => store.dispatch(SetMaxSequenceBreak(newValue)),
+            onMaxSequenceBreakChanged: (newValue) =>
+                store.dispatch(SetMaxSequenceBreak(newValue)),
             balanceTolerancePercent:
                 (store.state.fixtureState.balanceTolerance * 100)
                     .round()
@@ -37,5 +40,23 @@ class PowerPatchContainer extends StatelessWidget {
                 store.dispatch(deleteSpareOutlet(index)));
       },
     );
+  }
+
+  List<PowerPatchRowViewModel> _selectRowViewModels(Store<AppState> store) {
+    return store.state.fixtureState.outlets.map((outlet) {
+      final multiOutlet =
+          store.state.fixtureState.powerMultiOutlets[outlet.multiOutletId] ??
+              const PowerMultiOutletModel.none();
+
+      final location =
+          store.state.fixtureState.locations[multiOutlet.locationId] ??
+              const LocationModel.none();
+
+      return PowerPatchRowViewModel(
+        outlet: outlet,
+        multiOutlet: multiOutlet,
+        location: location,
+      );
+    }).toList();
   }
 }
