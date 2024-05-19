@@ -131,24 +131,109 @@ class LocationModel {
 
   static String matchMultiPrefix(String locationName) {
     final lookup = <RegExp, String>{
+      // Colors
       RegExp('red', caseSensitive: false): 'R',
       RegExp('white', caseSensitive: false): 'W',
       RegExp('blue', caseSensitive: false): 'B',
       RegExp('green', caseSensitive: false): 'G',
       RegExp('brown', caseSensitive: false): 'BRN',
       RegExp('purple', caseSensitive: false): 'P',
+      
+      // LX's
       RegExp('LX1', caseSensitive: false): 'LX1',
       RegExp('LX2', caseSensitive: false): 'LX2',
       RegExp('LX3', caseSensitive: false): 'LX3',
       RegExp('LX4', caseSensitive: false): 'LX4',
       RegExp('LX5', caseSensitive: false): 'LX5',
       RegExp('LX6', caseSensitive: false): 'LX6',
+      RegExp('LX7', caseSensitive: false): 'LX7',
+      RegExp('LX8', caseSensitive: false): 'LX8',
+
+      // Directions
+      RegExp('SR ', caseSensitive: false): 'SR',
+      RegExp('SL ', caseSensitive: false): 'SL',
+
+      // Alpha Numerics
       RegExp('A ', caseSensitive: false): 'A',
       RegExp('B ', caseSensitive: false): 'B',
       RegExp('C ', caseSensitive: false): 'C',
       RegExp('D ', caseSensitive: false): 'D',
-      RegExp('SR ', caseSensitive: false): 'SR',
-      RegExp('SL ', caseSensitive: false): 'SL',
+      RegExp('E ', caseSensitive: false): 'E',
+      RegExp('F ', caseSensitive: false): 'F',
+      RegExp('G ', caseSensitive: false): 'G',
+      RegExp('H ', caseSensitive: false): 'H',
+
+      // Fingers
+      RegExp('Finger.*1', caseSensitive: false): 'F1.',
+      RegExp('Finger.*2', caseSensitive: false): 'F2.',
+      RegExp('Finger.*3', caseSensitive: false): 'F3.',
+      RegExp('Finger.*4', caseSensitive: false): 'F4.',
+      RegExp('Finger.*5', caseSensitive: false): 'F5.',
+      RegExp('Finger.*6', caseSensitive: false): 'F6.',
+      RegExp('Finger.*7', caseSensitive: false): 'F7.',
+      RegExp('Finger.*8', caseSensitive: false): 'F8.',
+      RegExp('Finger.*9', caseSensitive: false): 'F9.',
+      RegExp('Finger.*10', caseSensitive: false): 'F10.',
+      RegExp('Finger.*11', caseSensitive: false): 'F11.',
+      RegExp('Finger.*12', caseSensitive: false): 'F12.',
+      RegExp('Finger.*13', caseSensitive: false): 'F13.',
+      RegExp('Finger.*14', caseSensitive: false): 'F14.',
+      RegExp('Finger.*15', caseSensitive: false): 'F15.',
+      RegExp('Finger.*16', caseSensitive: false): 'F16.',
+
+      // Numeric Verticals
+      RegExp('Vert.*1', caseSensitive: false): 'V1.',
+      RegExp('Vert.*2', caseSensitive: false): 'V2.',
+      RegExp('Vert.*3', caseSensitive: false): 'V3.',
+      RegExp('Vert.*4', caseSensitive: false): 'V4.',
+      RegExp('Vert.*5', caseSensitive: false): 'V5.',
+      RegExp('Vert.*6', caseSensitive: false): 'V6.',
+      RegExp('Vert.*7', caseSensitive: false): 'V7.',
+      RegExp('Vert.*8', caseSensitive: false): 'V8.',
+      RegExp('Vert.*9', caseSensitive: false): 'V9.',
+      RegExp('Vert.*10', caseSensitive: false): 'V10.',
+      RegExp('Vert.*11', caseSensitive: false): 'V11.',
+      RegExp('Vert.*12', caseSensitive: false): 'V12.',
+
+      // Numeric Towers
+      RegExp('Tower.*1', caseSensitive: false): 'T1.',
+      RegExp('Tower.*2', caseSensitive: false): 'T2.',
+      RegExp('Tower.*3', caseSensitive: false): 'T3.',
+      RegExp('Tower.*4', caseSensitive: false): 'T4.',
+      RegExp('Tower.*5', caseSensitive: false): 'T5.',
+      RegExp('Tower.*6', caseSensitive: false): 'T6.',
+      RegExp('Tower.*7', caseSensitive: false): 'T7.',
+      RegExp('Tower.*8', caseSensitive: false): 'T8.',
+      RegExp('Tower.*9', caseSensitive: false): 'T9.',
+      RegExp('Tower.*10', caseSensitive: false): 'T10.',
+      RegExp('Tower.*11', caseSensitive: false): 'T11.',
+      RegExp('Tower.*12', caseSensitive: false): 'T12.',
+
+      // Numeric Trusses
+      RegExp('Truss.*1', caseSensitive: false): 'T1.',
+      RegExp('Truss.*2', caseSensitive: false): 'T2.',
+      RegExp('Truss.*3', caseSensitive: false): 'T3.',
+      RegExp('Truss.*4', caseSensitive: false): 'T4.',
+      RegExp('Truss.*5', caseSensitive: false): 'T5.',
+      RegExp('Truss.*6', caseSensitive: false): 'T6.',
+      RegExp('Truss.*7', caseSensitive: false): 'T7.',
+      RegExp('Truss.*8', caseSensitive: false): 'T8.',
+      RegExp('Truss.*9', caseSensitive: false): 'T9.',
+      RegExp('Truss.*10', caseSensitive: false): 'T10.',
+      RegExp('Truss.*11', caseSensitive: false): 'T11.',
+      RegExp('Truss.*12', caseSensitive: false): 'T12.',
+      RegExp('Truss.*13', caseSensitive: false): 'T13.',
+      RegExp('Truss.*14', caseSensitive: false): 'T14.',
+      RegExp('Truss.*15', caseSensitive: false): 'T15.',
+      RegExp('Truss.*16', caseSensitive: false): 'T16.',
+      RegExp('Truss.*17', caseSensitive: false): 'T17.',
+      RegExp('Truss.*18', caseSensitive: false): 'T18.',
+      RegExp('Truss.*19', caseSensitive: false): 'T19.',
+      RegExp('Truss.*20', caseSensitive: false): 'T20.',
+      RegExp('Truss.*21', caseSensitive: false): 'T21.',
+      RegExp('Truss.*22', caseSensitive: false): 'T22.',
+      RegExp('Truss.*23', caseSensitive: false): 'T23.',
+      RegExp('Truss.*24', caseSensitive: false): 'T24.',
     };
 
     final key =

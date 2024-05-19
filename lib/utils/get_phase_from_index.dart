@@ -1,17 +1,13 @@
 int getPhaseFromIndex(int index) {
-  if (index == 0) {
-    return 1;
-  }
-
-  if (index == 1) {
-    return 2;
-  }
-
-  if (index == 2) {
-    return 3;
-  }
-
-  return _dumbSearch(index + 1);
+  return switch (index) {
+    0 => 1,
+    1 => 2,
+    2 => 3,
+    3 => 1,
+    4 => 2,
+    5 => 3,
+    _ => _dumbSearch(index + 1)
+  };
 }
 
 int _dumbSearch(int outletNumber) {

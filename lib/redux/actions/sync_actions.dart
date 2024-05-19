@@ -2,7 +2,12 @@ import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
-import 'package:sidekick/redux/models/power_patch_model.dart';
+
+class SetSelectedMultiOutlet {
+  final String uid;
+
+  SetSelectedMultiOutlet(this.uid);
+}
 
 class SetFixtures {
   final Map<String, FixtureModel> fixtures;
@@ -12,12 +17,6 @@ class SetFixtures {
 class SetLocations {
   final Map<String, LocationModel> locations;
   SetLocations(this.locations);
-}
-
-class SetPowerPatches {
-  final List<PowerPatchModel> patches;
-
-  SetPowerPatches(this.patches);
 }
 
 class SetPowerMultiOutlets {

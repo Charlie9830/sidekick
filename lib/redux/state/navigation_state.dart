@@ -1,9 +1,15 @@
 class NavigationState {
-  NavigationState();
+  final String selectedMultiOutlet;
 
-  NavigationState.initial();
+  NavigationState({required this.selectedMultiOutlet});
 
-  NavigationState copyWith() {
-    return NavigationState();
+  NavigationState.initial() : selectedMultiOutlet = "";
+
+  NavigationState copyWith({
+    String? selectedMultiOutlet,
+  }) {
+    return NavigationState(
+      selectedMultiOutlet: selectedMultiOutlet ?? this.selectedMultiOutlet,
+    );
   }
 }

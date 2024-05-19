@@ -3,19 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:sidekick/balancer/naive_balancer.dart';
+import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/excel/read_fixture_type_test_data.dart';
 import 'package:sidekick/excel/read_fixtures_test_data.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
-import 'package:sidekick/redux/models/power_patch_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
-import 'package:sidekick/utils/get_multi_outlet_from_index.dart';
-import 'package:sidekick/utils/get_multi_patch_from_index.dart';
-import 'package:sidekick/utils/get_phase_from_index.dart';
-import 'package:sidekick/utils/get_uid.dart';
-import 'package:sidekick/utils/round_up_outlets_to_multi_break.dart';
 import 'package:path/path.dart' as p;
 import 'package:clipboard/clipboard.dart';
 
@@ -45,8 +40,8 @@ ThunkAction<AppState> initializeApp() {
 
     store.dispatch(SetFixtures(fixtures));
     store.dispatch(SetLocations(locations));
-    store.dispatch(SetPowerPatches([]));
     store.dispatch(SetPowerOutlets([]));
+    store.dispatch(SetPowerMultiOutlets({}));
   };
 }
 
@@ -55,184 +50,121 @@ ThunkAction<AppState> generatePatch() {
     final fixtures = store.state.fixtureState.fixtures.values.toList();
     final balancer = NaiveBalancer();
 
-    final powerPatchesByLocationId = balancer.generatePatches(
+    final unbalancedMultiOutlets = balancer.assignToOutlets(
       fixtures: fixtures,
-      maxAmpsPerCircuit: 16,
+      multiOutlets: store.state.fixtureState.powerMultiOutlets.values.toList(),
       maxSequenceBreak: store.state.fixtureState.maxSequenceBreak,
     );
 
-    final multiOutlets = store.state.fixtureState.powerMultiOutlets.isNotEmpty
-        ? store.state.fixtureState.powerMultiOutlets.values
-        : powerPatchesByLocationId.entries.mapIndexed((index, entry) {
-            final locationId = entry.key;
-            final patchQty = entry.value.length;
+    final balancedMultiOutlets = _balanceOutlets(unbalancedMultiOutlets,
+        balancer, store.state.fixtureState.balanceTolerance);
 
-            if (patchQty % 6 != 0) {
-              throw "Something has gone wrong. PatchQty should be a multiple of 6, as we should have gap filled patches to a multiple of 6 by now.";
-            }
-
-            final desiredMultiQty = patchQty ~/ 6;
-
-            final multiOutlets = List<PowerMultiOutletModel>.generate(
-                desiredMultiQty,
-                (multiIndex) => PowerMultiOutletModel(
-                    uid: getUid(),
-                    locationId: locationId,
-                    name: PowerMultiOutletModel.getName(
-                      location: store.state.fixtureState.locations[locationId]!,
-                      multiNumber: multiIndex + 1,
-                    )));
-
-            return multiOutlets;
-          }).flattened;
-
-    final multiOutletsByLocationId =
-        multiOutlets.groupListsBy((multiOutlet) => multiOutlet.locationId);
-
-    final initialOutlets = powerPatchesByLocationId.entries
-        .mapIndexed((index, entry) {
-          final locationId = entry.key;
-          final patches = entry.value;
-
-          return patches.mapIndexed((index, patch) {
-            return PowerOutletModel(
-              uid: getUid(),
-              child: patch,
-              multiOutletId: multiOutletsByLocationId[locationId]!
-                      .elementAtOrNull(((index + 1) / 6).floor())
-                      ?.uid ??
-                  '',
-              multiPatch: getMultiPatchFromIndex(index),
-              phase: getPhaseFromIndex(index),
-              isSpare: false,
-            );
-          });
-        })
-        .flattened
-        .toList();
-
-    final outlets = balancer.assignToOutlets(
-      patchesByLocationId: powerPatchesByLocationId,
-      outlets: store.state.fixtureState.outlets.isNotEmpty
-          ? store.state.fixtureState.outlets
-          : initialOutlets,
-      imbalanceTolerance: store.state.fixtureState.balanceTolerance,
-    );
-
-    store.dispatch(SetPowerOutlets(outlets.values.flattened.toList()));
-    store.dispatch(
-      SetPowerMultiOutlets(
-        Map<String, PowerMultiOutletModel>.fromEntries(
-          multiOutlets.map(
-            (multiOutlet) => MapEntry(multiOutlet.uid, multiOutlet),
-          ),
-        ),
-      ),
-    );
+    _updatePowerMultisAndOutlets(store, balancedMultiOutlets);
   };
 }
 
-ThunkAction<AppState> addSpareOutlet(int index) {
+ThunkAction<AppState> addSpareOutlet(String uid) {
   return (Store<AppState> store) async {
-    final existingOutlets = store.state.fixtureState.outlets.toList();
+    final multiOutlet = store.state.fixtureState.powerMultiOutlets[uid];
 
-    final selectedOutlet =
-        store.state.fixtureState.outlets.elementAtOrNull(index);
-
-    if (selectedOutlet == null) {
+    if (multiOutlet == null) {
       return;
     }
 
-    existingOutlets.insert(
-        index,
-        PowerOutletModel(
-            uid: getUid(),
-            isSpare: true,
-            multiOutletId: selectedOutlet.multiOutletId,
-            multiPatch: getMultiPatchFromIndex(index),
-            phase: getPhaseFromIndex(index),
-            child: PowerPatchModel.empty()));
-
-    final balancer = NaiveBalancer();
-
-    final patchesByLocationId = PowerOutletModel.getPatchesByLocationId(
-        outlets: store.state.fixtureState.outlets,
-        powerMultiOutlets: store.state.fixtureState.powerMultiOutlets);
-
-    store.dispatch(
-      SetPowerOutlets(
-        balancer
-            .assignToOutlets(
-              patchesByLocationId: patchesByLocationId,
-              outlets: _reIndexOutletPhases(
-                  roundUpOutletsToNearestMultiBreak(existingOutlets)),
-              imbalanceTolerance: store.state.fixtureState.balanceTolerance,
-            )
-            .values
-            .flattened
-            .toList(),
-      ),
-    );
-  };
-}
-
-ThunkAction<AppState> deleteSpareOutlet(int index) {
-  return (Store<AppState> store) async {
-    final existingOutlets = store.state.fixtureState.outlets.toList();
-
-    final outlet = existingOutlets.elementAtOrNull(index);
-
-    if (outlet == null || outlet.isSpare == false) {
+    if (multiOutlet.desiredSpareCircuits >= 6) {
       return;
     }
 
-    existingOutlets[index] = outlet.copyWith(isSpare: false);
-
-    final patchesByLocationId = PowerOutletModel.getPatchesByLocationId(
-        outlets: store.state.fixtureState.outlets,
-        powerMultiOutlets: store.state.fixtureState.powerMultiOutlets);
-
-    store.dispatch(
-      SetPowerOutlets(
-        NaiveBalancer()
-            .assignToOutlets(
-              patchesByLocationId: patchesByLocationId,
-              outlets: _reIndexOutletPhases(
-                // Heal the list back to the nearest upper multi break.
-                roundUpOutletsToNearestMultiBreak(
-                  // Trim off any empty outlets on the end of the list.
-                  _trimTrailingEmptyOutlets(existingOutlets),
-                ),
-              ),
-              imbalanceTolerance: store.state.fixtureState.balanceTolerance,
-            )
-            .values
-            .flattened
-            .toList(),
-      ),
-    );
+    _updatePowerMultiSpareCircuitCount(
+        store, uid, multiOutlet.desiredSpareCircuits + 1);
   };
 }
 
-List<PowerOutletModel> _reIndexOutletPhases(
-    Iterable<PowerOutletModel> outlets) {
-  return outlets
-      .mapIndexed((index, outlet) => outlet.copyWith(
-          multiPatch: getMultiPatchFromIndex(index),
-          phase: getPhaseFromIndex(index)))
+ThunkAction<AppState> deleteSpareOutlet(String uid) {
+  return (Store<AppState> store) async {
+    final multiOutlet = store.state.fixtureState.powerMultiOutlets[uid];
+
+    if (multiOutlet == null) {
+      return;
+    }
+
+    if (multiOutlet.desiredSpareCircuits <= 0) {
+      return;
+    }
+
+    _updatePowerMultiSpareCircuitCount(
+        store, uid, multiOutlet.desiredSpareCircuits - 1);
+  };
+}
+
+Map<PowerMultiOutletModel, List<PowerOutletModel>> _balanceOutlets(
+    Map<PowerMultiOutletModel, List<PowerOutletModel>> unbalancedMultiOutlets,
+    NaiveBalancer balancer,
+    double balanceTolerance) {
+  final balancedMultiOutlets =
+      unbalancedMultiOutlets.map((multiOutlet, outlets) {
+    final result = balancer.balanceOutlets(
+      outlets,
+      balanceTolerance: balanceTolerance,
+    );
+
+    return MapEntry(multiOutlet, result.outlets);
+  });
+  return balancedMultiOutlets;
+}
+
+List<PowerMultiOutletModel> _updateMultiOutletNames(
+    Iterable<PowerMultiOutletModel> multiOutlets,
+    Map<String, LocationModel> locations) {
+  final multiOutletsByLocationId =
+      multiOutlets.groupListsBy((outlet) => outlet.locationId);
+
+  return multiOutletsByLocationId.entries
+      .map((entry) {
+        final locationId = entry.key;
+        final multiOutlets = entry.value;
+
+        LocationModel? location = locations[locationId];
+        return multiOutlets.mapIndexed((index, outlet) => outlet.copyWith(
+            name: location?.getPrefixedPowerMulti(index + 1) ?? ''));
+      })
+      .flattened
       .toList();
 }
 
-List<PowerOutletModel> _trimTrailingEmptyOutlets(
-    List<PowerOutletModel> existing) {
-  final lastUsedOutlet =
-      existing.lastWhereOrNull((element) => element.child.isNotEmpty);
+void _updatePowerMultisAndOutlets(Store<AppState> store,
+    Map<PowerMultiOutletModel, List<PowerOutletModel>> balancedMultiOutlets) {
+  store.dispatch(
+      SetPowerOutlets(balancedMultiOutlets.values.flattened.toList()));
+  store.dispatch(
+    SetPowerMultiOutlets(
+      Map<String, PowerMultiOutletModel>.fromEntries(_updateMultiOutletNames(
+              balancedMultiOutlets.keys, store.state.fixtureState.locations)
+          .map((multiOutlet) => MapEntry(multiOutlet.uid, multiOutlet))),
+    ),
+  );
+}
 
-  if (lastUsedOutlet == null) {
-    return existing.toList();
-  }
+void _updatePowerMultiSpareCircuitCount(
+    Store<AppState> store, String uid, int desiredCount) {
+  final existingMultiOutlets = store.state.fixtureState.powerMultiOutlets;
 
-  final lastUsedIndex = existing.indexOf(lastUsedOutlet);
+  existingMultiOutlets.update(
+      uid, (existing) => existing.copyWith(desiredSpareCircuits: desiredCount));
 
-  return existing.sublist(0, lastUsedIndex + 1);
+  final balancer = NaiveBalancer();
+
+  final unbalancedMultiOutlets = balancer.assignToOutlets(
+    fixtures: store.state.fixtureState.fixtures.values.toList(),
+    multiOutlets: existingMultiOutlets.values.toList(),
+    maxSequenceBreak: store.state.fixtureState.maxSequenceBreak,
+  );
+
+  final balancedMultiOutlets = _balanceOutlets(
+    unbalancedMultiOutlets,
+    balancer,
+    store.state.fixtureState.balanceTolerance,
+  );
+
+  _updatePowerMultisAndOutlets(store, balancedMultiOutlets);
 }

@@ -27,6 +27,7 @@ class PowerOutletDataSource extends DataGridSource {
         index: index,
         drawBottomBorder: vm.outlet.multiPatch == 6,
         isSpare: vm.outlet.isSpare,
+        locationName: vm.location.name,
         cells: [
           DataGridCell<int>(columnName: Columns.patchNumber, value: index + 1),
           DataGridCell<String>(
@@ -125,11 +126,13 @@ class PowerOutletDataGridRow extends DataGridRow {
   final int index;
   final bool drawBottomBorder;
   final bool isSpare;
+  final String locationName;
 
   PowerOutletDataGridRow({
     required super.cells,
     required this.isSpare,
     required this.index,
+    required this.locationName,
     required this.drawBottomBorder,
   });
 }

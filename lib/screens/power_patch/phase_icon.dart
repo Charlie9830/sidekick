@@ -31,7 +31,7 @@ class PhaseIcon extends StatelessWidget {
           child: Text('2',
               style: Theme.of(context)
                   .textTheme
-                  .bodySmall!
+                  .bodyMedium!
                   .copyWith(color: Colors.black)));
     }
 

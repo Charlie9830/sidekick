@@ -1,23 +1,146 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
+import 'package:sidekick/balancer/asserts/asserts.dart';
 import 'package:sidekick/balancer/balancer_base.dart';
+import 'package:sidekick/balancer/balancer_result.dart';
+import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/balancer/shared_utils.dart';
+import 'package:sidekick/extension_methods/queue_pop.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/models/power_patch_model.dart';
 import 'package:sidekick/utils/electrical_equations.dart';
+import 'package:sidekick/utils/get_multi_patch_from_index.dart';
+import 'package:sidekick/utils/get_phase_from_index.dart';
+import 'package:sidekick/utils/get_uid.dart';
 import 'package:sidekick/utils/round_up_to_nearest_multi_break.dart';
 
 const int _maxAttempts = 3;
 
 class NaiveBalancer implements Balancer {
+  /// Takes a list of [FixtureModel], performs Piggybacking then assigns to Outlets.
+  /// Does not attempt any Phase Balancing.
   @override
-  Map<String, List<PowerPatchModel>> generatePatches({
+  Map<PowerMultiOutletModel, List<PowerOutletModel>> assignToOutlets({
     required List<FixtureModel> fixtures,
-    required double maxAmpsPerCircuit,
+    required List<PowerMultiOutletModel> multiOutlets,
+    double maxAmpsPerCircuit = 16,
     int maxSequenceBreak = 4,
   }) {
+    // Generate Patches.
+    final patchesByLocationId = _generatePatches(
+      fixtures: fixtures,
+      maxAmpsPerCircuit: maxAmpsPerCircuit,
+      maxSequenceBreak: maxSequenceBreak,
+    );
+
+    final resultMap = <PowerMultiOutletModel, List<PowerOutletModel>>{};
+
+    for (var entry in patchesByLocationId.entries) {
+      final locationId = entry.key;
+      final patchesQueue = Queue<PowerPatchModel>.from(entry.value);
+
+      // TODO: We are only assigning the first 6 Channels of each Location. Thats because somewhere below we need to have another loop,
+      // It needs to be based off the amount of patches we have left, as in we need to keep looping and popping patches off the queue until
+      // we have nothing left.
+
+      final existingMultiOutletsAssignedToLocationQueue =
+          Queue<PowerMultiOutletModel>.from(
+              multiOutlets.where((multi) => multi.locationId == locationId));
+
+      while (patchesQueue.isNotEmpty) {
+        final multiOutlet = existingMultiOutletsAssignedToLocationQueue.isEmpty
+            ? PowerMultiOutletModel(
+                uid: getUid(),
+                locationId: locationId,
+                name: 'Not named yet',
+                desiredSpareCircuits: 0,
+              )
+            : existingMultiOutletsAssignedToLocationQueue.removeFirst();
+
+        final patchSlice =
+            patchesQueue.pop(6 - multiOutlet.desiredSpareCircuits).toList();
+
+        if (patchSlice.length < 6) {
+          final diff = 6 - patchSlice.length;
+          patchSlice.addAll([
+            for (int i = 1; i <= diff; i++) PowerPatchModel.empty(),
+          ]);
+        }
+
+        if (multiOutlet.desiredSpareCircuits == 0 &&
+            patchSlice.every((patch) => patch.isEmpty)) {
+          // No spare circuits required here AND every element in the patch slice is empty. So
+          // no point in generating a completing empty Multi Outlet.
+          continue;
+        }
+
+        final outlets = patchSlice.mapIndexed((index, patch) =>
+            PowerOutletModel(
+                child: patch,
+                locationId: locationId,
+                multiOutletId: multiOutlet.uid,
+                phase: getPhaseFromIndex(index),
+                multiPatch: getMultiPatchFromIndex(index)));
+
+        resultMap[multiOutlet] = outlets.toList();
+      }
+    }
+
+    return resultMap;
+  }
+
+  @override
+  BalancerResult balanceOutlets(
+    List<PowerOutletModel> outlets, {
+    double balanceTolerance = 0.5,
+    PhaseLoad initialLoad = const PhaseLoad.zero(),
+  }) {
+    assert(checkOutletQty(outlets.length),
+        'Qty of Outlets is not a multiple of 6. Qty: ${outlets.length}');
+    assert(checkPhaseOrdering(outlets),
+        'Phase ordering in given outlets is incorrect. ${outlets.mapIndexed((index, outlet) => print('$index: Phase => ${outlet.phase}'))}');
+
+    // Slice the list of Outlets up into 6 (Socapex Amount). Then "massage" each slice to get as close to
+    // balanced as we can.
+    final outletSlices = outlets.slices(6);
+
+    // Instantiate a variable to keep track of Phase loading as we balance each slice.
+    var currentLoad = PhaseLoad(initialLoad.a, initialLoad.b, initialLoad.c);
+
+    final rawSlices = outletSlices.mapIndexed((index, slice) {
+      if (slice.length != 6) {
+        return slice;
+      }
+
+      final balancedSlice = _balanceSlice(
+        slice,
+        imbalanceTolerance: balanceTolerance,
+        previousLoadsTotal: currentLoad,
+      );
+
+      // Update the running Phase Totals.
+      currentLoad += _calculatePhaseLoading(balancedSlice);
+
+      // Before we return this slice. Ensure that we have a good Sequence Number ordering.
+      // We do this in 2 passes. Maybe the second pass [_assertInterPhaseNumericOrdering] is redundant.
+      return _assertInterPhaseNumericOrdering(
+        _assertCrossPhaseNumericOrdering(balancedSlice),
+      );
+    }).toList();
+
+    return BalancerResult(rawSlices.flattened.toList(), currentLoad);
+  }
+
+  Map<String, List<PowerPatchModel>> _generatePatches({
+    required List<FixtureModel> fixtures,
+    required double maxAmpsPerCircuit,
+    required int maxSequenceBreak,
+  }) {
+    // To Ensure we only Piggyback fixtures local to their own Position. We first group the fixtures by their
+    // locations. Then iterate though those locations, calling [performPiggybacking] on each Location.
     final fixturesByLocationId =
         fixtures.groupListsBy((fixture) => fixture.locationId);
 
@@ -27,8 +150,16 @@ class NaiveBalancer implements Balancer {
           locationId, performPiggybacking(fixtures, maxSequenceBreak));
     });
 
-    final gapFilledPatchesByLocationId =
-        patchesByLocationId.map((locationId, patches) {
+    // Ensure that for each Location, we have a qty of patches that is a multiple of 6.
+    // TODO: Maybe this would be better left to the PowerOutlet assigning part.
+    final gapFilledPatchesByLocationId = _fillPatchQty(patchesByLocationId);
+
+    return gapFilledPatchesByLocationId;
+  }
+
+  Map<String, List<PowerPatchModel>> _fillPatchQty(
+      Map<String, List<PowerPatchModel>> patchesByLocationId) {
+    return patchesByLocationId.map((locationId, patches) {
       final desiredNumberOfPatches = roundUpToNearestMultiBreak(patches.length);
 
       if (patches.length == desiredNumberOfPatches) {
@@ -45,71 +176,6 @@ class NaiveBalancer implements Balancer {
 
       return MapEntry(locationId, patches.toList()..addAll(gapFillers));
     });
-
-    return gapFilledPatchesByLocationId;
-  }
-
-  @override
-  Map<String, List<PowerOutletModel>> assignToOutlets({
-    required Map<String, List<PowerPatchModel>> patchesByLocationId,
-    required List<PowerOutletModel> outlets,
-    double imbalanceTolerance = 0.1,
-  }) {
-    // Instantiate some variables to track our total load by phase as we iterate through and balance each slice.
-    // Each slice gets balanced with respect to the Slices before it.
-    // TODO: These should probably be moved outside the method and provided as Parameters so we can keep tracking of
-    // phase load across independant calls to this method.
-    double phaseARunningTotal = 0;
-    double phaseBRunningTotal = 0;
-    double phaseCRunningTotal = 0;
-
-    return Map<String, List<PowerOutletModel>>.fromEntries(
-        patchesByLocationId.entries.map((entry) {
-      final locationId = entry.key;
-      final patches = entry.value;
-
-      // Slice the list of Outlets up into 6 (Socapex Ammount). Then "massage" each slice to get as close to
-      // balanced as we can.
-      final outletSlices = outlets.slices(6);
-      final patchesQueue = Queue.from(patches);
-
-      final rawSlices = outletSlices.mapIndexed((index, slice) {
-        // Pre assign Patches to Outlets. But only if the outlet is not a spare and we have
-        // patches available.
-        final populatedOutlets = slice.map((outlet) {
-          if (outlet.isSpare || patchesQueue.isEmpty) {
-            return outlet;
-          }
-
-          return outlet.copyWith(child: patchesQueue.removeFirst());
-        }).toList();
-
-        final balancedSlice = _balanceSlice(
-          populatedOutlets.toList(),
-          imbalanceTolerance: imbalanceTolerance,
-          currentPhaseALoad: phaseARunningTotal,
-          currentPhaseBLoad: phaseBRunningTotal,
-          currentPhaseCLoad: phaseCRunningTotal,
-        );
-
-        // Update the running Phase Totals.
-        phaseARunningTotal = _calculateNewRunningPhaseTotal(
-            balancedSlice, 1, phaseARunningTotal);
-        phaseBRunningTotal = _calculateNewRunningPhaseTotal(
-            balancedSlice, 2, phaseBRunningTotal);
-        phaseCRunningTotal = _calculateNewRunningPhaseTotal(
-            balancedSlice, 3, phaseCRunningTotal);
-
-        // Before we return this slice. Ensure that we have a good FID ordering.
-        // We do this in 2 passes. Maybe the second pass [_assertInterPhaseNumericOrdering] is redundant.
-        // TODO: This should use Sequence number instead of Fixture Id.
-        return _assertInterPhaseNumericOrdering(
-          _assertCrossPhaseNumericOrdering(balancedSlice),
-        );
-      }).toList();
-
-      return MapEntry(locationId, rawSlices.expand((slice) => slice).toList());
-    }));
   }
 
   double _calculateNewRunningPhaseTotal(
@@ -125,50 +191,35 @@ class NaiveBalancer implements Balancer {
     List<PowerOutletModel> slice, {
     int attemptCount = 1,
     required double imbalanceTolerance,
-    required double currentPhaseALoad,
-    required double currentPhaseBLoad,
-    required double currentPhaseCLoad,
+    required PhaseLoad previousLoadsTotal,
   }) {
-    // Get the Phase loading for this Slice only.
-    var [red, white, blue] = _calculatePhaseLoading(slice);
+    // Calculate the current phase Loading by adding the previous loads totals to this slice's load.
+    final currentLoad = previousLoadsTotal + _calculatePhaseLoading(slice);
 
-    // Append the Phase loading of previous slices to this one.
-    red.load = red.load + currentPhaseALoad;
-    white.load = white.load + currentPhaseBLoad;
-    blue.load = blue.load + currentPhaseCLoad;
-
-    // Calculate the ratio of phase imbalance of this Slice, inclusive of the total of all slices before this one.
-    final phaseImbalanceRatio = calculateImbalanceRatio(
-      red.load,
-      white.load,
-      blue.load,
-    );
-
-    if (phaseImbalanceRatio <= imbalanceTolerance) {
-      // Slice (and running total of all slices before it) is balanced within desired imbalance tolerance ratio.
+    if (currentLoad.ratio <= imbalanceTolerance) {
+      // Slice (and running total of all slices before it) is balanced within desired imbalance tolerance ratio. So no
+      // balancing is required for this Slice.
       return slice.toList();
     }
 
+    // Insantiate a new List to which we will make changes on.
     final workingList = slice.toList();
 
     // Calculate the Lightest and Heaviest phases.
-    var (lightestPhase, heaviestPhase) =
-        _calculateLightestAndHeavistLoads(red, white, blue);
+    var (lightestPhase, heaviestPhase) = _calculateLightestAndHeavistLoads(
+        currentLoad.asIndexedLoads.$1,
+        currentLoad.asIndexedLoads.$2,
+        currentLoad.asIndexedLoads.$3);
 
     // Swap Outlets between the Lightest and heaviest phases to acheive an equilibrium between them.
     _shellShuffleOutletChildren(lightestPhase, heaviestPhase, workingList);
 
     // Recalculate the new phase loading, and determine if we need to try again.
-    [red, white, blue] = _calculatePhaseLoading(workingList);
-    red.load += currentPhaseALoad;
-    white.load += currentPhaseBLoad;
-    blue.load += currentPhaseCLoad;
+    final adjustedLoad =
+        previousLoadsTotal + _calculatePhaseLoading(workingList);
 
-    final newPhaseImbalanceRatio =
-        calculateImbalanceRatio(red.load, white.load, blue.load);
-
-    if (newPhaseImbalanceRatio <= imbalanceTolerance) {
-      // We are in balance enough. No need to try again.
+    if (adjustedLoad.ratio <= imbalanceTolerance) {
+      // We have acheived an adequate Balance..
       return workingList;
     }
 
@@ -181,9 +232,7 @@ class NaiveBalancer implements Balancer {
         workingList,
         attemptCount: attemptCount,
         imbalanceTolerance: imbalanceTolerance,
-        currentPhaseALoad: currentPhaseALoad,
-        currentPhaseBLoad: currentPhaseBLoad,
-        currentPhaseCLoad: currentPhaseCLoad,
+        previousLoadsTotal: previousLoadsTotal,
       );
     }
 
@@ -191,15 +240,15 @@ class NaiveBalancer implements Balancer {
     if (attemptCount <= _maxAttempts) {
       // Less than 3 attempts. Take another Bite.
       attemptCount += 1;
-      return _balanceSlice(workingList,
-          attemptCount: attemptCount,
-          imbalanceTolerance: imbalanceTolerance,
-          currentPhaseALoad: currentPhaseALoad,
-          currentPhaseBLoad: currentPhaseBLoad,
-          currentPhaseCLoad: currentPhaseCLoad);
-    } else {
-      return workingList;
+      return _balanceSlice(
+        workingList,
+        attemptCount: attemptCount,
+        imbalanceTolerance: imbalanceTolerance,
+        previousLoadsTotal: previousLoadsTotal,
+      );
     }
+
+    return workingList;
   }
 
   (IndexedLoad lightestPhase, IndexedLoad heaviestLoad)
@@ -317,20 +366,18 @@ class NaiveBalancer implements Balancer {
         outletB.copyWith(child: outletA.child, isSpare: outletA.isSpare);
   }
 
-  List<IndexedLoad> _calculatePhaseLoading(List<PowerOutletModel> slice) {
+  PhaseLoad _calculatePhaseLoading(List<PowerOutletModel> slice) {
     final List<double> loads = [0, 0, 0];
 
-    for (var outlet in slice) {
-      final index = outlet.phase - 1;
-      loads[index] =
-          outlet.isSpare ? loads[index] : outlet.child.amps + loads[index];
+    for (var (index, outlet) in slice.indexed) {
+      final lookupIndex = index % 3;
+
+      loads[lookupIndex] = outlet.isSpare
+          ? loads[lookupIndex]
+          : outlet.child.amps + loads[lookupIndex];
     }
 
-    return [
-      IndexedLoad(0, loads[0]),
-      IndexedLoad(1, loads[1]),
-      IndexedLoad(2, loads[2]),
-    ];
+    return PhaseLoad(loads[0], loads[1], loads[2]);
   }
 
   List<PowerOutletModel> _assertCrossPhaseNumericOrdering(
@@ -402,7 +449,7 @@ class NaiveBalancer implements Balancer {
     final phase3Outlets =
         sliceCopy.where((outlet) => outlet.phase == 3).toList();
 
-    // Maybe swaps children so that Fixture numbers are numerically correct.
+    // Maybe swap children so that Fixture numbers are numerically correct.
     // Performs modifications in place to [sliceCopy]
     _maybeNumericallyShuffleSortOutlets(phase1Outlets, sliceCopy);
     _maybeNumericallyShuffleSortOutlets(phase2Outlets, sliceCopy);
@@ -434,36 +481,18 @@ class NaiveBalancer implements Balancer {
         outlet.child.amps == firstOutlet.child.amps &&
             outlet.isSpare == false ||
         outlet.child.isEmpty == false)) {
-      final int fidA = firstOutlet.child.fixtures.isNotEmpty
-          ? firstOutlet.child.fixtures.first.fid
+      final int seqA = firstOutlet.child.fixtures.isNotEmpty
+          ? firstOutlet.child.fixtures.first.sequence
           : 0;
-      final int fidB = secondOutlet.child.fixtures.isNotEmpty
-          ? secondOutlet.child.fixtures.first.fid
+      final int seqB = secondOutlet.child.fixtures.isNotEmpty
+          ? secondOutlet.child.fixtures.first.sequence
           : 0;
 
-      if (fidA > fidB) {
+      if (seqA > seqB) {
         // Swap Outlets.
         _swapOutletChildren(
             slice.indexOf(firstOutlet), slice.indexOf(secondOutlet), slice);
       }
     }
-  }
-}
-
-/// Represents a phase loading along with it's ZERO BASED index.
-class IndexedLoad {
-  final int index;
-  double load;
-
-  IndexedLoad(int index, this.load) : index = _assertZeroBasedIndex(index);
-
-  /// Asserts that the provided [index] is Zero based.
-  static int _assertZeroBasedIndex(int index) {
-    if (index >= 0 && index <= 2) {
-      return index;
-    }
-
-    throw ArgumentError(
-        "The [index] parameter provided to [IndexedLoad] must be Zero based. Value received = $index");
   }
 }

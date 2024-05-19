@@ -6,17 +6,20 @@ class PowerMultiOutletModel {
   final String uid;
   final String locationId;
   final String name;
+  final int desiredSpareCircuits;
 
   PowerMultiOutletModel({
     required this.uid,
     required this.locationId,
     required this.name,
+    required this.desiredSpareCircuits,
   });
 
   const PowerMultiOutletModel.none()
       : uid = "none",
         locationId = '',
-        name = '';
+        name = '',
+        desiredSpareCircuits = 0;
 
   static String getName({
     required int multiNumber,
@@ -33,11 +36,13 @@ class PowerMultiOutletModel {
     String? uid,
     String? locationId,
     String? name,
+    int? desiredSpareCircuits,
   }) {
     return PowerMultiOutletModel(
       uid: uid ?? this.uid,
       locationId: locationId ?? this.locationId,
       name: name ?? this.name,
+      desiredSpareCircuits: desiredSpareCircuits ?? this.desiredSpareCircuits,
     );
   }
 
@@ -54,6 +59,7 @@ class PowerMultiOutletModel {
       uid: map['uid'] ?? '',
       locationId: map['locationId'] ?? '',
       name: map['name'] ?? '',
+      desiredSpareCircuits: map['desiredSpareCircuits'] ?? 0,
     );
   }
 
@@ -66,16 +72,14 @@ class PowerMultiOutletModel {
   String toString() =>
       'PowerMultiOutletModel(uid: $uid, locationId: $locationId, name: $name)';
 
+  // Do not remove. You are actually using Object equality for this.
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is PowerMultiOutletModel &&
-        other.uid == uid &&
-        other.locationId == locationId &&
-        other.name == name;
+    return other is PowerMultiOutletModel && other.uid == uid;
   }
 
   @override
-  int get hashCode => uid.hashCode ^ locationId.hashCode ^ name.hashCode;
+  int get hashCode => uid.hashCode;
 }

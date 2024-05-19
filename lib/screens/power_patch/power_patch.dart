@@ -1,11 +1,10 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/screens/power_patch/balance_gauge.dart';
-import 'package:sidekick/screens/power_patch/power_outlet_data_source.dart';
-import 'package:sidekick/screens/power_patch/power_patch_column_names.dart';
+import 'package:sidekick/screens/power_patch/phase_icon.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';
 import 'package:sidekick/widgets/property_field.dart';
-import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class PowerPatch extends StatefulWidget {
   final PowerPatchViewModel vm;
@@ -16,28 +15,19 @@ class PowerPatch extends StatefulWidget {
 }
 
 class _PowerPatchState extends State<PowerPatch> {
-  late final DataGridController _controller;
-  late final PowerOutletDataSource _dataSource;
-
   double _phaseALoad = 0;
   double _phaseBLoad = 0;
   double _phaseCLoad = 0;
 
   @override
   void initState() {
-    _controller = DataGridController();
-    _dataSource = PowerOutletDataSource(widget.vm.rowViewModels);
-
     super.initState();
   }
 
   @override
   void didUpdateWidget(covariant PowerPatch oldWidget) {
-    if (oldWidget.vm.rowViewModels != widget.vm.rowViewModels) {
-      _dataSource.update(widget.vm.rowViewModels);
-
-      final outlets =
-          widget.vm.rowViewModels.map((rowVm) => rowVm.outlet).toList();
+    if (widget.vm.multiOutlets != oldWidget.vm.multiOutlets) {
+      final outlets = widget.vm.multiOutlets.values.flattened;
 
       _phaseALoad = (outlets
           .where((outlet) => outlet.phase == 1)
@@ -58,6 +48,8 @@ class _PowerPatchState extends State<PowerPatch> {
 
   @override
   Widget build(BuildContext context) {
+    final multiOutlets = widget.vm.multiOutlets.keys.toList();
+
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       SizedBox(
         height: 64,
@@ -70,15 +62,6 @@ class _PowerPatchState extends State<PowerPatch> {
               icon: const Icon(Icons.cable),
               label: const Text('Patch'),
               onPressed: widget.vm.onGeneratePatch,
-            ),
-            IconButton(
-                icon: const Icon(Icons.add_circle),
-                onPressed: () =>
-                    widget.vm.onAddSpareOutlet(_controller.selectedIndex)),
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () =>
-                  widget.vm.onDeleteSpareOutlet(_controller.selectedIndex),
             ),
             const VerticalDivider(
               indent: 8,
@@ -118,68 +101,127 @@ class _PowerPatchState extends State<PowerPatch> {
         )),
       ),
       Expanded(
-        child: SfDataGrid(
-          controller: _controller,
-          selectionMode: SelectionMode.single,
-          columns: _buildGridColumns(),
-          source: _dataSource,
-          columnWidthMode: ColumnWidthMode.fill,
+        child: ListView.builder(
+          itemCount: widget.vm.multiOutlets.keys.length,
+          itemBuilder: (context, index) => _buildMultiOutlet(
+            context,
+            multiOutlets[index],
+          ),
         ),
       )
     ]);
   }
 
-  List<GridColumn> _buildGridColumns() {
-    alignLeft(Widget child) => Padding(
-          padding: const EdgeInsets.only(left: 8),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: child,
+  Widget _buildMultiOutlet(
+      BuildContext context, PowerMultiOutletModel multiOutlet) {
+    final outlets = widget.vm.multiOutlets[multiOutlet];
+
+    if (outlets == null) {
+      return const Text("Outlets was Null");
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      key: Key(multiOutlet.uid),
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(
+            left: 8.0,
+            top: 8.0,
+            bottom: 8.0,
+            right: 8.0,
           ),
-        );
-
-    return [
-      GridColumn(
-        columnName: Columns.patchNumber,
-        label: alignLeft(const Text('Patch #')),
-        columnWidthMode: ColumnWidthMode.fitByColumnName,
-      ),
-      GridColumn(
-        columnName: Columns.multiOutlet,
-        label: alignLeft(const Text('Multi Outlet')),
-        columnWidthMode: ColumnWidthMode.fitByColumnName,
-      ),
-      GridColumn(
-        columnName: Columns.multiCircuit,
-        label: alignLeft(const Text('Multi Circuit')),
-        columnWidthMode: ColumnWidthMode.fitByColumnName,
-      ),
-      GridColumn(
-        columnName: Columns.phaseNumber,
-        label: const Align(alignment: Alignment.center, child: Text('Phase')),
-        columnWidthMode: ColumnWidthMode.fitByColumnName,
-      ),
-      GridColumn(
-          columnName: Columns.location,
-          label: alignLeft(const Text('Location'))),
-      GridColumn(
-        columnName: Columns.fixtureId,
-        label: alignLeft(const Text('Fixture #')),
-      ),
-      GridColumn(
-        columnName: Columns.fixtureType,
-        label: alignLeft(const Text('Type')),
-      ),
-      GridColumn(
-        columnName: Columns.amps,
-        label: alignLeft(const Text('Amps')),
-      ),
-    ];
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(Icons.electric_bolt, color: Colors.yellow),
+              const SizedBox(width: 8),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4.0),
+                child: Text(
+                  multiOutlet.name,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+              ),
+              const Spacer(),
+              if (multiOutlet.desiredSpareCircuits > 0)
+                Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: CircleAvatar(
+                      backgroundColor: Colors.blueGrey,
+                      radius: 12,
+                      child: Text(
+                        '${multiOutlet.desiredSpareCircuits}',
+                      ),
+                    )),
+              IconButton(
+                icon: const Icon(Icons.playlist_add),
+                onPressed: multiOutlet.desiredSpareCircuits < 6
+                    ? () => widget.vm.onAddSpareOutlet(multiOutlet.uid)
+                    : null,
+              ),
+              IconButton(
+                icon: const Icon(Icons.playlist_remove),
+                onPressed: multiOutlet.desiredSpareCircuits > 0
+                    ? () => widget.vm.onDeleteSpareOutlet(multiOutlet.uid)
+                    : null,
+              ),
+            ],
+          ),
+        ),
+        GestureDetector(
+          onTap: () => widget.vm.onMultiOutletPressed(multiOutlet.uid),
+          child: Card(
+            color: widget.vm.selectedMultiOutlet == multiOutlet.uid
+                ? Theme.of(context).highlightColor
+                : null,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Table(
+                  border: TableBorder.symmetric(
+                      inside:
+                          BorderSide(color: Theme.of(context).dividerColor)),
+                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                  columnWidths: const {
+                    0: FixedColumnWidth(36), // Multi Patch
+                    1: FixedColumnWidth(64), // Phase
+                    2: FlexColumnWidth(1), // Fixture naem
+                    3: FlexColumnWidth(3), // Fixture IDs
+                    4: FixedColumnWidth(72), // Load
+                  },
+                  children: outlets
+                      .map((outlet) => TableRow(children: [
+                            // Multi Patch
+                            Center(child: Text(outlet.multiPatch.toString())),
+                            // Phase
+                            PhaseIcon(phaseNumber: outlet.phase),
+                            // Fixture Name
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Text(outlet.child.fixtures
+                                  .map((fixture) => fixture.type.name)
+                                  .toSet()
+                                  .join(", ")),
+                            ),
+                            // Fixture Ids
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Text(outlet.child.fixtures
+                                  .map((fixture) => fixture.fid)
+                                  .join(", ")),
+                            ),
+                            // Load
+                            Center(
+                                child: outlet.child.amps == 0
+                                    ? const SizedBox()
+                                    : Text(
+                                        '${outlet.child.amps.toStringAsFixed(1)}A')),
+                          ]))
+                      .toList()),
+            ),
+          ),
+        )
+      ],
+    );
   }
 }
