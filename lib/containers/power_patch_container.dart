@@ -2,14 +2,11 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
+import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
-import 'package:sidekick/redux/models/location_model.dart';
-import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
-import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/power_patch/power_patch.dart';
-import 'package:sidekick/view_models/power_patch_row_view_model.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';
 
 class PowerPatchContainer extends StatelessWidget {
@@ -26,7 +23,8 @@ class PowerPatchContainer extends StatelessWidget {
       converter: (Store<AppState> store) {
         return PowerPatchViewModel(
             selectedMultiOutlet: store.state.navstate.selectedMultiOutlet,
-            multiOutlets: _selectMultiOutlets(store),
+            rows: _selectRows(store),
+            phaseLoad: _selectPhaseLoad(store),
             maxSequenceBreak: store.state.fixtureState.maxSequenceBreak,
             onMaxSequenceBreakChanged: (newValue) =>
                 store.dispatch(SetMaxSequenceBreak(newValue)),
@@ -46,14 +44,31 @@ class PowerPatchContainer extends StatelessWidget {
     );
   }
 
-  Map<PowerMultiOutletModel, List<PowerOutletModel>> _selectMultiOutlets(
-      Store<AppState> store) {
-    return Map<PowerMultiOutletModel, List<PowerOutletModel>>.fromEntries(store
-        .state.fixtureState.powerMultiOutlets.values
-        .map((multiOutlet) => MapEntry(
-            multiOutlet,
-            store.state.fixtureState.outlets
-                .where((outlet) => outlet.multiOutletId == multiOutlet.uid)
-                .toList())));
+  PhaseLoad _selectPhaseLoad(Store<AppState> store) {
+    return PhaseLoad(
+      PhaseLoad.calculateTotalPhaseLoad(store.state.fixtureState.outlets, 1),
+      PhaseLoad.calculateTotalPhaseLoad(store.state.fixtureState.outlets, 2),
+      PhaseLoad.calculateTotalPhaseLoad(store.state.fixtureState.outlets, 3),
+    );
+  }
+
+  List<PowerPatchRow> _selectRows(Store<AppState> store) {
+    return store.state.fixtureState.locations.values
+        .map((location) {
+          final associatedMultis = store
+              .state.fixtureState.powerMultiOutlets.values
+              .where((multi) => multi.locationId == location.uid);
+
+          return [
+            LocationRow(location),
+            ...associatedMultis.map((multi) => MultiOutletRow(
+                multi,
+                store.state.fixtureState.outlets
+                    .where((outlet) => outlet.multiOutletId == multi.uid)
+                    .toList())),
+          ];
+        })
+        .flattened
+        .toList();
   }
 }

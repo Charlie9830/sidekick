@@ -1,3 +1,4 @@
+import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/utils/electrical_equations.dart' as ee;
 
 class PhaseLoad {
@@ -25,6 +26,17 @@ class PhaseLoad {
   @override
   String toString() {
     return 'PhaseLoad { ${a.round()}A  |  ${b.round()}A  |  ${c.round()}A }';
+  }
+
+  static double calculateTotalPhaseLoad(
+      List<PowerOutletModel> outlets, int phaseNumber) {
+    assert(phaseNumber >= 1 && phaseNumber <= 3,
+        'Phase number is out of range, Allowed range 1 to 3, given value $phaseNumber');
+
+    return outlets
+        .where((outlet) => outlet.phase == phaseNumber)
+        .map((outlet) => outlet.child.amps)
+        .fold(0, (prev, value) => prev + value);
   }
 }
 
