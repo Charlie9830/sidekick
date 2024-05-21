@@ -9,7 +9,7 @@ List<FixtureModel> getMockFixtures() {
 
   final defaultFixture = FixtureModel(
     uid: 'default',
-    dmxAddress: DMXAddressModel.fromGlobalAddress(1),
+    dmxAddress: DMXAddressModel(universe: 1, address: 1),
     mode: FixtureModeModel(name: 'default'),
     dataMulti: '',
     dataPatch: '',

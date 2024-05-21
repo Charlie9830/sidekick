@@ -31,7 +31,7 @@ class _HomeState extends State<Home> {
       initialIndex: 0,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text("It's just a phase!"),
+          title: const Text("It's Just a Phase!"),
           primary: true,
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           bottom: const TabBar(

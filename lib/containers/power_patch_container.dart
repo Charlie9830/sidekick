@@ -39,7 +39,8 @@ class PowerPatchContainer extends StatelessWidget {
             onDeleteSpareOutlet: (uid) =>
                 store.dispatch(deleteSpareOutlet(uid)),
             onMultiOutletPressed: (uid) =>
-                store.dispatch(SetSelectedMultiOutlet(uid)));
+                store.dispatch(SetSelectedMultiOutlet(uid)),
+              onCommit: () => store.dispatch(commitPowerPatch(context)));
       },
     );
   }

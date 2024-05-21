@@ -3,29 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:sidekick/balancer/naive_balancer.dart';
-import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/excel/read_fixture_type_test_data.dart';
 import 'package:sidekick/excel/read_fixtures_test_data.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
+import 'package:sidekick/redux/models/data_multi_model.dart';
+import 'package:sidekick/redux/models/data_patch_model.dart';
+import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:path/path.dart' as p;
 import 'package:clipboard/clipboard.dart';
-
-ThunkAction<AppState> copyPowerPatchToClipboard(BuildContext context) {
-  return (Store<AppState> store) async {
-    final String tab = String.fromCharCode(9);
-
-    final buffer = StringBuffer();
-
-    // Header Row
-    buffer.writeln('LoomID${tab}CHL${tab}Fixture${tab}Fix. No.${tab}Location');
-
-    FlutterClipboard.copy(buffer.toString());
-  };
-}
 
 ThunkAction<AppState> initializeApp() {
   return (Store<AppState> store) async {
@@ -42,6 +31,47 @@ ThunkAction<AppState> initializeApp() {
     store.dispatch(SetLocations(locations));
     store.dispatch(SetPowerOutlets([]));
     store.dispatch(SetPowerMultiOutlets({}));
+  };
+}
+
+ThunkAction<AppState> commitPowerPatch(BuildContext context) {
+  return (Store<AppState> store) async {
+    // Map FixtureIds to their associated Power Outlet
+    final fixtureLookupMap = Map<String, PowerOutletModel>.fromEntries(
+        store.state.fixtureState.outlets
+            .map((outlet) => outlet.child.fixtures.map(
+                  (fixture) => MapEntry(fixture.uid, outlet),
+                ))
+            .flattened);
+
+    final existingFixtures =
+        Map<String, FixtureModel>.from(store.state.fixtureState.fixtures);
+
+    existingFixtures.updateAll((uid, fixture) {
+      final outlet = fixtureLookupMap[uid]!;
+      final multiOutlet =
+          store.state.fixtureState.powerMultiOutlets[outlet.multiOutletId]!;
+
+      return fixture.copyWith(
+        powerMulti: multiOutlet.name,
+        powerPatch: outlet.multiPatch,
+      );
+    });
+
+    store.dispatch(SetFixtures(existingFixtures));
+  };
+}
+
+ThunkAction<AppState> copyPowerPatchToClipboard(BuildContext context) {
+  return (Store<AppState> store) async {
+    final String tab = String.fromCharCode(9);
+
+    final buffer = StringBuffer();
+
+    // Header Row
+    buffer.writeln('LoomID${tab}CHL${tab}Fixture${tab}Fix. No.${tab}Location');
+
+    FlutterClipboard.copy(buffer.toString());
   };
 }
 

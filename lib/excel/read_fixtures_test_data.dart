@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:excel/excel.dart';
+import 'package:sidekick/redux/models/dmx_address_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
@@ -11,6 +12,8 @@ class _FixtureExcelColumns {
   static const int fid = 1;
   static const int fixtureType = 2;
   static const int location = 3;
+  static const int universe = 4;
+  static const int address = 5;
 }
 
 Future<
@@ -66,13 +69,26 @@ Future<
           _ => '',
         };
 
+        final fixtureType =
+            fixtureTypes[fixtureTypeName] ?? const FixtureTypeModel.unknown();
+
         final String locationId = locationNameMap[_convertRawLocationToString(
                     row[_FixtureExcelColumns.location])]
                 ?.uid ??
             '';
 
-        final fixtureType =
-            fixtureTypes[fixtureTypeName] ?? const FixtureTypeModel.unknown();
+        final int universe =
+            switch (row[_FixtureExcelColumns.universe]?.value) {
+          TextCellValue v => int.parse(v.value.trim()),
+          IntCellValue v => v.value,
+          _ => 0,
+        };
+
+        final int address = switch (row[_FixtureExcelColumns.address]?.value) {
+          TextCellValue v => int.parse(v.value.trim()),
+          IntCellValue v => v.value,
+          _ => 0,
+        };
 
         return FixtureModel(
           uid: getUid(),
@@ -80,6 +96,7 @@ Future<
           fid: fixtureId,
           type: fixtureType,
           locationId: locationId,
+          dmxAddress: DMXAddressModel(universe: universe, address: address),
         );
       })
       .nonNulls

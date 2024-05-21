@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
-import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/screens/power_patch/balance_gauge.dart';
 import 'package:sidekick/screens/power_patch/location_header_row.dart';
-import 'package:sidekick/screens/power_patch/phase_icon.dart';
 import 'package:sidekick/screens/power_patch/power_outlet_table.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';
 import 'package:sidekick/widgets/property_field.dart';
@@ -76,6 +73,12 @@ class _PowerPatchState extends State<PowerPatch> {
                 child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.commit),
+                  onPressed: widget.vm.onCommit,
+                  label: Text('Commit'),
+                ),
+                const SizedBox(width: 16),
                 BalanceGauge(
                   phaseALoad: widget.vm.phaseLoad.a,
                   phaseBLoad: widget.vm.phaseLoad.b,
