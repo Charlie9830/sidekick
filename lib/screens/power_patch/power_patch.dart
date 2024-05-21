@@ -76,7 +76,7 @@ class _PowerPatchState extends State<PowerPatch> {
                 OutlinedButton.icon(
                   icon: const Icon(Icons.commit),
                   onPressed: widget.vm.onCommit,
-                  label: Text('Commit'),
+                  label: const Text('Commit'),
                 ),
                 const SizedBox(width: 16),
                 BalanceGauge(
@@ -104,7 +104,10 @@ class _PowerPatchState extends State<PowerPatch> {
   Widget _buildRow(BuildContext context, PowerPatchRow row) {
     return switch (row) {
       LocationRow locationRow => LocationHeaderRow(
-          key: Key(locationRow.location.uid), location: locationRow.location),
+          key: Key(locationRow.location.uid),
+          location: locationRow.location,
+          multiCount: locationRow.multiCount,
+        ),
       MultiOutletRow outletRow => _buildMultiOutlet(context, outletRow),
       _ => const Text("Error"),
     };

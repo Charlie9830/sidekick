@@ -38,8 +38,9 @@ abstract class PowerPatchRow {}
 
 class LocationRow extends PowerPatchRow {
   final LocationModel location;
+  final int multiCount;
 
-  LocationRow(this.location);
+  LocationRow(this.location, this.multiCount);
 }
 
 class MultiOutletRow extends PowerPatchRow {

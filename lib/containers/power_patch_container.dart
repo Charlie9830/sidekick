@@ -40,7 +40,7 @@ class PowerPatchContainer extends StatelessWidget {
                 store.dispatch(deleteSpareOutlet(uid)),
             onMultiOutletPressed: (uid) =>
                 store.dispatch(SetSelectedMultiOutlet(uid)),
-              onCommit: () => store.dispatch(commitPowerPatch(context)));
+            onCommit: () => store.dispatch(commitPowerPatch(context)));
       },
     );
   }
@@ -58,10 +58,11 @@ class PowerPatchContainer extends StatelessWidget {
         .map((location) {
           final associatedMultis = store
               .state.fixtureState.powerMultiOutlets.values
-              .where((multi) => multi.locationId == location.uid);
+              .where((multi) => multi.locationId == location.uid)
+              .toList();
 
           return [
-            LocationRow(location),
+            LocationRow(location, associatedMultis.length),
             ...associatedMultis.map((multi) => MultiOutletRow(
                 multi,
                 store.state.fixtureState.outlets

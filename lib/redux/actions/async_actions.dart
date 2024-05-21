@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:sidekick/balancer/naive_balancer.dart';
+import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/excel/read_fixture_type_test_data.dart';
 import 'package:sidekick/excel/read_fixtures_test_data.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
-import 'package:sidekick/redux/models/data_multi_model.dart';
-import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
@@ -131,16 +130,19 @@ Map<PowerMultiOutletModel, List<PowerOutletModel>> _balanceOutlets(
     Map<PowerMultiOutletModel, List<PowerOutletModel>> unbalancedMultiOutlets,
     NaiveBalancer balancer,
     double balanceTolerance) {
-  final balancedMultiOutlets =
-      unbalancedMultiOutlets.map((multiOutlet, outlets) {
+  PhaseLoad currentLoad = PhaseLoad(0, 0, 0);
+
+  return unbalancedMultiOutlets.map((multiOutlet, outlets) {
     final result = balancer.balanceOutlets(
       outlets,
       balanceTolerance: balanceTolerance,
+      initialLoad: currentLoad,
     );
+
+    currentLoad = result.load;
 
     return MapEntry(multiOutlet, result.outlets);
   });
-  return balancedMultiOutlets;
 }
 
 List<PowerMultiOutletModel> _updateMultiOutletNames(
