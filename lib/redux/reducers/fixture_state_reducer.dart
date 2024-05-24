@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
@@ -7,6 +6,8 @@ import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic action) {
   return switch (action) {
+    SetDataMultis a => state.copyWith(dataMultis: a.multis),
+    SetDataPatches a => state.copyWith(dataPatches: a.patches),
     SetFixtures a => state.copyWith(
         fixtures: a.fixtures,
       ),

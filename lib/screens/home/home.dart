@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:sidekick/containers/data_patch_container.dart';
 import 'package:sidekick/containers/export_container.dart';
 import 'package:sidekick/containers/loom_names_container.dart';
 import 'package:sidekick/containers/power_patch_container.dart';
@@ -64,7 +65,7 @@ class _HomeState extends State<Home> {
           children: [
             _buildFixtureTable(context),
             const PowerPatchContainer(),
-            const Text('Data Patch'),
+            const DataPatchContainer(),
             const LoomNamesContainer(),
             const ExportContainer(),
           ],
@@ -89,7 +90,7 @@ class _HomeState extends State<Home> {
           DataColumn(label: Text('Fixture #')),
           DataColumn(label: Text('Type')),
           DataColumn(label: Text('Location')),
-          DataColumn(label: Text('Amps')),
+          DataColumn(label: Text('Address')),
           DataColumn(
             label: Row(children: [
               Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
@@ -130,14 +131,15 @@ class _HomeState extends State<Home> {
               Text(fixture.lookupLocation(widget.vm.locations).name),
             ),
             DataCell(
-              Text(fixture.type.amps.toString()),
+              Text(
+                  '${fixture.dmxAddress.universe}/${fixture.dmxAddress.address}'),
             ),
             DataCell(Text(fixture.powerMulti)), // Power Multi
             DataCell(Text(
               fixture.powerPatch == 0 ? '' : fixture.powerPatch.toString(),
             )), // Power Patch
-            placeholderCell, // Data Multi
-            placeholderCell, // Data Patch
+            DataCell(Text(fixture.dataMulti)), // Data Multi
+            DataCell(Text(fixture.dataPatch)), // Data Patch
           ]);
         }).toList(),
       ),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/screens/power_patch/balance_gauge.dart';
-import 'package:sidekick/screens/power_patch/location_header_row.dart';
+import 'package:sidekick/screens/power_patch/location_header_trailer.dart';
 import 'package:sidekick/screens/power_patch/power_outlet_table.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';
+import 'package:sidekick/widgets/location_header_row.dart';
 import 'package:sidekick/widgets/property_field.dart';
+import 'package:sidekick/widgets/toolbar.dart';
 
 class PowerPatch extends StatefulWidget {
   final PowerPatchViewModel vm;
@@ -33,62 +35,59 @@ class _PowerPatchState extends State<PowerPatch> {
   @override
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      SizedBox(
-        height: 64,
-        child: Card(
-            child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            ElevatedButton.icon(
-              icon: const Icon(Icons.cable),
-              label: const Text('Patch'),
-              onPressed: widget.vm.onGeneratePatch,
+      Toolbar(
+          child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          ElevatedButton.icon(
+            icon: const Icon(Icons.cable),
+            label: const Text('Patch'),
+            onPressed: widget.vm.onGeneratePatch,
+          ),
+          const VerticalDivider(
+            indent: 8,
+            endIndent: 8,
+          ),
+          const SizedBox(width: 16),
+          SizedBox(
+            width: 110,
+            child: PropertyField(
+              textAlign: TextAlign.center,
+              label: 'Balance Tolerance',
+              suffix: '%',
+              value: widget.vm.balanceTolerancePercent,
+              onBlur: widget.vm.onBalanceToleranceChanged,
             ),
-            const VerticalDivider(
-              indent: 8,
-              endIndent: 8,
-            ),
-            const SizedBox(width: 16),
-            SizedBox(
-              width: 110,
+          ),
+          const SizedBox(width: 16),
+          SizedBox(
+              width: 124,
               child: PropertyField(
                 textAlign: TextAlign.center,
-                label: 'Balance Tolerance',
-                suffix: '%',
-                value: widget.vm.balanceTolerancePercent,
-                onBlur: widget.vm.onBalanceToleranceChanged,
+                label: 'Max Piggyback Break',
+                value: widget.vm.maxSequenceBreak.toString(),
+                onBlur: widget.vm.onMaxSequenceBreakChanged,
+              )),
+          Expanded(
+              child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              OutlinedButton.icon(
+                icon: const Icon(Icons.commit),
+                onPressed: widget.vm.onCommit,
+                label: const Text('Commit'),
               ),
-            ),
-            const SizedBox(width: 16),
-            SizedBox(
-                width: 124,
-                child: PropertyField(
-                  textAlign: TextAlign.center,
-                  label: 'Max Piggyback Break',
-                  value: widget.vm.maxSequenceBreak.toString(),
-                  onBlur: widget.vm.onMaxSequenceBreakChanged,
-                )),
-            Expanded(
-                child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.commit),
-                  onPressed: widget.vm.onCommit,
-                  label: const Text('Commit'),
-                ),
-                const SizedBox(width: 16),
-                BalanceGauge(
-                  phaseALoad: widget.vm.phaseLoad.a,
-                  phaseBLoad: widget.vm.phaseLoad.b,
-                  phaseCLoad: widget.vm.phaseLoad.c,
-                )
-              ],
-            ))
-          ],
-        )),
-      ),
+              const SizedBox(width: 16),
+              BalanceGauge(
+                phaseALoad: widget.vm.phaseLoad.a,
+                phaseBLoad: widget.vm.phaseLoad.b,
+                phaseCLoad: widget.vm.phaseLoad.c,
+              )
+            ],
+          ))
+        ],
+      )),
       Expanded(
         child: ListView.builder(
           itemCount: widget.vm.rows.length,
@@ -106,7 +105,9 @@ class _PowerPatchState extends State<PowerPatch> {
       LocationRow locationRow => LocationHeaderRow(
           key: Key(locationRow.location.uid),
           location: locationRow.location,
-          multiCount: locationRow.multiCount,
+          trailing: LocationHeaderTrailer(
+            multiCount: row.multiCount,
+          ),
         ),
       MultiOutletRow outletRow => _buildMultiOutlet(context, outletRow),
       _ => const Text("Error"),

@@ -38,6 +38,27 @@ class LocationModel {
     );
   }
 
+  String getPrefixedDataPatch(int universe, int patchNumber,
+      {String? parentMultiName}) {
+    if (this == const LocationModel.none()) {
+      return 'No Location';
+    }
+
+    if (parentMultiName != null) {
+      return '$parentMultiName.$patchNumber U$universe';
+    } else {
+      return '$multiPrefix$patchNumber U$universe';
+    }
+  }
+
+  String getPrefixedDataMultiPatch(int patchNumber) {
+    if (this == const LocationModel.none()) {
+      return 'No Location';
+    }
+
+    return '$multiPrefix$patchNumber';
+  }
+
   String getPrefixedPowerMulti(int multiOutlet) {
     if (this == const LocationModel.none()) {
       return 'No Multi';
@@ -138,7 +159,7 @@ class LocationModel {
       RegExp('green', caseSensitive: false): 'G',
       RegExp('brown', caseSensitive: false): 'BRN',
       RegExp('purple', caseSensitive: false): 'P',
-      
+
       // LX's
       RegExp('LX1', caseSensitive: false): 'LX1',
       RegExp('LX2', caseSensitive: false): 'LX2',

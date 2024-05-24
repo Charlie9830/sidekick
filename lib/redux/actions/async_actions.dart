@@ -4,9 +4,12 @@ import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:sidekick/balancer/naive_balancer.dart';
 import 'package:sidekick/balancer/phase_load.dart';
+import 'package:sidekick/classes/universe_span.dart';
 import 'package:sidekick/excel/read_fixture_type_test_data.dart';
 import 'package:sidekick/excel/read_fixtures_test_data.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
+import 'package:sidekick/redux/models/data_multi_model.dart';
+import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
@@ -14,6 +17,7 @@ import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:path/path.dart' as p;
 import 'package:clipboard/clipboard.dart';
+import 'package:sidekick/utils/get_uid.dart';
 
 ThunkAction<AppState> initializeApp() {
   return (Store<AppState> store) async {
@@ -30,6 +34,138 @@ ThunkAction<AppState> initializeApp() {
     store.dispatch(SetLocations(locations));
     store.dispatch(SetPowerOutlets([]));
     store.dispatch(SetPowerMultiOutlets({}));
+  };
+}
+
+ThunkAction<AppState> commitDataPatch() {
+  return (Store<AppState> store) async {
+    final dataPatchesByFixtureId = Map<String, DataPatchModel>.fromEntries(store
+        .state.fixtureState.dataPatches.values
+        .map((patch) => patch.fixtureIds.map((id) => MapEntry(id, patch)))
+        .flattened);
+
+    final updatedFixtures =
+        store.state.fixtureState.fixtures.map((uid, fixture) {
+      final associatedDataPatch = dataPatchesByFixtureId[uid];
+
+      if (associatedDataPatch == null) {
+        return MapEntry(uid, fixture);
+      }
+
+      final associatedMultiPatch =
+          store.state.fixtureState.dataMultis[associatedDataPatch.multiId];
+
+      return MapEntry(
+          uid,
+          fixture.copyWith(
+            dataMulti: associatedMultiPatch?.name ?? '',
+            dataPatch: associatedDataPatch.name,
+          ));
+    });
+
+    store.dispatch(SetFixtures(updatedFixtures));
+  };
+}
+
+ThunkAction<AppState> generateDataPatch() {
+  return (Store<AppState> store) async {
+    final fixturesByLocationId = store.state.fixtureState.fixtures.values
+        .groupListsBy((fixture) => fixture.locationId);
+
+    final spansByLocationId = fixturesByLocationId.map(
+      (locationId, fixtures) => MapEntry(
+        locationId,
+        UniverseSpan.createSpans(fixtures),
+      ),
+    );
+
+    final List<DataPatchModel> patches = [];
+    final List<DataMultiModel> multis = [];
+
+    for (final entry in spansByLocationId.entries) {
+      final locationId = entry.key;
+      final spans = entry.value;
+
+      final location = store.state.fixtureState.locations[locationId];
+
+      final powerMultiCount = store.state.fixtureState.powerMultiOutlets.values
+          .where((powerMulti) => powerMulti.locationId == locationId)
+          .length;
+
+      if (spans.length <= 2 && powerMultiCount <= 2) {
+        // Can be 2 Singles.
+        patches.addAll(
+          spans.mapIndexed(
+            (index, span) => DataPatchModel(
+              uid: getUid(),
+              locationId: locationId,
+              multiId: '',
+              universe: span.universe,
+              name: location?.getPrefixedDataPatch(span.universe, index + 1) ??
+                  '',
+              startsAtFixtureId: span.startsAt.fid,
+              endsAtFixtureId: span.endsAt?.fid ?? 0,
+              fixtureIds: span.fixtureIds,
+            ),
+          ),
+        );
+      } else {
+        final slices = spans.slices(4);
+
+        for (final (index, slice) in slices.indexed) {
+          final parentMulti = DataMultiModel(
+            uid: getUid(),
+            locationId: locationId,
+            name: location?.getPrefixedDataMultiPatch(index + 1) ?? '',
+          );
+
+          multis.add(parentMulti);
+
+          patches.addAll(
+            slice.mapIndexed(
+              (index, span) => DataPatchModel(
+                uid: getUid(),
+                locationId: locationId,
+                multiId: parentMulti.uid,
+                universe: span.universe,
+                startsAtFixtureId: span.startsAt.fid,
+                endsAtFixtureId: span.endsAt?.fid ?? 0,
+                name: location?.getPrefixedDataPatch(span.universe, index + 1,
+                        parentMultiName: parentMulti.name) ??
+                    '',
+                fixtureIds: span.fixtureIds,
+              ),
+            ),
+          );
+
+          // Add Spares if needed
+          if (slice.length < 4) {
+            final int diff = 4 - slice.length;
+            patches.addAll(
+              List<DataPatchModel>.generate(
+                diff,
+                (index) => DataPatchModel(
+                  uid: getUid(),
+                  locationId: locationId,
+                  multiId: parentMulti.uid,
+                  universe: 0,
+                  name: 'SP ${index + 1}',
+                  startsAtFixtureId: 0,
+                  endsAtFixtureId: 0,
+                  isSpare: true,
+                  fixtureIds: [],
+                ),
+              ),
+            );
+          }
+        }
+      }
+    }
+
+    store.dispatch(SetDataMultis(Map<String, DataMultiModel>.fromEntries(
+        multis.map((multi) => MapEntry(multi.uid, multi)))));
+    store.dispatch(SetDataPatches(Map<String, DataPatchModel>.fromEntries(
+        patches.map((patch) => MapEntry(patch.uid, patch)))));
   };
 }
 
