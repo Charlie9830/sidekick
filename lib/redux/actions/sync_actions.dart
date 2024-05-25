@@ -5,6 +5,12 @@ import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 
+class SetSelectedFixtureIds {
+  final Set<String> ids;
+
+  SetSelectedFixtureIds(this.ids);
+}
+
 class SetDataPatches {
   final Map<String, DataPatchModel> patches;
 

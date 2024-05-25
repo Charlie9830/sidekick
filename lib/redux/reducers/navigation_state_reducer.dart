@@ -4,6 +4,7 @@ import 'package:sidekick/redux/state/navigation_state.dart';
 NavigationState navStateReducer(NavigationState state, dynamic action) {
   return switch (action) {
     SetSelectedMultiOutlet a => state.copyWith(selectedMultiOutlet: a.uid),
+    SetSelectedFixtureIds a => state.copyWith(selectedFixtureIds: a.ids),
     _ => state
   };
 }
