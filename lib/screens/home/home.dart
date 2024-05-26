@@ -6,6 +6,7 @@ import 'package:sidekick/containers/export_container.dart';
 import 'package:sidekick/containers/locations_container.dart';
 import 'package:sidekick/containers/power_patch_container.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/screens/home/column_widths.dart';
 import 'package:sidekick/screens/home/range_select.dart';
 import 'package:sidekick/screens/home/table_header.dart';
@@ -186,7 +187,10 @@ class _HomeState extends State<Home> {
         Expanded(
           child: ListView.separated(
               itemCount: fixtures.length,
-              separatorBuilder: (context, index) => const Divider(height: 2),
+              separatorBuilder: (context, index) => _buildDivider(
+                  fixtures[index],
+                  fixtures.elementAtOrNull(index + 1),
+                  widget.vm.locations),
               itemBuilder: (context, index) {
                 final fixture = fixtures[index];
                 return TableRow(
@@ -220,6 +224,46 @@ class _HomeState extends State<Home> {
         ),
       ],
     );
+  }
+
+  Widget _buildDivider(FixtureModel fixture, FixtureModel? nextFixture,
+      Map<String, LocationModel> locations) {
+    if (nextFixture == null) {
+      return const Divider(height: 0);
+    }
+
+    if (fixture.locationId != nextFixture.locationId) {
+      return InkWell(
+        onTap: () => widget.vm.onSelectedFixturesChanged(widget
+            .vm.fixtures.values
+            .where((fixture) => fixture.locationId == nextFixture.locationId)
+            .map((fixture) => fixture.uid)
+            .toSet()),
+        child: Column(
+          children: [
+            const Divider(height: 0),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(children: [
+                Icon(Icons.location_on,
+                    color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(locations[nextFixture.locationId]?.name ?? '',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyLarge!
+                        .copyWith(color: Theme.of(context).colorScheme.primary))
+              ]),
+            ),
+            const SizedBox(height: 24),
+            const Divider(height: 0),
+          ],
+        ),
+      );
+    }
+
+    return const Divider(height: 0);
   }
 
   void _handleKeyEvent(KeyEvent e) {
