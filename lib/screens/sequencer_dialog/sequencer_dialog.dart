@@ -51,7 +51,7 @@ class _SequencerDialogState extends State<SequencerDialog> {
 
     return Dialog(
       child: SizedBox(
-        width: 1200,
+        width: 1366,
         height: 800,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -102,7 +102,7 @@ class _SequencerDialogState extends State<SequencerDialog> {
                                     const Text('Sequence Number'),
                                     const SizedBox(width: 16),
                                     SizedBox(
-                                      width: 120,
+                                      width: 212,
                                       child: BlurListener(
                                         onBlur: _updateSequenceNumber,
                                         child: TextField(
@@ -128,10 +128,12 @@ class _SequencerDialogState extends State<SequencerDialog> {
                                     const Text('Fixture Number'),
                                     const SizedBox(width: 36),
                                     SizedBox(
-                                      width: 120,
+                                      width: 212,
                                       child: TextField(
                                         decoration: InputDecoration(
+
                                           border: const OutlineInputBorder(),
+                                          
                                           errorText:
                                               _error.isEmpty ? null : _error,
                                         ),
@@ -164,7 +166,26 @@ class _SequencerDialogState extends State<SequencerDialog> {
                               return ListTile(
                                 leading: Text(seq.toString()),
                                 title: Text('#${fixture.fid.toString()}'),
-                                trailing: Text(fixture.type.name),
+                                trailing: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(fixture.type.name),
+                                    IconButton(
+                                      icon: const Icon(Icons.remove_circle,
+                                          color: Colors.grey),
+                                      iconSize: 16,
+                                      onPressed: () {
+                                        setState(() {
+                                          _mapping =
+                                              Map<int, FixtureModel>.from(
+                                                  _mapping)
+                                                ..remove(seq);
+                                        });
+                                      },
+                                    )
+                                  ],
+                                ),
                               );
                             },
                           ),
@@ -201,8 +222,24 @@ class _SequencerDialogState extends State<SequencerDialog> {
     final fixture = widget.fixtures.firstWhereOrNull((fix) => fix.fid == fid);
 
     if (fixture == null) {
+      // Unknown Fixture Id.
       setState(() {
         _error = "#${_fixtureNumberController.text}: Unknown Fixture";
+      });
+
+      SystemSound.play(SystemSoundType.alert);
+      _fixtureNumberController.text = '';
+
+      return;
+    }
+
+    // Check if fixture as already been assigned.
+    final duplicateFixtureEntry = _mapping.entries
+        .firstWhereOrNull((entry) => entry.value.uid == fixture.uid);
+    if (duplicateFixtureEntry != null) {
+      setState(() {
+        _error =
+            'Duplicate Fixture Id:\n#${fixture.fid} at Seq ${duplicateFixtureEntry.key}';
       });
 
       SystemSound.play(SystemSoundType.alert);
