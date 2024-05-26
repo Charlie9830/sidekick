@@ -8,9 +8,9 @@ import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
 class _FixtureExcelColumns {
-  static const int sequence = 0;
-  static const int fid = 1;
-  static const int fixtureType = 2;
+  static const int fid = 0;
+  static const int fixtureType = 1;
+  // static const int fixtureMode = 2;
   static const int location = 3;
   static const int universe = 4;
   static const int address = 5;
@@ -45,18 +45,6 @@ Future<
 
   final list = rawDataRows
       .map((row) {
-        final int sequenceNumber =
-            switch (row[_FixtureExcelColumns.sequence]?.value) {
-          IntCellValue v => v.value,
-          TextCellValue v => int.tryParse(v.value.trim()) ?? 0,
-          _ => 0,
-        };
-
-        if (sequenceNumber == 0) {
-          // Ignore the Row.
-          return null;
-        }
-
         final int fixtureId = switch (row[_FixtureExcelColumns.fid]?.value) {
           IntCellValue v => v.value,
           TextCellValue v => int.parse(v.value),
@@ -92,7 +80,7 @@ Future<
 
         return FixtureModel(
           uid: getUid(),
-          sequence: sequenceNumber,
+          sequence: 0,
           fid: fixtureId,
           type: fixtureType,
           locationId: locationId,
