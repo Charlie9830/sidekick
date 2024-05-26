@@ -1,12 +1,15 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide TableRow;
 import 'package:flutter/services.dart';
 import 'package:sidekick/containers/data_patch_container.dart';
 import 'package:sidekick/containers/export_container.dart';
 import 'package:sidekick/containers/loom_names_container.dart';
 import 'package:sidekick/containers/power_patch_container.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/screens/home/column_widths.dart';
 import 'package:sidekick/screens/home/range_select.dart';
+import 'package:sidekick/screens/home/table_header.dart';
+import 'package:sidekick/screens/home/table_row.dart';
 import 'package:sidekick/view_models/home_view_model.dart';
 import 'package:sidekick/widgets/toolbar.dart';
 
@@ -101,6 +104,8 @@ class _HomeState extends State<Home> {
   }
 
   Widget _buildFixtureTable(BuildContext context) {
+    final fixtures = widget.vm.fixtures.values.toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -117,90 +122,101 @@ class _HomeState extends State<Home> {
             ),
           ],
         )),
-        Expanded(
-          child: SingleChildScrollView(
-            child: DataTable(
-              onSelectAll: (value) {
-                if (value == true) {
-                  widget.vm.onSelectedFixturesChanged(widget.vm.fixtures.values
-                      .map((fixture) => fixture.uid)
-                      .toSet());
-                } else {
-                  widget.vm.onSelectedFixturesChanged({});
-                }
-              },
-              showCheckboxColumn: true,
-              columns: const [
-                DataColumn(
-                    label: Text(
+        TableHeader(
+          hasSelections: widget.vm.selectedFixtureIds.length ==
+                  widget.vm.fixtures.values.length
+              ? true
+              : (widget.vm.selectedFixtureIds.isEmpty ? false : null),
+          onSelectAll: (value) {
+            if (value == true) {
+              widget.vm.onSelectedFixturesChanged(widget.vm.fixtures.values
+                  .map((fixture) => fixture.uid)
+                  .toSet());
+            } else {
+              widget.vm.onSelectedFixturesChanged({});
+            }
+          },
+          columns: const [
+            TableHeaderColumn(
+                width: ColumnWidths.sequence,
+                label: Text(
                   'Sequence #',
                 )),
-                DataColumn(label: Text('Fixture #')),
-                DataColumn(label: Text('Type')),
-                DataColumn(label: Text('Location')),
-                DataColumn(label: Text('Address')),
-                DataColumn(
-                  label: Row(children: [
-                    Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
-                    SizedBox(width: 4),
-                    Text('Multi'),
-                  ]),
-                ),
-                DataColumn(
-                  label: Row(children: [
-                    Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
-                    SizedBox(width: 4),
-                    Text('Patch'),
-                  ]),
-                ),
-                DataColumn(
-                  label: Row(children: [
-                    Icon(Icons.settings_input_svideo,
-                        color: Colors.blue, size: 16),
-                    SizedBox(width: 4),
-                    Text('Multi'),
-                  ]),
-                ),
-                DataColumn(
-                  label: Row(children: [
-                    Icon(Icons.settings_input_svideo,
-                        color: Colors.blue, size: 16),
-                    SizedBox(width: 4),
-                    Text('Patch'),
-                  ]),
-                ),
-              ],
-              rows: widget.vm.fixtures.values.mapIndexed((index, fixture) {
-                return DataRow(
-                    selected:
-                        widget.vm.selectedFixtureIds.contains(fixture.uid),
-                    onSelectChanged: (isSelected) =>
-                        _handleSelectChanged(isSelected, index, fixture),
-                    cells: [
-                      DataCell(Text(fixture.sequence.toString())),
-                      DataCell(Text(fixture.fid.toString())),
-                      DataCell(
-                        Text(fixture.type.name),
-                      ),
-                      DataCell(
-                        Text(fixture.lookupLocation(widget.vm.locations).name),
-                      ),
-                      DataCell(
-                        Text(
-                            '${fixture.dmxAddress.universe}/${fixture.dmxAddress.address}'),
-                      ),
-                      DataCell(Text(fixture.powerMulti)), // Power Multi
-                      DataCell(Text(
-                        fixture.powerPatch == 0
-                            ? ''
-                            : fixture.powerPatch.toString(),
-                      )), // Power Patch
-                      DataCell(Text(fixture.dataMulti)), // Data Multi
-                      DataCell(Text(fixture.dataPatch)), // Data Patch
-                    ]);
-              }).toList(),
+            TableHeaderColumn(
+                width: ColumnWidths.fid, label: Text('Fixture #')),
+            TableHeaderColumn(width: ColumnWidths.type, label: Text('Type')),
+            TableHeaderColumn(
+                width: ColumnWidths.location, label: Text('Location')),
+            TableHeaderColumn(
+                width: ColumnWidths.address, label: Text('Address')),
+            TableHeaderColumn(
+              width: ColumnWidths.powerMulti,
+              label: Row(children: [
+                Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
+                SizedBox(width: 4),
+                Text('Multi'),
+              ]),
             ),
-          ),
+            TableHeaderColumn(
+              width: ColumnWidths.powerPatch,
+              label: Row(children: [
+                Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
+                SizedBox(width: 4),
+                Text('Patch'),
+              ]),
+            ),
+            TableHeaderColumn(
+              width: ColumnWidths.dataMulti,
+              label: Row(children: [
+                Icon(Icons.settings_input_svideo, color: Colors.blue, size: 16),
+                SizedBox(width: 4),
+                Text('Multi'),
+              ]),
+            ),
+            TableHeaderColumn(
+              width: ColumnWidths.dataPatch,
+              label: Row(children: [
+                Icon(Icons.settings_input_svideo, color: Colors.blue, size: 16),
+                SizedBox(width: 4),
+                Text('Patch'),
+              ]),
+            ),
+          ],
+        ),
+        Expanded(
+          child: ListView.separated(
+              itemCount: fixtures.length,
+              separatorBuilder: (context, index) => const Divider(height: 2),
+              itemBuilder: (context, index) {
+                final fixture = fixtures[index];
+                return TableRow(
+                  rangeSelected: _rangeSelectStart != null &&
+                      _rangeSelectStart!.startingIndex == index,
+                  selected: widget.vm.selectedFixtureIds.contains(fixture.uid),
+                  onPressed: (isSelected) =>
+                      _handleSelectChanged(isSelected, index, fixture),
+                  cells: [
+                    Text(fixture.sequence.toString()),
+                    Text(fixture.fid.toString()),
+
+                    Text(fixture.type.name),
+
+                    Text(fixture.lookupLocation(widget.vm.locations).name),
+
+                    Text(
+                        '${fixture.dmxAddress.universe}/${fixture.dmxAddress.address}'),
+
+                    Text(fixture.powerMulti), // Power Multi
+                    Text(
+                      fixture.powerPatch == 0
+                          ? ''
+                          : fixture.powerPatch.toString(),
+                    ), // Power Patch
+                    Text(fixture.dataMulti), // Data Multi
+                    Text(fixture.dataPatch),
+                  ],
+                );
+              }),
         ),
       ],
     );
@@ -231,13 +247,7 @@ class _HomeState extends State<Home> {
 
     if (_isModDown == false) {
       // Normal Selection
-      if (isSelected == true) {
-        widget.vm.onSelectedFixturesChanged(
-            {...widget.vm.selectedFixtureIds, fixture.uid});
-      } else {
-        widget.vm.onSelectedFixturesChanged(
-            widget.vm.selectedFixtureIds..remove(fixture.uid));
-      }
+      widget.vm.onSelectedFixturesChanged({fixture.uid});
     } else {
       // Range Selection.
       if (_rangeSelectStart == null) {
