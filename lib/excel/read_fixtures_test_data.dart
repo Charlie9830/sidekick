@@ -51,6 +51,10 @@ Future<
           _ => 0,
         };
 
+        if (fixtureId == 0) {
+          return null;
+        }
+
         final String fixtureTypeName =
             switch (row[_FixtureExcelColumns.fixtureType]?.value) {
           TextCellValue v => v.value.trim(),
