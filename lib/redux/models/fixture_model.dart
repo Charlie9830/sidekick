@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:sidekick/redux/models/dmx_address_model.dart';
 import 'package:sidekick/redux/models/fixture_mode_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
@@ -137,5 +138,19 @@ class FixtureModel {
         dataPatch.hashCode ^
         powerMulti.hashCode ^
         powerPatch.hashCode;
+  }
+
+  static Map<String, FixtureModel> sort(Map<String, FixtureModel> fixtures,
+      Map<String, LocationModel> locations) {
+    final fixturesByLocation =
+        fixtures.values.groupListsBy((fixture) => fixture.locationId);
+
+    final sortedFixturesByLocation = fixturesByLocation.map(
+        (locationId, fixtures) => MapEntry(
+            locationId, fixtures.sorted((a, b) => a.sequence - b.sequence)));
+
+    return Map<String, FixtureModel>.fromEntries(sortedFixturesByLocation
+        .values.flattened
+        .map((fixture) => MapEntry(fixture.uid, fixture)));
   }
 }

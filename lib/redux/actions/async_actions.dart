@@ -17,7 +17,46 @@ import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:path/path.dart' as p;
 import 'package:clipboard/clipboard.dart';
+import 'package:sidekick/screens/sequencer_dialog/sequencer_dialog.dart';
 import 'package:sidekick/utils/get_uid.dart';
+
+ThunkAction<AppState> setSequenceNumbers(BuildContext context) {
+  return (Store<AppState> store) async {
+    final selectedFixtures = store.state.fixtureState.fixtures.values
+        .where((fixture) =>
+            store.state.navstate.selectedFixtureIds.contains(fixture.uid))
+        .toList();
+
+    final result = await showDialog(
+      context: context,
+      builder: (context) => SequencerDialog(fixtures: selectedFixtures),
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    if (result is Map<int, FixtureModel>) {
+      final existingFixtures =
+          Map<String, FixtureModel>.from(store.state.fixtureState.fixtures);
+
+      for (final entry in result.entries) {
+        final newSeqNumber = entry.key;
+        final fixtureId = entry.value.uid;
+
+        existingFixtures.update(
+            fixtureId, (fixture) => fixture.copyWith(sequence: newSeqNumber));
+      }
+
+      final sortedFixtures = FixtureModel.sort(
+          existingFixtures, store.state.fixtureState.locations);
+
+      store.dispatch(SetFixtures(sortedFixtures));
+
+      
+    }
+  };
+}
 
 ThunkAction<AppState> initializeApp() {
   return (Store<AppState> store) async {

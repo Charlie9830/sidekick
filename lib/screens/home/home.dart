@@ -8,6 +8,14 @@ import 'package:sidekick/containers/power_patch_container.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/screens/home/range_select.dart';
 import 'package:sidekick/view_models/home_view_model.dart';
+import 'package:sidekick/widgets/toolbar.dart';
+
+final _modKeys = {
+  LogicalKeyboardKey.controlLeft,
+  LogicalKeyboardKey.controlRight,
+  LogicalKeyboardKey.metaLeft,
+  LogicalKeyboardKey.metaRight,
+};
 
 class Home extends StatefulWidget {
   final HomeViewModel vm;
@@ -21,9 +29,9 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   late final FocusNode _focus;
 
-  bool _isShiftDown = false;
+  bool _isModDown = false;
 
-  RangeSelect? _rangeSelectStart = null;
+  RangeSelect? _rangeSelectStart;
 
   @override
   void initState() {
@@ -93,99 +101,122 @@ class _HomeState extends State<Home> {
   }
 
   Widget _buildFixtureTable(BuildContext context) {
-    return SingleChildScrollView(
-      child: DataTable(
-        onSelectAll: (value) {
-          if (value == true) {
-            widget.vm.onSelectedFixturesChanged(widget.vm.fixtures.values
-                .map((fixture) => fixture.uid)
-                .toSet());
-          } else {
-            widget.vm.onSelectedFixturesChanged({});
-          }
-        },
-        showCheckboxColumn: true,
-        columns: const [
-          DataColumn(
-              label: Text(
-            'Sequence #',
-          )),
-          DataColumn(label: Text('Fixture #')),
-          DataColumn(label: Text('Type')),
-          DataColumn(label: Text('Location')),
-          DataColumn(label: Text('Address')),
-          DataColumn(
-            label: Row(children: [
-              Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
-              SizedBox(width: 4),
-              Text('Multi'),
-            ]),
-          ),
-          DataColumn(
-            label: Row(children: [
-              Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
-              SizedBox(width: 4),
-              Text('Patch'),
-            ]),
-          ),
-          DataColumn(
-            label: Row(children: [
-              Icon(Icons.settings_input_svideo, color: Colors.blue, size: 16),
-              SizedBox(width: 4),
-              Text('Multi'),
-            ]),
-          ),
-          DataColumn(
-            label: Row(children: [
-              Icon(Icons.settings_input_svideo, color: Colors.blue, size: 16),
-              SizedBox(width: 4),
-              Text('Patch'),
-            ]),
-          ),
-        ],
-        rows: widget.vm.fixtures.values.mapIndexed((index, fixture) {
-          return DataRow(
-              selected: widget.vm.selectedFixtureIds.contains(fixture.uid),
-              onSelectChanged: (isSelected) =>
-                  _handleSelectChanged(isSelected, index, fixture),
-              cells: [
-                DataCell(Text(fixture.sequence.toString())),
-                DataCell(Text(fixture.fid.toString())),
-                DataCell(
-                  Text(fixture.type.name),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Toolbar(
+            child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            ElevatedButton.icon(
+              icon: const Icon(Icons.numbers),
+              label: const Text("Set Sequence"),
+              onPressed: widget.vm.selectedFixtureIds.isNotEmpty
+                  ? widget.vm.onSetSequenceButtonPressed
+                  : null,
+            ),
+          ],
+        )),
+        Expanded(
+          child: SingleChildScrollView(
+            child: DataTable(
+              onSelectAll: (value) {
+                if (value == true) {
+                  widget.vm.onSelectedFixturesChanged(widget.vm.fixtures.values
+                      .map((fixture) => fixture.uid)
+                      .toSet());
+                } else {
+                  widget.vm.onSelectedFixturesChanged({});
+                }
+              },
+              showCheckboxColumn: true,
+              columns: const [
+                DataColumn(
+                    label: Text(
+                  'Sequence #',
+                )),
+                DataColumn(label: Text('Fixture #')),
+                DataColumn(label: Text('Type')),
+                DataColumn(label: Text('Location')),
+                DataColumn(label: Text('Address')),
+                DataColumn(
+                  label: Row(children: [
+                    Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
+                    SizedBox(width: 4),
+                    Text('Multi'),
+                  ]),
                 ),
-                DataCell(
-                  Text(fixture.lookupLocation(widget.vm.locations).name),
+                DataColumn(
+                  label: Row(children: [
+                    Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
+                    SizedBox(width: 4),
+                    Text('Patch'),
+                  ]),
                 ),
-                DataCell(
-                  Text(
-                      '${fixture.dmxAddress.universe}/${fixture.dmxAddress.address}'),
+                DataColumn(
+                  label: Row(children: [
+                    Icon(Icons.settings_input_svideo,
+                        color: Colors.blue, size: 16),
+                    SizedBox(width: 4),
+                    Text('Multi'),
+                  ]),
                 ),
-                DataCell(Text(fixture.powerMulti)), // Power Multi
-                DataCell(Text(
-                  fixture.powerPatch == 0 ? '' : fixture.powerPatch.toString(),
-                )), // Power Patch
-                DataCell(Text(fixture.dataMulti)), // Data Multi
-                DataCell(Text(fixture.dataPatch)), // Data Patch
-              ]);
-        }).toList(),
-      ),
+                DataColumn(
+                  label: Row(children: [
+                    Icon(Icons.settings_input_svideo,
+                        color: Colors.blue, size: 16),
+                    SizedBox(width: 4),
+                    Text('Patch'),
+                  ]),
+                ),
+              ],
+              rows: widget.vm.fixtures.values.mapIndexed((index, fixture) {
+                return DataRow(
+                    selected:
+                        widget.vm.selectedFixtureIds.contains(fixture.uid),
+                    onSelectChanged: (isSelected) =>
+                        _handleSelectChanged(isSelected, index, fixture),
+                    cells: [
+                      DataCell(Text(fixture.sequence.toString())),
+                      DataCell(Text(fixture.fid.toString())),
+                      DataCell(
+                        Text(fixture.type.name),
+                      ),
+                      DataCell(
+                        Text(fixture.lookupLocation(widget.vm.locations).name),
+                      ),
+                      DataCell(
+                        Text(
+                            '${fixture.dmxAddress.universe}/${fixture.dmxAddress.address}'),
+                      ),
+                      DataCell(Text(fixture.powerMulti)), // Power Multi
+                      DataCell(Text(
+                        fixture.powerPatch == 0
+                            ? ''
+                            : fixture.powerPatch.toString(),
+                      )), // Power Patch
+                      DataCell(Text(fixture.dataMulti)), // Data Multi
+                      DataCell(Text(fixture.dataPatch)), // Data Patch
+                    ]);
+              }).toList(),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   void _handleKeyEvent(KeyEvent e) {
-    // Shift
-    if (e.logicalKey == LogicalKeyboardKey.shiftLeft ||
-        e.logicalKey == LogicalKeyboardKey.shiftRight) {
+    if (_modKeys.contains(e.logicalKey)) {
       if (e is KeyDownEvent) {
         setState(() {
-          _isShiftDown = true;
+          _isModDown = true;
         });
       }
 
       if (e is KeyUpEvent) {
         setState(() {
-          _isShiftDown = false;
+          _isModDown = false;
           _rangeSelectStart = null;
         });
       }
@@ -198,7 +229,7 @@ class _HomeState extends State<Home> {
       return;
     }
 
-    if (_isShiftDown == false) {
+    if (_isModDown == false) {
       // Normal Selection
       if (isSelected == true) {
         widget.vm.onSelectedFixturesChanged(
