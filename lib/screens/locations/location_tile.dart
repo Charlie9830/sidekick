@@ -4,16 +4,12 @@ import 'package:sidekick/widgets/property_field.dart';
 
 class LocationTile extends StatelessWidget {
   final LocationModel location;
-  final int powerMultiCount;
   final void Function(String newValue) onPrefixChanged;
-  final void Function() onCommitPowerPressed;
 
   const LocationTile({
     Key? key,
     required this.location,
     required this.onPrefixChanged,
-    this.powerMultiCount = 0,
-    required this.onCommitPowerPressed,
   }) : super(key: key);
 
   @override
@@ -47,26 +43,6 @@ class LocationTile extends StatelessWidget {
               ),
             ],
           ),
-          for (int i = 0; i < powerMultiCount; i++)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                const Icon(Icons.electric_bolt,
-                    color: Colors.yellowAccent, size: 16),
-                const SizedBox(width: 4),
-                Text('${location.multiPrefix}${i + 1}',
-                    style: Theme.of(context).textTheme.bodyLarge)
-              ],
-            ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              OutlinedButton.icon(
-                  onPressed: onCommitPowerPressed,
-                  icon: const Icon(Icons.electric_bolt),
-                  label: const Text("Commit")),
-            ],
-          )
         ],
       ),
     ));

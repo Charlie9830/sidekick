@@ -96,24 +96,55 @@ class LocationModel {
 
   static Color matchColor(String locationName) {
     final lookup = <RegExp, Color>{
+      // Red
       RegExp(r'red ', caseSensitive: false):
           const Color.fromARGB(255, 255, 0, 0),
+      RegExp(r'LX1 ', caseSensitive: false):
+          const Color.fromARGB(255, 255, 0, 0),
+
+      // White
       RegExp(r'white ', caseSensitive: false):
           const Color.fromARGB(255, 255, 255, 255),
+      RegExp(r'LX2 ', caseSensitive: false):
+          const Color.fromARGB(255, 255, 255, 255),
+
+      // Blue
       RegExp(r'blue ', caseSensitive: false):
           const Color.fromARGB(255, 0, 0, 255),
+      RegExp(r'LX3 ', caseSensitive: false):
+          const Color.fromARGB(255, 0, 0, 255),
+
+      // Green
       RegExp(r'green ', caseSensitive: false):
           const Color.fromARGB(255, 0, 255, 0),
+      RegExp(r'LX4 ', caseSensitive: false):
+          const Color.fromARGB(255, 0, 255, 0),
+
+      // Brown
       RegExp(r'brown ', caseSensitive: false):
           const Color.fromARGB(255, 255, 145, 0),
+      RegExp(r'LX5 ', caseSensitive: false):
+          const Color.fromARGB(255, 255, 145, 0),
+
+      // Orange
       RegExp(r'SR ', caseSensitive: false):
           const Color.fromARGB(255, 255, 100, 0),
       RegExp(r'Stage Right ', caseSensitive: false):
           const Color.fromARGB(255, 255, 100, 0),
+
+      // Yellow
       RegExp(r'SL ', caseSensitive: false):
           const Color.fromARGB(255, 255, 255, 0),
       RegExp(r'Stage Left ', caseSensitive: false):
           const Color.fromARGB(255, 255, 255, 0),
+
+      // Purple
+      RegExp(r'Pyro', caseSensitive: false):
+          const Color.fromARGB(255, 255, 255, 0),
+      RegExp(r'Pod', caseSensitive: false):
+          const Color.fromARGB(255, 255, 255, 0),
+
+      // Grey
       RegExp(r'DSL ', caseSensitive: false):
           const Color.fromARGB(255, 128, 128, 128),
       RegExp(r'DSC ', caseSensitive: false):

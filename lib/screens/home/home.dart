@@ -3,7 +3,7 @@ import 'package:flutter/material.dart' hide TableRow;
 import 'package:flutter/services.dart';
 import 'package:sidekick/containers/data_patch_container.dart';
 import 'package:sidekick/containers/export_container.dart';
-import 'package:sidekick/containers/loom_names_container.dart';
+import 'package:sidekick/containers/locations_container.dart';
 import 'package:sidekick/containers/power_patch_container.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/screens/home/column_widths.dart';
@@ -75,8 +75,8 @@ class _HomeState extends State<Home> {
                       icon: Icon(Icons.settings_input_svideo),
                       child: Text('Patch')),
                   Tab(
-                    icon: Icon(Icons.label),
-                    child: Text('Labels'),
+                    icon: Icon(Icons.location_pin),
+                    child: Text('Locations'),
                   ),
                   Tab(
                     icon: Icon(Icons.save_alt),
@@ -90,7 +90,7 @@ class _HomeState extends State<Home> {
               _buildFixtureTable(context),
               const PowerPatchContainer(),
               const DataPatchContainer(),
-              const LoomNamesContainer(),
+              const LocationsContainer(),
               const ExportContainer(),
             ],
           ),
