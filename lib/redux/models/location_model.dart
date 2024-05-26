@@ -160,29 +160,36 @@ class LocationModel {
       RegExp('brown', caseSensitive: false): 'BRN',
       RegExp('purple', caseSensitive: false): 'P',
 
+      // Locations
+      RegExp('Front', caseSensitive: false): 'FRT ',
+      RegExp('Mid', caseSensitive: false): 'MID ',
+      RegExp('Back', caseSensitive: false): 'BACK ',
+
+      // Shapes
+      RegExp('Circle', caseSensitive: false): 'CIRC ',
+      RegExp('Spine', caseSensitive: false): 'SPINE',
+
       // LX's
-      RegExp('LX1', caseSensitive: false): 'LX1',
-      RegExp('LX2', caseSensitive: false): 'LX2',
-      RegExp('LX3', caseSensitive: false): 'LX3',
-      RegExp('LX4', caseSensitive: false): 'LX4',
-      RegExp('LX5', caseSensitive: false): 'LX5',
-      RegExp('LX6', caseSensitive: false): 'LX6',
-      RegExp('LX7', caseSensitive: false): 'LX7',
-      RegExp('LX8', caseSensitive: false): 'LX8',
+      RegExp('LX1', caseSensitive: false): 'LX1.',
+      RegExp('LX2', caseSensitive: false): 'LX2.',
+      RegExp('LX3', caseSensitive: false): 'LX3.',
+      RegExp('LX4', caseSensitive: false): 'LX4.',
+      RegExp('LX5', caseSensitive: false): 'LX5.',
+      RegExp('LX6', caseSensitive: false): 'LX6.',
+      RegExp('LX7', caseSensitive: false): 'LX7.',
+      RegExp('LX8', caseSensitive: false): 'LX8.',
 
       // Directions
+      RegExp('DSR ', caseSensitive: false): 'DSR',
+      RegExp('USR ', caseSensitive: false): 'USR',
+      RegExp('DSL ', caseSensitive: false): 'DSL',
+      RegExp('USL ', caseSensitive: false): 'USL',
+      RegExp('DSC ', caseSensitive: false): 'DSC',
+      RegExp('USC ', caseSensitive: false): 'USC',
       RegExp('SR ', caseSensitive: false): 'SR',
       RegExp('SL ', caseSensitive: false): 'SL',
-
-      // Alpha Numerics
-      RegExp('A ', caseSensitive: false): 'A',
-      RegExp('B ', caseSensitive: false): 'B',
-      RegExp('C ', caseSensitive: false): 'C',
-      RegExp('D ', caseSensitive: false): 'D',
-      RegExp('E ', caseSensitive: false): 'E',
-      RegExp('F ', caseSensitive: false): 'F',
-      RegExp('G ', caseSensitive: false): 'G',
-      RegExp('H ', caseSensitive: false): 'H',
+      RegExp('US ', caseSensitive: false): 'US',
+      RegExp('DS ', caseSensitive: false): 'DS',
 
       // Fingers
       RegExp('Finger.*1', caseSensitive: false): 'F1.',
@@ -255,6 +262,34 @@ class LocationModel {
       RegExp('Truss.*22', caseSensitive: false): 'T22.',
       RegExp('Truss.*23', caseSensitive: false): 'T23.',
       RegExp('Truss.*24', caseSensitive: false): 'T24.',
+
+      // Numeric Pods
+      RegExp('Pod.*1', caseSensitive: false): 'P1.',
+      RegExp('Pod.*2', caseSensitive: false): 'P2.',
+      RegExp('Pod.*3', caseSensitive: false): 'P3.',
+      RegExp('Pod.*4', caseSensitive: false): 'P4.',
+      RegExp('Pod.*5', caseSensitive: false): 'P5.',
+      RegExp('Pod.*6', caseSensitive: false): 'P6.',
+      RegExp('Pod.*7', caseSensitive: false): 'P7.',
+      RegExp('Pod.*8', caseSensitive: false): 'P8.',
+      RegExp('Pod.*9', caseSensitive: false): 'P9.',
+      RegExp('Pod.*10', caseSensitive: false): 'P10.',
+      RegExp('Pod.*11', caseSensitive: false): 'P11.',
+      RegExp('Pod.*12', caseSensitive: false): 'P12.',
+      RegExp('Pod.*13', caseSensitive: false): 'P13.',
+      RegExp('Pod.*14', caseSensitive: false): 'P14.',
+      RegExp('Pod.*15', caseSensitive: false): 'P15.',
+      RegExp('Pod.*16', caseSensitive: false): 'P16.',
+
+      // Alpha Numerics
+      RegExp('A ', caseSensitive: false): 'A',
+      RegExp('B ', caseSensitive: false): 'B',
+      RegExp('C ', caseSensitive: false): 'C',
+      RegExp('D ', caseSensitive: false): 'D',
+      RegExp('E ', caseSensitive: false): 'E',
+      RegExp('F ', caseSensitive: false): 'F',
+      RegExp('G ', caseSensitive: false): 'G',
+      RegExp('H ', caseSensitive: false): 'H',
     };
 
     final key =

@@ -5,6 +5,7 @@ import 'package:sidekick/balancer/asserts/asserts.dart';
 import 'package:sidekick/balancer/balancer_base.dart';
 import 'package:sidekick/balancer/balancer_result.dart';
 import 'package:sidekick/balancer/phase_load.dart';
+import 'package:sidekick/balancer/power_span.dart';
 import 'package:sidekick/balancer/shared_utils.dart';
 import 'package:sidekick/extension_methods/queue_pop.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
@@ -30,62 +31,70 @@ class NaiveBalancer implements Balancer {
     int maxSequenceBreak = 4,
   }) {
     // Generate Patches.
-    final patchesByLocationId = _generatePatches(
+    final patchesBySpan = _generatePatches(
       fixtures: fixtures,
       maxAmpsPerCircuit: maxAmpsPerCircuit,
       maxSequenceBreak: maxSequenceBreak,
     );
 
+    final patchSpansByLocationId = patchesBySpan.entries
+        .groupListsBy((entry) => entry.key.locationId)
+        .map((locationId, spanEntry) => MapEntry(locationId,
+            Map<PowerSpan, List<PowerPatchModel>>.fromEntries(spanEntry)));
+
     final resultMap = <PowerMultiOutletModel, List<PowerOutletModel>>{};
 
-    for (var entry in patchesByLocationId.entries) {
-      final locationId = entry.key;
-      final patchesQueue = Queue<PowerPatchModel>.from(entry.value);
-
-      // TODO: We are only assigning the first 6 Channels of each Location. Thats because somewhere below we need to have another loop,
-      // It needs to be based off the amount of patches we have left, as in we need to keep looping and popping patches off the queue until
-      // we have nothing left.
+    for (final locationEntry in patchSpansByLocationId.entries) {
+      final locationId = locationEntry.key;
+      final patchesBySpan = locationEntry.value;
 
       final existingMultiOutletsAssignedToLocationQueue =
           Queue<PowerMultiOutletModel>.from(
               multiOutlets.where((multi) => multi.locationId == locationId));
 
-      while (patchesQueue.isNotEmpty) {
-        final multiOutlet = existingMultiOutletsAssignedToLocationQueue.isEmpty
-            ? PowerMultiOutletModel(
-                uid: getUid(),
-                locationId: locationId,
-                name: 'Not named yet',
-                desiredSpareCircuits: 0,
-              )
-            : existingMultiOutletsAssignedToLocationQueue.removeFirst();
+      for (final spanEntry in patchesBySpan.entries) {
+        final patchesInSpan = spanEntry.value;
 
-        final patchSlice =
-            patchesQueue.pop(6 - multiOutlet.desiredSpareCircuits).toList();
+        final patchesQueue = Queue<PowerPatchModel>.from(patchesInSpan);
 
-        if (patchSlice.length < 6) {
-          final diff = 6 - patchSlice.length;
-          patchSlice.addAll([
-            for (int i = 1; i <= diff; i++) PowerPatchModel.empty(),
-          ]);
+        while (patchesQueue.isNotEmpty) {
+          final multiOutlet =
+              existingMultiOutletsAssignedToLocationQueue.isEmpty
+                  ? PowerMultiOutletModel(
+                      uid: getUid(),
+                      locationId: locationId,
+                      name: 'Not named yet',
+                      desiredSpareCircuits: 0,
+                    )
+                  : existingMultiOutletsAssignedToLocationQueue.removeFirst();
+
+          final patchSlice =
+              patchesQueue.pop(6 - multiOutlet.desiredSpareCircuits).toList();
+
+          if (patchSlice.length < 6) {
+            final diff = 6 - patchSlice.length;
+            patchSlice.addAll([
+              for (int i = 1; i <= diff; i++) PowerPatchModel.empty(),
+            ]);
+          }
+
+          if (multiOutlet.desiredSpareCircuits == 0 &&
+              patchSlice.every((patch) => patch.isEmpty)) {
+            // No spare circuits required here AND every element in the patch slice is empty. So
+            // no point in generating a completing empty Multi Outlet.
+            continue;
+          }
+
+          final outlets = patchSlice.mapIndexed((index, patch) =>
+              PowerOutletModel(
+                  child: patch,
+                  locationId: locationId,
+                  multiOutletId: multiOutlet.uid,
+                  phase: getPhaseFromIndex(index),
+                  multiPatch: getMultiPatchFromIndex(index)));
+
+          resultMap[multiOutlet] = outlets.toList();
         }
-
-        if (multiOutlet.desiredSpareCircuits == 0 &&
-            patchSlice.every((patch) => patch.isEmpty)) {
-          // No spare circuits required here AND every element in the patch slice is empty. So
-          // no point in generating a completing empty Multi Outlet.
-          continue;
-        }
-
-        final outlets = patchSlice.mapIndexed((index, patch) =>
-            PowerOutletModel(
-                child: patch,
-                locationId: locationId,
-                multiOutletId: multiOutlet.uid,
-                phase: getPhaseFromIndex(index),
-                multiPatch: getMultiPatchFromIndex(index)));
-
-        resultMap[multiOutlet] = outlets.toList();
       }
     }
 
@@ -134,36 +143,28 @@ class NaiveBalancer implements Balancer {
     return BalancerResult(rawSlices.flattened.toList(), currentLoad);
   }
 
-  Map<String, List<PowerPatchModel>> _generatePatches({
+  Map<PowerSpan, List<PowerPatchModel>> _generatePatches({
     required List<FixtureModel> fixtures,
     required double maxAmpsPerCircuit,
     required int maxSequenceBreak,
   }) {
-    // To Ensure we only Piggyback fixtures local to their own Position. We first group the fixtures by their
-    // locations. Then iterate though those locations, calling [performPiggybacking] on each Location.
-    final fixturesByLocationId =
-        fixtures.groupListsBy((fixture) => fixture.locationId);
+    final powerSpans = PowerSpan.createSpans(fixtures);
 
-    final patchesByLocationId =
-        fixturesByLocationId.map((locationId, fixtures) {
-      return MapEntry(
-          locationId, performPiggybacking(fixtures, maxSequenceBreak));
-    });
+    final patchesBySpan = Map<PowerSpan, List<PowerPatchModel>>.fromEntries(
+        powerSpans.map((span) => MapEntry(
+            span, performPiggybacking(span.fixtures, maxSequenceBreak))));
 
-    // Ensure that for each Location, we have a qty of patches that is a multiple of 6.
-    // TODO: Maybe this would be better left to the PowerOutlet assigning part.
-    final gapFilledPatchesByLocationId = _fillPatchQty(patchesByLocationId);
-
-    return gapFilledPatchesByLocationId;
+    // Ensure that for each Span, we have a qty of patches that is a multiple of 6.
+    return _fillPatchQty(patchesBySpan);
   }
 
-  Map<String, List<PowerPatchModel>> _fillPatchQty(
-      Map<String, List<PowerPatchModel>> patchesByLocationId) {
-    return patchesByLocationId.map((locationId, patches) {
+  Map<PowerSpan, List<PowerPatchModel>> _fillPatchQty(
+      Map<PowerSpan, List<PowerPatchModel>> patchesBySpan) {
+    return patchesBySpan.map((span, patches) {
       final desiredNumberOfPatches = roundUpToNearestMultiBreak(patches.length);
 
       if (patches.length == desiredNumberOfPatches) {
-        return MapEntry(locationId, patches);
+        return MapEntry(span, patches);
       }
 
       if (patches.length > desiredNumberOfPatches) {
@@ -174,16 +175,8 @@ class NaiveBalancer implements Balancer {
       final gapFillers = List<PowerPatchModel>.generate(
           difference, (index) => PowerPatchModel.empty());
 
-      return MapEntry(locationId, patches.toList()..addAll(gapFillers));
+      return MapEntry(span, patches.toList()..addAll(gapFillers));
     });
-  }
-
-  double _calculateNewRunningPhaseTotal(
-      List<PowerOutletModel> slice, int phaseIndex, double currentRunningLoad) {
-    return slice
-        .where((outlet) => outlet.phase == phaseIndex)
-        .map((outlet) => outlet.child.amps)
-        .fold(currentRunningLoad, (value, current) => value + current);
   }
 
   /// Recursively calls itself to attempt to balance the Slice.
