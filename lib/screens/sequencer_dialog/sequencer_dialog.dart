@@ -97,6 +97,25 @@ class _SequencerDialogState extends State<SequencerDialog> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
+                                OutlinedButton.icon(
+                                  label: const Text('Assign all'),
+                                  icon: const Icon(
+                                      Icons.keyboard_double_arrow_right),
+                                  onPressed: unassignedFixtures.isNotEmpty
+                                      ? () =>
+                                          _assignRemaining(unassignedFixtures)
+                                      : null,
+                                ),
+                                const SizedBox(height: 16),
+                                OutlinedButton.icon(
+                                  label: const Text('Remove All'),
+                                  icon: const Icon(
+                                      Icons.keyboard_double_arrow_left),
+                                  onPressed: _mapping.values.isNotEmpty
+                                      ? () => setState(() => _mapping.clear())
+                                      : null,
+                                ),
+                                const SizedBox(height: 64),
                                 Row(
                                   children: [
                                     const Text('Sequence Number'),
@@ -131,9 +150,7 @@ class _SequencerDialogState extends State<SequencerDialog> {
                                       width: 212,
                                       child: TextField(
                                         decoration: InputDecoration(
-
                                           border: const OutlineInputBorder(),
-                                          
                                           errorText:
                                               _error.isEmpty ? null : _error,
                                         ),
@@ -209,6 +226,15 @@ class _SequencerDialogState extends State<SequencerDialog> {
         ),
       ),
     );
+  }
+
+  void _assignRemaining(List<FixtureModel> unassignedFixtures) {
+    final newEntries = unassignedFixtures.mapIndexed(
+        (index, fixture) => MapEntry(_currentSequenceNumber + index, fixture));
+
+    setState(() {
+      _mapping.addAll(Map<int, FixtureModel>.fromEntries(newEntries));
+    });
   }
 
   void _updateSequenceNumber() {
