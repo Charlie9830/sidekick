@@ -19,13 +19,30 @@ class LocationsContainer extends StatelessWidget {
       },
       converter: (Store<AppState> store) {
         return LocationsViewModel(
-          outlets: store.state.fixtureState.outlets,
-          locations: store.state.fixtureState.locations,
-          onMultiPrefixChanged: (location, newValue) => store.dispatch(
-            UpdateLocationMultiPrefix(location, newValue),
-          ),
-        );
+            itemVms: _selectLocationItems(store),
+            onMultiPrefixChanged: (locationId, newValue) => store.dispatch(
+                  UpdateLocationMultiPrefix(locationId, newValue),
+                ),
+            onLocationNameChanged: (locationId, newValue) =>
+                store.dispatch(UpdateLocationName(locationId, newValue)));
       },
     );
+  }
+
+  List<LocationItemViewModel> _selectLocationItems(Store<AppState> store) {
+    return store.state.fixtureState.locations.values.map((location) {
+      return LocationItemViewModel(
+        location: location,
+        powerMultiCount: store.state.fixtureState.powerMultiOutlets.values
+            .where((outlet) => outlet.locationId == location.uid)
+            .length,
+        dataMultiCount: store.state.fixtureState.dataMultis.values
+            .where((multi) => multi.locationId == location.uid)
+            .length,
+        dataPatchCount: store.state.fixtureState.dataPatches.values
+            .where((patch) => patch.locationId == location.uid)
+            .length,
+      );
+    }).toList();
   }
 }

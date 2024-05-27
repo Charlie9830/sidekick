@@ -70,14 +70,21 @@ class SetMaxSequenceBreak {
 }
 
 class UpdateLocationMultiPrefix {
-  final String location;
+  final String locationId;
   final String newValue;
 
-  UpdateLocationMultiPrefix(this.location, this.newValue);
+  UpdateLocationMultiPrefix(this.locationId, this.newValue);
 }
 
 class CommitLocationPowerPatch {
   final LocationModel location;
 
   CommitLocationPowerPatch(this.location);
+}
+
+class UpdateLocationName {
+  final String locationId;
+  final String newValue;
+
+  UpdateLocationName(this.locationId, this.newValue);
 }

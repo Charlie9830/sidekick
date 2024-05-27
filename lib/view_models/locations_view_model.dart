@@ -1,14 +1,27 @@
 import 'package:sidekick/redux/models/location_model.dart';
-import 'package:sidekick/redux/models/power_outlet_model.dart';
 
 class LocationsViewModel {
-  final List<PowerOutletModel> outlets;
-  final Map<String, LocationModel> locations;
+  final List<LocationItemViewModel> itemVms;
   final void Function(String location, String newValue) onMultiPrefixChanged;
+  final void Function(String locationId, String newValue) onLocationNameChanged;
 
   LocationsViewModel({
-    required this.outlets,
-    required this.locations,
+    required this.itemVms,
     required this.onMultiPrefixChanged,
+    required this.onLocationNameChanged,
+  });
+}
+
+class LocationItemViewModel {
+  final LocationModel location;
+  final int powerMultiCount;
+  final int dataMultiCount;
+  final int dataPatchCount;
+
+  LocationItemViewModel({
+    required this.location,
+    required this.powerMultiCount,
+    required this.dataMultiCount,
+    required this.dataPatchCount,
   });
 }

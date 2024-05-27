@@ -12,6 +12,7 @@ import 'package:sidekick/screens/home/range_select.dart';
 import 'package:sidekick/screens/home/table_header.dart';
 import 'package:sidekick/screens/home/table_row.dart';
 import 'package:sidekick/view_models/home_view_model.dart';
+import 'package:sidekick/widgets/icon_label.dart';
 import 'package:sidekick/widgets/toolbar.dart';
 
 final _modKeys = {
@@ -152,35 +153,30 @@ class _HomeState extends State<Home> {
                 width: ColumnWidths.address, label: Text('Address')),
             TableHeaderColumn(
               width: ColumnWidths.powerMulti,
-              label: Row(children: [
-                Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
-                SizedBox(width: 4),
-                Text('Multi'),
-              ]),
+              label: IconLabel(
+                icon: Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
+                label: 'Multi',
+              ),
             ),
             TableHeaderColumn(
               width: ColumnWidths.powerPatch,
-              label: Row(children: [
-                Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
-                SizedBox(width: 4),
-                Text('Patch'),
-              ]),
+              label: IconLabel(
+                  icon:
+                      Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
+                  label: 'Patch'),
             ),
             TableHeaderColumn(
-              width: ColumnWidths.dataMulti,
-              label: Row(children: [
-                Icon(Icons.settings_input_svideo, color: Colors.blue, size: 16),
-                SizedBox(width: 4),
-                Text('Multi'),
-              ]),
-            ),
+                width: ColumnWidths.dataMulti,
+                label: IconLabel(
+                    icon: Icon(Icons.settings_input_svideo,
+                        color: Colors.blue, size: 16),
+                    label: 'Multi')),
             TableHeaderColumn(
               width: ColumnWidths.dataPatch,
-              label: Row(children: [
-                Icon(Icons.settings_input_svideo, color: Colors.blue, size: 16),
-                SizedBox(width: 4),
-                Text('Patch'),
-              ]),
+              label: IconLabel(
+                  icon: Icon(Icons.settings_input_svideo,
+                      color: Colors.blue, size: 16),
+                  label: 'Patch'),
             ),
           ],
         ),

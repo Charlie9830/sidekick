@@ -6,6 +6,11 @@ import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic action) {
   return switch (action) {
+    UpdateLocationName a => state.copyWith(
+        locations: Map<String, LocationModel>.from(state.locations)
+          ..update(a.locationId,
+              (existing) => existing.copyWith(name: a.newValue.trim())),
+      ),
     SetDataMultis a => state.copyWith(dataMultis: a.multis),
     SetDataPatches a => state.copyWith(dataPatches: a.patches),
     SetFixtures a => state.copyWith(
@@ -27,9 +32,9 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic action) {
     UpdateLocationMultiPrefix a => state.copyWith(
         locations: Map<String, LocationModel>.from(state.locations)
           ..update(
-            a.location,
+            a.locationId,
             (existing) => existing.copyWith(
-              multiPrefix: a.newValue.trim(),
+              multiPrefix: a.newValue,
             ),
           ),
       ),

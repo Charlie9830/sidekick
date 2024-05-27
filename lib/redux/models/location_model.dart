@@ -97,33 +97,33 @@ class LocationModel {
   static Color matchColor(String locationName) {
     final lookup = <RegExp, Color>{
       // Red
-      RegExp(r'red ', caseSensitive: false):
+      RegExp(r'red', caseSensitive: false):
           const Color.fromARGB(255, 255, 0, 0),
-      RegExp(r'LX1 ', caseSensitive: false):
+      RegExp(r'LX1', caseSensitive: false):
           const Color.fromARGB(255, 255, 0, 0),
 
       // White
-      RegExp(r'white ', caseSensitive: false):
+      RegExp(r'white', caseSensitive: false):
           const Color.fromARGB(255, 255, 255, 255),
-      RegExp(r'LX2 ', caseSensitive: false):
+      RegExp(r'LX2', caseSensitive: false):
           const Color.fromARGB(255, 255, 255, 255),
 
       // Blue
       RegExp(r'blue ', caseSensitive: false):
           const Color.fromARGB(255, 0, 0, 255),
-      RegExp(r'LX3 ', caseSensitive: false):
+      RegExp(r'LX3', caseSensitive: false):
           const Color.fromARGB(255, 0, 0, 255),
 
       // Green
       RegExp(r'green ', caseSensitive: false):
           const Color.fromARGB(255, 0, 255, 0),
-      RegExp(r'LX4 ', caseSensitive: false):
+      RegExp(r'LX4', caseSensitive: false):
           const Color.fromARGB(255, 0, 255, 0),
 
       // Brown
       RegExp(r'brown ', caseSensitive: false):
           const Color.fromARGB(255, 255, 145, 0),
-      RegExp(r'LX5 ', caseSensitive: false):
+      RegExp(r'LX5', caseSensitive: false):
           const Color.fromARGB(255, 255, 145, 0),
 
       // Orange
@@ -140,34 +140,34 @@ class LocationModel {
 
       // Purple
       RegExp(r'Pyro', caseSensitive: false):
-          const Color.fromARGB(255, 255, 255, 0),
+          const Color.fromARGB(255, 140, 0, 255),
       RegExp(r'Pod', caseSensitive: false):
-          const Color.fromARGB(255, 255, 255, 0),
+          const Color.fromARGB(255, 140, 0, 255),
 
       // Grey
-      RegExp(r'DSL ', caseSensitive: false):
+      RegExp(r'DSL', caseSensitive: false):
           const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'DSC ', caseSensitive: false):
+      RegExp(r'DSC', caseSensitive: false):
           const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'DSR ', caseSensitive: false):
+      RegExp(r'DSR', caseSensitive: false):
           const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'MSL ', caseSensitive: false):
+      RegExp(r'MSL', caseSensitive: false):
           const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'MSC ', caseSensitive: false):
+      RegExp(r'MSC', caseSensitive: false):
           const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'MSR ', caseSensitive: false):
+      RegExp(r'MSR', caseSensitive: false):
           const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'USL ', caseSensitive: false):
+      RegExp(r'USL', caseSensitive: false):
           const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'USC ', caseSensitive: false):
+      RegExp(r'USC', caseSensitive: false):
           const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'USR ', caseSensitive: false):
+      RegExp(r'USR', caseSensitive: false):
           const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'DS ', caseSensitive: false):
+      RegExp(r'DS', caseSensitive: false):
           const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'MS ', caseSensitive: false):
+      RegExp(r'MS', caseSensitive: false):
           const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'US ', caseSensitive: false):
+      RegExp(r'US', caseSensitive: false):
           const Color.fromARGB(255, 128, 128, 128),
     };
 
