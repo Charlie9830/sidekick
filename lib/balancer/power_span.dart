@@ -41,6 +41,14 @@ class PowerSpan {
         continue;
       }
 
+      if (nextFixture.locationId != fixture.locationId) {
+        // New Location. Close and Commit the Current Span.
+        currentSpan.endsAt = fixture;
+        spans.add(currentSpan);
+        currentSpan = null;
+        continue;
+      }
+
       if (nextFixture.sequence != fixture.sequence + 1) {
         // Close and Commit the current Span.
         currentSpan.endsAt = fixture;

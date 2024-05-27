@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:excel/excel.dart';
 import 'package:sidekick/redux/models/dmx_address_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
@@ -44,7 +45,7 @@ Future<
   final locationNameMap = _readLocations(rawDataRows);
 
   final list = rawDataRows
-      .map((row) {
+      .mapIndexed((index, row) {
         final int fixtureId = switch (row[_FixtureExcelColumns.fid]?.value) {
           IntCellValue v => v.value,
           TextCellValue v => int.parse(v.value),
@@ -84,7 +85,7 @@ Future<
 
         return FixtureModel(
           uid: getUid(),
-          sequence: 0,
+          sequence: index + 1,
           fid: fixtureId,
           type: fixtureType,
           locationId: locationId,
