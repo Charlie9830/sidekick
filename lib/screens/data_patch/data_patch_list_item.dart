@@ -10,31 +10,35 @@ class DataPatchListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const SizedBox(width: 16),
-        Icon(Icons.trending_flat,
-            color: patch.isSpare ? Colors.pinkAccent : Colors.grey),
-        const SizedBox(width: 8),
-        Text(
-          patch.name,
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-        if (patch.isSpare == false) ...[
-          const SizedBox(width: 64),
-          const Icon(Icons.lightbulb, color: Colors.grey, size: 20),
-          Text(patch.fixtureIds.length.toString()),
-          const SizedBox(width: 64),
-          Text('#${patch.startsAtFixtureId}'),
+    return Padding(
+      padding: const EdgeInsets.only(top: 2.0, bottom: 2.0),
+      child: Row(
+        children: [
+          const SizedBox(width: 16),
+          Icon(Icons.trending_flat,
+              color: patch.isSpare ? Colors.pinkAccent : Colors.grey),
           const SizedBox(width: 8),
-          const Icon(
-            Icons.arrow_right,
-            color: Colors.grey,
+          Text(
+            patch.name,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
-          const SizedBox(width: 8),
-          Text('#${patch.endsAtFixtureId}'),
+          if (patch.isSpare == false) ...[
+            const SizedBox(width: 64),
+            const Icon(Icons.lightbulb, color: Colors.grey, size: 20),
+            const SizedBox(width: 4),
+            Text(patch.fixtureIds.length.toString()),
+            const SizedBox(width: 64),
+            Text('#${patch.startsAtFixtureId}'),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.arrow_right,
+              color: Colors.grey,
+            ),
+            const SizedBox(width: 8),
+            Text('#${patch.endsAtFixtureId}'),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

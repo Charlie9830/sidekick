@@ -72,7 +72,7 @@ class DataPatch extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 4.0),
                   child: Text(
                     row.multi.name,
-                    style: Theme.of(context).textTheme.headlineSmall,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
               ],

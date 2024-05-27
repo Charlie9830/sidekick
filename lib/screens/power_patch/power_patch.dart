@@ -128,13 +128,13 @@ class _PowerPatchState extends State<PowerPatch> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Icon(Icons.electric_bolt, color: Colors.yellow),
+                  const Icon(Icons.electric_bolt, color: Colors.yellow, size: 20),
                   const SizedBox(width: 8),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4.0),
                     child: Text(
                       row.multiOutlet.name,
-                      style: Theme.of(context).textTheme.headlineSmall,
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
                   const Spacer(),

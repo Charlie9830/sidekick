@@ -15,7 +15,7 @@ class LocationHeaderRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding:
-          const EdgeInsets.only(bottom: 16.0, left: 8.0, top: 16, right: 24.0),
+          const EdgeInsets.only(bottom: 24.0, left: 8.0, top: 24, right: 24.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
@@ -24,7 +24,7 @@ class LocationHeaderRow extends StatelessWidget {
             color: Colors.grey,
           ),
           const SizedBox(width: 8),
-          Text(location.name, style: Theme.of(context).textTheme.headlineSmall),
+          Text(location.name, style: Theme.of(context).textTheme.titleMedium),
           const Spacer(),
           trailing,
         ],
