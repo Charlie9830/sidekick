@@ -43,6 +43,7 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     _focus = FocusNode(debugLabel: "Home Table Keyboard Focus");
+
     // Initialize App
     widget.vm.onAppInitialize();
   }
@@ -62,10 +63,15 @@ class _HomeState extends State<Home> {
             title: const Text("It's Just a Phase!"),
             primary: true,
             backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-            bottom: const TabBar(
+            bottom: TabBar(
+                onTap: (index) {
+                  if (index == 0) {
+                    _focus.requestFocus();
+                  }
+                },
                 isScrollable: true,
                 tabAlignment: TabAlignment.start,
-                tabs: [
+                tabs: const [
                   Tab(
                     icon: Icon(Icons.lightbulb),
                     child: Text('Fixtures'),
@@ -301,21 +307,11 @@ class _HomeState extends State<Home> {
         widget.vm.onSelectedFixturesChanged(
             {...widget.vm.selectedFixtureIds, fixture.uid});
       } else {
-        if (_rangeSelectStart!.value == true) {
-          widget.vm.onSelectedFixturesChanged({
-            ...widget.vm.selectedFixtureIds,
-            ..._getRangeSelectionIds(_rangeSelectStart!.startingIndex, index,
-                widget.vm.fixtures.values.toList())
-          });
-        } else {
-          widget.vm.onSelectedFixturesChanged({
-            ...widget.vm.selectedFixtureIds
-              ..removeAll(_getRangeSelectionIds(
-                  _rangeSelectStart!.startingIndex,
-                  index,
-                  widget.vm.fixtures.values.toList()))
-          });
-        }
+        widget.vm.onSelectedFixturesChanged({
+          ...widget.vm.selectedFixtureIds,
+          ..._getRangeSelectionIds(_rangeSelectStart!.startingIndex, index,
+              widget.vm.fixtures.values.toList())
+        });
       }
     }
   }
