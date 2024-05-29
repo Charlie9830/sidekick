@@ -6,6 +6,19 @@ import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic action) {
   return switch (action) {
+    UpdateFixtureTypeName a => state.copyWith(
+        fixtures: Map<String, FixtureModel>.from(state.fixtures)
+          ..updateAll((uid, fixture) => fixture.type.uid == a.id
+              ? fixture.copyWith(
+                  type: fixture.type.copyWith(name: a.newValue.trim()))
+              : fixture)),
+    UpdateFixtureTypeMaxPiggybacks a => state.copyWith(
+        fixtures: Map<String, FixtureModel>.from(state.fixtures)
+          ..updateAll((uid, fixture) => fixture.type.uid == a.id
+              ? fixture.copyWith(
+                  type: fixture.type.copyWith(
+                      maxPiggybacks: int.parse(a.newValue.trim()).abs()))
+              : fixture)),
     UpdateLocationName a => state.copyWith(
         locations: Map<String, LocationModel>.from(state.locations)
           ..update(a.locationId,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' hide TableRow;
 import 'package:flutter/services.dart';
 import 'package:sidekick/containers/data_patch_container.dart';
 import 'package:sidekick/containers/export_container.dart';
+import 'package:sidekick/containers/fixture_types_container.dart';
 import 'package:sidekick/containers/locations_container.dart';
 import 'package:sidekick/containers/power_patch_container.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
@@ -54,7 +55,7 @@ class _HomeState extends State<Home> {
       onKeyEvent: _handleKeyEvent,
       child: DefaultTabController(
         animationDuration: Duration.zero,
-        length: 5,
+        length: 6,
         initialIndex: 0,
         child: Scaffold(
           appBar: AppBar(
@@ -81,6 +82,10 @@ class _HomeState extends State<Home> {
                     child: Text('Locations'),
                   ),
                   Tab(
+                    icon: Icon(Icons.light),
+                    child: Text('Fixture Types'),
+                  ),
+                  Tab(
                     icon: Icon(Icons.save_alt),
                     child: Text('Export'),
                   )
@@ -93,6 +98,7 @@ class _HomeState extends State<Home> {
               const PowerPatchContainer(),
               const DataPatchContainer(),
               const LocationsContainer(),
+              const FixtureTypesContainer(),
               const ExportContainer(),
             ],
           ),
