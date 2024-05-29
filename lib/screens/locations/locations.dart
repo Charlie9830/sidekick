@@ -27,7 +27,9 @@ class Locations extends StatelessWidget {
           )),
         ],
         rows: vm.itemVms.map((item) {
-          withConstraint(Widget child) => SizedBox(width: 120, child: child);
+
+          withConstraint(Widget child, {double? width}) =>
+              SizedBox(width: width ?? 120, child: child);
 
           return DataRow(key: ValueKey(item.location.uid), cells: [
             // Name
@@ -38,6 +40,7 @@ class Locations extends StatelessWidget {
                   onBlur: (newValue) =>
                       vm.onLocationNameChanged(item.location.uid, newValue),
                 ),
+                width: 240, 
               ),
             ),
 
