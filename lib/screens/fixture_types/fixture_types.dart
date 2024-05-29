@@ -26,12 +26,15 @@ class FixtureTypes extends StatelessWidget {
           ),
 
           // Max Piggybacks
-          DataColumn(label: Text('Max Pairings')),
+          DataColumn(label: Text('Max Piggybacks')),
 
           // Amps
           DataColumn(label: Text('Amps')),
         ],
         rows: vm.itemVms.map((item) {
+          final piggybackedLoadSuffix = item.type.maxPiggybacks > 1
+              ? '    (${(item.type.amps * item.type.maxPiggybacks).toStringAsFixed(1)}A)'
+              : '';
           return DataRow(cells: [
             DataCell(
               // Name
@@ -62,7 +65,7 @@ class FixtureTypes extends StatelessWidget {
 
             // Amps.
             DataCell(
-              Text('${item.type.amps}A'),
+              Text('${item.type.amps}A$piggybackedLoadSuffix'),
             ),
           ]);
         }).toList());
