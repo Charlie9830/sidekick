@@ -26,11 +26,30 @@ class _SequencerDialogState extends State<SequencerDialog> {
   late final TextEditingController _seqNumberController;
   late final ScrollController _listScrollController;
   String _error = '';
+  late final FocusNode _sequenceNumberFocusNode;
+  late final FocusNode _fixtureNumberFocusNode;
 
   @override
   void initState() {
     super.initState();
+    // Focus Nodes
+    _sequenceNumberFocusNode = FocusNode(onKeyEvent: ((node, event) {
+      if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.tab) {
+        _fixtureNumberFocusNode.requestFocus();
+        return KeyEventResult.skipRemainingHandlers;
+      }
+      return KeyEventResult.ignored;
+    }));
 
+    _fixtureNumberFocusNode = FocusNode(onKeyEvent: ((node, event) {
+      if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.tab) {
+        _sequenceNumberFocusNode.requestFocus();
+        return KeyEventResult.skipRemainingHandlers;
+      }
+      return KeyEventResult.ignored;
+    }));
+
+    // Controllers
     _fixtureNumberController = TextEditingController();
     _seqNumberController = TextEditingController(text: 1.toString());
     _listScrollController = ScrollController();
@@ -125,6 +144,7 @@ class _SequencerDialogState extends State<SequencerDialog> {
                                       child: BlurListener(
                                         onBlur: _updateSequenceNumber,
                                         child: TextField(
+                                          focusNode: _sequenceNumberFocusNode,
                                           controller: _seqNumberController,
                                           decoration: const InputDecoration(
                                             border: OutlineInputBorder(),
@@ -149,6 +169,8 @@ class _SequencerDialogState extends State<SequencerDialog> {
                                     SizedBox(
                                       width: 212,
                                       child: TextField(
+                                        focusNode: _fixtureNumberFocusNode,
+                                        autofocus: true,
                                         decoration: InputDecoration(
                                           border: const OutlineInputBorder(),
                                           errorText:
@@ -156,7 +178,6 @@ class _SequencerDialogState extends State<SequencerDialog> {
                                         ),
                                         controller: _fixtureNumberController,
                                         textAlign: TextAlign.center,
-                                        autofocus: true,
                                         inputFormatters: [
                                           FilteringTextInputFormatter.digitsOnly
                                         ],
@@ -238,6 +259,7 @@ class _SequencerDialogState extends State<SequencerDialog> {
   }
 
   void _updateSequenceNumber() {
+    _fixtureNumberFocusNode.requestFocus();
     setState(() {
       _currentSequenceNumber = int.tryParse(_seqNumberController.text) ?? 1;
     });
@@ -294,6 +316,9 @@ class _SequencerDialogState extends State<SequencerDialog> {
     _fixtureNumberController.dispose();
     _seqNumberController.dispose();
     _listScrollController.dispose();
+
+    _fixtureNumberFocusNode.dispose();
+    _sequenceNumberFocusNode.dispose();
     super.dispose();
   }
 }
