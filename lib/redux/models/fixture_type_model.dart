@@ -3,12 +3,14 @@ import 'dart:convert';
 class FixtureTypeModel {
   final String uid;
   final String name;
+  final String shortName;
   final double amps;
   final int maxPiggybacks;
 
   FixtureTypeModel({
     required this.uid,
     this.name = '',
+    this.shortName = '',
     this.amps = 0.0,
     this.maxPiggybacks = 1,
   });
@@ -16,6 +18,7 @@ class FixtureTypeModel {
   const FixtureTypeModel.unknown()
       : uid = "unknown",
         name = "UNKNOWN",
+        shortName = "UNKNOWN",
         amps = 0,
         maxPiggybacks = 1;
 
@@ -24,12 +27,14 @@ class FixtureTypeModel {
   FixtureTypeModel copyWith({
     String? uid,
     String? name,
+    String? shortName,
     double? amps,
     int? maxPiggybacks,
   }) {
     return FixtureTypeModel(
       uid: uid ?? this.uid,
       name: name ?? this.name,
+      shortName: shortName ?? this.shortName,
       amps: amps ?? this.amps,
       maxPiggybacks: maxPiggybacks ?? this.maxPiggybacks,
     );

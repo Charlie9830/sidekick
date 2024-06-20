@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:collection/collection.dart';
+import 'package:sidekick/classes/named_colors.dart';
 
 class LocationModel {
   final String uid;
@@ -97,78 +98,50 @@ class LocationModel {
   static Color matchColor(String locationName) {
     final lookup = <RegExp, Color>{
       // Red
-      RegExp(r'red', caseSensitive: false):
-          const Color.fromARGB(255, 255, 0, 0),
-      RegExp(r'LX1', caseSensitive: false):
-          const Color.fromARGB(255, 255, 0, 0),
+      RegExp(r'red', caseSensitive: false): NamedColors.red,
+      RegExp(r'LX1', caseSensitive: false): NamedColors.red,
 
       // White
-      RegExp(r'white', caseSensitive: false):
-          const Color.fromARGB(255, 255, 255, 255),
-      RegExp(r'LX2', caseSensitive: false):
-          const Color.fromARGB(255, 255, 255, 255),
+      RegExp(r'white', caseSensitive: false): NamedColors.white,
+      RegExp(r'LX2', caseSensitive: false): NamedColors.white,
 
       // Blue
-      RegExp(r'blue ', caseSensitive: false):
-          const Color.fromARGB(255, 0, 0, 255),
-      RegExp(r'LX3', caseSensitive: false):
-          const Color.fromARGB(255, 0, 0, 255),
+      RegExp(r'blue ', caseSensitive: false): NamedColors.blue,
+      RegExp(r'LX3', caseSensitive: false): NamedColors.blue,
 
       // Green
-      RegExp(r'green ', caseSensitive: false):
-          const Color.fromARGB(255, 0, 255, 0),
-      RegExp(r'LX4', caseSensitive: false):
-          const Color.fromARGB(255, 0, 255, 0),
+      RegExp(r'green ', caseSensitive: false): NamedColors.green,
+      RegExp(r'LX4', caseSensitive: false): NamedColors.green,
 
       // Brown
-      RegExp(r'brown ', caseSensitive: false):
-          const Color.fromARGB(255, 255, 145, 0),
-      RegExp(r'LX5', caseSensitive: false):
-          const Color.fromARGB(255, 255, 145, 0),
+      RegExp(r'brown ', caseSensitive: false): NamedColors.brown,
+      RegExp(r'LX5', caseSensitive: false): NamedColors.brown,
 
       // Orange
-      RegExp(r'SR ', caseSensitive: false):
-          const Color.fromARGB(255, 255, 100, 0),
-      RegExp(r'Stage Right ', caseSensitive: false):
-          const Color.fromARGB(255, 255, 100, 0),
+      RegExp(r'SR ', caseSensitive: false): NamedColors.orange,
+      RegExp(r'Stage Right ', caseSensitive: false): NamedColors.orange,
 
       // Yellow
-      RegExp(r'SL ', caseSensitive: false):
-          const Color.fromARGB(255, 255, 255, 0),
-      RegExp(r'Stage Left ', caseSensitive: false):
-          const Color.fromARGB(255, 255, 255, 0),
+      RegExp(r'SL ', caseSensitive: false): NamedColors.yellow,
+      RegExp(r'Stage Left ', caseSensitive: false): NamedColors.yellow,
 
       // Purple
-      RegExp(r'Pyro', caseSensitive: false):
-          const Color.fromARGB(255, 140, 0, 255),
-      RegExp(r'Pod', caseSensitive: false):
-          const Color.fromARGB(255, 140, 0, 255),
+      RegExp(r'Pyro', caseSensitive: false): NamedColors.purple,
+      RegExp(r'Pod', caseSensitive: false): NamedColors.purple,
 
       // Grey
-      RegExp(r'DSL', caseSensitive: false):
-          const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'DSC', caseSensitive: false):
-          const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'DSR', caseSensitive: false):
-          const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'MSL', caseSensitive: false):
-          const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'MSC', caseSensitive: false):
-          const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'MSR', caseSensitive: false):
-          const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'USL', caseSensitive: false):
-          const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'USC', caseSensitive: false):
-          const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'USR', caseSensitive: false):
-          const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'DS', caseSensitive: false):
-          const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'MS', caseSensitive: false):
-          const Color.fromARGB(255, 128, 128, 128),
-      RegExp(r'US', caseSensitive: false):
-          const Color.fromARGB(255, 128, 128, 128),
+      RegExp(r'DSL', caseSensitive: false): NamedColors.grey,
+      RegExp(r'DSC', caseSensitive: false): NamedColors.grey,
+      RegExp(r'DSR', caseSensitive: false): NamedColors.grey,
+      RegExp(r'MSL', caseSensitive: false): NamedColors.grey,
+      RegExp(r'MSC', caseSensitive: false): NamedColors.grey,
+      RegExp(r'MSR', caseSensitive: false): NamedColors.grey,
+      RegExp(r'USL', caseSensitive: false): NamedColors.grey,
+      RegExp(r'USC', caseSensitive: false): NamedColors.grey,
+      RegExp(r'USR', caseSensitive: false): NamedColors.grey,
+      RegExp(r'DS', caseSensitive: false): NamedColors.grey,
+      RegExp(r'MS', caseSensitive: false): NamedColors.grey,
+      RegExp(r'US', caseSensitive: false): NamedColors.grey,
     };
 
     final key =
@@ -196,10 +169,6 @@ class LocationModel {
       RegExp('Mid', caseSensitive: false): 'MID ',
       RegExp('Back', caseSensitive: false): 'BACK ',
 
-      // Shapes
-      RegExp('Circle', caseSensitive: false): 'CIRC ',
-      RegExp('Spine', caseSensitive: false): 'SPINE',
-
       // LX's
       RegExp('LX1', caseSensitive: false): 'LX1.',
       RegExp('LX2', caseSensitive: false): 'LX2.',
@@ -217,10 +186,18 @@ class LocationModel {
       RegExp('USL ', caseSensitive: false): 'USL',
       RegExp('DSC ', caseSensitive: false): 'DSC',
       RegExp('USC ', caseSensitive: false): 'USC',
+      RegExp('MSC ', caseSensitive: false): 'MSC',
+      RegExp('MSL ', caseSensitive: false): 'MSL',
+      RegExp('MSR ', caseSensitive: false): 'MSR',
       RegExp('SR ', caseSensitive: false): 'SR',
       RegExp('SL ', caseSensitive: false): 'SL',
       RegExp('US ', caseSensitive: false): 'US',
       RegExp('DS ', caseSensitive: false): 'DS',
+      RegExp('CS ', caseSensitive: false): 'CS',
+
+      // Shapes
+      RegExp('Circle', caseSensitive: false): 'CIRC ',
+      RegExp('Spine', caseSensitive: false): 'SPINE',
 
       // Fingers
       RegExp('Finger.*1', caseSensitive: false): 'F1.',

@@ -22,8 +22,8 @@ class ExportContainer extends StatelessWidget {
         return ExportViewModel(
             outlets: store.state.fixtureState.outlets,
             locations: store.state.fixtureState.locations,
-            onCopyPowerPatchToClipboard: () =>
-                store.dispatch(copyPowerPatchToClipboard(context)));
+            onExportButtonPressed: () =>
+                store.dispatch(export(context)));
       },
     );
   }

@@ -19,6 +19,13 @@ class UpdateFixtureTypeName {
   UpdateFixtureTypeName(this.id, this.newValue);
 }
 
+class UpdateFixtureTypeShortName {
+  final String id;
+  final String newValue;
+
+  UpdateFixtureTypeShortName(this.id, this.newValue);
+}
+
 class SetSelectedFixtureIds {
   final Set<String> ids;
 

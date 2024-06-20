@@ -46,3 +46,6 @@ app.*.map.json
 
 # Test Data
 /test_data/
+
+# Output Data
+/output/

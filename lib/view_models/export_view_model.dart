@@ -4,11 +4,11 @@ import 'package:sidekick/redux/models/power_outlet_model.dart';
 class ExportViewModel {
   final List<PowerOutletModel> outlets;
   final Map<String, LocationModel> locations;
-  final void Function() onCopyPowerPatchToClipboard;
+  final void Function() onExportButtonPressed;
 
   ExportViewModel({
     required this.outlets,
     required this.locations,
-    required this.onCopyPowerPatchToClipboard,
+    required this.onExportButtonPressed,
   });
 }

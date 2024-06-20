@@ -51,6 +51,7 @@ Future<Map<String, FixtureTypeModel>> readFixtureTypeTestData(
         return FixtureTypeModel(
           uid: uid,
           name: name,
+          shortName: name,
           amps: amps,
           maxPiggybacks: maxPiggybacks,
         );

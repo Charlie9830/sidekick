@@ -1,5 +1,6 @@
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
@@ -10,8 +11,30 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic action) {
         fixtures: Map<String, FixtureModel>.from(state.fixtures)
           ..updateAll((uid, fixture) => fixture.type.uid == a.id
               ? fixture.copyWith(
-                  type: fixture.type.copyWith(name: a.newValue.trim()))
-              : fixture)),
+                  type: fixture.type.copyWith(
+                  name: a.newValue.trim(),
+                  shortName:
+                      fixture.type.shortName.isEmpty ? a.newValue.trim() : null,
+                ))
+              : fixture),
+        outlets: state.outlets
+            .map((outlet) => _updateOutletFixtureType(
+                outlet: outlet,
+                fixtureTypeUid: a.id,
+                update: (existing) => existing.copyWith(name: a.newValue)))
+            .toList()),
+    UpdateFixtureTypeShortName a => state.copyWith(
+        fixtures: Map<String, FixtureModel>.from(state.fixtures)
+          ..updateAll((uid, fixture) => fixture.type.uid == a.id
+              ? fixture.copyWith(
+                  type: fixture.type.copyWith(shortName: a.newValue.trim()))
+              : fixture),
+        outlets: state.outlets
+            .map((outlet) => _updateOutletFixtureType(
+                outlet: outlet,
+                fixtureTypeUid: a.id,
+                update: (existing) => existing.copyWith(shortName: a.newValue)))
+            .toList()),
     UpdateFixtureTypeMaxPiggybacks a => state.copyWith(
         fixtures: Map<String, FixtureModel>.from(state.fixtures)
           ..updateAll((uid, fixture) => fixture.type.uid == a.id
@@ -51,64 +74,26 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic action) {
             ),
           ),
       ),
-    CommitLocationPowerPatch a => state.copyWith(
-        fixtures: _mergePowerMultiDataIntoFixtures(
-          location: a.location,
-          existingFixtures: state.fixtures,
-          outlets: state.outlets,
-        ),
-      ),
     // Default
     _ => state
   };
 }
 
-Map<String, FixtureModel> _mergePowerMultiDataIntoFixtures({
-  required LocationModel location,
-  required Map<String, FixtureModel> existingFixtures,
-  required List<PowerOutletModel> outlets,
-}) {
-  return existingFixtures;
-  // // Create reverse lookup map of Fixture uid to PowerOutlet Model. We will use this later to efficently
-  // // map fixtures to their associated power Outlets.
-  // final reverseLookup = Map<String, PowerOutletModel>.fromEntries(outlets
-  //     .map((outlet) =>
-  //         outlet.child.fixtures.map((fixture) => MapEntry(fixture.uid, outlet)))
-  //     .expand((i) => i));
-
-  // // Create an iterable of all Fixtures associated with this location.
-  // final fixtureInLocation = outlets
-  //     .map((outlet) => outlet.child.fixtures)
-  //     .expand((i) => i)
-  //     .where((fixture) => fixture.locationId == location.name);
-
-  // // Find the first Multi Number that this location starts at. We will use that to offset the integer in the Mutli name to "localize"
-  // // the integer to that Multi.. Otherwise the count keeps continuing up through multiple locations.
-  // final firstLocationOutlet = outlets.firstWhereOrNull((outlet) =>
-  //     outlet.child.isNotEmpty &&
-  //     outlet.child.fixtures.first.locationId == location.name);
-
-  // if (firstLocationOutlet == null) {
-  //   throw "Couldn't find the first Outlet in this location. That indicates that something has gone wrong.";
-  // }
-
-  // final mutliNumberOffset = firstLocationOutlet.multiOutlet - 1;
-
-  // return Map<String, FixtureModel>.from(existingFixtures)
-  //   ..addAll(
-  //       Map<String, FixtureModel>.fromEntries(fixtureInLocation.map((fixture) {
-  //     // Use the reverse Lookup to find the data we are going to apply to the fixture.
-  //     final multiOutlet = reverseLookup[fixture.uid]!.multiOutlet;
-  //     final multiPatch = reverseLookup[fixture.uid]!.multiPatch;
-
-  //     return MapEntry(
-  //         fixture.uid,
-  //         fixture.copyWith(
-  //           powerMulti:
-  //               location.getPrefixedPowerMulti(multiOutlet - mutliNumberOffset),
-  //           powerPatch: multiPatch,
-  //         ));
-  //   })));
+PowerOutletModel _updateOutletFixtureType(
+    {required PowerOutletModel outlet,
+    required String fixtureTypeUid,
+    required FixtureTypeModel Function(FixtureTypeModel existing) update}) {
+  return outlet.copyWith(
+      child: outlet.child.copyWith(
+    fixtures: outlet.child.fixtures.map((fixture) {
+      if (fixture.type.uid == fixtureTypeUid) {
+        return fixture.copyWith(
+          type: update(fixture.type),
+        );
+      }
+      return fixture;
+    }).toList(),
+  ));
 }
 
 double _convertBalanceTolerance(String newValue, double existingValue) {

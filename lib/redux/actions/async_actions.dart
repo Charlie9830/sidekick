@@ -1,10 +1,16 @@
+import 'dart:io';
+
 import 'package:collection/collection.dart';
+import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:sidekick/balancer/naive_balancer.dart';
 import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/classes/universe_span.dart';
+import 'package:sidekick/excel/create_color_lookup_sheet.dart';
+import 'package:sidekick/excel/create_fixture_type_validation_sheet.dart';
+import 'package:sidekick/excel/create_power_patch_sheet.dart';
 import 'package:sidekick/excel/read_fixture_type_test_data.dart';
 import 'package:sidekick/excel/read_fixtures_test_data.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
@@ -52,8 +58,6 @@ ThunkAction<AppState> setSequenceNumbers(BuildContext context) {
           existingFixtures, store.state.fixtureState.locations);
 
       store.dispatch(SetFixtures(sortedFixtures));
-
-      
     }
   };
 }
@@ -236,16 +240,35 @@ ThunkAction<AppState> commitPowerPatch(BuildContext context) {
   };
 }
 
-ThunkAction<AppState> copyPowerPatchToClipboard(BuildContext context) {
+ThunkAction<AppState> export(BuildContext context) {
   return (Store<AppState> store) async {
-    final String tab = String.fromCharCode(9);
+    final excel = Excel.createExcel();
 
-    final buffer = StringBuffer();
+    createPowerPatchSheet(
+        excel: excel,
+        outlets: store.state.fixtureState.outlets,
+        powerMultis: store.state.fixtureState.powerMultiOutlets,
+        locations: store.state.fixtureState.locations);
 
-    // Header Row
-    buffer.writeln('LoomID${tab}CHL${tab}Fixture${tab}Fix. No.${tab}Location');
+    createColorLookupSheet(
+      excel: excel,
+      powerMultis: store.state.fixtureState.powerMultiOutlets,
+      locations: store.state.fixtureState.locations,
+    );
 
-    FlutterClipboard.copy(buffer.toString());
+    createFixtureTypeValidationSheet(
+        excel: excel, outlets: store.state.fixtureState.outlets);
+
+    excel.delete('Sheet1');
+
+    final fileBytes = excel.save();
+
+    if (fileBytes == null) {
+      print("File Bytes were null");
+      return;
+    }
+
+    await File('./output/rack_patch.xlsx').writeAsBytes(fileBytes);
   };
 }
 

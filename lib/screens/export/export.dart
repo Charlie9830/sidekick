@@ -10,8 +10,8 @@ class Export extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
         child: ElevatedButton(
-      onPressed: vm.onCopyPowerPatchToClipboard,
-      child: const Text('Copy to Clipboard'),
+      onPressed: vm.onExportButtonPressed,
+      child: const Text('Export'),
     ));
   }
 }
