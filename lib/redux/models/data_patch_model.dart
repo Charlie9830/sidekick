@@ -25,6 +25,8 @@ class DataPatchModel {
     required this.endsAtFixtureId,
   });
 
+  String get nameWithUniverse => isSpare ? name : '$name U$universe';
+
   DataPatchModel copyWith({
     String? uid,
     String? name,

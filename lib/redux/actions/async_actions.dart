@@ -9,6 +9,8 @@ import 'package:sidekick/balancer/naive_balancer.dart';
 import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/classes/universe_span.dart';
 import 'package:sidekick/excel/create_color_lookup_sheet.dart';
+import 'package:sidekick/excel/create_data_multi_sheet.dart';
+import 'package:sidekick/excel/create_data_patch_sheet.dart';
 import 'package:sidekick/excel/create_fixture_type_validation_sheet.dart';
 import 'package:sidekick/excel/create_power_patch_sheet.dart';
 import 'package:sidekick/excel/read_fixture_type_test_data.dart';
@@ -144,8 +146,7 @@ ThunkAction<AppState> generateDataPatch() {
               locationId: locationId,
               multiId: '',
               universe: span.universe,
-              name: location?.getPrefixedDataPatch(span.universe, index + 1) ??
-                  '',
+              name: location?.getPrefixedDataPatch(index + 1) ?? '',
               startsAtFixtureId: span.startsAt.fid,
               endsAtFixtureId: span.endsAt?.fid ?? 0,
               fixtureIds: span.fixtureIds,
@@ -173,7 +174,7 @@ ThunkAction<AppState> generateDataPatch() {
                 universe: span.universe,
                 startsAtFixtureId: span.startsAt.fid,
                 endsAtFixtureId: span.endsAt?.fid ?? 0,
-                name: location?.getPrefixedDataPatch(span.universe, index + 1,
+                name: location?.getPrefixedDataPatch(index + 1,
                         parentMultiName: parentMulti.name) ??
                     '',
                 fixtureIds: span.fixtureIds,
@@ -258,6 +259,20 @@ ThunkAction<AppState> export(BuildContext context) {
 
     createFixtureTypeValidationSheet(
         excel: excel, outlets: store.state.fixtureState.outlets);
+
+    createDataPatchSheet(
+      excel: excel,
+      dataOutlets: store.state.fixtureState.dataPatches.values,
+      dataMultis: store.state.fixtureState.dataMultis,
+      locations: store.state.fixtureState.locations,
+    );
+
+    createDataMultiSheet(
+      excel: excel,
+      dataOutlets: store.state.fixtureState.dataPatches.values,
+      dataMultis: store.state.fixtureState.dataMultis,
+      locations: store.state.fixtureState.locations,
+    );
 
     excel.delete('Sheet1');
 

@@ -19,7 +19,7 @@ class DataPatchListItem extends StatelessWidget {
               color: patch.isSpare ? Colors.pinkAccent : Colors.grey),
           const SizedBox(width: 8),
           Text(
-            patch.name,
+            patch.nameWithUniverse,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           if (patch.isSpare == false) ...[

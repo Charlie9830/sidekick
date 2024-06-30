@@ -39,16 +39,15 @@ class LocationModel {
     );
   }
 
-  String getPrefixedDataPatch(int universe, int patchNumber,
-      {String? parentMultiName}) {
+  String getPrefixedDataPatch(int patchNumber, {String? parentMultiName}) {
     if (this == const LocationModel.none()) {
       return 'No Location';
     }
 
     if (parentMultiName != null) {
-      return '$parentMultiName.$patchNumber U$universe';
+      return '$parentMultiName.$patchNumber';
     } else {
-      return '$multiPrefix$patchNumber U$universe';
+      return '$multiPrefix$patchNumber';
     }
   }
 
@@ -100,14 +99,17 @@ class LocationModel {
       // Red
       RegExp(r'red', caseSensitive: false): NamedColors.red,
       RegExp(r'LX1', caseSensitive: false): NamedColors.red,
+      RegExp(r'DS Truss', caseSensitive: false): NamedColors.red,
 
       // White
       RegExp(r'white', caseSensitive: false): NamedColors.white,
       RegExp(r'LX2', caseSensitive: false): NamedColors.white,
+      RegExp(r'MS Truss', caseSensitive: false): NamedColors.white,
 
       // Blue
       RegExp(r'blue ', caseSensitive: false): NamedColors.blue,
       RegExp(r'LX3', caseSensitive: false): NamedColors.blue,
+      RegExp(r'US Truss', caseSensitive: false): NamedColors.blue,
 
       // Green
       RegExp(r'green ', caseSensitive: false): NamedColors.green,
@@ -142,6 +144,8 @@ class LocationModel {
       RegExp(r'DS', caseSensitive: false): NamedColors.grey,
       RegExp(r'MS', caseSensitive: false): NamedColors.grey,
       RegExp(r'US', caseSensitive: false): NamedColors.grey,
+      RegExp(r'TOWER', caseSensitive: false): NamedColors.grey,
+      RegExp(r'VERT', caseSensitive: false): NamedColors.grey,
     };
 
     final key =
