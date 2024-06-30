@@ -24,7 +24,9 @@ class LocationsContainer extends StatelessWidget {
                   UpdateLocationMultiPrefix(locationId, newValue),
                 ),
             onLocationNameChanged: (locationId, newValue) =>
-                store.dispatch(UpdateLocationName(locationId, newValue)));
+                store.dispatch(UpdateLocationName(locationId, newValue)),
+            onLocationColorChanged: (locationId, color) =>
+                store.dispatch(UpdateLocationColor(locationId, color)));
       },
     );
   }

@@ -24,3 +24,44 @@ class ColorChit extends StatelessWidget {
     );
   }
 }
+
+class SelectableColorChit extends StatelessWidget {
+  final Color color;
+  final bool isSelected;
+  final void Function() onSelect;
+
+  const SelectableColorChit({
+    Key? key,
+    required this.color,
+    required this.isSelected,
+    required this.onSelect,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: InkWell(
+        onTap: onSelect,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: ColorChit(color: color),
+            ),
+            if (isSelected == true)
+              Container(
+                height: 4,
+                foregroundDecoration: BoxDecoration(
+                  color: Theme.of(context).highlightColor,
+                  borderRadius: const BorderRadius.all(Radius.circular(4)),
+                ),
+              )
+          ],
+        ),
+      ),
+    );
+  }
+}

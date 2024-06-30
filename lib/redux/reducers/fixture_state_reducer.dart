@@ -47,6 +47,11 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic action) {
           ..update(a.locationId,
               (existing) => existing.copyWith(name: a.newValue.trim())),
       ),
+    UpdateLocationColor a => state.copyWith(
+        locations: Map<String, LocationModel>.from(state.locations)
+          ..update(
+              a.locationId, (existing) => existing.copyWith(color: a.newValue)),
+      ),
     SetDataMultis a => state.copyWith(dataMultis: a.multis),
     SetDataPatches a => state.copyWith(dataPatches: a.patches),
     SetFixtures a => state.copyWith(

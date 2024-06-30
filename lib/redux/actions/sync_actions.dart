@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
@@ -108,4 +110,11 @@ class UpdateLocationName {
   final String newValue;
 
   UpdateLocationName(this.locationId, this.newValue);
+}
+
+class UpdateLocationColor {
+  final String locationId;
+  final Color newValue;
+
+  UpdateLocationColor(this.locationId, this.newValue);
 }

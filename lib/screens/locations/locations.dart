@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/screens/locations/color_chit.dart';
+import 'package:sidekick/screens/locations/color_select_dialog.dart';
 import 'package:sidekick/view_models/locations_view_model.dart';
 import 'package:sidekick/widgets/icon_label.dart';
 import 'package:sidekick/widgets/property_field.dart';
@@ -45,8 +46,19 @@ class Locations extends StatelessWidget {
               ),
 
               // Colours
-              DataCell(ColorChit(
-                color: item.location.color,
+              DataCell(SizedBox(
+                height: 48,
+                width: 48,
+                child: InkWell(
+                  onTap: () => _showColorPickerDialog(
+                      context, item.location.uid, item.location.color),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: ColorChit(
+                      color: item.location.color,
+                    ),
+                  ),
+                ),
               )),
 
               DataCell(
@@ -67,5 +79,19 @@ class Locations extends StatelessWidget {
             ]);
           }).toList()),
     );
+  }
+
+  void _showColorPickerDialog(
+      BuildContext context, String id, Color color) async {
+    final result = await showDialog(
+        context: context, builder: (_) => ColorSelectDialog(color: color));
+
+    if (result == null) {
+      return;
+    }
+
+    if (result is Color) {
+      vm.onLocationColorChanged(id, result);
+    }
   }
 }
