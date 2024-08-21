@@ -5,28 +5,24 @@ import 'package:sidekick/redux/models/location_model.dart';
 class PowerMultiOutletModel {
   final String uid;
   final String locationId;
-  final String name;
+  final int number;
   final int desiredSpareCircuits;
+  final String name;
 
   PowerMultiOutletModel({
     required this.uid,
     required this.locationId,
-    required this.name,
+    required this.number,
     required this.desiredSpareCircuits,
+    required this.name,
   });
 
   const PowerMultiOutletModel.none()
       : uid = "none",
         locationId = '',
-        name = '',
-        desiredSpareCircuits = 0;
-
-  static String getName({
-    required int multiNumber,
-    required LocationModel location,
-  }) {
-    return location.getPrefixedPowerMulti(multiNumber);
-  }
+        number = 1,
+        desiredSpareCircuits = 0,
+        name = '';
 
   LocationModel lookupLocation(Map<String, LocationModel> locations) {
     return locations[locationId] ?? const LocationModel.none();
@@ -35,14 +31,16 @@ class PowerMultiOutletModel {
   PowerMultiOutletModel copyWith({
     String? uid,
     String? locationId,
-    String? name,
+    int? number,
     int? desiredSpareCircuits,
+    String? name,
   }) {
     return PowerMultiOutletModel(
       uid: uid ?? this.uid,
       locationId: locationId ?? this.locationId,
-      name: name ?? this.name,
+      number: number ?? this.number,
       desiredSpareCircuits: desiredSpareCircuits ?? this.desiredSpareCircuits,
+      name: name ?? this.name,
     );
   }
 
@@ -50,6 +48,8 @@ class PowerMultiOutletModel {
     return {
       'uid': uid,
       'locationId': locationId,
+      'number': number,
+      'desiredSpareCircuits': desiredSpareCircuits,
       'name': name,
     };
   }
@@ -58,8 +58,9 @@ class PowerMultiOutletModel {
     return PowerMultiOutletModel(
       uid: map['uid'] ?? '',
       locationId: map['locationId'] ?? '',
+      number: map['number']?.toInt() ?? 0,
+      desiredSpareCircuits: map['desiredSpareCircuits']?.toInt() ?? 0,
       name: map['name'] ?? '',
-      desiredSpareCircuits: map['desiredSpareCircuits'] ?? 0,
     );
   }
 
@@ -69,17 +70,28 @@ class PowerMultiOutletModel {
       PowerMultiOutletModel.fromMap(json.decode(source));
 
   @override
-  String toString() =>
-      'PowerMultiOutletModel(uid: $uid, locationId: $locationId, name: $name)';
+  String toString() {
+    return 'PowerMultiOutletModel(uid: $uid, locationId: $locationId, number: $number, desiredSpareCircuits: $desiredSpareCircuits, name: $name)';
+  }
 
-  // Do not remove. You are actually using Object equality for this.
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is PowerMultiOutletModel && other.uid == uid;
+    return other is PowerMultiOutletModel &&
+        other.uid == uid &&
+        other.locationId == locationId &&
+        other.number == number &&
+        other.desiredSpareCircuits == desiredSpareCircuits &&
+        other.name == name;
   }
 
   @override
-  int get hashCode => uid.hashCode;
+  int get hashCode {
+    return uid.hashCode ^
+        locationId.hashCode ^
+        number.hashCode ^
+        desiredSpareCircuits.hashCode ^
+        name.hashCode;
+  }
 }

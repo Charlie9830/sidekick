@@ -29,6 +29,9 @@ void createPowerPatchSheet({
     final rackNumber = ((index + 1) / 96).ceil();
     final outletNumber = (index % 96) + 1;
 
+    final location = locations[outlet.locationId];
+    final powerMultiOutlet = powerMultis[outlet.multiOutletId];
+
     powerPatchSheet.appendRow([
       // Rack Number
       IntCellValue(rackNumber),
@@ -40,7 +43,7 @@ void createPowerPatchSheet({
       TextCellValue('$rackNumber-$outletNumber'),
 
       // Multi name
-      TextCellValue(powerMultis[outlet.multiOutletId]?.name ?? 'UNKNOWN'),
+      TextCellValue(powerMultiOutlet?.name ?? "UNNKOWN"),
 
       // Multi Patch
       IntCellValue(outlet.multiPatch),
@@ -53,7 +56,7 @@ void createPowerPatchSheet({
           outlet.child.fixtures.map((fixture) => fixture.fid))),
 
       // Location
-      TextCellValue(locations[outlet.locationId]?.name ?? 'UNKNOWN')
+      TextCellValue(location?.name ?? 'UNKNOWN')
     ]);
   }
 }

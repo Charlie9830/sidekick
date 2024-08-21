@@ -19,7 +19,7 @@ class HomeContainer extends StatelessWidget {
         );
       },
       converter: (Store<AppState> store) {
-        return HomeViewModel(
+      return HomeViewModel(
             selectedFixtureIds: store.state.navstate.selectedFixtureIds,
             fixtures: store.state.fixtureState.fixtures,
             locations: store.state.fixtureState.locations,

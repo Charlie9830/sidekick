@@ -14,7 +14,7 @@ List<FixtureModel> getMockFixtures() {
     dataMulti: '',
     dataPatch: '',
     locationId: '',
-    powerMulti: '',
+    powerMultiId: '',
     powerPatch: 0,
     fid: 1,
     type: fixtureTypes['Quantum Wash']!,

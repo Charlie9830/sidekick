@@ -57,4 +57,6 @@ class DMXAddressModel {
 
   @override
   int get hashCode => address.hashCode ^ universe.hashCode;
+
+  String get formatted => '$universe/$address';
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
+import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/locations/locations.dart';
@@ -21,7 +22,7 @@ class LocationsContainer extends StatelessWidget {
         return LocationsViewModel(
             itemVms: _selectLocationItems(store),
             onMultiPrefixChanged: (locationId, newValue) => store.dispatch(
-                  UpdateLocationMultiPrefix(locationId, newValue),
+                  updateLocationMultiPrefix(locationId, newValue),
                 ),
             onLocationNameChanged: (locationId, newValue) =>
                 store.dispatch(UpdateLocationName(locationId, newValue)),

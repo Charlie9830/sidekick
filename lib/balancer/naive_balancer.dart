@@ -57,13 +57,19 @@ class NaiveBalancer implements Balancer {
 
         final patchesQueue = Queue<PowerPatchModel>.from(patchesInSpan);
 
+        int? multiNumber;
         while (patchesQueue.isNotEmpty) {
+          // Iterator to apply numbers to Multi Outlets.
+          multiNumber = multiNumber == null ? 1 : multiNumber + 1;
+
+          // Create a new Multi Outlet if we don't have one, otherwise use an existing one.
           final multiOutlet =
               existingMultiOutletsAssignedToLocationQueue.isEmpty
                   ? PowerMultiOutletModel(
                       uid: getUid(),
                       locationId: locationId,
-                      name: 'Not named yet',
+                      number: multiNumber,
+                      name: '',
                       desiredSpareCircuits: 0,
                     )
                   : existingMultiOutletsAssignedToLocationQueue.removeFirst();
@@ -81,7 +87,7 @@ class NaiveBalancer implements Balancer {
           if (multiOutlet.desiredSpareCircuits == 0 &&
               patchSlice.every((patch) => patch.isEmpty)) {
             // No spare circuits required here AND every element in the patch slice is empty. So
-            // no point in generating a completing empty Multi Outlet.
+            // no point in generating a compltly empty Multi Outlet.
             continue;
           }
 

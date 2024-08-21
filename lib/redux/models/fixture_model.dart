@@ -5,6 +5,7 @@ import 'package:sidekick/redux/models/dmx_address_model.dart';
 import 'package:sidekick/redux/models/fixture_mode_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 
 class FixtureModel {
   final String uid;
@@ -16,7 +17,7 @@ class FixtureModel {
   final String locationId;
   final String dataMulti;
   final String dataPatch;
-  final String powerMulti;
+  final String powerMultiId;
   final int powerPatch;
 
   FixtureModel({
@@ -29,12 +30,16 @@ class FixtureModel {
     this.locationId = '',
     this.dataMulti = '',
     this.dataPatch = '',
-    this.powerMulti = '',
+    this.powerMultiId = '',
     this.powerPatch = 0,
   });
 
   LocationModel lookupLocation(Map<String, LocationModel> locations) {
     return locations[locationId] ?? const LocationModel.none();
+  }
+
+  String lookupPowerMultiName(Map<String, PowerMultiOutletModel> powerMultis) {
+    return powerMultis[powerMultiId]?.name ?? "## BAD LOOKUP ##";
   }
 
   FixtureModel copyWith({
@@ -47,7 +52,7 @@ class FixtureModel {
     String? locationId,
     String? dataMulti,
     String? dataPatch,
-    String? powerMulti,
+    String? powerMultiId,
     int? powerPatch,
   }) {
     return FixtureModel(
@@ -60,7 +65,7 @@ class FixtureModel {
       locationId: locationId ?? this.locationId,
       dataMulti: dataMulti ?? this.dataMulti,
       dataPatch: dataPatch ?? this.dataPatch,
-      powerMulti: powerMulti ?? this.powerMulti,
+      powerMultiId: powerMultiId ?? this.powerMultiId,
       powerPatch: powerPatch ?? this.powerPatch,
     );
   }
@@ -76,7 +81,7 @@ class FixtureModel {
       'locationId': locationId,
       'dataMulti': dataMulti,
       'dataPatch': dataPatch,
-      'powerMulti': powerMulti,
+      'powerMulti': powerMultiId,
       'powerPatch': powerPatch,
     };
   }
@@ -92,7 +97,7 @@ class FixtureModel {
       locationId: map['locationId'] ?? '',
       dataMulti: map['dataMulti'] ?? '',
       dataPatch: map['dataPatch'] ?? '',
-      powerMulti: map['powerMulti'] ?? '',
+      powerMultiId: map['powerMulti'] ?? '',
       powerPatch: map['powerPatch']?.toInt() ?? 0,
     );
   }
@@ -104,7 +109,7 @@ class FixtureModel {
 
   @override
   String toString() {
-    return 'FixtureModel(uid: $uid, fid: $fid, sequence: $sequence, dmxAddress: $dmxAddress, type: $type, mode: $mode, locationId: $locationId, dataMulti: $dataMulti, dataPatch: $dataPatch, powerMulti: $powerMulti, powerPatch: $powerPatch)';
+    return 'FixtureModel(uid: $uid, fid: $fid, sequence: $sequence, dmxAddress: $dmxAddress, type: $type, mode: $mode, locationId: $locationId, dataMulti: $dataMulti, dataPatch: $dataPatch, powerMulti: $powerMultiId, powerPatch: $powerPatch)';
   }
 
   @override
@@ -121,7 +126,7 @@ class FixtureModel {
         other.locationId == locationId &&
         other.dataMulti == dataMulti &&
         other.dataPatch == dataPatch &&
-        other.powerMulti == powerMulti &&
+        other.powerMultiId == powerMultiId &&
         other.powerPatch == powerPatch;
   }
 
@@ -136,7 +141,7 @@ class FixtureModel {
         locationId.hashCode ^
         dataMulti.hashCode ^
         dataPatch.hashCode ^
-        powerMulti.hashCode ^
+        powerMultiId.hashCode ^
         powerPatch.hashCode;
   }
 

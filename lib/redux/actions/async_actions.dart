@@ -24,9 +24,68 @@ import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:path/path.dart' as p;
-import 'package:clipboard/clipboard.dart';
 import 'package:sidekick/screens/sequencer_dialog/sequencer_dialog.dart';
 import 'package:sidekick/utils/get_uid.dart';
+
+ThunkAction<AppState> updateLocationMultiPrefix(
+    String locationId, String newValue) {
+  return (Store<AppState> store) async {
+    final existingLocation = store.state.fixtureState.locations[locationId];
+
+    if (existingLocation == null) {
+      return;
+    }
+
+    final updatedLocation = existingLocation.copyWith(multiPrefix: newValue);
+
+    store.dispatch(SetLocations(
+        Map<String, LocationModel>.from(store.state.fixtureState.locations)
+          ..update(locationId, (_) => updatedLocation)));
+
+  // If PowerMulti's associated to this location have already been created, update them as well.
+    final associatedPowerMultis = store
+        .state.fixtureState.powerMultiOutlets.values
+        .where((multi) => multi.locationId == locationId);
+
+    if (associatedPowerMultis.isEmpty) {
+      return;
+    }
+
+    final updatedPowerMultis = associatedPowerMultis.map((existing) =>
+        existing.copyWith(
+            name: updatedLocation.getPrefixedPowerMulti(existing.number)));
+
+    store.dispatch(SetPowerMultiOutlets(Map<String, PowerMultiOutletModel>.from(
+        store.state.fixtureState.powerMultiOutlets)
+      ..addEntries(
+          updatedPowerMultis.map((multi) => MapEntry(multi.uid, multi)))));
+  };
+}
+
+ThunkAction<AppState> rangeSelectFixtures(String startUid, String endUid) {
+  return (Store<AppState> store) async {
+    final fixtures = store.state.fixtureState.fixtures.values.toList();
+    final rawStartIndex =
+        fixtures.indexWhere((fixture) => fixture.uid == startUid);
+    final rawEndIndex = fixtures.indexWhere((fixture) => fixture.uid == endUid);
+
+    if (rawStartIndex == -1 || rawEndIndex == -1) {
+      return;
+    }
+
+    final (coercedStartIndex, coercedEndIndex) = rawStartIndex > rawEndIndex
+        ? (rawEndIndex, rawStartIndex)
+        : (rawStartIndex, rawEndIndex);
+
+    final ids = fixtures
+        .sublist(coercedStartIndex,
+            coercedEndIndex + 1 <= fixtures.length ? coercedEndIndex + 1 : null)
+        .map((fixture) => fixture.uid)
+        .toSet();
+
+    store.dispatch(SetSelectedFixtureIds(ids));
+  };
+}
 
 ThunkAction<AppState> setSequenceNumbers(BuildContext context) {
   return (Store<AppState> store) async {
@@ -213,6 +272,25 @@ ThunkAction<AppState> generateDataPatch() {
   };
 }
 
+ThunkAction<AppState> updateMultiPrefix(String locationId, String newValue) {
+  return (Store<AppState> store) async {
+    final location = store.state.fixtureState.locations[locationId];
+
+    if (location == null) {
+      return;
+    }
+
+    // Update the Location.
+    final updatedLocation = location.copyWith(multiPrefix: newValue);
+    store.dispatch(
+      SetLocations(
+        Map<String, LocationModel>.from(store.state.fixtureState.locations)
+          ..update(locationId, (_) => updatedLocation),
+      ),
+    );
+  };
+}
+
 ThunkAction<AppState> commitPowerPatch(BuildContext context) {
   return (Store<AppState> store) async {
     // Map FixtureIds to their associated Power Outlet
@@ -232,7 +310,7 @@ ThunkAction<AppState> commitPowerPatch(BuildContext context) {
           store.state.fixtureState.powerMultiOutlets[outlet.multiOutletId]!;
 
       return fixture.copyWith(
-        powerMulti: multiOutlet.name,
+        powerMultiId: multiOutlet.uid,
         powerPatch: outlet.multiPatch,
       );
     });
@@ -359,19 +437,17 @@ Map<PowerMultiOutletModel, List<PowerOutletModel>> _balanceOutlets(
 }
 
 List<PowerMultiOutletModel> _updateMultiOutletNames(
-    Iterable<PowerMultiOutletModel> multiOutlets,
-    Map<String, LocationModel> locations) {
+  Iterable<PowerMultiOutletModel> multiOutlets,
+) {
   final multiOutletsByLocationId =
       multiOutlets.groupListsBy((outlet) => outlet.locationId);
 
   return multiOutletsByLocationId.entries
       .map((entry) {
-        final locationId = entry.key;
         final multiOutlets = entry.value;
 
-        LocationModel? location = locations[locationId];
-        return multiOutlets.mapIndexed((index, outlet) => outlet.copyWith(
-            name: location?.getPrefixedPowerMulti(index + 1) ?? ''));
+        return multiOutlets
+            .mapIndexed((index, outlet) => outlet.copyWith(number: index + 1));
       })
       .flattened
       .toList();
@@ -379,15 +455,42 @@ List<PowerMultiOutletModel> _updateMultiOutletNames(
 
 void _updatePowerMultisAndOutlets(Store<AppState> store,
     Map<PowerMultiOutletModel, List<PowerOutletModel>> balancedMultiOutlets) {
-  store.dispatch(
-      SetPowerOutlets(balancedMultiOutlets.values.flattened.toList()));
+  final balancedAndDefaultNamedOutlets =
+      _applyDefaultMultiOutletNames(balancedMultiOutlets, store);
+
+  store.dispatch(SetPowerOutlets(
+      balancedAndDefaultNamedOutlets.values.flattened.toList()));
   store.dispatch(
     SetPowerMultiOutlets(
-      Map<String, PowerMultiOutletModel>.fromEntries(_updateMultiOutletNames(
-              balancedMultiOutlets.keys, store.state.fixtureState.locations)
-          .map((multiOutlet) => MapEntry(multiOutlet.uid, multiOutlet))),
+      Map<String, PowerMultiOutletModel>.fromEntries(
+          _updateMultiOutletNames(balancedAndDefaultNamedOutlets.keys)
+              .map((multiOutlet) => MapEntry(multiOutlet.uid, multiOutlet))),
     ),
   );
+}
+
+/// Looks up the default Multi Outlet names for outlets that have not been assigned a name.
+Map<PowerMultiOutletModel, List<PowerOutletModel>>
+    _applyDefaultMultiOutletNames(
+        Map<PowerMultiOutletModel, List<PowerOutletModel>> balancedMultiOutlets,
+        Store<AppState> store) {
+  return Map<PowerMultiOutletModel, List<PowerOutletModel>>.fromEntries(
+      balancedMultiOutlets.entries.map((entry) {
+    final outlet = entry.key;
+
+    if (outlet.name.isEmpty) {
+      final location = store.state.fixtureState.locations[outlet.locationId];
+
+      if (location != null) {
+        return MapEntry(
+          outlet.copyWith(name: location.getPrefixedPowerMulti(outlet.number)),
+          entry.value,
+        );
+      }
+    }
+
+    return entry;
+  }));
 }
 
 void _updatePowerMultiSpareCircuitCount(
