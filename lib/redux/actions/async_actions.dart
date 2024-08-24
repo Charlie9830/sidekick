@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
@@ -15,17 +16,91 @@ import 'package:sidekick/excel/create_fixture_type_validation_sheet.dart';
 import 'package:sidekick/excel/create_power_patch_sheet.dart';
 import 'package:sidekick/excel/read_fixture_type_test_data.dart';
 import 'package:sidekick/excel/read_fixtures_test_data.dart';
+import 'package:sidekick/extension_methods/queue_pop.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
+import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:path/path.dart' as p;
 import 'package:sidekick/screens/sequencer_dialog/sequencer_dialog.dart';
 import 'package:sidekick/utils/get_uid.dart';
+
+ThunkAction<AppState> generateLooms() {
+  return (Store<AppState> store) async {
+    final powerOnlyLooms = generatePowerOnlyLooms(
+        locations: store.state.fixtureState.locations.values,
+        powerMultis: store.state.fixtureState.powerMultiOutlets.values);
+
+    final withDataCables = appendDataCables(
+        existing: powerOnlyLooms,
+        dataMultis: store.state.fixtureState.dataMultis.values,
+        dataPatches: store.state.fixtureState.dataPatches.values);
+
+    print(withDataCables);
+
+
+  };
+}
+
+List<LoomModel> appendDataCables(
+    {required List<LoomModel> existing,
+    required Iterable<DataMultiModel> dataMultis,
+    required Iterable<DataPatchModel> dataPatches}) {
+  return existing.map((loom) {
+    final associatedDataMultis =
+        dataMultis.where((multi) => multi.locationId == loom.locationId);
+    final associatedDataPatches = dataPatches.where((patch) =>
+        patch.multiId.isEmpty && patch.locationId == loom.locationId);
+
+    return loom.copyWith(children: [
+      ...loom.children,
+      ...associatedDataMultis.map((multi) => CableModel(
+            uid: getUid(),
+            type: CableType.sneak,
+            label: multi.name,
+            parentId: multi.uid,
+          )),
+      ...associatedDataPatches.map((patch) => CableModel(
+            uid: getUid(),
+            type: CableType.dmx,
+            label: patch.name,
+            parentId: patch.uid,
+          )),
+    ]);
+  }).toList();
+}
+
+List<LoomModel> generatePowerOnlyLooms(
+    {required Iterable<LocationModel> locations,
+    required Iterable<PowerMultiOutletModel> powerMultis}) {
+  return locations
+      .map((location) {
+        final associatedMultis =
+            powerMultis.where((multi) => multi.locationId == location.uid);
+
+        return associatedMultis.slices(5).map((slice) {
+          return LoomModel(
+            uid: getUid(),
+            locationId: location.uid,
+            children: [
+              ...associatedMultis.map((multi) => CableModel(
+                    uid: getUid(),
+                    type: CableType.socapex,
+                    parentId: multi.uid,
+                  )),
+            ],
+          );
+        });
+      })
+      .flattened
+      .toList();
+}
 
 ThunkAction<AppState> updateLocationMultiPrefix(
     String locationId, String newValue) {
@@ -42,7 +117,7 @@ ThunkAction<AppState> updateLocationMultiPrefix(
         Map<String, LocationModel>.from(store.state.fixtureState.locations)
           ..update(locationId, (_) => updatedLocation)));
 
-  // If PowerMulti's associated to this location have already been created, update them as well.
+    // If PowerMulti's associated to this location have already been created, update them as well.
     final associatedPowerMultis = store
         .state.fixtureState.powerMultiOutlets.values
         .where((multi) => multi.locationId == locationId);

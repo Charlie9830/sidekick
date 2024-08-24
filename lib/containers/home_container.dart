@@ -19,13 +19,14 @@ class HomeContainer extends StatelessWidget {
         );
       },
       converter: (Store<AppState> store) {
-      return HomeViewModel(
+        return HomeViewModel(
+            onDebugAction: () => store.dispatch(generateLooms()),
             selectedFixtureIds: store.state.navstate.selectedFixtureIds,
-            fixtures: store.state.fixtureState.fixtures,
-            locations: store.state.fixtureState.locations,
-            onSelectedFixturesChanged: (ids) => store.dispatch(SetSelectedFixtureIds(ids)),
+            onSelectedFixturesChanged: (ids) =>
+                store.dispatch(SetSelectedFixtureIds(ids)),
             onAppInitialize: () => store.dispatch(initializeApp()),
-            onSetSequenceButtonPressed: () => store.dispatch(setSequenceNumbers(context)));
+            onSetSequenceButtonPressed: () =>
+                store.dispatch(setSequenceNumbers(context)));
       },
     );
   }
