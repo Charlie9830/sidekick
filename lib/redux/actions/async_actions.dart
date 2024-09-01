@@ -16,7 +16,6 @@ import 'package:sidekick/excel/create_fixture_type_validation_sheet.dart';
 import 'package:sidekick/excel/create_power_patch_sheet.dart';
 import 'package:sidekick/excel/read_fixture_type_test_data.dart';
 import 'package:sidekick/excel/read_fixtures_test_data.dart';
-import 'package:sidekick/extension_methods/queue_pop.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
@@ -42,9 +41,8 @@ ThunkAction<AppState> generateLooms() {
         dataMultis: store.state.fixtureState.dataMultis.values,
         dataPatches: store.state.fixtureState.dataPatches.values);
 
-    print(withDataCables);
-
-
+    store.dispatch(SetLooms(Map<String, LoomModel>.fromEntries(
+        withDataCables.map((loom) => MapEntry(loom.uid, loom)))));
   };
 }
 
@@ -208,6 +206,8 @@ ThunkAction<AppState> initializeApp() {
 
     final (fixtures, locations) = await readFixturesTestData(
         path: testDataPath, fixtureTypes: fixtureTypes);
+
+    print(fixtures.values.map((fixture) => fixture.mode.name));
 
     store.dispatch(SetFixtures(fixtures));
     store.dispatch(SetLocations(locations));

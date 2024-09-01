@@ -2,9 +2,9 @@ import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
-import 'package:sidekick/redux/models/power_patch_model.dart';
 
 class FixtureState {
   final Map<String, FixtureModel> fixtures;
@@ -13,6 +13,7 @@ class FixtureState {
   final Map<String, DataMultiModel> dataMultis;
   final Map<String, DataPatchModel> dataPatches;
   final List<PowerOutletModel> outlets;
+  final Map<String, LoomModel> looms;
   final double balanceTolerance;
   final int maxSequenceBreak;
 
@@ -25,6 +26,7 @@ class FixtureState {
     required this.locations,
     required this.dataMultis,
     required this.dataPatches,
+    required this.looms,
   });
 
   FixtureState.initial()
@@ -35,7 +37,8 @@ class FixtureState {
         balanceTolerance = 0.05, // 5% Balance Tolerance.
         maxSequenceBreak = 4,
         dataMultis = {},
-        dataPatches = {};
+        dataPatches = {},
+        looms = {};
 
   FixtureState copyWith({
     Map<String, FixtureModel>? fixtures,
@@ -46,6 +49,7 @@ class FixtureState {
     List<PowerOutletModel>? outlets,
     double? balanceTolerance,
     int? maxSequenceBreak,
+    Map<String, LoomModel>? looms,
   }) {
     return FixtureState(
       fixtures: fixtures ?? this.fixtures,
@@ -56,6 +60,7 @@ class FixtureState {
       outlets: outlets ?? this.outlets,
       balanceTolerance: balanceTolerance ?? this.balanceTolerance,
       maxSequenceBreak: maxSequenceBreak ?? this.maxSequenceBreak,
+      looms: looms ?? this.looms,
     );
   }
 }

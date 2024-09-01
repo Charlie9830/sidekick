@@ -2,7 +2,6 @@ import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
-import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
@@ -71,6 +70,9 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic action) {
     SetMaxSequenceBreak a => state.copyWith(
         maxSequenceBreak:
             _convertMaxSequenceBreak(a.value, state.maxSequenceBreak)),
+    SetLooms a => state.copyWith(
+        looms: a.looms,
+      ),
     // Default
     _ => state
   };

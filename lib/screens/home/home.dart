@@ -4,6 +4,7 @@ import 'package:sidekick/containers/export_container.dart';
 import 'package:sidekick/containers/fixture_table_container.dart';
 import 'package:sidekick/containers/fixture_types_container.dart';
 import 'package:sidekick/containers/locations_container.dart';
+import 'package:sidekick/containers/looms_container.dart';
 import 'package:sidekick/containers/power_patch_container.dart';
 import 'package:sidekick/view_models/home_view_model.dart';
 
@@ -29,7 +30,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return DefaultTabController(
       animationDuration: Duration.zero,
-      length: 6,
+      length: 7,
       initialIndex: 0,
       child: Scaffold(
         appBar: AppBar(
@@ -52,6 +53,10 @@ class _HomeState extends State<Home> {
                     icon: Icon(Icons.settings_input_svideo),
                     child: Text('Patch')),
                 Tab(
+                  icon: Icon(Icons.cable),
+                  child: Text('Looms'),
+                ),
+                Tab(
                   icon: Icon(Icons.location_pin),
                   child: Text('Locations'),
                 ),
@@ -71,6 +76,7 @@ class _HomeState extends State<Home> {
             FixtureTableContainer(),
             PowerPatchContainer(),
             DataPatchContainer(),
+            LoomsContainer(),
             LocationsContainer(),
             FixtureTypesContainer(),
             ExportContainer(),
