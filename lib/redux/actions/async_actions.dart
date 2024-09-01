@@ -116,22 +116,13 @@ ThunkAction<AppState> updateLocationMultiPrefix(
           ..update(locationId, (_) => updatedLocation)));
 
     // If PowerMulti's associated to this location have already been created, update them as well.
-    final associatedPowerMultis = store
-        .state.fixtureState.powerMultiOutlets.values
-        .where((multi) => multi.locationId == locationId);
+    updateAssociatedPowerMultis(store, locationId, updatedLocation);
 
-    if (associatedPowerMultis.isEmpty) {
-      return;
-    }
+    // If DataMulti's assocated to this location have been created, update them as well.
+    updateAssociatedDataMultis(store, locationId, updatedLocation);
 
-    final updatedPowerMultis = associatedPowerMultis.map((existing) =>
-        existing.copyWith(
-            name: updatedLocation.getPrefixedPowerMulti(existing.number)));
-
-    store.dispatch(SetPowerMultiOutlets(Map<String, PowerMultiOutletModel>.from(
-        store.state.fixtureState.powerMultiOutlets)
-      ..addEntries(
-          updatedPowerMultis.map((multi) => MapEntry(multi.uid, multi)))));
+    // If DataPatches associated to this location have been created, update them as well.
+    updateAssociatedDataMultis(store, locationId, updatedLocation);
   };
 }
 
@@ -275,44 +266,54 @@ ThunkAction<AppState> generateDataPatch() {
         // Can be 2 Singles.
         patches.addAll(
           spans.mapIndexed(
-            (index, span) => DataPatchModel(
-              uid: getUid(),
-              locationId: locationId,
-              multiId: '',
-              universe: span.universe,
-              name: location?.getPrefixedDataPatch(index + 1) ?? '',
-              startsAtFixtureId: span.startsAt.fid,
-              endsAtFixtureId: span.endsAt?.fid ?? 0,
-              fixtureIds: span.fixtureIds,
-            ),
+            (index, span) {
+              final wayNumber = index + 1;
+              return DataPatchModel(
+                uid: getUid(),
+                locationId: locationId,
+                number: wayNumber,
+                multiId: '',
+                universe: span.universe,
+                name: location?.getPrefixedDataPatch(wayNumber) ?? '',
+                startsAtFixtureId: span.startsAt.fid,
+                endsAtFixtureId: span.endsAt?.fid ?? 0,
+                fixtureIds: span.fixtureIds,
+              );
+            },
           ),
         );
       } else {
         final slices = spans.slices(4);
 
         for (final (index, slice) in slices.indexed) {
+          final wayNumber = index + 1;
           final parentMulti = DataMultiModel(
             uid: getUid(),
             locationId: locationId,
-            name: location?.getPrefixedDataMultiPatch(index + 1) ?? '',
+            name: location?.getPrefixedDataMultiPatch(wayNumber) ?? '',
+            number: wayNumber,
           );
 
           multis.add(parentMulti);
 
           patches.addAll(
             slice.mapIndexed(
-              (index, span) => DataPatchModel(
-                uid: getUid(),
-                locationId: locationId,
-                multiId: parentMulti.uid,
-                universe: span.universe,
-                startsAtFixtureId: span.startsAt.fid,
-                endsAtFixtureId: span.endsAt?.fid ?? 0,
-                name: location?.getPrefixedDataPatch(index + 1,
-                        parentMultiName: parentMulti.name) ??
-                    '',
-                fixtureIds: span.fixtureIds,
-              ),
+              (index, span) {
+                final wayNumber = index + 1;
+                return DataPatchModel(
+                  uid: getUid(),
+                  locationId: locationId,
+                  number: wayNumber,
+                  multiId: parentMulti.uid,
+                  universe: span.universe,
+                  startsAtFixtureId: span.startsAt.fid,
+                  endsAtFixtureId: span.endsAt?.fid ?? 0,
+                  name: location?.getPrefixedDataPatch(wayNumber,
+                          parentMultiName: parentMulti.name) ??
+                      '',
+                  fixtureIds: span.fixtureIds,
+                );
+              },
             ),
           );
 
@@ -322,17 +323,21 @@ ThunkAction<AppState> generateDataPatch() {
             patches.addAll(
               List<DataPatchModel>.generate(
                 diff,
-                (index) => DataPatchModel(
-                  uid: getUid(),
-                  locationId: locationId,
-                  multiId: parentMulti.uid,
-                  universe: 0,
-                  name: 'SP ${index + 1}',
-                  startsAtFixtureId: 0,
-                  endsAtFixtureId: 0,
-                  isSpare: true,
-                  fixtureIds: [],
-                ),
+                (index) {
+                  final wayNumber = index + 1;
+                  return DataPatchModel(
+                    uid: getUid(),
+                    locationId: locationId,
+                    multiId: parentMulti.uid,
+                    number: wayNumber,
+                    universe: 0,
+                    name: 'SP $wayNumber',
+                    startsAtFixtureId: 0,
+                    endsAtFixtureId: 0,
+                    isSpare: true,
+                    fixtureIds: [],
+                  );
+                },
               ),
             );
           }
@@ -590,4 +595,60 @@ void _updatePowerMultiSpareCircuitCount(
   );
 
   _updatePowerMultisAndOutlets(store, balancedMultiOutlets);
+}
+
+void updateAssociatedPowerMultis(
+    Store<AppState> store, String locationId, LocationModel updatedLocation) {
+  final associatedPowerMultis = store
+      .state.fixtureState.powerMultiOutlets.values
+      .where((multi) => multi.locationId == locationId);
+
+  if (associatedPowerMultis.isEmpty) {
+    return;
+  }
+
+  final updatedPowerMultis = associatedPowerMultis.map((existing) => existing
+      .copyWith(name: updatedLocation.getPrefixedPowerMulti(existing.number)));
+
+  store.dispatch(SetPowerMultiOutlets(Map<String, PowerMultiOutletModel>.from(
+      store.state.fixtureState.powerMultiOutlets)
+    ..addEntries(
+        updatedPowerMultis.map((multi) => MapEntry(multi.uid, multi)))));
+}
+
+void updateAssociatedDataMultis(
+    Store<AppState> store, String locationId, LocationModel updatedLocation) {
+  final associatedDataMultis = store.state.fixtureState.dataMultis.values
+      .where((multi) => multi.locationId == locationId);
+
+  if (associatedDataMultis.isEmpty) {
+    return;
+  }
+
+  final updatedDataMultis = associatedDataMultis.map((existing) =>
+      existing.copyWith(
+          name: updatedLocation.getPrefixedDataMultiPatch(existing.number)));
+
+  store.dispatch(SetDataMultis(
+      Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
+        ..addEntries(
+            updatedDataMultis.map((multi) => MapEntry(multi.uid, multi)))));
+
+  void updateAssociatedDataPatches(
+      Store<AppState> store, String locationId, LocationModel updatedLocation) {
+    final associatedDataPatches = store.state.fixtureState.dataPatches.values
+        .where((multi) => multi.locationId == locationId);
+
+    if (associatedDataPatches.isEmpty) {
+      return;
+    }
+
+    final updatedDataPatches = associatedDataPatches.map((existing) => existing
+        .copyWith(name: updatedLocation.getPrefixedDataPatch(existing.number)));
+
+    store.dispatch(SetDataPatches(
+        Map<String, DataPatchModel>.from(store.state.fixtureState.dataPatches)
+          ..addEntries(
+              updatedDataPatches.map((multi) => MapEntry(multi.uid, multi)))));
+  }
 }

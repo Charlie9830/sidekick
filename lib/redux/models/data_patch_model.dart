@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 class DataPatchModel {
   final String uid;
   final String name;
+  final int number;
   final int universe;
   final String multiId;
   final List<String> fixtureIds;
@@ -16,6 +17,7 @@ class DataPatchModel {
   DataPatchModel({
     required this.uid,
     required this.name,
+    required this.number,
     required this.universe,
     required this.multiId,
     required this.fixtureIds,
@@ -30,6 +32,7 @@ class DataPatchModel {
   DataPatchModel copyWith({
     String? uid,
     String? name,
+    int? number,
     int? universe,
     String? multiId,
     List<String>? fixtureIds,
@@ -41,6 +44,7 @@ class DataPatchModel {
     return DataPatchModel(
       uid: uid ?? this.uid,
       name: name ?? this.name,
+      number: number ?? this.number,
       universe: universe ?? this.universe,
       multiId: multiId ?? this.multiId,
       fixtureIds: fixtureIds ?? this.fixtureIds,
@@ -55,6 +59,7 @@ class DataPatchModel {
     return {
       'uid': uid,
       'name': name,
+      'number': number,
       'universe': universe,
       'multiId': multiId,
       'fixtureIds': fixtureIds,
@@ -69,6 +74,7 @@ class DataPatchModel {
     return DataPatchModel(
       uid: map['uid'] ?? '',
       name: map['name'] ?? '',
+      number: map['number']?.toInt() ?? 0,
       universe: map['universe']?.toInt() ?? 0,
       multiId: map['multiId'] ?? '',
       fixtureIds: List<String>.from(map['fixtureIds']),
@@ -86,7 +92,7 @@ class DataPatchModel {
 
   @override
   String toString() {
-    return 'DataPatchModel(uid: $uid, name: $name, universe: $universe, multiId: $multiId, fixtureIds: $fixtureIds, locationId: $locationId, isSpare: $isSpare, startsAtFixtureId: $startsAtFixtureId, endsAtFixtureId: $endsAtFixtureId)';
+    return 'DataPatchModel(uid: $uid, name: $name, number: $number, universe: $universe, multiId: $multiId, fixtureIds: $fixtureIds, locationId: $locationId, isSpare: $isSpare, startsAtFixtureId: $startsAtFixtureId, endsAtFixtureId: $endsAtFixtureId)';
   }
 
   @override
@@ -96,6 +102,7 @@ class DataPatchModel {
     return other is DataPatchModel &&
         other.uid == uid &&
         other.name == name &&
+        other.number == number &&
         other.universe == universe &&
         other.multiId == multiId &&
         listEquals(other.fixtureIds, fixtureIds) &&
@@ -109,6 +116,7 @@ class DataPatchModel {
   int get hashCode {
     return uid.hashCode ^
         name.hashCode ^
+        number.hashCode ^
         universe.hashCode ^
         multiId.hashCode ^
         fixtureIds.hashCode ^

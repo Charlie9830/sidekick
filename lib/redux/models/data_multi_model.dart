@@ -4,21 +4,26 @@ class DataMultiModel {
   final String uid;
   final String name;
   final String locationId;
+  final int number;
+
   DataMultiModel({
     this.uid = '',
     this.name = '',
     this.locationId = '',
+    this.number = 0,
   });
 
   DataMultiModel copyWith({
     String? uid,
     String? name,
     String? locationId,
+    int? number,
   }) {
     return DataMultiModel(
       uid: uid ?? this.uid,
       name: name ?? this.name,
       locationId: locationId ?? this.locationId,
+      number: number ?? this.number,
     );
   }
 
@@ -27,6 +32,7 @@ class DataMultiModel {
       'uid': uid,
       'name': name,
       'locationId': locationId,
+      'number': number,
     };
   }
 
@@ -35,6 +41,7 @@ class DataMultiModel {
       uid: map['uid'] ?? '',
       name: map['name'] ?? '',
       locationId: map['locationId'] ?? '',
+      number: map['number']?.toInt() ?? 0,
     );
   }
 
@@ -44,8 +51,9 @@ class DataMultiModel {
       DataMultiModel.fromMap(json.decode(source));
 
   @override
-  String toString() =>
-      'DataMultiModel(uid: $uid, name: $name, locationId: $locationId)';
+  String toString() {
+    return 'DataMultiModel(uid: $uid, name: $name, locationId: $locationId, number: $number)';
+  }
 
   @override
   bool operator ==(Object other) {
@@ -54,9 +62,12 @@ class DataMultiModel {
     return other is DataMultiModel &&
         other.uid == uid &&
         other.name == name &&
-        other.locationId == locationId;
+        other.locationId == locationId &&
+        other.number == number;
   }
 
   @override
-  int get hashCode => uid.hashCode ^ name.hashCode ^ locationId.hashCode;
+  int get hashCode {
+    return uid.hashCode ^ name.hashCode ^ locationId.hashCode ^ number.hashCode;
+  }
 }
