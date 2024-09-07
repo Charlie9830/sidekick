@@ -30,6 +30,29 @@ import 'package:path/path.dart' as p;
 import 'package:sidekick/screens/sequencer_dialog/sequencer_dialog.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
+ThunkAction<AppState> loadFile(String path) {
+  return (Store<AppState> store) async {
+    final filePath = path.isEmpty ? getTestDataPath() : path;
+
+    final fixtureTypes = await readFixtureTypeTestData(filePath);
+
+    final (fixtures, locations) =
+        await readFixturesTestData(path: filePath, fixtureTypes: fixtureTypes);
+
+    store.dispatch(ResetFixtureState());
+    store.dispatch(SetFixtures(fixtures));
+    store.dispatch(SetLocations(locations));
+    store.dispatch(SetImportFilePath(filePath));
+  };
+}
+
+String getTestDataPath() {
+  const String testDataDirectory = './test_data/';
+  const String testFileName = 'fixtures.xlsx';
+  final String testDataPath = p.join(testDataDirectory, testFileName);
+  return testDataPath;
+}
+
 ThunkAction<AppState> generateLooms() {
   return (Store<AppState> store) async {
     final powerOnlyLooms = generatePowerOnlyLooms(
@@ -184,26 +207,6 @@ ThunkAction<AppState> setSequenceNumbers(BuildContext context) {
 
       store.dispatch(SetFixtures(sortedFixtures));
     }
-  };
-}
-
-ThunkAction<AppState> initializeApp() {
-  return (Store<AppState> store) async {
-    const String testDataDirectory = './test_data/';
-    const String testFileName = 'fixtures.xlsx';
-    final String testDataPath = p.join(testDataDirectory, testFileName);
-
-    final fixtureTypes = await readFixtureTypeTestData(testDataPath);
-
-    final (fixtures, locations) = await readFixturesTestData(
-        path: testDataPath, fixtureTypes: fixtureTypes);
-
-    print(fixtures.values.map((fixture) => fixture.mode.name));
-
-    store.dispatch(SetFixtures(fixtures));
-    store.dispatch(SetLocations(locations));
-    store.dispatch(SetPowerOutlets([]));
-    store.dispatch(SetPowerMultiOutlets({}));
   };
 }
 

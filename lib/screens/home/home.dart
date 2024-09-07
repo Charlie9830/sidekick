@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/containers/data_patch_container.dart';
 import 'package:sidekick/containers/export_container.dart';
+import 'package:sidekick/containers/file_container.dart';
 import 'package:sidekick/containers/fixture_table_container.dart';
 import 'package:sidekick/containers/fixture_types_container.dart';
 import 'package:sidekick/containers/locations_container.dart';
 import 'package:sidekick/containers/looms_container.dart';
 import 'package:sidekick/containers/power_patch_container.dart';
+import 'package:sidekick/screens/file/file_screen.dart';
+import 'package:sidekick/view_models/file_view_model.dart';
 import 'package:sidekick/view_models/home_view_model.dart';
 
 class Home extends StatefulWidget {
@@ -30,7 +33,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return DefaultTabController(
       animationDuration: Duration.zero,
-      length: 7,
+      length: 8,
       initialIndex: 0,
       child: Scaffold(
         appBar: AppBar(
@@ -41,6 +44,10 @@ class _HomeState extends State<Home> {
               isScrollable: true,
               tabAlignment: TabAlignment.start,
               tabs: [
+                Tab(
+                  icon: Icon(Icons.folder),
+                  child: Text('File'),
+                ),
                 Tab(
                   icon: Icon(Icons.lightbulb),
                   child: Text('Fixtures'),
@@ -73,6 +80,7 @@ class _HomeState extends State<Home> {
         body: const TabBarView(
           physics: NeverScrollableScrollPhysics(),
           children: [
+            FileContainer(),
             FixtureTableContainer(),
             PowerPatchContainer(),
             DataPatchContainer(),

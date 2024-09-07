@@ -2,7 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
-import 'package:sidekick/screens/sequencer_dialog/titled_card.dart';
+import 'package:sidekick/titled_card.dart';
 import 'package:sidekick/widgets/blur_listener.dart';
 
 const double _kMappingListItemExtent = 56;

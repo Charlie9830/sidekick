@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class TitledCard extends StatelessWidget {
   final String title;
   final Widget child;
-  
+
   const TitledCard({
     Key? key,
     required this.title,
@@ -21,7 +21,10 @@ class TitledCard extends StatelessWidget {
         ),
         Expanded(
           child: Card(
-            child: child,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: child,
+            ),
           ),
         )
       ],

@@ -8,6 +8,16 @@ import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 
+class ResetFixtureState {
+  ResetFixtureState();
+}
+
+class SetImportFilePath {
+  final String path;
+
+  SetImportFilePath(this.path);
+}
+
 class SetLooms {
   final Map<String, LoomModel> looms;
 
