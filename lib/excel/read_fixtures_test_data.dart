@@ -48,7 +48,7 @@ Future<
       .mapIndexed((index, row) {
         final int fixtureId = switch (row[_FixtureExcelColumns.fid]?.value) {
           IntCellValue v => v.value,
-          TextCellValue v => int.parse(v.value),
+          TextCellValue v => int.parse(v.value.text?.trim() ?? ""),
           _ => 0,
         };
 
@@ -58,7 +58,7 @@ Future<
 
         final String fixtureTypeName =
             switch (row[_FixtureExcelColumns.fixtureType]?.value) {
-          TextCellValue v => v.value.trim(),
+          TextCellValue v => v.value.text?.trim() ?? "",
           _ => '',
         };
 
@@ -72,13 +72,13 @@ Future<
 
         final int universe =
             switch (row[_FixtureExcelColumns.universe]?.value) {
-          TextCellValue v => int.parse(v.value.trim()),
+          TextCellValue v => int.parse(v.value.text?.trim() ?? ""),
           IntCellValue v => v.value,
           _ => 0,
         };
 
         final int address = switch (row[_FixtureExcelColumns.address]?.value) {
-          TextCellValue v => int.parse(v.value.trim()),
+          TextCellValue v => int.parse(v.value.text?.trim() ?? ""),
           IntCellValue v => v.value,
           _ => 0,
         };
@@ -131,7 +131,7 @@ String _convertRawLocationToString(Data? data) {
   }
 
   return switch (data.value) {
-    TextCellValue v => v.value.trim(),
+    TextCellValue v => v.value.text?.trim() ?? "",
     IntCellValue v => v.value.toString().trim(),
     DoubleCellValue v => v.value.toString().trim(),
     _ => '',

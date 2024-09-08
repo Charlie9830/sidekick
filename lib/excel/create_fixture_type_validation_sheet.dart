@@ -17,7 +17,7 @@ void createFixtureTypeValidationSheet({
     ..removeWhere((key, value) => key.isEmpty);
 
   // Header Rows
-  sheet.appendRow(const [
+  sheet.appendRow([
     TextCellValue('Fixture'),
     TextCellValue('Amps'),
   ]);

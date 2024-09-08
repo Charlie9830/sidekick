@@ -14,7 +14,7 @@ void createDataPatchSheet({
   final sheet = excel['Data Patch'];
 
   // Header Rows
-  sheet.appendRow(const [
+  sheet.appendRow([
     TextCellValue('Outlet ID'),
     TextCellValue('Universe'),
     TextCellValue('Cable'),

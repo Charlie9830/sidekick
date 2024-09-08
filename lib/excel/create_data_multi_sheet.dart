@@ -13,7 +13,7 @@ void createDataMultiSheet({
   final sheet = excel['Data Multis'];
 
   // Header Rows
-  sheet.appendRow(const [
+  sheet.appendRow([
     TextCellValue('Multi ID'),
     TextCellValue('Multi Name'),
     TextCellValue('Line 1'),

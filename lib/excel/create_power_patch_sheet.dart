@@ -14,7 +14,7 @@ void createPowerPatchSheet({
   final powerPatchSheet = excel['Power Patch'];
 
   // Header Rows
-  powerPatchSheet.appendRow(const [
+  powerPatchSheet.appendRow([
     TextCellValue('Rack Number'),
     TextCellValue('Rack Outlet Number'),
     TextCellValue('Combined Rack Number and Outlet'),

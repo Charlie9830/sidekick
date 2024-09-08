@@ -13,7 +13,7 @@ void createColorLookupSheet({
   final sheet = excel['Color Lookup'];
 
   // Header Rows
-  sheet.appendRow(const [
+  sheet.appendRow([
     TextCellValue('Multicore Name'),
     TextCellValue('Color'),
   ]);

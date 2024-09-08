@@ -25,19 +25,19 @@ Future<Map<String, FixtureTypeModel>> readFixtureTypeTestData(
   final interim = rows
       .map((row) {
         final String name = switch (row[0]?.value) {
-          TextCellValue v => v.value.trim(),
+          TextCellValue v => v.value.text?.trim() ?? '',
           _ => '',
         };
 
         final double amps = switch (row[1]?.value) {
-          TextCellValue v => double.parse(v.value.trim()),
+          TextCellValue v => double.parse(v.value.text?.trim() ?? ''),
           IntCellValue v => v.value.toDouble(),
           DoubleCellValue v => v.value,
           _ => 0,
         };
 
         final int maxPiggybacks = switch (row[2]?.value) {
-          TextCellValue v => int.parse(v.value.trim()),
+          TextCellValue v => int.parse(v.value.text?.trim() ?? ""),
           IntCellValue v => v.value,
           _ => 1,
         };
