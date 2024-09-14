@@ -7,9 +7,11 @@ const kExcelFileTypes = <XTypeGroup>[
   ),
 ];
 
+const kProjectFileExtension = "phase";
+
 const kProjectFileTypes = <XTypeGroup>[
   XTypeGroup(
-    label: "IJAF Project File (*.phase)",
-    extensions: ["phase"],
+    label: "IJAF Project File (*.$kProjectFileExtension)",
+    extensions: [kProjectFileExtension],
   )
 ];

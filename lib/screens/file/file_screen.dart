@@ -43,14 +43,15 @@ class FileScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       switch (vm.projectFilePath) {
-                        "" => Text('Untitled Project'),
+                        "" => const Text('Untitled Project'),
                         _ => Tooltip(
                             message: p.canonicalize(vm.projectFilePath),
                             child: Text(p.basename(vm.projectFilePath))),
                       },
                       const SizedBox(height: 16),
                       OutlinedButton(
-                        onPressed: () => throw "Not Implemented Yet ya Donkey.",
+                        onPressed: () =>
+                            _handleNewProjectButtonPressed(context),
                         child: const Text('New'),
                       ),
                       const SizedBox(height: 8),
@@ -85,14 +86,20 @@ class FileScreen extends StatelessWidget {
         });
   }
 
+  void _handleNewProjectButtonPressed(BuildContext context) async {
+    final saveCurrentFileDialogResult =
+        await _showSaveChangesDialog(title: 'New Project', context: context);
+
+    if (saveCurrentFileDialogResult == null) {
+      return;
+    }
+
+    vm.onNewProjectButtonPressed(saveCurrentFileDialogResult);
+  }
+
   void _handleOpenProjectButtonPressed(BuildContext context) async {
-    final saveCurrentFileDialogResult = await showGenericDialog(
-      context: context,
-      title: 'Open Project',
-      message: 'Would you like to Save your current project first?',
-      affirmativeText: 'Save',
-      declineText: 'Discard',
-    );
+    final saveCurrentFileDialogResult =
+        await _showSaveChangesDialog(title: 'Open Project', context: context);
 
     if (saveCurrentFileDialogResult == null) {
       return;
@@ -104,17 +111,29 @@ class FileScreen extends StatelessWidget {
     if (context.mounted) {
       if (selectedFilePath != null && selectedFilePath.path.isNotEmpty) {
         vm.onOpenProjectButtonPressed(
-            context, saveCurrentFileDialogResult, selectedFilePath.path);
+            saveCurrentFileDialogResult, selectedFilePath.path);
       }
     }
   }
 
+  Future<bool?> _showSaveChangesDialog(
+      {required BuildContext context, required String title}) async {
+    return await showGenericDialog(
+      context: context,
+      title: title,
+      message:
+          'Would you like to save the changes to your current project first?',
+      affirmativeText: 'Save',
+      declineText: 'Discard',
+    );
+  }
+
   void _handleSaveProjectButtonPressed(BuildContext context) async {
-    vm.onSaveProjectButtonPressed(context, SaveType.save);
+    vm.onSaveProjectButtonPressed(SaveType.save);
   }
 
   void _handleSaveProjectAsButtonPressed(BuildContext context) async {
-    vm.onSaveProjectButtonPressed(context, SaveType.saveAs);
+    vm.onSaveProjectButtonPressed(SaveType.saveAs);
   }
 
   void _handleChooseButtonPressed(BuildContext context) async {

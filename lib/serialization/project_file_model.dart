@@ -4,6 +4,7 @@ import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
@@ -16,6 +17,7 @@ class ProjectFileModel {
   final List<DataMultiModel> dataMultis;
   final List<DataPatchModel> dataPatches;
   final List<LocationModel> locations;
+  final List<LoomModel> looms;
   final int maxSequenceBreak;
   final double balanceTolerance;
 
@@ -29,6 +31,7 @@ class ProjectFileModel {
     required this.maxSequenceBreak,
     required this.powerMultiOutlets,
     required this.outlets,
+    required this.looms,
   });
 
   Map<String, dynamic> toMap() {
@@ -40,6 +43,7 @@ class ProjectFileModel {
       'dataMultis': dataMultis.map((x) => x.toMap()).toList(),
       'dataPatches': dataPatches.map((x) => x.toMap()).toList(),
       'locations': locations.map((x) => x.toMap()).toList(),
+      'looms': looms.map((x) => x.toMap()).toList(),
       'maxSequenceBreak': maxSequenceBreak,
       'balanceTolerance': balanceTolerance,
     };
@@ -61,6 +65,8 @@ class ProjectFileModel {
           map['dataPatches']?.map((x) => DataPatchModel.fromMap(x))),
       locations: List<LocationModel>.from(
           map['locations']?.map((x) => LocationModel.fromMap(x))),
+      looms:
+          List<LoomModel>.from(map['looms']?.map((x) => LoomModel.fromMap(x))),
       maxSequenceBreak: map['maxSequenceBreak']?.toInt() ?? 0,
       balanceTolerance: map['balanceTolerance']?.toDouble() ?? 0.0,
     );

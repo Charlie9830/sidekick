@@ -1,29 +1,46 @@
+import 'package:sidekick/model_collection/convert_to_model_map.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
-import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
-FixtureState fixtureStateReducer(FixtureState state, dynamic action) {
-  return switch (action) {
-    OpenProject a => state.copyWith(
-        balanceTolerance: a.project.balanceTolerance,
-        dataMultis: Map<String, DataMultiModel>.fromEntries(
-            a.project.dataMultis.map((item) => MapEntry(item.uid, item)))),
-    ResetFixtureState => state.copyWith(
-        fixtures: FixtureState.initial().fixtures,
-        balanceTolerance: FixtureState.initial().balanceTolerance,
-        dataMultis: FixtureState.initial().dataMultis,
-        dataPatches: FixtureState.initial().dataPatches,
-        locations: FixtureState.initial().locations,
-        looms: FixtureState.initial().looms,
-        maxSequenceBreak: FixtureState.initial().maxSequenceBreak,
-        outlets: FixtureState.initial().outlets,
-        powerMultiOutlets: FixtureState.initial().powerMultiOutlets,
-      ),
-    UpdateFixtureTypeName a => state.copyWith(
+FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
+  if (a is NewProject) {
+    return FixtureState.initial();
+  }
+
+  if (a is OpenProject) {
+    return state.copyWith(
+      balanceTolerance: a.project.balanceTolerance,
+      dataMultis: convertToModelMap(a.project.dataMultis),
+      dataPatches: convertToModelMap(a.project.dataPatches),
+      fixtures: convertToModelMap(a.project.fixtures),
+      locations: convertToModelMap(a.project.locations),
+      looms: convertToModelMap(a.project.looms),
+      outlets: a.project.outlets,
+      powerMultiOutlets: convertToModelMap(a.project.powerMultiOutlets),
+      maxSequenceBreak: a.project.maxSequenceBreak,
+    );
+  }
+
+  if (a is ResetFixtureState) {
+    return state.copyWith(
+      fixtures: FixtureState.initial().fixtures,
+      balanceTolerance: FixtureState.initial().balanceTolerance,
+      dataMultis: FixtureState.initial().dataMultis,
+      dataPatches: FixtureState.initial().dataPatches,
+      locations: FixtureState.initial().locations,
+      looms: FixtureState.initial().looms,
+      maxSequenceBreak: FixtureState.initial().maxSequenceBreak,
+      outlets: FixtureState.initial().outlets,
+      powerMultiOutlets: FixtureState.initial().powerMultiOutlets,
+    );
+  }
+
+  if (a is UpdateFixtureTypeName) {
+    return state.copyWith(
         fixtures: Map<String, FixtureModel>.from(state.fixtures)
           ..updateAll((uid, fixture) => fixture.type.uid == a.id
               ? fixture.copyWith(
@@ -38,8 +55,11 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic action) {
                 outlet: outlet,
                 fixtureTypeUid: a.id,
                 update: (existing) => existing.copyWith(name: a.newValue)))
-            .toList()),
-    UpdateFixtureTypeShortName a => state.copyWith(
+            .toList());
+  }
+
+  if (a is UpdateFixtureTypeShortName) {
+    return state.copyWith(
         fixtures: Map<String, FixtureModel>.from(state.fixtures)
           ..updateAll((uid, fixture) => fixture.type.uid == a.id
               ? fixture.copyWith(
@@ -50,48 +70,84 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic action) {
                 outlet: outlet,
                 fixtureTypeUid: a.id,
                 update: (existing) => existing.copyWith(shortName: a.newValue)))
-            .toList()),
-    UpdateFixtureTypeMaxPiggybacks a => state.copyWith(
+            .toList());
+  }
+
+  if (a is UpdateFixtureTypeMaxPiggybacks) {
+    return state.copyWith(
         fixtures: Map<String, FixtureModel>.from(state.fixtures)
           ..updateAll((uid, fixture) => fixture.type.uid == a.id
               ? fixture.copyWith(
                   type: fixture.type.copyWith(
                       maxPiggybacks: int.parse(a.newValue.trim()).abs()))
-              : fixture)),
-    UpdateLocationName a => state.copyWith(
-        locations: Map<String, LocationModel>.from(state.locations)
-          ..update(a.locationId,
-              (existing) => existing.copyWith(name: a.newValue.trim())),
-      ),
-    UpdateLocationColor a => state.copyWith(
-        locations: Map<String, LocationModel>.from(state.locations)
-          ..update(
-              a.locationId, (existing) => existing.copyWith(color: a.newValue)),
-      ),
-    SetDataMultis a => state.copyWith(dataMultis: a.multis),
-    SetDataPatches a => state.copyWith(dataPatches: a.patches),
-    SetFixtures a => state.copyWith(
-        fixtures: a.fixtures,
-      ),
-    SetLocations a => state.copyWith(
-        locations: a.locations,
-      ),
-    SetPowerOutlets a => state.copyWith(
-        outlets: a.outlets,
-      ),
-    SetPowerMultiOutlets a => state.copyWith(powerMultiOutlets: a.multiOutlets),
-    SetBalanceTolerance a => state.copyWith(
+              : fixture));
+  }
+
+  if (a is UpdateLocationName) {
+    return state.copyWith(
+      locations: Map<String, LocationModel>.from(state.locations)
+        ..update(a.locationId,
+            (existing) => existing.copyWith(name: a.newValue.trim())),
+    );
+  }
+
+  if (a is UpdateLocationColor) {
+    return state.copyWith(
+      locations: Map<String, LocationModel>.from(state.locations)
+        ..update(
+            a.locationId, (existing) => existing.copyWith(color: a.newValue)),
+    );
+  }
+
+  if (a is SetDataMultis) {
+    return state.copyWith(dataMultis: a.multis);
+  }
+
+  if (a is SetDataPatches) {
+    return state.copyWith(dataPatches: a.patches);
+  }
+
+  if (a is SetFixtures) {
+    return state.copyWith(
+      fixtures: a.fixtures,
+    );
+  }
+
+  if (a is SetLocations) {
+    return state.copyWith(
+      locations: a.locations,
+    );
+  }
+
+  if (a is SetPowerOutlets) {
+    return state.copyWith(
+      outlets: a.outlets,
+    );
+  }
+
+  if (a is SetPowerMultiOutlets) {
+    return state.copyWith(powerMultiOutlets: a.multiOutlets);
+  }
+
+  if (a is SetBalanceTolerance) {
+    return state.copyWith(
         balanceTolerance:
-            _convertBalanceTolerance(a.value, state.balanceTolerance)),
-    SetMaxSequenceBreak a => state.copyWith(
+            _convertBalanceTolerance(a.value, state.balanceTolerance));
+  }
+
+  if (a is SetMaxSequenceBreak) {
+    return state.copyWith(
         maxSequenceBreak:
-            _convertMaxSequenceBreak(a.value, state.maxSequenceBreak)),
-    SetLooms a => state.copyWith(
-        looms: a.looms,
-      ),
-    // Default
-    _ => state
-  };
+            _convertMaxSequenceBreak(a.value, state.maxSequenceBreak));
+  }
+
+  if (a is SetLooms) {
+    return state.copyWith(
+      looms: a.looms,
+    );
+  }
+
+  return state;
 }
 
 PowerOutletModel _updateOutletFixtureType(
@@ -134,4 +190,3 @@ int _convertMaxSequenceBreak(String newValue, int existingValue) {
 
   return asInt;
 }
-

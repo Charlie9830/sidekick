@@ -14,16 +14,17 @@ class ResetFixtureState {
   ResetFixtureState();
 }
 
+class NewProject {}
+
 class OpenProject {
   final ProjectFileModel project;
   final String parentDirectory;
   final String path;
 
   OpenProject(
-    this.project,
-    this.parentDirectory,
-    this.path,
-  );
+      {required this.project,
+      required this.parentDirectory,
+      required this.path});
 }
 
 class SetProjectFileMetadata {

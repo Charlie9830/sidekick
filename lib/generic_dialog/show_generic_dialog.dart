@@ -6,8 +6,10 @@ Future<bool?> showGenericDialog(
     required String message,
     required String affirmativeText,
     String? declineText}) async {
-  assert(declineText != null && declineText.trim().isEmpty,
-      "[declineText] must not be an empty String, it must also contain non white-space characters");
+  if (declineText != null && declineText.trim().isEmpty) {
+    assert(false,
+        '[declineText] must not be an empty String, it must also contain non white-space characters.');
+  }
 
   return await showDialog<bool>(
       context: context,
@@ -16,15 +18,16 @@ Future<bool?> showGenericDialog(
           title: Text(title),
           content: Text(message),
           actions: [
-            TextButton(
-              child: Text(affirmativeText),
-              onPressed: () => Navigator.of(innerContext).pop(true),
-            ),
             if (declineText != null)
               TextButton(
                 child: Text(declineText),
                 onPressed: () => Navigator.of(innerContext).pop(false),
-              )
+              ),
+              
+            TextButton(
+              child: Text(affirmativeText),
+              onPressed: () => Navigator.of(innerContext).pop(true),
+            ),
           ],
         );
       });

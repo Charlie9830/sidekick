@@ -29,6 +29,7 @@ Future<ProjectFileMetadataModel> serializeProjectFile(
     powerMultiOutlets: state.fixtureState.powerMultiOutlets.values.toList(),
     outlets: state.fixtureState.outlets.toList(),
     maxSequenceBreak: state.fixtureState.maxSequenceBreak,
+    looms: state.fixtureState.looms.values.toList(),
   );
 
   final json = projectFile.toJson();

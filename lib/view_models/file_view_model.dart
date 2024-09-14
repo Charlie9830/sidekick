@@ -3,16 +3,16 @@ import 'package:sidekick/enums.dart';
 
 class FileViewModel {
   final void Function(String path) onFileSelected;
-  final void Function(
-          BuildContext context, bool saveCurrentFile, String filePath)
+  final void Function(bool saveCurrentFile, String filePath)
       onOpenProjectButtonPressed;
-  final void Function(BuildContext context, SaveType saveType)
-      onSaveProjectButtonPressed;
+  final void Function(SaveType saveType) onSaveProjectButtonPressed;
+  final void Function(bool saveCurrentFile) onNewProjectButtonPressed;
   final String importFilePath;
 
   final String projectFilePath;
 
   FileViewModel({
+    required this.onNewProjectButtonPressed,
     required this.importFilePath,
     required this.onFileSelected,
     required this.onOpenProjectButtonPressed,

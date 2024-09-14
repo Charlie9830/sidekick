@@ -37,13 +37,27 @@ import 'package:sidekick/serialization/serialize_project_file.dart';
 import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
+ThunkAction<AppState> startNewProject(BuildContext context, bool saveCurrent) {
+  return (Store<AppState> store) async {
+    if (saveCurrent) {
+      store.dispatch(saveProjectFile(context, SaveType.save));
+    }
+    
+    store.dispatch(NewProject());
+  };
+}
+
 ThunkAction<AppState> openProjectFile(
     BuildContext context, bool saveCurrent, String path) {
   return (Store<AppState> store) async {
     final contents = await File(path).readAsString();
     final projectFile = ProjectFileModel.fromJson(contents);
 
-    store.dispatch(OpenProject)
+    store.dispatch(OpenProject(
+      project: projectFile,
+      parentDirectory: p.dirname(path),
+      path: path,
+    ));
   };
 }
 
@@ -72,6 +86,11 @@ ThunkAction<AppState> saveProjectFile(BuildContext context, SaveType saveType) {
       }
 
       targetFilePath = selectedFilePath.path;
+    }
+
+    // Ensure the file path contains the correct extension.
+    if (p.extension(targetFilePath).trim() != '.$kProjectFileExtension') {
+      targetFilePath = '$targetFilePath.$kProjectFileExtension';
     }
 
     // Perform the File Operations.
