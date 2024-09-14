@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/screens/sequencer_dialog/arrowed_divider.dart';
 import 'package:sidekick/titled_card.dart';
 import 'package:sidekick/widgets/blur_listener.dart';
 
@@ -78,155 +79,171 @@ class _SequencerDialogState extends State<SequencerDialog> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // Top Toolbar
               Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                 IconButton(
                   icon: const Icon(Icons.close),
                   onPressed: () => Navigator.of(context).pop(),
                 )
               ]),
+
+              // Content
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: TitledCard(
-                          title: 'Fixtures',
-                          child: ListView.builder(
-                            itemCount: unassignedFixtures.length,
-                            itemBuilder: (context, index) {
-                              final fixture = unassignedFixtures[index];
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Fixtures',
+                                style: Theme.of(context).textTheme.labelLarge),
+                            const Divider(),
+                            Expanded(
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: unassignedFixtures.length,
+                                itemBuilder: (context, index) {
+                                  final fixture = unassignedFixtures[index];
 
-                              return ListTile(
-                                key: Key(fixture.uid),
-                                title: Text('#${fixture.fid.toString()}'),
-                                trailing: Text(fixture.type.name),
-                              );
-                            },
-                          ),
+                                  return ListTile(
+                                    key: Key(fixture.uid),
+                                    title: Text('#${fixture.fid.toString()}'),
+                                    trailing: Text(fixture.type.name),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                      const ArrowedDivider(),
                       SizedBox(
                         width: 400,
-                        child: TitledCard(
-                          title: '',
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                OutlinedButton.icon(
-                                  label: const Text('Assign all'),
-                                  icon: const Icon(
-                                      Icons.keyboard_double_arrow_right),
-                                  onPressed: unassignedFixtures.isNotEmpty
-                                      ? () =>
-                                          _assignRemaining(unassignedFixtures)
-                                      : null,
-                                ),
-                                const SizedBox(height: 16),
-                                OutlinedButton.icon(
-                                  label: const Text('Remove All'),
-                                  icon: const Icon(
-                                      Icons.keyboard_double_arrow_left),
-                                  onPressed: _mapping.values.isNotEmpty
-                                      ? () => setState(() => _mapping.clear())
-                                      : null,
-                                ),
-                                const SizedBox(height: 64),
-                                Row(
-                                  children: [
-                                    const Text('Sequence Number'),
-                                    const SizedBox(width: 16),
-                                    SizedBox(
-                                      width: 212,
-                                      child: BlurListener(
-                                        onBlur: _updateSequenceNumber,
-                                        child: TextField(
-                                          focusNode: _sequenceNumberFocusNode,
-                                          controller: _seqNumberController,
-                                          decoration: const InputDecoration(
-                                            border: OutlineInputBorder(),
-                                          ),
-                                          textAlign: TextAlign.center,
-                                          inputFormatters: [
-                                            FilteringTextInputFormatter
-                                                .digitsOnly,
-                                          ],
-                                          onEditingComplete:
-                                              _updateSequenceNumber,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 24),
-                                Row(
-                                  children: [
-                                    const Text('Fixture Number'),
-                                    const SizedBox(width: 36),
-                                    SizedBox(
-                                      width: 212,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              OutlinedButton.icon(
+                                label: const Text('Assign all'),
+                                icon: const Icon(
+                                    Icons.keyboard_double_arrow_right),
+                                onPressed: unassignedFixtures.isNotEmpty
+                                    ? () => _assignRemaining(unassignedFixtures)
+                                    : null,
+                              ),
+                              const SizedBox(height: 16),
+                              OutlinedButton.icon(
+                                label: const Text('Remove All'),
+                                icon: const Icon(
+                                    Icons.keyboard_double_arrow_left),
+                                onPressed: _mapping.values.isNotEmpty
+                                    ? () => setState(() => _mapping.clear())
+                                    : null,
+                              ),
+                              const SizedBox(height: 64),
+                              Row(
+                                children: [
+                                  const Text('Sequence Number'),
+                                  const SizedBox(width: 16),
+                                  SizedBox(
+                                    width: 212,
+                                    child: BlurListener(
+                                      onBlur: _updateSequenceNumber,
                                       child: TextField(
-                                        focusNode: _fixtureNumberFocusNode,
-                                        autofocus: true,
-                                        decoration: InputDecoration(
-                                          border: const OutlineInputBorder(),
-                                          errorText:
-                                              _error.isEmpty ? null : _error,
+                                        focusNode: _sequenceNumberFocusNode,
+                                        controller: _seqNumberController,
+                                        decoration: const InputDecoration(
+                                          border: OutlineInputBorder(),
                                         ),
-                                        controller: _fixtureNumberController,
                                         textAlign: TextAlign.center,
                                         inputFormatters: [
-                                          FilteringTextInputFormatter.digitsOnly
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
                                         ],
-                                        onEditingComplete: () => _enumerate(),
+                                        onEditingComplete:
+                                            _updateSequenceNumber,
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                              Row(
+                                children: [
+                                  const Text('Fixture Number'),
+                                  const SizedBox(width: 36),
+                                  SizedBox(
+                                    width: 212,
+                                    child: TextField(
+                                      focusNode: _fixtureNumberFocusNode,
+                                      autofocus: true,
+                                      decoration: InputDecoration(
+                                        border: const OutlineInputBorder(),
+                                        errorText:
+                                            _error.isEmpty ? null : _error,
+                                      ),
+                                      controller: _fixtureNumberController,
+                                      textAlign: TextAlign.center,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly
+                                      ],
+                                      onEditingComplete: () => _enumerate(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                       ),
+                      const ArrowedDivider(),
                       Expanded(
-                        child: TitledCard(
-                          title: 'Assigned',
-                          child: ListView.builder(
-                            itemExtent: _kMappingListItemExtent,
-                            controller: _listScrollController,
-                            itemCount: sortedAssignedFixtures.length,
-                            itemBuilder: (context, index) {
-                              final (seq, fixture) =
-                                  sortedAssignedFixtures[index];
-                              return ListTile(
-                                leading: Text(seq.toString()),
-                                title: Text('#${fixture.fid.toString()}'),
-                                trailing: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(fixture.type.name),
-                                    IconButton(
-                                      icon: const Icon(Icons.remove_circle,
-                                          color: Colors.grey),
-                                      iconSize: 16,
-                                      onPressed: () {
-                                        setState(() {
-                                          _mapping =
-                                              Map<int, FixtureModel>.from(
-                                                  _mapping)
-                                                ..remove(seq);
-                                        });
-                                      },
-                                    )
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Assigned Fixtures',
+                                style: Theme.of(context).textTheme.labelLarge),
+                            const Divider(),
+                            Expanded(
+                              child: ListView.builder(
+                                itemExtent: _kMappingListItemExtent,
+                                controller: _listScrollController,
+                                itemCount: sortedAssignedFixtures.length,
+                                itemBuilder: (context, index) {
+                                  final (seq, fixture) =
+                                      sortedAssignedFixtures[index];
+                                  return ListTile(
+                                    leading: Text(seq.toString()),
+                                    title: Text('#${fixture.fid.toString()}'),
+                                    trailing: Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(fixture.type.name),
+                                        IconButton(
+                                          icon: const Icon(Icons.remove_circle,
+                                              color: Colors.grey),
+                                          iconSize: 16,
+                                          onPressed: () {
+                                            setState(() {
+                                              _mapping =
+                                                  Map<int, FixtureModel>.from(
+                                                      _mapping)
+                                                    ..remove(seq);
+                                            });
+                                          },
+                                        )
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       )
                     ],
