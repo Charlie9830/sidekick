@@ -6,8 +6,10 @@ import 'package:sidekick/redux/models/fixture_mode_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
+import 'package:sidekick/redux/reducers/fixture_state_reducer.dart';
 
 class FixtureModel {
+  @override
   final String uid;
   final int fid;
   final int sequence;

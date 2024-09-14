@@ -7,9 +7,41 @@ import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
+import 'package:sidekick/serialization/project_file_metadata_model.dart';
+import 'package:sidekick/serialization/project_file_model.dart';
 
 class ResetFixtureState {
   ResetFixtureState();
+}
+
+class OpenProject {
+  final ProjectFileModel project;
+  final String parentDirectory;
+  final String path;
+
+  OpenProject(
+    this.project,
+    this.parentDirectory,
+    this.path,
+  );
+}
+
+class SetProjectFileMetadata {
+  final ProjectFileMetadataModel metadata;
+
+  SetProjectFileMetadata(this.metadata);
+}
+
+class SetLastUsedProjectDirectory {
+  final String path;
+
+  SetLastUsedProjectDirectory(this.path);
+}
+
+class SetProjectFilePath {
+  final String path;
+
+  SetProjectFilePath(this.path);
 }
 
 class SetImportFilePath {

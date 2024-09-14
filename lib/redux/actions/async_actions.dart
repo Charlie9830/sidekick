@@ -3,12 +3,14 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:excel/excel.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:sidekick/balancer/naive_balancer.dart';
 import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/classes/universe_span.dart';
+import 'package:sidekick/enums.dart';
 import 'package:sidekick/excel/create_color_lookup_sheet.dart';
 import 'package:sidekick/excel/create_data_multi_sheet.dart';
 import 'package:sidekick/excel/create_data_patch_sheet.dart';
@@ -16,6 +18,8 @@ import 'package:sidekick/excel/create_fixture_type_validation_sheet.dart';
 import 'package:sidekick/excel/create_power_patch_sheet.dart';
 import 'package:sidekick/excel/read_fixture_type_test_data.dart';
 import 'package:sidekick/excel/read_fixtures_test_data.dart';
+import 'package:sidekick/file_type_groups.dart';
+import 'package:sidekick/global_keys.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
@@ -28,9 +32,64 @@ import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:path/path.dart' as p;
 import 'package:sidekick/screens/sequencer_dialog/sequencer_dialog.dart';
+import 'package:sidekick/serialization/project_file_model.dart';
+import 'package:sidekick/serialization/serialize_project_file.dart';
+import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
-ThunkAction<AppState> loadFile(String path) {
+ThunkAction<AppState> openProjectFile(
+    BuildContext context, bool saveCurrent, String path) {
+  return (Store<AppState> store) async {
+    final contents = await File(path).readAsString();
+    final projectFile = ProjectFileModel.fromJson(contents);
+
+    store.dispatch(OpenProject)
+  };
+}
+
+ThunkAction<AppState> saveProjectFile(BuildContext context, SaveType saveType) {
+  return (Store<AppState> store) async {
+    final saveAsNeeded = store.state.fileState.projectFilePath.isEmpty ||
+        saveType == SaveType.saveAs;
+
+    String targetFilePath = store.state.fileState.projectFilePath;
+
+    // If a save as is required, collect the new File path and store it to target File Path.
+    if (saveAsNeeded == true) {
+      // Post a dialog to collect the new file location.
+      final selectedFilePath = await getSaveLocation(
+        acceptedTypeGroups: kProjectFileTypes,
+        initialDirectory:
+            await Directory(store.state.fileState.lastUsedProjectDirectory)
+                    .exists()
+                ? store.state.fileState.lastUsedProjectDirectory
+                : null,
+        confirmButtonText: 'Save As',
+      );
+
+      if (selectedFilePath == null || selectedFilePath.path.isEmpty) {
+        return;
+      }
+
+      targetFilePath = selectedFilePath.path;
+    }
+
+    // Perform the File Operations.
+    final newMetadata = await serializeProjectFile(store.state, targetFilePath);
+
+    // Save the updated MEtadata.
+    store.dispatch(SetProjectFileMetadata(newMetadata));
+    store.dispatch(SetLastUsedProjectDirectory(p.dirname(targetFilePath)));
+
+    if (homeScaffoldKey.currentState?.mounted == true &&
+        homeScaffoldKey.currentContext != null) {
+      ScaffoldMessenger.of(homeScaffoldKey.currentContext!)
+          .showSnackBar(fileSaveSuccessSnackBar());
+    }
+  };
+}
+
+ThunkAction<AppState> importPatchFile(String path) {
   return (Store<AppState> store) async {
     final filePath = path.isEmpty ? getTestDataPath() : path;
 

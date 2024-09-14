@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:collection/collection.dart';
 
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
@@ -32,21 +34,6 @@ class PowerOutletModel {
     return multiOutlets[multiOutletId]?.locationId ?? '';
   }
 
-  // static Map<String, List<PowerPatchModel>> getPatchesByLocationId({
-  //   required List<PowerOutletModel> outlets,
-  //   required Map<String, PowerMultiOutletModel> powerMultiOutlets,
-  // }) {
-  //   return Map<String, List<PowerPatchModel>>.fromEntries(
-  //     outlets
-  //         .groupListsBy((outlet) => outlet.lookupLocationId(powerMultiOutlets))
-  //         .entries
-  //         .map(
-  //           (entry) => MapEntry(
-  //               entry.key, entry.value.map((outlet) => outlet.child).toList()),
-  //         ),
-  //   );
-  // }
-
   PowerMultiOutletModel lookupPowerMultiOutlet(
       Map<String, PowerMultiOutletModel> multiOutlets) {
     return multiOutlets[multiOutletId] ?? const PowerMultiOutletModel.none();
@@ -69,4 +56,31 @@ class PowerOutletModel {
       multiPatch: multiPatch ?? this.multiPatch,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'phase': phase,
+      'child': child.toMap(),
+      'isSpare': isSpare,
+      'multiOutletId': multiOutletId,
+      'locationId': locationId,
+      'multiPatch': multiPatch,
+    };
+  }
+
+  factory PowerOutletModel.fromMap(Map<String, dynamic> map) {
+    return PowerOutletModel(
+      phase: map['phase']?.toInt() ?? 0,
+      child: PowerPatchModel.fromMap(map['child']),
+      isSpare: map['isSpare'] ?? false,
+      multiOutletId: map['multiOutletId'] ?? '',
+      locationId: map['locationId'] ?? '',
+      multiPatch: map['multiPatch']?.toInt() ?? 0,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory PowerOutletModel.fromJson(String source) =>
+      PowerOutletModel.fromMap(json.decode(source));
 }

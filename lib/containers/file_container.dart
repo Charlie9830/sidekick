@@ -18,8 +18,13 @@ class FileContainer extends StatelessWidget {
       );
     }, converter: (Store<AppState> store) {
       return FileViewModel(
-        onFileSelected: (path) => store.dispatch(loadFile(path)),
+        onFileSelected: (path) => store.dispatch(importPatchFile(path)),
         importFilePath: store.state.fileState.fixtureImportPath,
+        onOpenProjectButtonPressed: (context, saveCurrent, path) =>
+            store.dispatch(openProjectFile(context, saveCurrent, path)),
+        onSaveProjectButtonPressed: (context, saveType) =>
+            store.dispatch(saveProjectFile(context, saveType)),
+        projectFilePath: store.state.fileState.projectFilePath,
       );
     });
   }

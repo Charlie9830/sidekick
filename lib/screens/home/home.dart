@@ -7,6 +7,7 @@ import 'package:sidekick/containers/fixture_types_container.dart';
 import 'package:sidekick/containers/locations_container.dart';
 import 'package:sidekick/containers/looms_container.dart';
 import 'package:sidekick/containers/power_patch_container.dart';
+import 'package:sidekick/global_keys.dart';
 import 'package:sidekick/screens/file/file_screen.dart';
 import 'package:sidekick/view_models/file_view_model.dart';
 import 'package:sidekick/view_models/home_view_model.dart';
@@ -36,6 +37,7 @@ class _HomeState extends State<Home> {
       length: 8,
       initialIndex: 0,
       child: Scaffold(
+        key: homeScaffoldKey,
         appBar: AppBar(
           title: const Text("It's Just a Phase!"),
           primary: true,

@@ -1,4 +1,5 @@
 import 'package:sidekick/redux/actions/sync_actions.dart';
+import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
@@ -7,6 +8,10 @@ import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic action) {
   return switch (action) {
+    OpenProject a => state.copyWith(
+        balanceTolerance: a.project.balanceTolerance,
+        dataMultis: Map<String, DataMultiModel>.fromEntries(
+            a.project.dataMultis.map((item) => MapEntry(item.uid, item)))),
     ResetFixtureState => state.copyWith(
         fixtures: FixtureState.initial().fixtures,
         balanceTolerance: FixtureState.initial().balanceTolerance,
@@ -129,3 +134,4 @@ int _convertMaxSequenceBreak(String newValue, int existingValue) {
 
   return asInt;
 }
+
