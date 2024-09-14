@@ -1,6 +1,9 @@
 import 'dart:convert';
 
-class FixtureTypeModel {
+import 'package:sidekick/model_collection/model_collection_member.dart';
+
+class FixtureTypeModel extends ModelCollectionMember {
+  @override
   final String uid;
   final String name;
   final String shortName;

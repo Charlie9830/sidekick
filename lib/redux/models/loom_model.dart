@@ -1,10 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:sidekick/model_collection/model_collection_member.dart';
 
 import 'package:sidekick/redux/models/cable_model.dart';
 
-class LoomModel {
+class LoomModel extends ModelCollectionMember {
+  @override
   final String uid;
   final String locationId;
   final List<CableModel> children;

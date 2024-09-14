@@ -1,6 +1,9 @@
 import 'dart:convert';
 
-class DataMultiModel {
+import 'package:sidekick/model_collection/model_collection_member.dart';
+
+class DataMultiModel extends ModelCollectionMember {
+  @override
   final String uid;
   final String name;
   final String locationId;

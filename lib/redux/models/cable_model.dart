@@ -1,3 +1,5 @@
+import 'package:sidekick/model_collection/model_collection_member.dart';
+
 enum CableType {
   unknown,
   socapex,
@@ -6,7 +8,8 @@ enum CableType {
   dmx,
 }
 
-class CableModel {
+class CableModel extends ModelCollectionMember {
+  @override
   final String uid;
   final String label;
   final String parentId;

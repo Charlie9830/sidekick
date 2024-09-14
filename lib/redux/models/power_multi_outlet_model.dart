@@ -1,8 +1,10 @@
 import 'dart:convert';
 
+import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 
-class PowerMultiOutletModel {
+class PowerMultiOutletModel extends ModelCollectionMember {
+  @override
   final String uid;
   final String locationId;
   final int number;

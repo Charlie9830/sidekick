@@ -1,8 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:sidekick/model_collection/model_collection_member.dart';
 
-class DataPatchModel {
+class DataPatchModel extends ModelCollectionMember {
+  @override
   final String uid;
   final String name;
   final int number;

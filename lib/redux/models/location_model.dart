@@ -3,8 +3,10 @@ import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:sidekick/classes/named_colors.dart';
+import 'package:sidekick/model_collection/model_collection_member.dart';
 
-class LocationModel {
+class LocationModel extends ModelCollectionMember {
+  @override
   final String uid;
   final String name;
   final Color color;
