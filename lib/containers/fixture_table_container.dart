@@ -4,6 +4,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
+import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/home/fixture_table/fixture_table.dart';
 import 'package:sidekick/view_models/fixture_table_view_model.dart';
@@ -44,17 +45,11 @@ class FixtureTableContainer extends StatelessWidget {
   List<FixtureTableRow> _selectFixtureRowVms(Store<AppState> store) {
     const String kBadLookupValue = 'NONE';
     String? lastLocationId;
+    FixtureModel? prevFixture;
 
     final fixtures = store.state.fixtureState.fixtures.values.toList();
-
-    final fixturePairs = fixtures.mapIndexed(
-        (index, element) => (index > 0 ? fixtures[index - 1] : null, element));
-
-    return fixturePairs
-        .map((fixturePair) {
-          final prevFixture = fixturePair.$1;
-          final fixture = fixturePair.$2;
-
+    return fixtures
+        .map((fixture) {
           final location =
               store.state.fixtureState.locations[fixture.locationId];
           final powerMulti =
@@ -89,11 +84,13 @@ class FixtureTableContainer extends StatelessWidget {
               dataMulti: fixture.dataMulti,
               dataPatch: fixture.dataPatch,
               hasSequenceNumberBreak: prevFixture != null &&
-                  prevFixture.sequence + 1 != fixture.sequence,
+                  prevFixture!.sequence + 1 != fixture.sequence,
+              hasInvalidSequenceNumber: prevFixture != null && prevFixture!.sequence == fixture.sequence
             )
           ];
 
           lastLocationId = fixture.locationId;
+          prevFixture = fixture;
 
           return vms;
         })

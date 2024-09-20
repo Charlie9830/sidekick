@@ -133,13 +133,11 @@ class _FixtureTableState extends State<FixtureTable> {
       onPressed: (isSelected) =>
           _handleSelectChanged(isSelected, row.fixtureUid),
       cells: [
-        Text(row.sequence.toString(),
-            style: row.hasSequenceNumberBreak
-                ? Theme.of(context)
-                    .textTheme
-                    .bodyMedium!
-                    .copyWith(color: Colors.orange, fontWeight: FontWeight.bold)
-                : null),
+        _SequenceNumberCell(
+          value: row.sequence.toString(),
+          hasInvalidSequenceNumber: row.hasInvalidSequenceNumber,
+          hasSequenceNumberBreak: row.hasSequenceNumberBreak,
+        ),
         Text(row.fid.toString()),
         Text(row.type),
         Text(row.location),
@@ -218,5 +216,27 @@ class _FixtureTableState extends State<FixtureTable> {
   void dispose() {
     _focus.dispose();
     super.dispose();
+  }
+}
+
+class _SequenceNumberCell extends StatelessWidget {
+  final String value;
+  final bool hasSequenceNumberBreak;
+  final bool hasInvalidSequenceNumber;
+
+  const _SequenceNumberCell({
+    required this.hasInvalidSequenceNumber,
+    required this.hasSequenceNumberBreak,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(value,
+        style: hasSequenceNumberBreak || hasInvalidSequenceNumber
+            ? Theme.of(context).textTheme.bodyMedium!.copyWith(
+                color: hasInvalidSequenceNumber ? Colors.red : Colors.orange,
+                fontWeight: FontWeight.bold)
+            : null);
   }
 }

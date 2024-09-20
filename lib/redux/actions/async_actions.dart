@@ -638,6 +638,7 @@ Map<PowerMultiOutletModel, List<PowerOutletModel>>
         Store<AppState> store) {
   return Map<PowerMultiOutletModel, List<PowerOutletModel>>.fromEntries(
       balancedMultiOutlets.entries.map((entry) {
+  
     final outlet = entry.key;
 
     if (outlet.name.isEmpty) {

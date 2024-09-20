@@ -45,6 +45,7 @@ class FixtureRowVM extends FixtureTableRow {
   final String dataMulti;
   final String dataPatch;
   final bool hasSequenceNumberBreak;
+  final bool hasInvalidSequenceNumber;
 
   FixtureRowVM({
     this.selected = false,
@@ -59,5 +60,6 @@ class FixtureRowVM extends FixtureTableRow {
     this.dataMulti = '',
     this.dataPatch = '',
     this.hasSequenceNumberBreak = false,
+    this.hasInvalidSequenceNumber = false,
   });
 }
