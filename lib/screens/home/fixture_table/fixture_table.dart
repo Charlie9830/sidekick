@@ -133,7 +133,13 @@ class _FixtureTableState extends State<FixtureTable> {
       onPressed: (isSelected) =>
           _handleSelectChanged(isSelected, row.fixtureUid),
       cells: [
-        Text(row.sequence.toString()),
+        Text(row.sequence.toString(),
+            style: row.hasSequenceNumberBreak
+                ? Theme.of(context)
+                    .textTheme
+                    .bodyMedium!
+                    .copyWith(color: Colors.orange, fontWeight: FontWeight.bold)
+                : null),
         Text(row.fid.toString()),
         Text(row.type),
         Text(row.location),

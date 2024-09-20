@@ -45,8 +45,16 @@ class FixtureTableContainer extends StatelessWidget {
     const String kBadLookupValue = 'NONE';
     String? lastLocationId;
 
-    return store.state.fixtureState.fixtures.values
-        .map((fixture) {
+    final fixtures = store.state.fixtureState.fixtures.values.toList();
+
+    final fixturePairs = fixtures.mapIndexed(
+        (index, element) => (index > 0 ? fixtures[index - 1] : null, element));
+
+    return fixturePairs
+        .map((fixturePair) {
+          final prevFixture = fixturePair.$1;
+          final fixture = fixturePair.$2;
+
           final location =
               store.state.fixtureState.locations[fixture.locationId];
           final powerMulti =
@@ -80,6 +88,8 @@ class FixtureTableContainer extends StatelessWidget {
               powerPatch: fixture.powerPatch,
               dataMulti: fixture.dataMulti,
               dataPatch: fixture.dataPatch,
+              hasSequenceNumberBreak: prevFixture != null &&
+                  prevFixture.sequence + 1 != fixture.sequence,
             )
           ];
 

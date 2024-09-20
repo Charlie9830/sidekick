@@ -540,6 +540,7 @@ ThunkAction<AppState> generatePatch() {
     final balancedMultiOutlets = _balanceOutlets(unbalancedMultiOutlets,
         balancer, store.state.fixtureState.balanceTolerance);
 
+
     _updatePowerMultisAndOutlets(store, balancedMultiOutlets);
   };
 }
