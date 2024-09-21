@@ -18,6 +18,9 @@ import 'package:sidekick/utils/get_phase_from_index.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:sidekick/utils/round_up_to_nearest_multi_break.dart';
 
+typedef CleanupFunction = List<PowerOutletModel> Function(
+    List<PowerOutletModel> slice);
+
 const int _maxAttempts = 3;
 
 class NaiveBalancer implements Balancer {
@@ -139,11 +142,17 @@ class NaiveBalancer implements Balancer {
       // Update the running Phase Totals.
       currentLoad += _calculatePhaseLoading(balancedSlice);
 
-      // Before we return this slice. Ensure that we have a good Sequence Number ordering.
-      // We do this in 2 passes. Maybe the second pass [_assertInterPhaseNumericOrdering] is redundant.
-      return _assertInterPhaseNumericOrdering(
-        _assertCrossPhaseNumericOrdering(balancedSlice),
-      );
+      // Before we return this slice. Run some cleanup functions on it in order.
+      // We first declare these functions in a list, then run them sequentially daisy chaining their results with the .fold function.
+
+      final cleanupFunctions = <CleanupFunction>[
+        _assertCrossPhaseNumericOrdering,
+        _assertInterPhaseNumericOrdering,
+        _assertUnevenPiggybackOrdering,
+      ];
+
+      return cleanupFunctions.fold(
+          balancedSlice, (value, cleanupFunc) => cleanupFunc(value));
     }).toList();
 
     return BalancerResult(rawSlices.flattened.toList(), currentLoad);
@@ -379,12 +388,91 @@ class NaiveBalancer implements Balancer {
     return PhaseLoad(loads[0], loads[1], loads[2]);
   }
 
+  List<PowerOutletModel> _assertUnevenPiggybackOrdering(
+      List<PowerOutletModel> slice) {
+    // We can end up in a situation where we have Uneven Piggybacking, this is generally triggered by a slice having a given qty of piggybackable fixtures
+    // which then aren't evenly divisible by that Fixtures maxPiggyback ammount.
+    // EG:
+    /*
+    // Circuit      Type        Fixture ID's
+      --------------------------------------
+      1            Strike x3   102, 103, 104
+      2            Strike x1   101
+      -------------------------------------
+    In reality, fixture 101 should be appearing first, we can't just swap it as it would upset the balance,
+    therefore we need to Bit shift 101 into circuit one and Bit shift 104 off onto circuit 2.
+    */
+
+    // Query to determine if we could possibly have this issue present in this slice.
+    final outletsWithPiggybacks = slice.where((outlet) =>
+        outlet.isSpare == false &&
+        outlet.child.isNotEmpty &&
+        outlet.child.fixtures.first.type.canPiggyback);
+
+    // Then Group those by fixture Type.
+    final byFixtureType = outletsWithPiggybacks
+        .groupListsBy((outlet) => outlet.child.fixtures.first.type.uid);
+
+    // Then determine if we have any with uneven piggybacking (ie one circuit has a different qty of fixtures then another)
+    final withUnevenPiggybacking = byFixtureType.entries.where((entry) {
+      final outlets = entry.value;
+
+      return outlets.any((outlet) =>
+          outlet.child.fixtures.length != outlets.first.child.fixtures.length);
+    });
+
+    if (withUnevenPiggybacking.isEmpty) {
+      // No issues present. Business as usual.
+      return slice.toList();
+    }
+
+    // Init a copy of the original slice for us to make changes to.
+    final workingSlice = slice.toList();
+
+    // Iterate through each Fixture group that has uneven piggybacking and make the approriate changes to the workingSlice.
+    for (final entry in withUnevenPiggybacking) {
+      final outlets = entry.value;
+
+      // Capture the original indexes of the outlets, we will use these to re insert into the slice later.
+      final sourceIndexes =
+          outlets.map((outlet) => slice.indexOf(outlet)).toList();
+
+      // Capture how many fixtures were assigned to each outlet.
+      final outletFixtureQtys =
+          outlets.map((outlet) => outlet.child.fixtures.length).toList();
+
+      // Extract the Fixtures and sort them by sequence number.
+      final sortedFixtures = outlets
+          .map((outlet) => outlet.child.fixtures)
+          .flattened
+          .sorted((a, b) => a.sequence - b.sequence);
+
+      // Convert the fixtures into a Queue.
+      final fixturesQueue = Queue<FixtureModel>.from(sortedFixtures);
+
+      // Re insert the fixtures into the Outlet in a more suitable order, obeying the respective quantities.
+      int i = 0;
+      for (final sourceIndex in sourceIndexes) {
+        final existingOutlet = workingSlice[sourceIndex].copyWith();
+
+        workingSlice[sourceIndex] = existingOutlet.copyWith(
+            child: existingOutlet.child.copyWith(
+          fixtures: fixturesQueue.pop(outletFixtureQtys[i]).toList(),
+        ));
+
+        i++;
+      }
+    }
+
+    return workingSlice;
+  }
+
   List<PowerOutletModel> _assertCrossPhaseNumericOrdering(
       List<PowerOutletModel> slice) {
     // Clone the Input List.
     final sliceCopy = slice.toList();
 
-    // Group the outlets by amperage. Outlets that have the same amperage cant be swapped with eachother
+    // Group the outlets by amperage. Outlets that have the same amperage can be swapped with eachother
     // without affect overall phase balance.
     final outletsByAmperage =
         sliceCopy.groupListsBy((outlet) => outlet.child.amps);
@@ -408,7 +496,7 @@ class NaiveBalancer implements Balancer {
       final originIndexes =
           outlets.map((outlet) => sliceCopy.indexOf(outlet)).toList();
 
-      // Sort the outlets by the Sequence Numebr, then store them as a Queue (Using a queue saves us having to
+      // Sort the outlets by the Sequence Numeber, then store them as a Queue (Using a queue saves us having to
       // instantiate another variable for tracking the index).
       final sortedBySequenceNumber = Queue<PowerOutletModel>.from(outlets
           .sorted((a, b) => a.child.compareBySequence(b.child))

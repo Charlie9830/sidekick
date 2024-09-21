@@ -83,4 +83,9 @@ class PowerOutletModel {
 
   factory PowerOutletModel.fromJson(String source) =>
       PowerOutletModel.fromMap(json.decode(source));
+
+  @override
+  String toString() {
+    return 'PowerOutletModel(${child.fixtures.map((fixture) => fixture.fid).join(", ")})';
+  }
 }

@@ -112,7 +112,7 @@ class FixtureModel implements ModelCollectionMember {
 
   @override
   String toString() {
-    return 'FixtureModel(uid: $uid, fid: $fid, sequence: $sequence, dmxAddress: $dmxAddress, type: $type, mode: $mode, locationId: $locationId, dataMulti: $dataMulti, dataPatch: $dataPatch, powerMulti: $powerMultiId, powerPatch: $powerPatch)';
+    return 'FixtureModel( fid: $fid )';
   }
 
   @override
