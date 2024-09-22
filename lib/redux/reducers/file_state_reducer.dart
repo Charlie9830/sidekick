@@ -5,14 +5,20 @@ import 'package:sidekick/serialization/project_file_metadata_model.dart';
 FileState fileStateReducer(FileState state, dynamic a) {
   if (a is NewProject) {
     return state.copyWith(
-      fixtureImportPath: '',
+      fixturePatchImportPath: '',
       projectFilePath: '',
       projectMetadata: const ProjectFileMetadataModel.initial(),
     );
   }
 
-  if (a is SetImportFilePath) {
-    return state.copyWith(fixtureImportPath: a.path);
+  if (a is SetImportSettings) {
+    return state.copyWith(
+      importSettings: a.settings,
+    );
+  }
+
+  if (a is SetPatchImportFilePath) {
+    return state.copyWith(fixturePatchImportPath: a.path);
   }
 
   if (a is SetLastUsedProjectDirectory) {

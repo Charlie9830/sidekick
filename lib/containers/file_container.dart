@@ -20,8 +20,6 @@ class FileContainer extends StatelessWidget {
       return FileViewModel(
         onNewProjectButtonPressed: (saveCurrent) =>
             store.dispatch(startNewProject(context, saveCurrent)),
-        onFileSelected: (path) => store.dispatch(importPatchFile(path)),
-        importFilePath: store.state.fileState.fixtureImportPath,
         onOpenProjectButtonPressed: (saveCurrent, path) =>
             store.dispatch(openProjectFile(context, saveCurrent, path)),
         onSaveProjectButtonPressed: (saveType) =>

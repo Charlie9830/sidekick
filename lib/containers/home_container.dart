@@ -24,7 +24,7 @@ class HomeContainer extends StatelessWidget {
             selectedFixtureIds: store.state.navstate.selectedFixtureIds,
             onSelectedFixturesChanged: (ids) =>
                 store.dispatch(SetSelectedFixtureIds(ids)),
-            onAppInitialize: () => store.dispatch(importPatchFile('')),
+            onAppInitialize: () => store.dispatch(importPatchFile(context)),
             onSetSequenceButtonPressed: () =>
                 store.dispatch(setSequenceNumbers(context)));
       },

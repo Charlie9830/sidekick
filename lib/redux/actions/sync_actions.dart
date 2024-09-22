@@ -3,12 +3,19 @@ import 'dart:ui';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/import_settings_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
+
+class SetImportSettings {
+  final ImportSettingsModel settings;
+
+  SetImportSettings(this.settings);
+}
 
 class ResetFixtureState {
   ResetFixtureState();
@@ -45,10 +52,10 @@ class SetProjectFilePath {
   SetProjectFilePath(this.path);
 }
 
-class SetImportFilePath {
+class SetPatchImportFilePath {
   final String path;
 
-  SetImportFilePath(this.path);
+  SetPatchImportFilePath(this.path);
 }
 
 class SetLooms {

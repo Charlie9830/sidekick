@@ -19,12 +19,15 @@ import 'package:sidekick/excel/create_power_patch_sheet.dart';
 import 'package:sidekick/excel/read_fixture_type_test_data.dart';
 import 'package:sidekick/excel/read_fixtures_test_data.dart';
 import 'package:sidekick/file_type_groups.dart';
+import 'package:sidekick/generic_dialog/show_generic_dialog.dart';
 import 'package:sidekick/global_keys.dart';
+import 'package:sidekick/import_merging/merge_fixtures.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/import_settings_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
@@ -42,7 +45,7 @@ ThunkAction<AppState> startNewProject(BuildContext context, bool saveCurrent) {
     if (saveCurrent) {
       store.dispatch(saveProjectFile(context, SaveType.save));
     }
-    
+
     store.dispatch(NewProject());
   };
 }
@@ -108,19 +111,41 @@ ThunkAction<AppState> saveProjectFile(BuildContext context, SaveType saveType) {
   };
 }
 
-ThunkAction<AppState> importPatchFile(String path) {
+ThunkAction<AppState> importPatchFile(BuildContext context) {
   return (Store<AppState> store) async {
-    final filePath = path.isEmpty ? getTestDataPath() : path;
+    final filePath = store.state.fileState.fixturePatchImportPath;
+    final settings = store.state.fileState.importSettings;
+
+    if (settings.mergeWithExisting == false &&
+        (store.state.fixtureState.fixtures.isNotEmpty ||
+            store.state.fixtureState.locations.isNotEmpty)) {
+      final dialogResult = await showGenericDialog(
+          context: context,
+          title: "Import file",
+          message: 'If you continue any unsaved changes will be lost',
+          affirmativeText: 'Continue',
+          declineText: 'Go back');
+
+      if (dialogResult == null || dialogResult == false) {
+        return;
+      }
+    }
 
     final fixtureTypes = await readFixtureTypeTestData(filePath);
 
     final (fixtures, locations) =
         await readFixturesTestData(path: filePath, fixtureTypes: fixtureTypes);
 
-    store.dispatch(ResetFixtureState());
-    store.dispatch(SetFixtures(fixtures));
-    store.dispatch(SetLocations(locations));
-    store.dispatch(SetImportFilePath(filePath));
+    if (settings.mergeWithExisting == false) {
+      store.dispatch(ResetFixtureState());
+      store.dispatch(SetFixtures(fixtures));
+      store.dispatch(SetLocations(locations));
+    } else {
+      store.dispatch(SetFixtures(mergeFixtures(
+          existing: store.state.fixtureState.fixtures,
+          incoming: fixtures,
+          settings: settings)));
+    }
   };
 }
 
@@ -540,7 +565,6 @@ ThunkAction<AppState> generatePatch() {
     final balancedMultiOutlets = _balanceOutlets(unbalancedMultiOutlets,
         balancer, store.state.fixtureState.balanceTolerance);
 
-
     _updatePowerMultisAndOutlets(store, balancedMultiOutlets);
   };
 }
@@ -638,7 +662,6 @@ Map<PowerMultiOutletModel, List<PowerOutletModel>>
         Store<AppState> store) {
   return Map<PowerMultiOutletModel, List<PowerOutletModel>>.fromEntries(
       balancedMultiOutlets.entries.map((entry) {
-  
     final outlet = entry.key;
 
     if (outlet.name.isEmpty) {
