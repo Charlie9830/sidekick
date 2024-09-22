@@ -74,6 +74,7 @@ ThunkAction<AppState> selectFixtureTypeDatabaseFile(
     }
 
     store.dispatch(SetIsFixtureTypeDatabasePathValid(true));
+    store.dispatch(SetFixtureTypes(result.fixtureTypes));
   };
 }
 

@@ -7,6 +7,10 @@ import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
+  if (a is SetFixtureTypes) {
+    return state.copyWith(fixtureTypes: a.types);
+  }
+
   if (a is NewProject) {
     return FixtureState.initial();
   }

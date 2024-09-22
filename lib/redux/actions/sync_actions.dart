@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/import_settings_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
@@ -10,6 +11,12 @@ import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
+
+class SetFixtureTypes {
+  final Map<String, FixtureTypeModel> types;
+
+  SetFixtureTypes(this.types);
+}
 
 class SetIsFixtureTypeDatabasePathValid {
   final bool value;
