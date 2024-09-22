@@ -16,6 +16,7 @@ import 'package:sidekick/excel/create_data_multi_sheet.dart';
 import 'package:sidekick/excel/create_data_patch_sheet.dart';
 import 'package:sidekick/excel/create_fixture_type_validation_sheet.dart';
 import 'package:sidekick/excel/create_power_patch_sheet.dart';
+import 'package:sidekick/excel/read_fixture_type_database.dart';
 import 'package:sidekick/excel/read_fixture_type_test_data.dart';
 import 'package:sidekick/excel/read_fixtures_test_data.dart';
 import 'package:sidekick/file_type_groups.dart';
@@ -37,8 +38,44 @@ import 'package:path/path.dart' as p;
 import 'package:sidekick/screens/sequencer_dialog/sequencer_dialog.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
 import 'package:sidekick/serialization/serialize_project_file.dart';
+import 'package:sidekick/snack_bars/file_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
+
+ThunkAction<AppState> selectFixtureTypeDatabaseFile(
+    BuildContext context, String path) {
+  return (Store<AppState> store) async {
+    store.dispatch(SetFixtureTypeDatabasePath(path));
+
+    if (await File(path).exists() == false) {
+      store.dispatch(SetIsFixtureTypeDatabasePathValid(false));
+
+      if (homeScaffoldKey.currentContext?.mounted == true) {
+        ScaffoldMessenger.of(homeScaffoldKey.currentContext!).showSnackBar(
+            fileErrorSnackBar(homeScaffoldKey.currentContext!,
+                'Unable to find Fixture Type Database File.'));
+      }
+      return;
+    }
+
+    final result = await readFixtureTypeDatabase(path);
+
+    if (result.errorMessage != null) {
+      store.dispatch(SetIsFixtureTypeDatabasePathValid(false));
+
+      if (context.mounted) {
+        await showGenericDialog(
+            context: context,
+            title: 'Error',
+            message: result.errorMessage!,
+            affirmativeText: "Okay");
+      }
+      return;
+    }
+
+    store.dispatch(SetIsFixtureTypeDatabasePathValid(true));
+  };
+}
 
 ThunkAction<AppState> startNewProject(BuildContext context, bool saveCurrent) {
   return (Store<AppState> store) async {

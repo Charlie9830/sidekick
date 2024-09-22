@@ -25,6 +25,12 @@ class FileContainer extends StatelessWidget {
         onSaveProjectButtonPressed: (saveType) =>
             store.dispatch(saveProjectFile(context, saveType)),
         projectFilePath: store.state.fileState.projectFilePath,
+        fixtureTypeDatabasePath: store.state.fileState.fixtureTypeDatabasePath,
+        onFixtureTypeDatabaseFileSelected: (path) => store.dispatch(
+          selectFixtureTypeDatabaseFile(context, path),
+        ),
+        isFixtureTypeDatabasePathValid:
+            store.state.fileState.isFixtureTypeDatabasePathValid,
       );
     });
   }

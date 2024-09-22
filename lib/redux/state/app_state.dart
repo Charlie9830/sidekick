@@ -6,6 +6,7 @@ class AppState {
   final FixtureState fixtureState;
   final NavigationState navstate;
   final FileState fileState;
+  
 
   AppState({
     required this.fixtureState,

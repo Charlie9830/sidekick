@@ -2,6 +2,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:sidekick/file_type_groups.dart';
 import 'package:sidekick/redux/models/import_settings_model.dart';
+import 'package:sidekick/screens/file/file_selector_button.dart';
 import 'package:sidekick/view_models/import_view_model.dart';
 import 'package:path/path.dart' as path;
 
@@ -18,18 +19,9 @@ class Import extends StatelessWidget {
         children: [
           Text('Source Path', style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 16),
-          switch (vm.importFilePath) {
-            "" => const Text('No file selected'),
-            String s => Tooltip(
-                message: path.canonicalize(s), child: Text(path.basename(s))),
-          },
-          const SizedBox(
-            height: 16,
-          ),
-          OutlinedButton(
-            onPressed: () => _handleChooseButtonPressed(context),
-            child: const Text('Choose'),
-          ),
+          FileSelectorButton(
+              path: vm.importFilePath,
+              onPressed: () => _handleChooseButtonPressed(context)),
           const SizedBox(height: 32),
           CheckboxListTile(
               title: const Text("Merge with Existing"),

@@ -11,6 +11,18 @@ import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
 
+class SetIsFixtureTypeDatabasePathValid {
+  final bool value;
+
+  SetIsFixtureTypeDatabasePathValid(this.value);
+}
+
+class SetFixtureTypeDatabasePath {
+  final String path;
+
+  SetFixtureTypeDatabasePath(this.path);
+}
+
 class SetImportSettings {
   final ImportSettingsModel settings;
 

@@ -7,21 +7,27 @@ class FileState {
   final String lastUsedProjectDirectory;
   final ProjectFileMetadataModel projectMetadata;
   final ImportSettingsModel importSettings;
+  final String fixtureTypeDatabasePath;
+  final bool isFixtureTypeDatabasePathValid;
 
   FileState({
     this.fixturePatchImportPath = "",
     this.projectFilePath = "",
     this.lastUsedProjectDirectory = "",
+    this.fixtureTypeDatabasePath = "",
     this.importSettings = const ImportSettingsModel(),
     this.projectMetadata = const ProjectFileMetadataModel.initial(),
+    this.isFixtureTypeDatabasePathValid = false,
   });
 
   FileState.initial()
       : fixturePatchImportPath = "",
         projectFilePath = "",
         lastUsedProjectDirectory = "",
+        fixtureTypeDatabasePath = "",
         projectMetadata = const ProjectFileMetadataModel.initial(),
-        importSettings = const ImportSettingsModel();
+        importSettings = const ImportSettingsModel(),
+        isFixtureTypeDatabasePathValid = false;
 
   FileState copyWith({
     String? fixturePatchImportPath,
@@ -29,14 +35,21 @@ class FileState {
     String? lastUsedProjectDirectory,
     ProjectFileMetadataModel? projectMetadata,
     ImportSettingsModel? importSettings,
+    String? fixtureTypeDatabasePath,
+    bool? isFixtureTypeDatabasePathValid,
   }) {
     return FileState(
-      fixturePatchImportPath: fixturePatchImportPath ?? this.fixturePatchImportPath,
+      fixturePatchImportPath:
+          fixturePatchImportPath ?? this.fixturePatchImportPath,
       projectFilePath: projectFilePath ?? this.projectFilePath,
       lastUsedProjectDirectory:
           lastUsedProjectDirectory ?? this.lastUsedProjectDirectory,
       projectMetadata: projectMetadata ?? this.projectMetadata,
       importSettings: importSettings ?? this.importSettings,
+      fixtureTypeDatabasePath:
+          fixtureTypeDatabasePath ?? this.fixtureTypeDatabasePath,
+      isFixtureTypeDatabasePathValid:
+          isFixtureTypeDatabasePathValid ?? this.isFixtureTypeDatabasePathValid,
     );
   }
 }

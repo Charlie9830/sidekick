@@ -11,6 +11,16 @@ FileState fileStateReducer(FileState state, dynamic a) {
     );
   }
 
+  if (a is SetIsFixtureTypeDatabasePathValid) {
+    return state.copyWith(isFixtureTypeDatabasePathValid: a.value);
+  }
+
+  if (a is SetFixtureTypeDatabasePath) {
+    return state.copyWith(
+      fixtureTypeDatabasePath: a.path,
+    );
+  }
+
   if (a is SetImportSettings) {
     return state.copyWith(
       importSettings: a.settings,
