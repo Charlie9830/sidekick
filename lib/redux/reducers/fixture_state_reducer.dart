@@ -45,36 +45,26 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is UpdateFixtureTypeName) {
     return state.copyWith(
-        fixtures: Map<String, FixtureModel>.from(state.fixtures)
-          ..updateAll((uid, fixture) => fixture.type.uid == a.id
-              ? fixture.copyWith(
-                  type: fixture.type.copyWith(
-                  name: a.newValue.trim(),
-                  shortName:
-                      fixture.type.shortName.isEmpty ? a.newValue.trim() : null,
-                ))
-              : fixture),
-        outlets: state.outlets
-            .map((outlet) => _updateOutletFixtureType(
-                outlet: outlet,
-                fixtureTypeUid: a.id,
-                update: (existing) => existing.copyWith(name: a.newValue)))
-            .toList());
+      fixtures: Map<String, FixtureModel>.from(state.fixtures)
+        ..updateAll((uid, fixture) => fixture.type.uid == a.id
+            ? fixture.copyWith(
+                type: fixture.type.copyWith(
+                name: a.newValue.trim(),
+                shortName:
+                    fixture.type.shortName.isEmpty ? a.newValue.trim() : null,
+              ))
+            : fixture),
+    );
   }
 
   if (a is UpdateFixtureTypeShortName) {
     return state.copyWith(
-        fixtures: Map<String, FixtureModel>.from(state.fixtures)
-          ..updateAll((uid, fixture) => fixture.type.uid == a.id
-              ? fixture.copyWith(
-                  type: fixture.type.copyWith(shortName: a.newValue.trim()))
-              : fixture),
-        outlets: state.outlets
-            .map((outlet) => _updateOutletFixtureType(
-                outlet: outlet,
-                fixtureTypeUid: a.id,
-                update: (existing) => existing.copyWith(shortName: a.newValue)))
-            .toList());
+      fixtures: Map<String, FixtureModel>.from(state.fixtures)
+        ..updateAll((uid, fixture) => fixture.type.uid == a.id
+            ? fixture.copyWith(
+                type: fixture.type.copyWith(shortName: a.newValue.trim()))
+            : fixture),
+    );
   }
 
   if (a is UpdateFixtureTypeMaxPiggybacks) {
@@ -152,23 +142,6 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   return state;
-}
-
-PowerOutletModel _updateOutletFixtureType(
-    {required PowerOutletModel outlet,
-    required String fixtureTypeUid,
-    required FixtureTypeModel Function(FixtureTypeModel existing) update}) {
-  return outlet.copyWith(
-      child: outlet.child.copyWith(
-    fixtures: outlet.child.fixtures.map((fixture) {
-      if (fixture.type.uid == fixtureTypeUid) {
-        return fixture.copyWith(
-          type: update(fixture.type),
-        );
-      }
-      return fixture;
-    }).toList(),
-  ));
 }
 
 double _convertBalanceTolerance(String newValue, double existingValue) {

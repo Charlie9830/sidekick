@@ -1,17 +1,19 @@
 import 'package:excel/excel.dart';
 import 'package:sidekick/excel/format_fixture_type.dart';
+import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 
 void createFixtureTypeValidationSheet({
   required Excel excel,
   required Iterable<PowerOutletModel> outlets,
+  required Map<String, FixtureModel> fixtures,
 }) {
   final sheet = excel['Fixture Types'];
 
   final fixturePatchTypes = Map<String, double>.fromEntries(outlets.map(
     (outlet) => MapEntry(
-      formatFixtureType(outlet.child.fixtures),
-      outlet.child.amps,
+      formatFixtureType(outlet.fixtureIds.map((id) => fixtures[id]!).toList()),
+      outlet.load,
     ),
   ))
     ..removeWhere((key, value) => key.isEmpty);

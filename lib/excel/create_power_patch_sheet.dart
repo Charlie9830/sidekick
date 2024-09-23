@@ -1,6 +1,7 @@
 import 'package:excel/excel.dart';
 import 'package:sidekick/classes/numeric_span.dart';
 import 'package:sidekick/excel/format_fixture_type.dart';
+import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
@@ -10,6 +11,7 @@ void createPowerPatchSheet({
   required Iterable<PowerOutletModel> outlets,
   required Map<String, PowerMultiOutletModel> powerMultis,
   required Map<String, LocationModel> locations,
+  required Map<String, FixtureModel> fixtures,
 }) {
   final powerPatchSheet = excel['Power Patch'];
 
@@ -49,11 +51,12 @@ void createPowerPatchSheet({
       IntCellValue(outlet.multiPatch),
 
       // Fixture Name
-      TextCellValue(formatFixtureType(outlet.child.fixtures)),
+      TextCellValue(formatFixtureType(
+          outlet.fixtureIds.map((id) => fixtures[id]!).toList())),
 
       // Fixture ID
       TextCellValue(_formatFixtureNumbers(
-          outlet.child.fixtures.map((fixture) => fixture.fid))),
+          outlet.fixtureIds.map((id) => fixtures[id]!.fid))),
 
       // Location
       TextCellValue(location?.name ?? 'UNKNOWN')

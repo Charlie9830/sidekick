@@ -1,24 +1,22 @@
 import 'dart:convert';
-
-import 'package:collection/collection.dart';
-
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
-import 'package:sidekick/redux/models/power_patch_model.dart';
 
 class PowerOutletModel {
   final int phase;
-  final PowerPatchModel child;
   final bool isSpare;
   final String multiOutletId;
   final String locationId;
   final int multiPatch;
+  final List<String> fixtureIds;
+  final double load;
 
   PowerOutletModel({
     required this.phase,
-    required this.child,
     required this.multiOutletId,
     required this.multiPatch,
     required this.locationId,
+    required this.fixtureIds,
+    required this.load,
     this.isSpare = false,
   });
 
@@ -28,7 +26,8 @@ class PowerOutletModel {
     required this.multiPatch,
     required this.locationId,
   })  : isSpare = true,
-        child = PowerPatchModel.empty();
+        load = 0,
+        fixtureIds = [];
 
   String lookupLocationId(Map<String, PowerMultiOutletModel> multiOutlets) {
     return multiOutlets[multiOutletId]?.locationId ?? '';
@@ -41,41 +40,45 @@ class PowerOutletModel {
 
   PowerOutletModel copyWith({
     int? phase,
-    PowerPatchModel? child,
     bool? isSpare,
     String? multiOutletId,
     String? locationId,
     int? multiPatch,
+    List<String>? fixtureIds,
+    double? load,
   }) {
     return PowerOutletModel(
       phase: phase ?? this.phase,
-      child: child ?? this.child,
       isSpare: isSpare ?? this.isSpare,
       multiOutletId: multiOutletId ?? this.multiOutletId,
       locationId: locationId ?? this.locationId,
       multiPatch: multiPatch ?? this.multiPatch,
+      fixtureIds: fixtureIds ?? this.fixtureIds,
+      load: load ?? this.load,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'phase': phase,
-      'child': child.toMap(),
       'isSpare': isSpare,
       'multiOutletId': multiOutletId,
       'locationId': locationId,
       'multiPatch': multiPatch,
+      'fixtureIds': fixtureIds,
+      'load': load,
     };
   }
 
   factory PowerOutletModel.fromMap(Map<String, dynamic> map) {
     return PowerOutletModel(
       phase: map['phase']?.toInt() ?? 0,
-      child: PowerPatchModel.fromMap(map['child']),
       isSpare: map['isSpare'] ?? false,
       multiOutletId: map['multiOutletId'] ?? '',
       locationId: map['locationId'] ?? '',
       multiPatch: map['multiPatch']?.toInt() ?? 0,
+      fixtureIds: List<String>.from(map['fixtureIds']),
+      load: map['load']?.toDouble() ?? 0.0,
     );
   }
 
@@ -83,9 +86,4 @@ class PowerOutletModel {
 
   factory PowerOutletModel.fromJson(String source) =>
       PowerOutletModel.fromMap(json.decode(source));
-
-  @override
-  String toString() {
-    return 'PowerOutletModel(${child.fixtures.map((fixture) => fixture.fid).join(", ")})';
-  }
 }

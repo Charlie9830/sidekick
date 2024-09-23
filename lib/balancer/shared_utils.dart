@@ -1,14 +1,14 @@
+import 'package:sidekick/balancer/models/balancer_power_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
-import 'package:sidekick/redux/models/power_patch_model.dart';
 
 ///
-/// Given a list of [FixtureModel]'s, will return a List of [PowerPatchModel] with the fixtures
+/// Given a list of [FixtureModel]'s, will return a List of [BalancerPowerPatchModel] with the fixtures
 /// piggybacked together, where possible, given the constraints of [maxSequenceBreak] and [FixtureModel.maxAllowedPiggybacks].
 ///
-List<PowerPatchModel> performPiggybacking(
+List<BalancerPowerPatchModel> performPiggybacking(
     List<FixtureModel> fixtures, int maxSequenceBreak) {
   final Set<String> assignedFixtureUids = {};
-  final List<PowerPatchModel> patches = [];
+  final List<BalancerPowerPatchModel> patches = [];
   int fixtureIndex = 0;
 
   while (patches.length <= assignedFixtureUids.length &&
@@ -21,7 +21,7 @@ List<PowerPatchModel> performPiggybacking(
     }
 
     // Create a Patch element with the current fixture added to it.
-    PowerPatchModel patch = PowerPatchModel(fixtures: [
+    BalancerPowerPatchModel patch = BalancerPowerPatchModel(fixtures: [
       currentFixture,
     ]);
 

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/screens/power_patch/phase_icon.dart';
+import 'package:sidekick/view_models/power_patch_view_model.dart';
 
 class OutletTable extends StatelessWidget {
-  final List<PowerOutletModel> outlets;
+  final List<PowerOutletVM> outletVM;
 
   const OutletTable({
-    required this.outlets,
+    required this.outletVM,
     super.key,
   });
 
@@ -25,16 +26,16 @@ class OutletTable extends StatelessWidget {
             3: FlexColumnWidth(3), // Fixture IDs
             4: FixedColumnWidth(72), // Load
           },
-          children: outlets
-              .map((outlet) => TableRow(children: [
+          children: outletVM
+              .map((vm) => TableRow(children: [
                     // Multi Patch
-                    Center(child: Text(outlet.multiPatch.toString())),
+                    Center(child: Text(vm.outlet.multiPatch.toString())),
                     // Phase
-                    PhaseIcon(phaseNumber: outlet.phase),
+                    PhaseIcon(phaseNumber: vm.outlet.phase),
                     // Fixture Name
                     Padding(
                       padding: const EdgeInsets.only(left: 8.0),
-                      child: Text(outlet.child.fixtures
+                      child: Text(vm.fixtures
                           .map((fixture) => fixture.type.name)
                           .toSet()
                           .join(", ")),
@@ -42,15 +43,14 @@ class OutletTable extends StatelessWidget {
                     // Fixture Ids
                     Padding(
                       padding: const EdgeInsets.only(left: 8.0),
-                      child: Text(outlet.child.fixtures
-                          .map((fixture) => fixture.fid)
-                          .join(", ")),
+                      child: Text(
+                          vm.fixtures.map((fixture) => fixture.fid).join(", ")),
                     ),
                     // Load
                     Center(
-                        child: outlet.child.amps == 0
+                        child: vm.outlet.load == 0
                             ? const SizedBox()
-                            : Text('${outlet.child.amps.toStringAsFixed(1)}A')),
+                            : Text('${vm.outlet.load.toStringAsFixed(1)}A')),
                   ]))
               .toList()),
     );

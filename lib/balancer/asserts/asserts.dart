@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
-import 'package:sidekick/redux/models/power_outlet_model.dart';
+import 'package:sidekick/balancer/models/balancer_power_outlet_model.dart';
 
-bool checkPhaseOrdering(List<PowerOutletModel> outlets) {
+bool checkPhaseOrdering(List<BalancerPowerOutletModel> outlets) {
   final slicesOf3 = outlets.slices(3);
 
   for (var trio in slicesOf3) {

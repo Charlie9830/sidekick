@@ -67,6 +67,11 @@ class PowerPatchContainer extends StatelessWidget {
                 multi,
                 store.state.fixtureState.outlets
                     .where((outlet) => outlet.multiOutletId == multi.uid)
+                    .map((outlet) => PowerOutletVM(
+                        outlet: outlet,
+                        fixtures: outlet.fixtureIds
+                            .map((id) => store.state.fixtureState.fixtures[id]!)
+                            .toList()))
                     .toList())),
           ];
         })

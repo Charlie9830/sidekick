@@ -35,7 +35,7 @@ class PhaseLoad {
 
     return outlets
         .where((outlet) => outlet.phase == phaseNumber)
-        .map((outlet) => outlet.child.amps)
+        .map((outlet) => outlet.load)
         .fold(0, (prev, value) => prev + value);
   }
 }

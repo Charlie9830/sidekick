@@ -7,6 +7,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
+import 'package:sidekick/balancer/models/balancer_power_outlet_model.dart';
 import 'package:sidekick/balancer/naive_balancer.dart';
 import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/classes/universe_span.dart';
@@ -28,7 +29,6 @@ import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
-import 'package:sidekick/redux/models/import_settings_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
@@ -520,8 +520,8 @@ ThunkAction<AppState> commitPowerPatch(BuildContext context) {
     // Map FixtureIds to their associated Power Outlet
     final fixtureLookupMap = Map<String, PowerOutletModel>.fromEntries(
         store.state.fixtureState.outlets
-            .map((outlet) => outlet.child.fixtures.map(
-                  (fixture) => MapEntry(fixture.uid, outlet),
+            .map((outlet) => outlet.fixtureIds.map(
+                  (id) => MapEntry(id, outlet),
                 ))
             .flattened);
 
@@ -548,10 +548,12 @@ ThunkAction<AppState> export(BuildContext context) {
     final excel = Excel.createExcel();
 
     createPowerPatchSheet(
-        excel: excel,
-        outlets: store.state.fixtureState.outlets,
-        powerMultis: store.state.fixtureState.powerMultiOutlets,
-        locations: store.state.fixtureState.locations);
+      excel: excel,
+      outlets: store.state.fixtureState.outlets,
+      powerMultis: store.state.fixtureState.powerMultiOutlets,
+      locations: store.state.fixtureState.locations,
+      fixtures: store.state.fixtureState.fixtures,
+    );
 
     createColorLookupSheet(
       excel: excel,
@@ -560,7 +562,10 @@ ThunkAction<AppState> export(BuildContext context) {
     );
 
     createFixtureTypeValidationSheet(
-        excel: excel, outlets: store.state.fixtureState.outlets);
+      excel: excel,
+      outlets: store.state.fixtureState.outlets,
+      fixtures: store.state.fixtureState.fixtures,
+    );
 
     createDataPatchSheet(
       excel: excel,
@@ -642,9 +647,11 @@ ThunkAction<AppState> deleteSpareOutlet(String uid) {
 }
 
 Map<PowerMultiOutletModel, List<PowerOutletModel>> _balanceOutlets(
-    Map<PowerMultiOutletModel, List<PowerOutletModel>> unbalancedMultiOutlets,
-    NaiveBalancer balancer,
-    double balanceTolerance) {
+  Map<PowerMultiOutletModel, List<BalancerPowerOutletModel>>
+      unbalancedMultiOutlets,
+  NaiveBalancer balancer,
+  double balanceTolerance,
+) {
   PhaseLoad currentLoad = PhaseLoad(0, 0, 0);
 
   return unbalancedMultiOutlets.map((multiOutlet, outlets) {
@@ -656,7 +663,19 @@ Map<PowerMultiOutletModel, List<PowerOutletModel>> _balanceOutlets(
 
     currentLoad = result.load;
 
-    return MapEntry(multiOutlet, result.outlets);
+    return MapEntry(
+        multiOutlet,
+        result.outlets
+            .map((balancerOutlet) => PowerOutletModel(
+                phase: balancerOutlet.phase,
+                multiOutletId: multiOutlet.uid,
+                multiPatch: balancerOutlet.multiPatch,
+                locationId: balancerOutlet.locationId,
+                fixtureIds: balancerOutlet.child.fixtures
+                    .map((fixture) => fixture.uid)
+                    .toList(),
+                load: balancerOutlet.child.amps))
+            .toList());
   });
 }
 

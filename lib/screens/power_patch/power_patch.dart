@@ -164,7 +164,7 @@ class _PowerPatchState extends State<PowerPatch> {
                 ],
               ),
             ),
-            OutletTable(outlets: row.childOutlets),
+            OutletTable(outletVM: row.childOutlets),
           ],
         ),
       ),
