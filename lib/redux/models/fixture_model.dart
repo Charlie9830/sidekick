@@ -16,7 +16,6 @@ class FixtureModel implements ModelCollectionMember {
   final int sequence;
   final DMXAddressModel dmxAddress;
   final FixtureTypeModel type;
-  final FixtureModeModel mode;
   final String locationId;
   final String dataMulti;
   final String dataPatch;
@@ -28,8 +27,7 @@ class FixtureModel implements ModelCollectionMember {
     this.fid = 0,
     this.sequence = 0,
     this.dmxAddress = const DMXAddressModel.unknown(),
-    this.type = const FixtureTypeModel.unknown(),
-    this.mode = const FixtureModeModel.unknown(),
+    this.type = const FixtureTypeModel.blank(),
     this.locationId = '',
     this.dataMulti = '',
     this.dataPatch = '',
@@ -51,7 +49,6 @@ class FixtureModel implements ModelCollectionMember {
     int? sequence,
     DMXAddressModel? dmxAddress,
     FixtureTypeModel? type,
-    FixtureModeModel? mode,
     String? locationId,
     String? dataMulti,
     String? dataPatch,
@@ -64,7 +61,6 @@ class FixtureModel implements ModelCollectionMember {
       sequence: sequence ?? this.sequence,
       dmxAddress: dmxAddress ?? this.dmxAddress,
       type: type ?? this.type,
-      mode: mode ?? this.mode,
       locationId: locationId ?? this.locationId,
       dataMulti: dataMulti ?? this.dataMulti,
       dataPatch: dataPatch ?? this.dataPatch,
@@ -80,7 +76,6 @@ class FixtureModel implements ModelCollectionMember {
       'sequence': sequence,
       'dmxAddress': dmxAddress.toMap(),
       'type': type.toMap(),
-      'mode': mode.toMap(),
       'locationId': locationId,
       'dataMulti': dataMulti,
       'dataPatch': dataPatch,
@@ -96,7 +91,6 @@ class FixtureModel implements ModelCollectionMember {
       sequence: map['sequence']?.toInt() ?? 0,
       dmxAddress: DMXAddressModel.fromMap(map['dmxAddress']),
       type: FixtureTypeModel.fromMap(map['type']),
-      mode: FixtureModeModel.fromMap(map['mode']),
       locationId: map['locationId'] ?? '',
       dataMulti: map['dataMulti'] ?? '',
       dataPatch: map['dataPatch'] ?? '',
@@ -125,7 +119,6 @@ class FixtureModel implements ModelCollectionMember {
         other.sequence == sequence &&
         other.dmxAddress == dmxAddress &&
         other.type == type &&
-        other.mode == mode &&
         other.locationId == locationId &&
         other.dataMulti == dataMulti &&
         other.dataPatch == dataPatch &&
@@ -140,7 +133,6 @@ class FixtureModel implements ModelCollectionMember {
         sequence.hashCode ^
         dmxAddress.hashCode ^
         type.hashCode ^
-        mode.hashCode ^
         locationId.hashCode ^
         dataMulti.hashCode ^
         dataPatch.hashCode ^

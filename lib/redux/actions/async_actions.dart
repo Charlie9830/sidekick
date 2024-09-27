@@ -19,7 +19,7 @@ import 'package:sidekick/excel/create_fixture_type_validation_sheet.dart';
 import 'package:sidekick/excel/create_power_patch_sheet.dart';
 import 'package:sidekick/excel/read_fixture_type_database.dart';
 import 'package:sidekick/excel/read_fixture_type_test_data.dart';
-import 'package:sidekick/excel/read_fixtures_test_data.dart';
+import 'package:sidekick/excel/read_fixtures_patch_data.dart';
 import 'package:sidekick/file_type_groups.dart';
 import 'package:sidekick/generic_dialog/show_generic_dialog.dart';
 import 'package:sidekick/global_keys.dart';
@@ -74,6 +74,7 @@ ThunkAction<AppState> selectFixtureTypeDatabaseFile(
     }
 
     store.dispatch(SetIsFixtureTypeDatabasePathValid(true));
+
     store.dispatch(SetFixtureTypes(result.fixtureTypes));
   };
 }
@@ -169,20 +170,50 @@ ThunkAction<AppState> importPatchFile(BuildContext context) {
       }
     }
 
-    final fixtureTypes = await readFixtureTypeTestData(filePath);
+    final fixturesPatchDataResult = await readFixturesPatchData(
+      path: filePath,
+      fixtureTypes: store.state.fixtureState.fixtureTypes,
+      patchSheetName: 'Sheet1',
+    );
 
-    final (fixtures, locations) =
-        await readFixturesTestData(path: filePath, fixtureTypes: fixtureTypes);
+    if (fixturesPatchDataResult.errorMessage != null) {
+      if (context.mounted == true) {
+        await showGenericDialog(
+            // ignore: use_build_context_synchronously
+            context: context,
+            title: 'Patch Data Import Error',
+            message: fixturesPatchDataResult.errorMessage!,
+            affirmativeText: 'Okay');
+      }
 
-    if (settings.mergeWithExisting == false) {
-      store.dispatch(ResetFixtureState());
-      store.dispatch(SetFixtures(fixtures));
-      store.dispatch(SetLocations(locations));
+      return;
+    }
+
+    if (settings.mergeWithExisting == true) {
+      store.dispatch(
+        SetFixtures(
+          mergeFixtures(
+            existing: store.state.fixtureState.fixtures,
+            incoming: fixturesPatchDataResult.fixtures,
+            settings: settings,
+          ),
+        ),
+      );
+
+      // Update Fixture Types with the 'InUse' Flag.
+      store.dispatch(
+        SetFixtureTypes(
+          store.state.fixtureState.fixtureTypes.map(
+            (key, value) => fixturesPatchDataResult.inUseTypeIds.contains(key)
+                ? MapEntry(key, value.copyWith(inUse: true))
+                : MapEntry(key, value),
+          ),
+        ),
+      );
     } else {
-      store.dispatch(SetFixtures(mergeFixtures(
-          existing: store.state.fixtureState.fixtures,
-          incoming: fixtures,
-          settings: settings)));
+      store.dispatch(ResetFixtureState());
+      store.dispatch(SetFixtures(fixturesPatchDataResult.fixtures));
+      store.dispatch(SetLocations(fixturesPatchDataResult.locations));
     }
   };
 }

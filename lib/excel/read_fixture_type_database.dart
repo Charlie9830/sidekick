@@ -2,10 +2,8 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:sidekick/model_collection/convert_to_model_map.dart';
-import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:excel/excel.dart';
-import 'package:sidekick/utils/get_uid.dart';
 
 const String _kSheetName = "Master List";
 const String _kManufactureColumnHeader = "Manufacture";
@@ -174,11 +172,13 @@ Future<FixtureTypeDatabaseReadResult> readFixtureTypeDatabase(
       }
 
       fixtureTypes.add(FixtureTypeModel(
-        uid: getUid(),
+        uid: _convertMakeAndModelToUid(manufacturer, model),
         amps: amps,
         maxPiggybacks: int.tryParse(maxPiggybacks.trim()) ?? 1,
         name: _concatMakeAndModel(manufacturer, model),
         shortName: shortName,
+        originalMake: manufacturer,
+        originalModel: model,
       ));
     }
 
@@ -197,4 +197,8 @@ String _concatMakeAndModel(String manufacturer, String model) {
 
 bool _isNullOrEmpty(String? value) {
   return value == null || value.isEmpty;
+}
+
+String _convertMakeAndModelToUid(String manufacturer, String model) {
+  return '${manufacturer.trim()}-${model.trim()}'.toLowerCase();
 }
