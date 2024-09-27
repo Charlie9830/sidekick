@@ -30,7 +30,6 @@ Future<ProjectFileMetadataModel> serializeProjectFile(
     outlets: state.fixtureState.outlets.toList(),
     maxSequenceBreak: state.fixtureState.maxSequenceBreak,
     looms: state.fixtureState.looms.values.toList(),
-    fixtureTypes: state.fixtureState.fixtureTypes.values.toList(),
   );
 
   final json = projectFile.toJson();
