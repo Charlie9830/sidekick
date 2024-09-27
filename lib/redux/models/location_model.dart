@@ -47,7 +47,7 @@ class LocationModel extends ModelCollectionMember {
     }
 
     if (parentMultiName != null) {
-      return '$parentMultiName.$patchNumber';
+      return '$parentMultiName - $patchNumber';
     } else {
       return '$multiPrefix$patchNumber';
     }
