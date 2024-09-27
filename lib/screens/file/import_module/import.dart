@@ -5,6 +5,7 @@ import 'package:sidekick/redux/models/import_settings_model.dart';
 import 'package:sidekick/screens/file/file_selector_button.dart';
 import 'package:sidekick/view_models/import_view_model.dart';
 import 'package:path/path.dart' as path;
+import 'package:sidekick/widgets/property_field.dart';
 
 class Import extends StatelessWidget {
   final ImportViewModel vm;
@@ -23,6 +24,16 @@ class Import extends StatelessWidget {
               path: vm.importFilePath,
               onPressed: () => _handleChooseButtonPressed(context)),
           const SizedBox(height: 32),
+          SizedBox(
+            width: 200,
+            child: PropertyField(
+              label: 'If source contains multiple sheets',
+              value: vm.settings.patchDataSourceSheetName,
+              onBlur: (newValue) => vm.onSettingsChanged(
+                  vm.settings.copyWith(patchDataSourceSheetName: newValue)),
+            ),
+          ),
+          const SizedBox(height: 16),
           CheckboxListTile(
               title: const Text("Merge with Existing"),
               value: vm.settings.mergeWithExisting,

@@ -10,6 +10,7 @@ class ImportSettingsModel {
   final bool overwriteLocation;
   final bool overwriteAddress;
   final ImportType type;
+  final String patchDataSourceSheetName;
 
   const ImportSettingsModel({
     this.mergeWithExisting = false,
@@ -18,6 +19,7 @@ class ImportSettingsModel {
     this.overwriteSeqNumber = false,
     this.overwriteType = false,
     this.type = ImportType.addNewRecords,
+    this.patchDataSourceSheetName = 'Sheet1',
   });
 
   ImportSettingsModel copyWith({
@@ -27,6 +29,7 @@ class ImportSettingsModel {
     bool? overwriteLocation,
     bool? overwriteAddress,
     ImportType? type,
+    String? patchDataSourceSheetName,
   }) {
     return ImportSettingsModel(
       mergeWithExisting: mergeWithExisting ?? this.mergeWithExisting,
@@ -35,6 +38,8 @@ class ImportSettingsModel {
       overwriteLocation: overwriteLocation ?? this.overwriteLocation,
       overwriteAddress: overwriteAddress ?? this.overwriteAddress,
       type: type ?? this.type,
+      patchDataSourceSheetName:
+          patchDataSourceSheetName ?? this.patchDataSourceSheetName,
     );
   }
 }

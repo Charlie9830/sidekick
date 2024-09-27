@@ -174,7 +174,7 @@ ThunkAction<AppState> importPatchFile(BuildContext context) {
     final fixturesPatchDataResult = await readFixturesPatchData(
       path: filePath,
       fixtureTypes: store.state.fixtureState.fixtureTypes,
-      patchSheetName: 'Sheet1',
+      patchSheetName: settings.patchDataSourceSheetName,
     );
 
     if (fixturesPatchDataResult.errorMessage != null) {
