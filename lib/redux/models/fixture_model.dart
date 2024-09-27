@@ -87,7 +87,7 @@ class FixtureModel implements ModelCollectionMember {
       fid: map['fid']?.toInt() ?? 0,
       sequence: map['sequence']?.toInt() ?? 0,
       dmxAddress: DMXAddressModel.fromMap(map['dmxAddress']),
-      typeId: map['type'],
+      typeId: map['typeId'],
       locationId: map['locationId'] ?? '',
       dataMulti: map['dataMulti'] ?? '',
       dataPatch: map['dataPatch'] ?? '',
