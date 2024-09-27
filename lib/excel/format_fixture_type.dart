@@ -1,13 +1,15 @@
 import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/fixture_type_model.dart';
 
-String formatFixtureType(List<FixtureModel> fixtures) {
+String formatFixtureType(
+    List<FixtureModel> fixtures, Map<String, FixtureTypeModel> fixtureTypes) {
   if (fixtures.isEmpty) {
     return '';
   }
 
   if (fixtures.length == 1) {
-    return fixtures.first.type.shortName.trim();
+    return fixtureTypes[fixtures.first.typeId]?.shortName ?? '';
   }
 
-  return '${fixtures.first.type.shortName.trim()} x${fixtures.length}';
+  return '${fixtureTypes[fixtures.first.typeId]?.shortName ?? ''} x${fixtures.length}';
 }

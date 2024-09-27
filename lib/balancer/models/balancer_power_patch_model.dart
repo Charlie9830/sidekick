@@ -1,9 +1,7 @@
-import 'dart:convert';
-import 'package:collection/collection.dart';
-import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
 
 class BalancerPowerPatchModel {
-  final List<FixtureModel> fixtures;
+  final List<BalancerFixtureModel> fixtures;
 
   BalancerPowerPatchModel({
     this.fixtures = const [],
@@ -20,7 +18,7 @@ class BalancerPowerPatchModel {
       .fold(0, (value, element) => value + element);
 
   BalancerPowerPatchModel copyWith({
-    List<FixtureModel>? fixtures,
+    List<BalancerFixtureModel>? fixtures,
   }) {
     return BalancerPowerPatchModel(
       fixtures: fixtures ?? this.fixtures,

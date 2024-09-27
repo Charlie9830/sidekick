@@ -35,16 +35,17 @@ class OutletTable extends StatelessWidget {
                     // Fixture Name
                     Padding(
                       padding: const EdgeInsets.only(left: 8.0),
-                      child: Text(vm.fixtures
-                          .map((fixture) => fixture.type.name)
+                      child: Text(vm.fixtureVm
+                          .map((fixtureVm) => fixtureVm.type.shortName)
                           .toSet()
                           .join(", ")),
                     ),
                     // Fixture Ids
                     Padding(
                       padding: const EdgeInsets.only(left: 8.0),
-                      child: Text(
-                          vm.fixtures.map((fixture) => fixture.fid).join(", ")),
+                      child: Text(vm.fixtureVm
+                          .map((fixtureVM) => fixtureVM.fixture.fid)
+                          .join(", ")),
                     ),
                     // Load
                     Center(

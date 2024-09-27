@@ -137,7 +137,7 @@ Future<FixturesDataReadResult> readFixturesPatchData({
         uid: getUid(),
         sequence: index + 1,
         fid: fixtureId,
-        type: fixtureType,
+        typeId: fixtureType.uid,
         locationId: locationId,
         dmxAddress: DMXAddressModel(universe: universe, address: address),
       ));

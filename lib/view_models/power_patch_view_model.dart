@@ -1,5 +1,6 @@
 import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
@@ -53,10 +54,20 @@ class MultiOutletRow extends PowerPatchRow {
 
 class PowerOutletVM {
   final PowerOutletModel outlet;
-  final List<FixtureModel> fixtures;
+  final List<FixtureOutletVM> fixtureVm;
 
   PowerOutletVM({
     required this.outlet,
-    required this.fixtures,
+    required this.fixtureVm,
+  });
+}
+
+class FixtureOutletVM {
+  final FixtureModel fixture;
+  final FixtureTypeModel type;
+
+  FixtureOutletVM({
+    required this.fixture,
+    required this.type,
   });
 }

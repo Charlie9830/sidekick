@@ -7,6 +7,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
+import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
 import 'package:sidekick/balancer/models/balancer_power_outlet_model.dart';
 import 'package:sidekick/balancer/naive_balancer.dart';
 import 'package:sidekick/balancer/phase_load.dart';
@@ -355,7 +356,9 @@ ThunkAction<AppState> setSequenceNumbers(BuildContext context) {
 
     final result = await showDialog(
       context: context,
-      builder: (context) => SequencerDialog(fixtures: selectedFixtures),
+      builder: (context) => SequencerDialog(
+          fixtures: selectedFixtures,
+          fixtureTypes: store.state.fixtureState.fixtureTypes),
     );
 
     if (result == null) {
@@ -584,6 +587,7 @@ ThunkAction<AppState> export(BuildContext context) {
       powerMultis: store.state.fixtureState.powerMultiOutlets,
       locations: store.state.fixtureState.locations,
       fixtures: store.state.fixtureState.fixtures,
+      fixtureTypes: store.state.fixtureState.fixtureTypes,
     );
 
     createColorLookupSheet(
@@ -596,6 +600,7 @@ ThunkAction<AppState> export(BuildContext context) {
       excel: excel,
       outlets: store.state.fixtureState.outlets,
       fixtures: store.state.fixtureState.fixtures,
+      fixtureTypes: store.state.fixtureState.fixtureTypes,
     );
 
     createDataPatchSheet(
@@ -631,7 +636,11 @@ ThunkAction<AppState> generatePatch() {
     final balancer = NaiveBalancer();
 
     final unbalancedMultiOutlets = balancer.assignToOutlets(
-      fixtures: fixtures,
+      fixtures: fixtures
+          .map((fixture) => BalancerFixtureModel.fromFixture(
+              fixture: fixture,
+              type: store.state.fixtureState.fixtureTypes[fixture.typeId]!))
+          .toList(),
       multiOutlets: store.state.fixtureState.powerMultiOutlets.values.toList(),
       maxSequenceBreak: store.state.fixtureState.maxSequenceBreak,
     );
@@ -777,7 +786,11 @@ void _updatePowerMultiSpareCircuitCount(
   final balancer = NaiveBalancer();
 
   final unbalancedMultiOutlets = balancer.assignToOutlets(
-    fixtures: store.state.fixtureState.fixtures.values.toList(),
+    fixtures: store.state.fixtureState.fixtures.values
+        .map((fixture) => BalancerFixtureModel.fromFixture(
+            fixture: fixture,
+            type: store.state.fixtureState.fixtureTypes[fixture.typeId]!))
+        .toList(),
     multiOutlets: existingMultiOutlets.values.toList(),
     maxSequenceBreak: store.state.fixtureState.maxSequenceBreak,
   );

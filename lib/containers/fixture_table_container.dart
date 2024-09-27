@@ -71,22 +71,24 @@ class FixtureTableContainer extends StatelessWidget {
                 ),
               ),
             FixtureRowVM(
-              selected:
-                  store.state.navstate.selectedFixtureIds.contains(fixture.uid),
-              fixtureUid: fixture.uid,
-              sequence: fixture.sequence,
-              fid: fixture.fid,
-              address: fixture.dmxAddress.formatted,
-              type: fixture.type.name,
-              location: location?.name ?? kBadLookupValue,
-              powerMulti: powerMulti?.name ?? kBadLookupValue,
-              powerPatch: fixture.powerPatch,
-              dataMulti: fixture.dataMulti,
-              dataPatch: fixture.dataPatch,
-              hasSequenceNumberBreak: prevFixture != null &&
-                  prevFixture!.sequence + 1 != fixture.sequence,
-              hasInvalidSequenceNumber: prevFixture != null && prevFixture!.sequence == fixture.sequence
-            )
+                selected: store.state.navstate.selectedFixtureIds
+                    .contains(fixture.uid),
+                fixtureUid: fixture.uid,
+                sequence: fixture.sequence,
+                fid: fixture.fid,
+                address: fixture.dmxAddress.formatted,
+                type: store.state.fixtureState.fixtureTypes[fixture.typeId]
+                        ?.name ??
+                    '',
+                location: location?.name ?? kBadLookupValue,
+                powerMulti: powerMulti?.name ?? kBadLookupValue,
+                powerPatch: fixture.powerPatch,
+                dataMulti: fixture.dataMulti,
+                dataPatch: fixture.dataPatch,
+                hasSequenceNumberBreak: prevFixture != null &&
+                    prevFixture!.sequence + 1 != fixture.sequence,
+                hasInvalidSequenceNumber: prevFixture != null &&
+                    prevFixture!.sequence == fixture.sequence)
           ];
 
           lastLocationId = fixture.locationId;

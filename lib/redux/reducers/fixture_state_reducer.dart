@@ -45,36 +45,38 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is UpdateFixtureTypeName) {
     return state.copyWith(
-      fixtures: Map<String, FixtureModel>.from(state.fixtures)
-        ..updateAll((uid, fixture) => fixture.type.uid == a.id
-            ? fixture.copyWith(
-                type: fixture.type.copyWith(
-                name: a.newValue.trim(),
-                shortName:
-                    fixture.type.shortName.isEmpty ? a.newValue.trim() : null,
-              ))
-            : fixture),
+      fixtureTypes: Map<String, FixtureTypeModel>.from(state.fixtureTypes)
+        ..update(
+          a.id,
+          (type) => type.copyWith(
+            name: a.newValue.trim(),
+          ),
+        ),
     );
   }
 
   if (a is UpdateFixtureTypeShortName) {
     return state.copyWith(
-      fixtures: Map<String, FixtureModel>.from(state.fixtures)
-        ..updateAll((uid, fixture) => fixture.type.uid == a.id
-            ? fixture.copyWith(
-                type: fixture.type.copyWith(shortName: a.newValue.trim()))
-            : fixture),
+      fixtureTypes: Map<String, FixtureTypeModel>.from(state.fixtureTypes)
+        ..update(
+          a.id,
+          (type) => type.copyWith(
+            shortName: a.newValue.trim(),
+          ),
+        ),
     );
   }
 
   if (a is UpdateFixtureTypeMaxPiggybacks) {
     return state.copyWith(
-        fixtures: Map<String, FixtureModel>.from(state.fixtures)
-          ..updateAll((uid, fixture) => fixture.type.uid == a.id
-              ? fixture.copyWith(
-                  type: fixture.type.copyWith(
-                      maxPiggybacks: int.parse(a.newValue.trim()).abs()))
-              : fixture));
+      fixtureTypes: Map<String, FixtureTypeModel>.from(state.fixtureTypes)
+        ..update(
+          a.id,
+          (type) => type.copyWith(
+            maxPiggybacks: int.parse(a.newValue.trim()),
+          ),
+        ),
+    );
   }
 
   if (a is UpdateLocationName) {

@@ -4,12 +4,12 @@ import 'package:collection/collection.dart';
 import 'package:sidekick/balancer/asserts/asserts.dart';
 import 'package:sidekick/balancer/balancer_base.dart';
 import 'package:sidekick/balancer/balancer_result.dart';
+import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
 import 'package:sidekick/balancer/models/balancer_power_patch_model.dart';
 import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/balancer/power_span.dart';
 import 'package:sidekick/balancer/shared_utils.dart';
 import 'package:sidekick/extension_methods/queue_pop.dart';
-import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/balancer/models/balancer_power_outlet_model.dart';
 import 'package:sidekick/utils/electrical_equations.dart';
@@ -28,7 +28,7 @@ class NaiveBalancer implements Balancer {
   /// Does not attempt any Phase Balancing.
   @override
   Map<PowerMultiOutletModel, List<BalancerPowerOutletModel>> assignToOutlets({
-    required List<FixtureModel> fixtures,
+    required List<BalancerFixtureModel> fixtures,
     required List<PowerMultiOutletModel> multiOutlets,
     double maxAmpsPerCircuit = 16,
     int maxSequenceBreak = 4,
@@ -159,7 +159,7 @@ class NaiveBalancer implements Balancer {
   }
 
   Map<PowerSpan, List<BalancerPowerPatchModel>> _generatePatches({
-    required List<FixtureModel> fixtures,
+    required List<BalancerFixtureModel> fixtures,
     required double maxAmpsPerCircuit,
     required int maxSequenceBreak,
   }) {
@@ -448,7 +448,7 @@ class NaiveBalancer implements Balancer {
           .sorted((a, b) => a.sequence - b.sequence);
 
       // Convert the fixtures into a Queue.
-      final fixturesQueue = Queue<FixtureModel>.from(sortedFixtures);
+      final fixturesQueue = Queue<BalancerFixtureModel>.from(sortedFixtures);
 
       // Re insert the fixtures into the Outlet in a more suitable order, obeying the respective quantities.
       int i = 0;

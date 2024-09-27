@@ -3,11 +3,8 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/dmx_address_model.dart';
-import 'package:sidekick/redux/models/fixture_mode_model.dart';
-import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
-import 'package:sidekick/redux/reducers/fixture_state_reducer.dart';
 
 class FixtureModel implements ModelCollectionMember {
   @override
@@ -15,7 +12,7 @@ class FixtureModel implements ModelCollectionMember {
   final int fid;
   final int sequence;
   final DMXAddressModel dmxAddress;
-  final FixtureTypeModel type;
+  final String typeId;
   final String locationId;
   final String dataMulti;
   final String dataPatch;
@@ -27,7 +24,7 @@ class FixtureModel implements ModelCollectionMember {
     this.fid = 0,
     this.sequence = 0,
     this.dmxAddress = const DMXAddressModel.unknown(),
-    this.type = const FixtureTypeModel.blank(),
+    this.typeId = '',
     this.locationId = '',
     this.dataMulti = '',
     this.dataPatch = '',
@@ -48,7 +45,7 @@ class FixtureModel implements ModelCollectionMember {
     int? fid,
     int? sequence,
     DMXAddressModel? dmxAddress,
-    FixtureTypeModel? type,
+    String? typeId,
     String? locationId,
     String? dataMulti,
     String? dataPatch,
@@ -60,7 +57,7 @@ class FixtureModel implements ModelCollectionMember {
       fid: fid ?? this.fid,
       sequence: sequence ?? this.sequence,
       dmxAddress: dmxAddress ?? this.dmxAddress,
-      type: type ?? this.type,
+      typeId: typeId ?? this.typeId,
       locationId: locationId ?? this.locationId,
       dataMulti: dataMulti ?? this.dataMulti,
       dataPatch: dataPatch ?? this.dataPatch,
@@ -75,7 +72,7 @@ class FixtureModel implements ModelCollectionMember {
       'fid': fid,
       'sequence': sequence,
       'dmxAddress': dmxAddress.toMap(),
-      'type': type.toMap(),
+      'typeId': typeId,
       'locationId': locationId,
       'dataMulti': dataMulti,
       'dataPatch': dataPatch,
@@ -90,7 +87,7 @@ class FixtureModel implements ModelCollectionMember {
       fid: map['fid']?.toInt() ?? 0,
       sequence: map['sequence']?.toInt() ?? 0,
       dmxAddress: DMXAddressModel.fromMap(map['dmxAddress']),
-      type: FixtureTypeModel.fromMap(map['type']),
+      typeId: map['type'],
       locationId: map['locationId'] ?? '',
       dataMulti: map['dataMulti'] ?? '',
       dataPatch: map['dataPatch'] ?? '',
@@ -118,7 +115,7 @@ class FixtureModel implements ModelCollectionMember {
         other.fid == fid &&
         other.sequence == sequence &&
         other.dmxAddress == dmxAddress &&
-        other.type == type &&
+        other.typeId == typeId &&
         other.locationId == locationId &&
         other.dataMulti == dataMulti &&
         other.dataPatch == dataPatch &&
@@ -132,7 +129,7 @@ class FixtureModel implements ModelCollectionMember {
         fid.hashCode ^
         sequence.hashCode ^
         dmxAddress.hashCode ^
-        type.hashCode ^
+        typeId.hashCode ^
         locationId.hashCode ^
         dataMulti.hashCode ^
         dataPatch.hashCode ^

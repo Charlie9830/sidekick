@@ -34,7 +34,7 @@ Map<String, FixtureModel> mergeFixtures(
 FixtureModel _cherryPickFixtureUpdates(FixtureModel existing,
     FixtureModel incoming, ImportSettingsModel settings) {
   return existing.copyWith(
-    type: settings.overwriteType ? incoming.type : existing.type,
+    typeId: settings.overwriteType ? incoming.typeId : existing.typeId,
     dmxAddress:
         settings.overwriteAddress ? incoming.dmxAddress : existing.dmxAddress,
     locationId:

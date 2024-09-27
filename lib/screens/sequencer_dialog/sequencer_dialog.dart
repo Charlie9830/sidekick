@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/screens/sequencer_dialog/arrowed_divider.dart';
 import 'package:sidekick/titled_card.dart';
 import 'package:sidekick/widgets/blur_listener.dart';
@@ -10,10 +11,12 @@ const double _kMappingListItemExtent = 56;
 
 class SequencerDialog extends StatefulWidget {
   final List<FixtureModel> fixtures;
+  final Map<String, FixtureTypeModel> fixtureTypes;
 
   const SequencerDialog({
     Key? key,
     required this.fixtures,
+    required this.fixtureTypes,
   }) : super(key: key);
 
   @override
@@ -111,7 +114,10 @@ class _SequencerDialogState extends State<SequencerDialog> {
                                   return ListTile(
                                     key: Key(fixture.uid),
                                     title: Text('#${fixture.fid.toString()}'),
-                                    trailing: Text(fixture.type.name),
+                                    trailing: Text(widget
+                                            .fixtureTypes[fixture.typeId]
+                                            ?.name ??
+                                        ''),
                                   );
                                 },
                               ),
@@ -223,7 +229,9 @@ class _SequencerDialogState extends State<SequencerDialog> {
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Text(fixture.type.name),
+                                        Text(widget.fixtureTypes[fixture.typeId]
+                                                ?.name ??
+                                            ''),
                                         IconButton(
                                           icon: const Icon(Icons.remove_circle,
                                               color: Colors.grey),

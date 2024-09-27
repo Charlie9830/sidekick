@@ -1,10 +1,10 @@
-import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
 
 class PowerSpan {
   final String locationId;
-  final FixtureModel startsAt;
-  final List<FixtureModel> fixtures;
-  FixtureModel? endsAt;
+  final BalancerFixtureModel startsAt;
+  final List<BalancerFixtureModel> fixtures;
+  BalancerFixtureModel? endsAt;
 
   PowerSpan({
     required this.locationId,
@@ -19,7 +19,7 @@ class PowerSpan {
   }
 
   /// Returns a list of [PowerSpan]s. A span will be broken down by locationId, as well as breaks in the [FixtureModel] sequence numbers.
-  static List<PowerSpan> createSpans(List<FixtureModel> fixtures) {
+  static List<PowerSpan> createSpans(List<BalancerFixtureModel> fixtures) {
     final List<PowerSpan> spans = [];
     PowerSpan? currentSpan;
 

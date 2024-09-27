@@ -32,13 +32,14 @@ class FixtureTypesContainer extends StatelessWidget {
   }
 
   List<FixtureTypeViewModel> _selectFixtureTypeItems(Store<AppState> store) {
-    final typesInUseById = store.state.fixtureState.fixtures.values
-        .map((fixture) => fixture.type)
-        .groupListsBy((type) => type.uid);
-
-    return typesInUseById.values
-        .map((types) =>
-            FixtureTypeViewModel(type: types.first, qty: types.length))
+    return store.state.fixtureState.fixtureTypes.values
+        .where((type) => type.inUse == true)
+        .map((type) => FixtureTypeViewModel(
+              qty: store.state.fixtureState.fixtures.values
+                  .where((fixture) => fixture.typeId == type.uid)
+                  .length,
+              type: type,
+            ))
         .toList();
   }
 }
