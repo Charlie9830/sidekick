@@ -371,7 +371,9 @@ ThunkAction<AppState> setSequenceNumbers(BuildContext context) {
       context: context,
       builder: (context) => SequencerDialog(
           fixtures: selectedFixtures,
-          fixtureTypes: store.state.fixtureState.fixtureTypes),
+          fixtureTypes: store.state.fixtureState.fixtureTypes,
+          nextAvailableSequenceNumber: _findNextAvailableSequenceNumber(
+              selectedFixtures.map((fix) => fix.sequence).toList())),
     );
 
     if (result == null) {
@@ -871,4 +873,28 @@ void updateAssociatedDataMultis(
           ..addEntries(
               updatedDataPatches.map((multi) => MapEntry(multi.uid, multi)))));
   }
+}
+
+int _findNextAvailableSequenceNumber(List<int> sequenceNumbers) {
+  if (sequenceNumbers.isEmpty) {
+    return 1;
+  }
+
+  if (sequenceNumbers.length == 1) {
+    return sequenceNumbers.first + 1;
+  }
+
+  final sortedSequenceNumbers = sequenceNumbers.sorted((a, b) => a - b);
+
+  for (final (index, seq) in sortedSequenceNumbers.indexed) {
+    if (index + 1 < sortedSequenceNumbers.length) {
+      final nextSeq = sortedSequenceNumbers[index + 1];
+
+      if (seq + 1 != nextSeq) {
+        return seq + 1;
+      }
+    }
+  }
+
+  return sortedSequenceNumbers.last + 1;
 }

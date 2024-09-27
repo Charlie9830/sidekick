@@ -1,10 +1,11 @@
+import 'dart:collection';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/screens/sequencer_dialog/arrowed_divider.dart';
-import 'package:sidekick/titled_card.dart';
 import 'package:sidekick/widgets/blur_listener.dart';
 
 const double _kMappingListItemExtent = 56;
@@ -12,11 +13,13 @@ const double _kMappingListItemExtent = 56;
 class SequencerDialog extends StatefulWidget {
   final List<FixtureModel> fixtures;
   final Map<String, FixtureTypeModel> fixtureTypes;
+  final int nextAvailableSequenceNumber;
 
   const SequencerDialog({
     Key? key,
     required this.fixtures,
     required this.fixtureTypes,
+    required this.nextAvailableSequenceNumber,
   }) : super(key: key);
 
   @override
@@ -150,13 +153,27 @@ class _SequencerDialogState extends State<SequencerDialog> {
                                     ? () => setState(() => _mapping.clear())
                                     : null,
                               ),
+                              Row(
+                                children: [
+                                  Tooltip(
+                                    message: "Round Robin Assign",
+                                    child: IconButton(
+                                        icon: const Icon(
+                                            Icons.roundabout_right_rounded),
+                                        onPressed: unassignedFixtures.isNotEmpty
+                                            ? () => _roundRobinAssign(
+                                                unassignedFixtures)
+                                            : null),
+                                  )
+                                ],
+                              ),
                               const SizedBox(height: 64),
                               Row(
                                 children: [
                                   const Text('Sequence Number'),
                                   const SizedBox(width: 16),
                                   SizedBox(
-                                    width: 212,
+                                    width: 164,
                                     child: BlurListener(
                                       onBlur: _updateSequenceNumber,
                                       child: TextField(
@@ -175,6 +192,14 @@ class _SequencerDialogState extends State<SequencerDialog> {
                                       ),
                                     ),
                                   ),
+                                  const SizedBox(width: 16),
+                                  Tooltip(
+                                      message: 'Next Available',
+                                      child: IconButton(
+                                        icon: Icon(Icons.fast_forward),
+                                        onPressed: () =>
+                                            _handleFindNextAvailableSequenceNumberPressed(),
+                                      ))
                                 ],
                               ),
                               const SizedBox(height: 24),
@@ -274,6 +299,43 @@ class _SequencerDialogState extends State<SequencerDialog> {
     );
   }
 
+  void _handleFindNextAvailableSequenceNumberPressed() {
+    setState(() {
+      _currentSequenceNumber = widget.nextAvailableSequenceNumber;
+      _seqNumberController.text = widget.nextAvailableSequenceNumber.toString();
+    });
+  }
+
+  void _roundRobinAssign(List<FixtureModel> unassignedFixtures) {
+    final fixturesByType =
+        unassignedFixtures.groupListsBy((element) => element.typeId);
+    final fixtureQueues = fixturesByType.entries
+        .map((entry) => Queue<FixtureModel>.from(entry.value))
+        .toList();
+
+    final Map<int, FixtureModel> mapping = {};
+    int mappingIndex = 0;
+    int queueIndex = 0;
+
+    while (fixtureQueues.any((queue) => queue.isNotEmpty)) {
+      final currentQueue = fixtureQueues[queueIndex];
+
+      if (currentQueue.isNotEmpty) {
+        mapping[_currentSequenceNumber + mappingIndex] =
+            currentQueue.removeFirst();
+
+        mappingIndex++;
+      }
+
+      // Wrap around Queue Index.
+      queueIndex = queueIndex == fixtureQueues.length - 1 ? 0 : queueIndex + 1;
+    }
+
+    setState(() {
+      _mapping.addAll(mapping);
+    });
+  }
+
   void _assignRemaining(List<FixtureModel> unassignedFixtures) {
     final newEntries = unassignedFixtures.mapIndexed(
         (index, fixture) => MapEntry(_currentSequenceNumber + index, fixture));
@@ -284,6 +346,10 @@ class _SequencerDialogState extends State<SequencerDialog> {
   }
 
   void _updateSequenceNumber() {
+    if (_seqNumberController.text.trim().isEmpty) {
+      return;
+    }
+
     _fixtureNumberFocusNode.requestFocus();
     setState(() {
       _currentSequenceNumber = int.tryParse(_seqNumberController.text) ?? 1;
@@ -291,6 +357,10 @@ class _SequencerDialogState extends State<SequencerDialog> {
   }
 
   void _enumerate() {
+    if (_fixtureNumberController.text.trim().isEmpty) {
+      return;
+    }
+
     final fid = int.parse(_fixtureNumberController.text);
     final fixture = widget.fixtures.firstWhereOrNull((fix) => fix.fid == fid);
 
