@@ -25,6 +25,9 @@ import 'package:sidekick/file_type_groups.dart';
 import 'package:sidekick/generic_dialog/show_generic_dialog.dart';
 import 'package:sidekick/global_keys.dart';
 import 'package:sidekick/import_merging/merge_fixtures.dart';
+import 'package:sidekick/persistent_settings/fetch_persistent_settings.dart';
+import 'package:sidekick/persistent_settings/init_persistent_settings_storage.dart';
+import 'package:sidekick/persistent_settings/updatePersistentSettings.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
@@ -42,6 +45,26 @@ import 'package:sidekick/serialization/serialize_project_file.dart';
 import 'package:sidekick/snack_bars/file_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
+
+ThunkAction<AppState> initializeApp(BuildContext context) {
+  return (Store<AppState> store) async {
+    // Fetch Persistent Settings.
+    await initPersistentSettingsStorage();
+    final persistentSettings = await fetchPersistentSettings();
+
+    // Set the Fixture Database Path value, and load the Fixture Database if we can.
+    if (persistentSettings.fixtureTypeDatabasePath.isNotEmpty) {
+      final fixtureTypeDatabaseResult = await readFixtureTypeDatabase(
+          persistentSettings.fixtureTypeDatabasePath);
+      if (fixtureTypeDatabaseResult.errorMessage == null) {
+        store.dispatch(SetFixtureTypeDatabasePath(
+            persistentSettings.fixtureTypeDatabasePath));
+        store.dispatch(SetIsFixtureTypeDatabasePathValid(true));
+        store.dispatch(SetFixtureTypes(fixtureTypeDatabaseResult.fixtureTypes));
+      }
+    }
+  };
+}
 
 ThunkAction<AppState> selectFixtureTypeDatabaseFile(
     BuildContext context, String path) {
@@ -75,8 +98,10 @@ ThunkAction<AppState> selectFixtureTypeDatabaseFile(
     }
 
     store.dispatch(SetIsFixtureTypeDatabasePathValid(true));
-
     store.dispatch(SetFixtureTypes(result.fixtureTypes));
+
+    await updatePersistentSettings(
+        (existing) => existing.copyWith(fixtureTypeDatabasePath: path));
   };
 }
 

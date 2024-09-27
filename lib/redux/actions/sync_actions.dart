@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:sidekick/persistent_settings/persistent_settings_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
