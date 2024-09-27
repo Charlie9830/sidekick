@@ -438,7 +438,18 @@ ThunkAction<AppState> generateDataPatch() {
     final spansByLocationId = fixturesByLocationId.map(
       (locationId, fixtures) => MapEntry(
         locationId,
-        UniverseSpan.createSpans(fixtures),
+        store.state.fixtureState.honorDataSpans
+            ? UniverseSpan.createSpans(fixtures)
+            : fixtures
+                .groupListsBy((fix) => fix.dmxAddress.universe)
+                .entries
+                .map((entry) => UniverseSpan(
+                      fixtureIds:
+                          entry.value.map((fixture) => fixture.uid).toList(),
+                      startsAt: entry.value.first,
+                      universe: entry.key,
+                      endsAt: entry.value.last,
+                    )),
       ),
     );
 

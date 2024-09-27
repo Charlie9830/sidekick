@@ -18,6 +18,7 @@ class FixtureState {
   final Map<String, LoomModel> looms;
   final double balanceTolerance;
   final int maxSequenceBreak;
+  final bool honorDataSpans;
 
   FixtureState({
     required this.fixtures,
@@ -30,6 +31,7 @@ class FixtureState {
     required this.dataPatches,
     required this.looms,
     required this.fixtureTypes,
+    required this.honorDataSpans,
   });
 
   FixtureState.initial()
@@ -42,7 +44,8 @@ class FixtureState {
         dataMultis = {},
         dataPatches = {},
         looms = {},
-        fixtureTypes = {};
+        fixtureTypes = {},
+        honorDataSpans = false;
 
   FixtureState copyWith({
     Map<String, FixtureModel>? fixtures,
@@ -55,6 +58,7 @@ class FixtureState {
     Map<String, LoomModel>? looms,
     double? balanceTolerance,
     int? maxSequenceBreak,
+    bool? honorDataSpans,
   }) {
     return FixtureState(
       fixtures: fixtures ?? this.fixtures,
@@ -67,6 +71,7 @@ class FixtureState {
       looms: looms ?? this.looms,
       balanceTolerance: balanceTolerance ?? this.balanceTolerance,
       maxSequenceBreak: maxSequenceBreak ?? this.maxSequenceBreak,
+      honorDataSpans: honorDataSpans ?? this.honorDataSpans,
     );
   }
 }

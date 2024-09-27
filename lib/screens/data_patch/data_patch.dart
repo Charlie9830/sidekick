@@ -24,6 +24,22 @@ class DataPatch extends StatelessWidget {
                 onPressed: vm.onGeneratePatchPressed,
                 label: const Text('Patch')),
             const VerticalDivider(),
+            Tooltip(
+              message:
+                  'If enabled, new data lines will be added when universe or sequence number breaks are detected',
+              child: Row(
+                children: [
+                  Checkbox(
+                    value: vm.honorDataSpans,
+                    onChanged: (value) =>
+                        vm.onHonorDataSpansChanged(value ?? true),
+                  ),
+                  const SizedBox(width: 8),
+                  Text('Honor Data Spans',
+                      style: Theme.of(context).textTheme.labelMedium),
+                ],
+              ),
+            ),
             const Spacer(),
             OutlinedButton.icon(
               icon: const Icon(Icons.commit),

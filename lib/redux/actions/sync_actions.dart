@@ -13,6 +13,12 @@ import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
 
+class SetHonorDataSpans {
+  final bool value;
+
+  SetHonorDataSpans(this.value);
+}
+
 class SetShowAllFixtureTypes {
   final bool value;
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
+import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/data_patch/data_patch.dart';
 import 'package:sidekick/view_models/data_patch_view_model.dart';
@@ -23,6 +24,9 @@ class DataPatchContainer extends StatelessWidget {
           rows: _selectDataPatchRows(store),
           onCommit: () => store.dispatch(commitDataPatch()),
           onGeneratePatchPressed: () => store.dispatch(generateDataPatch()),
+          onHonorDataSpansChanged: (newValue) =>
+              store.dispatch(SetHonorDataSpans(newValue)),
+          honorDataSpans: store.state.fixtureState.honorDataSpans,
         );
       },
     );
