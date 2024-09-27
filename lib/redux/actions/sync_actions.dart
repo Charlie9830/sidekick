@@ -12,6 +12,12 @@ import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
 
+class SetShowAllFixtureTypes {
+  final bool value;
+
+  SetShowAllFixtureTypes(this.value);
+}
+
 class SetFixtureTypes {
   final Map<String, FixtureTypeModel> types;
 

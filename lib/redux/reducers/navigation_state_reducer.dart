@@ -14,5 +14,9 @@ NavigationState navStateReducer(NavigationState state, dynamic a) {
     return state.copyWith(selectedMultiOutlet: a.uid);
   }
 
+  if (a is SetShowAllFixtureTypes) {
+    return state.copyWith(showAllFixtureTypes: a.value);
+  }
+
   return state;
 }

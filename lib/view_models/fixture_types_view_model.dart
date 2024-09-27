@@ -5,12 +5,16 @@ class FixtureTypesViewModel {
   final void Function(String id, String newValue) onNameChanged;
   final void Function(String id, String newValue) onShortNameChanged;
   final void Function(String id, String newValue) onMaxPairingsChanged;
+  final void Function(bool newValue) onShowAllFixtureTypesChanged;
+  final bool showAllFixtureTypes;
 
   FixtureTypesViewModel({
     required this.itemVms,
     required this.onNameChanged,
     required this.onShortNameChanged,
     required this.onMaxPairingsChanged,
+    required this.showAllFixtureTypes,
+    required this.onShowAllFixtureTypesChanged,
   });
 }
 

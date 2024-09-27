@@ -26,14 +26,18 @@ class FixtureTypesContainer extends StatelessWidget {
             onNameChanged: (id, newValue) =>
                 store.dispatch(UpdateFixtureTypeName(id, newValue)),
             onShortNameChanged: (id, newValue) =>
-                store.dispatch(UpdateFixtureTypeShortName(id, newValue)));
+                store.dispatch(UpdateFixtureTypeShortName(id, newValue)),
+            showAllFixtureTypes: store.state.navstate.showAllFixtureTypes,
+            onShowAllFixtureTypesChanged: (newValue) =>
+                store.dispatch(SetShowAllFixtureTypes(newValue)));
       },
     );
   }
 
   List<FixtureTypeViewModel> _selectFixtureTypeItems(Store<AppState> store) {
     return store.state.fixtureState.fixtureTypes.values
-        .where((type) => type.inUse == true)
+        .where((type) =>
+            store.state.navstate.showAllFixtureTypes ? true : type.inUse)
         .map((type) => FixtureTypeViewModel(
               qty: store.state.fixtureState.fixtures.values
                   .where((fixture) => fixture.typeId == type.uid)
