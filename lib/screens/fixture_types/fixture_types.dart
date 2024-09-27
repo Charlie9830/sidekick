@@ -18,13 +18,17 @@ class FixtureTypes extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Toolbar(child: Row(
+        Toolbar(
+            child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Checkbox(
               value: vm.showAllFixtureTypes,
-              onChanged: (newValue) => vm.onShowAllFixtureTypesChanged(newValue ?? false),
-            )
+              onChanged: (newValue) =>
+                  vm.onShowAllFixtureTypesChanged(newValue ?? false),
+            ),
+            const SizedBox(width: 8),
+            const Text('Show All'),
           ],
         )),
         Expanded(

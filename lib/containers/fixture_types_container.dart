@@ -1,8 +1,8 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
+import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/fixture_types/fixture_types.dart';
 import 'package:sidekick/view_models/fixture_types_view_model.dart';
@@ -35,9 +35,21 @@ class FixtureTypesContainer extends StatelessWidget {
   }
 
   List<FixtureTypeViewModel> _selectFixtureTypeItems(Store<AppState> store) {
-    return store.state.fixtureState.fixtureTypes.values
-        .where((type) =>
-            store.state.navstate.showAllFixtureTypes ? true : type.inUse)
+    List<FixtureTypeModel> fixtureTypes;
+    if (store.state.navstate.showAllFixtureTypes) {
+      fixtureTypes = store.state.fixtureState.fixtureTypes.values.toList();
+    } else {
+      final Set<String> inUseFixtureTypeIds = store
+          .state.fixtureState.fixtures.values
+          .map((fixture) => fixture.typeId)
+          .toSet();
+
+      fixtureTypes = inUseFixtureTypeIds
+          .map((id) => store.state.fixtureState.fixtureTypes[id]!)
+          .toList();
+    }
+
+    return fixtureTypes
         .map((type) => FixtureTypeViewModel(
               qty: store.state.fixtureState.fixtures.values
                   .where((fixture) => fixture.typeId == type.uid)

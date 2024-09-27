@@ -19,7 +19,6 @@ import 'package:sidekick/excel/create_data_patch_sheet.dart';
 import 'package:sidekick/excel/create_fixture_type_validation_sheet.dart';
 import 'package:sidekick/excel/create_power_patch_sheet.dart';
 import 'package:sidekick/excel/read_fixture_type_database.dart';
-import 'package:sidekick/excel/read_fixture_type_test_data.dart';
 import 'package:sidekick/excel/read_fixtures_patch_data.dart';
 import 'package:sidekick/file_type_groups.dart';
 import 'package:sidekick/generic_dialog/show_generic_dialog.dart';
@@ -222,17 +221,6 @@ ThunkAction<AppState> importPatchFile(BuildContext context) {
             existing: store.state.fixtureState.fixtures,
             incoming: fixturesPatchDataResult.fixtures,
             settings: settings,
-          ),
-        ),
-      );
-
-      // Update Fixture Types with the 'InUse' Flag.
-      store.dispatch(
-        SetFixtureTypes(
-          store.state.fixtureState.fixtureTypes.map(
-            (key, value) => fixturesPatchDataResult.inUseTypeIds.contains(key)
-                ? MapEntry(key, value.copyWith(inUse: true))
-                : MapEntry(key, value),
           ),
         ),
       );

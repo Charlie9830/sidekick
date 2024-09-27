@@ -11,7 +11,6 @@ class FixtureTypeModel extends ModelCollectionMember {
   final String shortName;
   final double amps;
   final int maxPiggybacks;
-  final bool inUse;
 
   FixtureTypeModel({
     required this.uid,
@@ -21,7 +20,6 @@ class FixtureTypeModel extends ModelCollectionMember {
     this.shortName = '',
     this.amps = 0.0,
     this.maxPiggybacks = 1,
-    this.inUse = false,
   });
 
   const FixtureTypeModel.blank()
@@ -31,7 +29,6 @@ class FixtureTypeModel extends ModelCollectionMember {
         originalMake = '',
         originalModel = '',
         amps = 0,
-        inUse = false,
         maxPiggybacks = 1;
 
   bool get canPiggyback => maxPiggybacks != 1;
@@ -44,7 +41,6 @@ class FixtureTypeModel extends ModelCollectionMember {
     String? shortName,
     double? amps,
     int? maxPiggybacks,
-    bool? inUse,
   }) {
     return FixtureTypeModel(
       uid: uid ?? this.uid,
@@ -54,7 +50,6 @@ class FixtureTypeModel extends ModelCollectionMember {
       shortName: shortName ?? this.shortName,
       amps: amps ?? this.amps,
       maxPiggybacks: maxPiggybacks ?? this.maxPiggybacks,
-      inUse: inUse ?? this.inUse,
     );
   }
 
@@ -67,7 +62,6 @@ class FixtureTypeModel extends ModelCollectionMember {
       'shortName': shortName,
       'amps': amps,
       'maxPiggybacks': maxPiggybacks,
-      'inUse': inUse,
     };
   }
 
@@ -80,7 +74,6 @@ class FixtureTypeModel extends ModelCollectionMember {
       shortName: map['shortName'] ?? '',
       amps: map['amps']?.toDouble() ?? 0.0,
       maxPiggybacks: map['maxPiggybacks']?.toInt() ?? 0,
-      inUse: map['inUse'] ?? false,
     );
   }
 
