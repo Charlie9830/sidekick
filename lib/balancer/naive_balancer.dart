@@ -106,7 +106,7 @@ class NaiveBalancer implements Balancer {
         }
       }
     }
-
+    
     return resultMap;
   }
 

@@ -69,6 +69,7 @@ class _PowerPatchState extends State<PowerPatch> {
                 value: widget.vm.maxSequenceBreak.toString(),
                 onBlur: widget.vm.onMaxSequenceBreakChanged,
               )),
+          const SizedBox(width: 16),
           Expanded(
               child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -107,6 +108,8 @@ class _PowerPatchState extends State<PowerPatch> {
           location: locationRow.location,
           trailing: LocationHeaderTrailer(
             multiCount: row.multiCount,
+            isLocked: locationRow.location.isPowerPatchLocked,
+            onLockChanged: (value) => row.onLockChanged(value),
           ),
         ),
       MultiOutletRow outletRow => _buildMultiOutlet(context, outletRow),
@@ -128,7 +131,8 @@ class _PowerPatchState extends State<PowerPatch> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Icon(Icons.electric_bolt, color: Colors.yellow, size: 20),
+                  const Icon(Icons.electric_bolt,
+                      color: Colors.yellow, size: 20),
                   const SizedBox(width: 8),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4.0),

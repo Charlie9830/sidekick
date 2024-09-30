@@ -62,7 +62,11 @@ class PowerPatchContainer extends StatelessWidget {
               .toList();
 
           return [
-            LocationRow(location, associatedMultis.length),
+            LocationRow(
+                location: location,
+                multiCount: associatedMultis.length,
+                onLockChanged: (value) =>
+                    store.dispatch(SetLocationPowerLock(location.uid, value))),
             ...associatedMultis.map((multi) => MultiOutletRow(
                 multi,
                 store.state.fixtureState.outlets

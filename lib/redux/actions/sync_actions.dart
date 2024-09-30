@@ -13,6 +13,20 @@ import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
 
+class SetLocationPowerLock {
+  final String locationId;
+  final bool value;
+
+  SetLocationPowerLock(this.locationId, this.value);
+}
+
+class SetLocationDataLock {
+  final String locationId;
+  final bool value;
+
+  SetLocationDataLock(this.locationId, this.value);
+}
+
 class SetHonorDataSpans {
   final bool value;
 

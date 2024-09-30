@@ -5,6 +5,20 @@ import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
+  if (a is SetLocationPowerLock) {
+    return state.copyWith(
+        locations: Map<String, LocationModel>.from(state.locations)
+          ..update(a.locationId,
+              (existing) => existing.copyWith(isPowerPatchLocked: a.value)));
+  }
+
+  if (a is SetLocationDataLock) {
+    return state.copyWith(
+        locations: Map<String, LocationModel>.from(state.locations)
+          ..update(a.locationId,
+              (existing) => existing.copyWith(isDataPatchLocked: a.value)));
+  }
+
   if (a is SetHonorDataSpans) {
     return state.copyWith(honorDataSpans: a.value);
   }

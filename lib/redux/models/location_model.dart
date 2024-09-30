@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:collection/collection.dart';
+
 import 'package:sidekick/classes/named_colors.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 
@@ -11,6 +12,8 @@ class LocationModel extends ModelCollectionMember {
   final String name;
   final Color color;
   final String multiPrefix;
+  final bool isPowerPatchLocked;
+  final bool isDataPatchLocked;
 
   static const Color noColor = Color.fromARGB(0, 0, 0, 0);
 
@@ -19,12 +22,16 @@ class LocationModel extends ModelCollectionMember {
     this.name = '',
     required this.color,
     this.multiPrefix = '',
+    this.isDataPatchLocked = false,
+    this.isPowerPatchLocked = false,
   });
 
   const LocationModel.none()
       : uid = 'none',
         name = '',
         multiPrefix = '',
+        isDataPatchLocked = false,
+        isPowerPatchLocked = false,
         color = LocationModel.noColor;
 
   LocationModel copyWith({
@@ -32,12 +39,16 @@ class LocationModel extends ModelCollectionMember {
     String? name,
     Color? color,
     String? multiPrefix,
+    bool? isPowerPatchLocked,
+    bool? isDataPatchLocked,
   }) {
     return LocationModel(
       uid: uid ?? this.uid,
       name: name ?? this.name,
       color: color ?? this.color,
       multiPrefix: multiPrefix ?? this.multiPrefix,
+      isPowerPatchLocked: isPowerPatchLocked ?? this.isPowerPatchLocked,
+      isDataPatchLocked: isDataPatchLocked ?? this.isDataPatchLocked,
     );
   }
 
@@ -74,6 +85,8 @@ class LocationModel extends ModelCollectionMember {
       'name': name,
       'color': color.value,
       'multiPrefix': multiPrefix,
+      'isPowerPatchLocked': isPowerPatchLocked,
+      'isDataPatchLocked': isDataPatchLocked,
     };
   }
 
@@ -83,6 +96,8 @@ class LocationModel extends ModelCollectionMember {
       name: map['name'] ?? '',
       color: Color(map['color']),
       multiPrefix: map['multiPrefix'] ?? '',
+      isPowerPatchLocked: map['isPowerPatchLocked'] ?? false,
+      isDataPatchLocked: map['isDataPatchLocked'] ?? false,
     );
   }
 

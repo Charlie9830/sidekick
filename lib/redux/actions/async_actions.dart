@@ -671,11 +671,29 @@ ThunkAction<AppState> generatePatch() {
       maxSequenceBreak: store.state.fixtureState.maxSequenceBreak,
     );
 
-    final balancedMultiOutlets = _balanceOutlets(unbalancedMultiOutlets,
-        balancer, store.state.fixtureState.balanceTolerance);
+    final balancedMultiOutlets = _balanceOutlets(
+      unbalancedMultiOutlets: unbalancedMultiOutlets,
+      balancer: balancer,
+      balanceTolerance: store.state.fixtureState.balanceTolerance,
+    );
 
     _updatePowerMultisAndOutlets(store, balancedMultiOutlets);
   };
+}
+
+Map<PowerMultiOutletModel, List<BalancerPowerOutletModel>>
+    _withLockedMultiLocationsRemoved(
+        Map<PowerMultiOutletModel, List<BalancerPowerOutletModel>>
+            unbalancedMultiOutlets,
+        Map<String, LocationModel> locations) {
+  final lockedLocationIds = locations.values
+      .where((location) => location.isPowerPatchLocked)
+      .map((location) => location.uid)
+      .toSet();
+
+  return Map<PowerMultiOutletModel, List<BalancerPowerOutletModel>>.from(
+      unbalancedMultiOutlets)
+    ..removeWhere((key, value) => lockedLocationIds.contains(key.locationId));
 }
 
 ThunkAction<AppState> addSpareOutlet(String uid) {
@@ -712,12 +730,12 @@ ThunkAction<AppState> deleteSpareOutlet(String uid) {
   };
 }
 
-Map<PowerMultiOutletModel, List<PowerOutletModel>> _balanceOutlets(
-  Map<PowerMultiOutletModel, List<BalancerPowerOutletModel>>
+Map<PowerMultiOutletModel, List<PowerOutletModel>> _balanceOutlets({
+  required Map<PowerMultiOutletModel, List<BalancerPowerOutletModel>>
       unbalancedMultiOutlets,
-  NaiveBalancer balancer,
-  double balanceTolerance,
-) {
+  required NaiveBalancer balancer,
+  required double balanceTolerance,
+}) {
   PhaseLoad currentLoad = PhaseLoad(0, 0, 0);
 
   return unbalancedMultiOutlets.map((multiOutlet, outlets) {
@@ -822,9 +840,9 @@ void _updatePowerMultiSpareCircuitCount(
   );
 
   final balancedMultiOutlets = _balanceOutlets(
-    unbalancedMultiOutlets,
-    balancer,
-    store.state.fixtureState.balanceTolerance,
+    unbalancedMultiOutlets: unbalancedMultiOutlets,
+    balancer: balancer,
+    balanceTolerance: store.state.fixtureState.balanceTolerance,
   );
 
   _updatePowerMultisAndOutlets(store, balancedMultiOutlets);

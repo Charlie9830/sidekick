@@ -41,8 +41,13 @@ abstract class PowerPatchRow {}
 class LocationRow extends PowerPatchRow {
   final LocationModel location;
   final int multiCount;
+  final void Function(bool value) onLockChanged;
 
-  LocationRow(this.location, this.multiCount);
+  LocationRow({
+    required this.location,
+    required this.multiCount,
+    required this.onLockChanged,
+  });
 }
 
 class MultiOutletRow extends PowerPatchRow {
