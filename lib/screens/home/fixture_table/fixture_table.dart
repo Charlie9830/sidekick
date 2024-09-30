@@ -197,6 +197,7 @@ class _FixtureTableState extends State<FixtureTable> {
   }
 
   void _handleSelectChanged(bool? isSelected, String uid) {
+
     if (_isModDown == false) {
       // Normal Selection
       widget.vm.onSelectedFixturesChanged({uid});

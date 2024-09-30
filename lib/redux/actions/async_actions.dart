@@ -338,6 +338,16 @@ ThunkAction<AppState> updateLocationMultiPrefix(
 ThunkAction<AppState> rangeSelectFixtures(String startUid, String endUid) {
   return (Store<AppState> store) async {
     final fixtures = store.state.fixtureState.fixtures.values.toList();
+
+    if (fixtures.isEmpty) {
+      return;
+    }
+
+    if (fixtures.length == 1 || startUid == endUid) {
+      store.dispatch(SetSelectedFixtureIds({startUid}));
+      return;
+    }
+
     final rawStartIndex =
         fixtures.indexWhere((fixture) => fixture.uid == startUid);
     final rawEndIndex = fixtures.indexWhere((fixture) => fixture.uid == endUid);
@@ -356,16 +366,19 @@ ThunkAction<AppState> rangeSelectFixtures(String startUid, String endUid) {
         .map((fixture) => fixture.uid)
         .toSet();
 
-    store.dispatch(SetSelectedFixtureIds(ids));
+    // Optionally reverse the collection if the Range Selection itself was inverted.
+    store.dispatch(SetSelectedFixtureIds(
+        rawStartIndex > rawEndIndex ? ids.toList().reversed.toSet() : ids));
   };
 }
 
 ThunkAction<AppState> setSequenceNumbers(BuildContext context) {
   return (Store<AppState> store) async {
-    final selectedFixtures = store.state.fixtureState.fixtures.values
-        .where((fixture) =>
-            store.state.navstate.selectedFixtureIds.contains(fixture.uid))
+    final selectedFixtures = store.state.navstate.selectedFixtureIds
+        .map((id) => store.state.fixtureState.fixtures[id]!)
         .toList();
+
+    print(selectedFixtures.map((fixture) => fixture.fid));
 
     final result = await showDialog(
       context: context,
