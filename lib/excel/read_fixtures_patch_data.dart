@@ -213,6 +213,8 @@ Future<FixturesDataReadResult> readFixturesPatchData({
         'Invalid Fixture ID data: A Fixture ID cannot be less than 1. Found at row $rowIndex'
       );
     }
+
+    return (fid, null);
   }
 
   return (
