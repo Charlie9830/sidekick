@@ -37,8 +37,8 @@ class FixtureTableContainer extends StatelessWidget {
               .state.fixtureState.fixtures.values
               .map((fixture) => fixture.uid)
               .toSet())),
-          onRangeSelectFixtures: (startUid, endUid) =>
-              store.dispatch(rangeSelectFixtures(startUid, endUid)));
+          onRangeSelectFixtures: (startUid, endUid, isAdditive) =>
+              store.dispatch(rangeSelectFixtures(startUid, endUid, isAdditive )));
     });
   }
 

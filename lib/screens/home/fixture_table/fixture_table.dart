@@ -26,6 +26,7 @@ class FixtureTable extends StatefulWidget {
 class _FixtureTableState extends State<FixtureTable> {
   late final FocusNode _focus;
   bool _isModDown = false;
+  bool _isShiftDown = false;
   String _rangeSelectStartFixtureId = '';
 
   @override
@@ -180,6 +181,21 @@ class _FixtureTableState extends State<FixtureTable> {
   }
 
   void _handleKeyEvent(KeyEvent e) {
+    if (e.logicalKey == LogicalKeyboardKey.shiftLeft ||
+        e.logicalKey == LogicalKeyboardKey.shiftRight) {
+      if (e is KeyDownEvent) {
+        setState(() {
+          _isShiftDown = true;
+        });
+      }
+
+      if (e is KeyUpEvent) {
+        setState(() {
+          _isShiftDown = false;
+        });
+      }
+    }
+
     if (_modKeys.contains(e.logicalKey)) {
       if (e is KeyDownEvent) {
         setState(() {
@@ -197,20 +213,50 @@ class _FixtureTableState extends State<FixtureTable> {
   }
 
   void _handleSelectChanged(bool? isSelected, String uid) {
-
-    if (_isModDown == false) {
-      // Normal Selection
-      widget.vm.onSelectedFixturesChanged({uid});
-    } else {
-      // Range Selection.
-      if (_rangeSelectStartFixtureId.isEmpty) {
-        _rangeSelectStartFixtureId = uid;
-        widget.vm
-            .onSelectedFixturesChanged({...widget.vm.selectedFixtureIds, uid});
-      } else {
-        widget.vm.onRangeSelectFixtures(_rangeSelectStartFixtureId, uid);
-      }
+    if (_isShiftDown == true && _isModDown == true) {
+      _handleRangeSelection(uid, true);
+      return;
     }
+
+    if (_isShiftDown == true) {
+      // Shift down "Additive" Selection.
+      if (widget.vm.selectedFixtureIds.contains(uid)) {
+        // Already selected, so De select only this row.
+        widget.vm.onSelectedFixturesChanged(
+            widget.vm.selectedFixtureIds.toSet()..remove(uid));
+        return;
+      }
+
+      // Add the current row to the selection collection.
+      widget.vm
+          .onSelectedFixturesChanged({...widget.vm.selectedFixtureIds, uid});
+      return;
+    }
+
+    if (_isModDown == true) {
+      _handleRangeSelection(uid, _isShiftDown);
+      return;
+    }
+
+    // Your normal everyday exclusive Selection.
+    widget.vm.onSelectedFixturesChanged({uid});
+  }
+
+  void _handleRangeSelection(String uid, bool isAdditive) {
+    // Range Selection.
+    if (_rangeSelectStartFixtureId.isEmpty) {
+      // Start a new Range Selection.
+      _rangeSelectStartFixtureId = uid;
+      widget.vm
+          .onSelectedFixturesChanged({...widget.vm.selectedFixtureIds, uid});
+      return;
+    }
+
+    // Complete Range Selection.
+    widget.vm
+        .onRangeSelectFixtures(_rangeSelectStartFixtureId, uid, isAdditive);
+    _rangeSelectStartFixtureId = '';
+    return;
   }
 
   @override

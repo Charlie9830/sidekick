@@ -335,7 +335,8 @@ ThunkAction<AppState> updateLocationMultiPrefix(
   };
 }
 
-ThunkAction<AppState> rangeSelectFixtures(String startUid, String endUid) {
+ThunkAction<AppState> rangeSelectFixtures(
+    String startUid, String endUid, bool isAdditive) {
   return (Store<AppState> store) async {
     final fixtures = store.state.fixtureState.fixtures.values.toList();
 
@@ -365,6 +366,10 @@ ThunkAction<AppState> rangeSelectFixtures(String startUid, String endUid) {
             coercedEndIndex + 1 <= fixtures.length ? coercedEndIndex + 1 : null)
         .map((fixture) => fixture.uid)
         .toSet();
+
+    if (isAdditive) {
+      ids.addAll(store.state.navstate.selectedFixtureIds);
+    }
 
     // Optionally reverse the collection if the Range Selection itself was inverted.
     store.dispatch(SetSelectedFixtureIds(

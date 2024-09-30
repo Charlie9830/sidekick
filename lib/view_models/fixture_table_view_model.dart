@@ -5,7 +5,7 @@ class FixtureTableViewModel {
   final bool? hasSelections;
   final void Function(Set<String> ids) onSelectedFixturesChanged;
   final void Function() onSelectAllFixtures;
-  final void Function(String startUid, String endUid) onRangeSelectFixtures;
+  final void Function(String startUid, String endUid, bool isAdditive) onRangeSelectFixtures;
 
   FixtureTableViewModel({
     required this.selectedFixtureIds,
