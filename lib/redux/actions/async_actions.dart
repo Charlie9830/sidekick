@@ -378,8 +378,6 @@ ThunkAction<AppState> setSequenceNumbers(BuildContext context) {
         .map((id) => store.state.fixtureState.fixtures[id]!)
         .toList();
 
-    print(selectedFixtures.map((fixture) => fixture.fid));
-
     final result = await showDialog(
       context: context,
       builder: (context) => SequencerDialog(
