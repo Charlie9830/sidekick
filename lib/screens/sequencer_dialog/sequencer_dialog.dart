@@ -29,6 +29,7 @@ class SequencerDialog extends StatefulWidget {
 class _SequencerDialogState extends State<SequencerDialog> {
   int _currentSequenceNumber = 1;
   Map<int, FixtureModel> _mapping = {};
+  late List<FixtureModel> _fixtures;
   late final TextEditingController _fixtureNumberController;
   late final TextEditingController _seqNumberController;
   late final ScrollController _listScrollController;
@@ -60,6 +61,9 @@ class _SequencerDialogState extends State<SequencerDialog> {
     _fixtureNumberController = TextEditingController();
     _seqNumberController = TextEditingController(text: 1.toString());
     _listScrollController = ScrollController();
+
+    // Fixture Collection.
+    _fixtures = widget.fixtures.toList();
   }
 
   @override
@@ -71,7 +75,7 @@ class _SequencerDialogState extends State<SequencerDialog> {
     final assignedIds =
         sortedAssignedFixtures.map((tuple) => tuple.$2.uid).toSet();
 
-    final unassignedFixtures = widget.fixtures
+    final unassignedFixtures = _fixtures
         .where((fixture) => assignedIds.contains(fixture.uid) == false)
         .toList();
 
@@ -104,8 +108,19 @@ class _SequencerDialogState extends State<SequencerDialog> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Fixtures',
-                                style: Theme.of(context).textTheme.labelLarge),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Fixtures',
+                                    style:
+                                        Theme.of(context).textTheme.labelLarge),
+                                IconButton(
+                                  icon: const Icon(Icons.sort),
+                                  onPressed: () =>
+                                      _handleSortUnassignedPressed(),
+                                )
+                              ],
+                            ),
                             const Divider(),
                             Expanded(
                               child: ListView.builder(
@@ -196,7 +211,7 @@ class _SequencerDialogState extends State<SequencerDialog> {
                                   Tooltip(
                                       message: 'Next Available',
                                       child: IconButton(
-                                        icon: Icon(Icons.fast_forward),
+                                        icon: const Icon(Icons.fast_forward),
                                         onPressed: () =>
                                             _handleFindNextAvailableSequenceNumberPressed(),
                                       ))
@@ -299,6 +314,12 @@ class _SequencerDialogState extends State<SequencerDialog> {
     );
   }
 
+  void _handleSortUnassignedPressed() {
+    setState(() {
+      _fixtures = _fixtures.reversed.toList();
+    });
+  }
+
   void _handleFindNextAvailableSequenceNumberPressed() {
     setState(() {
       _currentSequenceNumber = widget.nextAvailableSequenceNumber;
@@ -362,7 +383,7 @@ class _SequencerDialogState extends State<SequencerDialog> {
     }
 
     final fid = int.parse(_fixtureNumberController.text);
-    final fixture = widget.fixtures.firstWhereOrNull((fix) => fix.fid == fid);
+    final fixture = _fixtures.firstWhereOrNull((fix) => fix.fid == fid);
 
     if (fixture == null) {
       // Unknown Fixture Id.
