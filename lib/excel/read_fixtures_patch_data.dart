@@ -54,6 +54,13 @@ Future<FixturesDataReadResult> readFixturesPatchData({
     Sheet sheet;
 
     if (excel.sheets.length == 1) {
+      if (patchSheetName != null &&
+          excel.sheets.values.first.sheetName != patchSheetName) {
+        return FixturesDataReadResult(
+            errorMessage:
+                "Unable to find a sheet named $patchSheetName in Excel document.\nExisting sheet is named '${excel.sheets.values.first.sheetName}'");
+      }
+
       sheet = excel.sheets.values.first;
     } else {
       if (patchSheetName == null) {
