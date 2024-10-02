@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sidekick/balancer/asserts/asserts.dart';
 import 'package:sidekick/balancer/balancer_base.dart';
 import 'package:sidekick/balancer/balancer_result.dart';
@@ -42,8 +43,10 @@ class NaiveBalancer implements Balancer {
 
     final patchSpansByLocationId = patchesBySpan.entries
         .groupListsBy((entry) => entry.key.locationId)
-        .map((locationId, spanEntry) => MapEntry(locationId,
-            Map<PowerSpan, List<BalancerPowerPatchModel>>.fromEntries(spanEntry)));
+        .map((locationId, spanEntry) => MapEntry(
+            locationId,
+            Map<PowerSpan, List<BalancerPowerPatchModel>>.fromEntries(
+                spanEntry)));
 
     final resultMap = <PowerMultiOutletModel, List<BalancerPowerOutletModel>>{};
 
@@ -106,7 +109,7 @@ class NaiveBalancer implements Balancer {
         }
       }
     }
-    
+
     return resultMap;
   }
 
@@ -165,9 +168,10 @@ class NaiveBalancer implements Balancer {
   }) {
     final powerSpans = PowerSpan.createSpans(fixtures);
 
-    final patchesBySpan = Map<PowerSpan, List<BalancerPowerPatchModel>>.fromEntries(
-        powerSpans.map((span) => MapEntry(
-            span, performPiggybacking(span.fixtures, maxSequenceBreak))));
+    final patchesBySpan =
+        Map<PowerSpan, List<BalancerPowerPatchModel>>.fromEntries(
+            powerSpans.map((span) => MapEntry(
+                span, performPiggybacking(span.fixtures, maxSequenceBreak))));
 
     // Ensure that for each Span, we have a qty of patches that is a multiple of 6.
     return _fillPatchQty(patchesBySpan);
@@ -200,18 +204,27 @@ class NaiveBalancer implements Balancer {
     int attemptCount = 1,
     required double imbalanceTolerance,
     required PhaseLoad previousLoadsTotal,
+    List<BalancerResult> previousResults = const [],
   }) {
+    // Perform a deep Clone of the Slice. This is because later on we capture
+    final clonedSlice = slice
+        .map((outlet) => outlet.copyWith(
+              child: outlet.child.copyWith(),
+            ))
+        .toList();
+
     // Calculate the current phase Loading by adding the previous loads totals to this slice's load.
-    final currentLoad = previousLoadsTotal + _calculatePhaseLoading(slice);
+    final currentLoad =
+        previousLoadsTotal + _calculatePhaseLoading(clonedSlice);
 
     if (currentLoad.ratio <= imbalanceTolerance) {
       // Slice (and running total of all slices before it) is balanced within desired imbalance tolerance ratio. So no
       // balancing is required for this Slice.
-      return slice.toList();
+      return clonedSlice.toList();
     }
 
     // Insantiate a new List to which we will make changes on.
-    final workingList = slice.toList();
+    List<BalancerPowerOutletModel> workingList = clonedSlice.toList();
 
     // Calculate the Lightest and Heaviest phases.
     var (lightestPhase, heaviestPhase) = _calculateLightestAndHeavistLoads(
@@ -220,7 +233,8 @@ class NaiveBalancer implements Balancer {
         currentLoad.asIndexedLoads.$3);
 
     // Swap Outlets between the Lightest and heaviest phases to acheive an equilibrium between them.
-    _shellShuffleOutletChildren(lightestPhase, heaviestPhase, workingList);
+    workingList =
+        _shellShuffleOutletChildren(lightestPhase, heaviestPhase, workingList);
 
     // Recalculate the new phase loading, and determine if we need to try again.
     final adjustedLoad =
@@ -241,6 +255,7 @@ class NaiveBalancer implements Balancer {
         attemptCount: attemptCount,
         imbalanceTolerance: imbalanceTolerance,
         previousLoadsTotal: previousLoadsTotal,
+        previousResults: [BalancerResult(workingList, adjustedLoad)],
       );
     }
 
@@ -253,10 +268,31 @@ class NaiveBalancer implements Balancer {
         attemptCount: attemptCount,
         imbalanceTolerance: imbalanceTolerance,
         previousLoadsTotal: previousLoadsTotal,
+        previousResults: [
+          ...previousResults,
+          BalancerResult(workingList, adjustedLoad)
+        ],
       );
     }
 
-    return workingList;
+    // Well we ran out of Attempts. We should just return the best attempt we had.
+    if (previousResults.isEmpty) {
+      if (kDebugMode) {
+        print(
+            "Something has gone wrong. Previous Results shouldn't be empty here");
+      }
+    }
+
+    return _selectBestBalancingResult(
+            [...previousResults, BalancerResult(workingList, adjustedLoad)])
+        .outlets;
+  }
+
+  BalancerResult _selectBestBalancingResult(List<BalancerResult> results) {
+    final sortedResults =
+        results.sorted((a, b) => (a.load.neutral - b.load.neutral).round());
+
+    return sortedResults.first;
   }
 
   (IndexedLoad lightestPhase, IndexedLoad heaviestLoad)
@@ -268,8 +304,10 @@ class NaiveBalancer implements Balancer {
     return (phases.first, phases.last);
   }
 
-  (BalancerPowerOutletModel a, BalancerPowerOutletModel b) _selectOutletsByPhaseIndex(
-      int index, List<BalancerPowerOutletModel> list) {
+  (
+    BalancerPowerOutletModel a,
+    BalancerPowerOutletModel b
+  ) _selectOutletsByPhaseIndex(int index, List<BalancerPowerOutletModel> list) {
     if (list.length != 6) {
       throw "Cannot select outlets from a list smaller then 6 elements. Ensure each Patch Slice is asserted to be 6 elements";
     }
@@ -284,8 +322,11 @@ class NaiveBalancer implements Balancer {
     };
   }
 
-  (double a, double b) _calculateSwappedLoad(double totalLoadA,
-      double totalLoadB, BalancerPowerOutletModel a, BalancerPowerOutletModel b) {
+  (double a, double b) _calculateSwappedLoad(
+      double totalLoadA,
+      double totalLoadB,
+      BalancerPowerOutletModel a,
+      BalancerPowerOutletModel b) {
     return (
       totalLoadA - a.child.amps + b.child.amps,
       totalLoadB - b.child.amps + a.child.amps,
@@ -313,7 +354,7 @@ class NaiveBalancer implements Balancer {
 
   /// Selects children of the given [list] of outlets and swaps them based on how close the
   /// swap will get the phases to the median load between them (Midpoint load between [a] and [b]).
-  void _shellShuffleOutletChildren(
+  List<BalancerPowerOutletModel> _shellShuffleOutletChildren(
       IndexedLoad a, IndexedLoad b, List<BalancerPowerOutletModel> list) {
     // The target Load is the median load between the two phases. ie: The midpoint betweeen the phases.
     final targetLoad = median([a.load, b.load]);
@@ -356,22 +397,26 @@ class NaiveBalancer implements Balancer {
     }
 
     // Swap Outlet children.
-    _swapOutletChildren(indexA, indexB, list);
+    return _swapOutletChildren(indexA, indexB, list);
   }
 
   ///
-  /// Swaps the children of the outlets given by [indexA] and [indexB]. Actions are performed to [list] in place.
+  /// Swaps the children of the outlets given by [indexA] and [indexB].
   ///
-  void _swapOutletChildren(
+  List<BalancerPowerOutletModel> _swapOutletChildren(
       int indexA, int indexB, List<BalancerPowerOutletModel> list) {
-    final outletA = list[indexA].copyWith();
-    final outletB = list[indexB].copyWith();
+    final clone = list.toList();
+
+    final outletA = clone[indexA].copyWith();
+    final outletB = clone[indexB].copyWith();
 
     // Swap the children over, Make sure to swap the Spare status flag as well.
-    list[indexA] =
+    clone[indexA] =
         outletA.copyWith(child: outletB.child, isSpare: outletB.isSpare);
-    list[indexB] =
+    clone[indexB] =
         outletB.copyWith(child: outletA.child, isSpare: outletA.isSpare);
+
+    return clone;
   }
 
   PhaseLoad _calculatePhaseLoading(List<BalancerPowerOutletModel> slice) {
@@ -498,9 +543,10 @@ class NaiveBalancer implements Balancer {
 
       // Sort the outlets by the Sequence Numeber, then store them as a Queue (Using a queue saves us having to
       // instantiate another variable for tracking the index).
-      final sortedBySequenceNumber = Queue<BalancerPowerOutletModel>.from(outlets
-          .sorted((a, b) => a.child.compareBySequence(b.child))
-          .toList());
+      final sortedBySequenceNumber = Queue<BalancerPowerOutletModel>.from(
+          outlets
+              .sorted((a, b) => a.child.compareBySequence(b.child))
+              .toList());
 
       // Iterate through the origin indexes.
       for (var originalIndex in originIndexes) {
@@ -553,7 +599,8 @@ class NaiveBalancer implements Balancer {
   /// The latter outlet has a numerically smaller fixture number then the former outlet.
   /// Modifications are performed in Place to [slice]
   void _maybeNumericallyShuffleSortOutlets(
-      List<BalancerPowerOutletModel> phaseOutlets, List<BalancerPowerOutletModel> slice) {
+      List<BalancerPowerOutletModel> phaseOutlets,
+      List<BalancerPowerOutletModel> slice) {
     if (phaseOutlets.isEmpty || phaseOutlets.length <= 2) {
       if (phaseOutlets.length > 2) {
         throw "phaseOutlets length was greater than 2. Which is odd. ${phaseOutlets.length}";
