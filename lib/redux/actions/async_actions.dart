@@ -1,5 +1,6 @@
 import 'dart:collection';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:excel/excel.dart';
@@ -50,18 +51,10 @@ import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
 ThunkAction<AppState> debugButtonPressed() {
-    return (Store<AppState> store) async {
-      final cables = [
-        CableModel(uid: 'SOCA', type: CableType.socapex),
-        CableModel(uid: 'Sneak', type: CableType.sneak)
-      ];
+  return (Store<AppState> store) async {
 
-      final result = PermanentLoomComposition.matchSuitablePermanent(cables);
-
-      print(result?.name);
   };
 }
-
 
 ThunkAction<AppState> createExtensionFromSelection(
     BuildContext context, Set<String> cableIds) {
@@ -254,12 +247,9 @@ List<(LoomModel loomModel, List<CableModel> additionalSpareCables)>
 
   return permanentComps.map((comp) {
     final powerCables = powerQueue.pop(comp.powerWays).toList();
-    final dmxWays = comp.dataType == CableType.dmx
-        ? dmxQueue.pop(comp.dataWays).toList()
-        : <CableModel>[];
-    final sneakWays = comp.dataType == CableType.sneak
-        ? sneakQueue.pop(comp.dataWays).toList()
-        : <CableModel>[];
+    final dmxWays = dmxQueue.pop(comp.dmxWays).toList();
+
+    final sneakWays = sneakQueue.pop(comp.sneakWays).toList();
 
     final newLoomId = getUid();
     final newCableLocationId = cables.first.locationId;
@@ -279,31 +269,27 @@ List<(LoomModel loomModel, List<CableModel> additionalSpareCables)>
               loomId: newLoomId,
             ));
 
-    final spareDmxCables = comp.dataType == CableType.dmx
-        ? List<CableModel>.generate(
-            comp.dataWays - dmxWays.length,
-            (index) => CableModel(
-                  uid: getUid(),
-                  isSpare: true,
-                  type: CableType.dmx,
-                  locationId: newCableLocationId,
-                  label: 'SP ${index + 1}',
-                  loomId: newLoomId,
-                ))
-        : <CableModel>[];
+    final spareDmxCables = List<CableModel>.generate(
+        comp.dmxWays - dmxWays.length,
+        (index) => CableModel(
+              uid: getUid(),
+              isSpare: true,
+              type: CableType.dmx,
+              locationId: newCableLocationId,
+              label: 'SP ${index + 1}',
+              loomId: newLoomId,
+            ));
 
-    final spareSneakCables = comp.dataType == CableType.sneak
-        ? List<CableModel>.generate(
-            comp.dataWays - sneakWays.length,
-            (index) => CableModel(
-                  uid: getUid(),
-                  isSpare: true,
-                  type: CableType.sneak,
-                  locationId: newCableLocationId,
-                  label: 'SP ${index + 1}',
-                  loomId: newLoomId,
-                ))
-        : <CableModel>[];
+    final spareSneakCables = List<CableModel>.generate(
+        comp.sneakWays - sneakWays.length,
+        (index) => CableModel(
+              uid: getUid(),
+              isSpare: true,
+              type: CableType.sneak,
+              locationId: newCableLocationId,
+              label: 'SP ${index + 1}',
+              loomId: newLoomId,
+            ));
 
     final allChildren = [
       ...powerCables,

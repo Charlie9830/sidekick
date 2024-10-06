@@ -5,17 +5,23 @@ import 'package:sidekick/extension_methods/queue_pop.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 
 class PermanentLoomComposition {
-  final int powerWays;
-  final int dataWays;
-  final CableType powerType;
-  final CableType dataType;
+  final int socaWays;
+  final int wieland6Ways;
+  final int dmxWays;
+  final int sneakWays;
 
-  const PermanentLoomComposition({
-    required this.powerWays,
-    required this.powerType,
-    required this.dataWays,
-    required this.dataType,
+  const PermanentLoomComposition._({
+    required this.socaWays,
+    required this.wieland6Ways,
+    required this.dmxWays,
+    required this.sneakWays,
   });
+
+  String get uid => name;
+
+  String get name => _buildName();
+
+  int get powerWays => socaWays != 0 ? socaWays : wieland6Ways;
 
   static List<PermanentLoomComposition> matchToPermanents(
       List<CableModel> cables) {
@@ -63,138 +69,115 @@ class PermanentLoomComposition {
       return null;
     }
 
-    final powerType = cables.any((cable) => cable.type == CableType.socapex)
-        ? CableType.socapex
-        : CableType.wieland6way;
-
-    final searchCollection =
-        powerType == CableType.socapex ? socapexesOnly : wieland6wayOnly;
-
-    return searchCollection.firstWhereOrNull((comp) => comp.satisfied(cables));
+    return values.firstWhereOrNull((comp) => comp.satisfied(cables));
   }
 
   bool satisfied(List<CableModel> cables) {
-    final incomingPowerWays = cables
-        .where((cable) =>
-            cable.type == CableType.socapex ||
-            cable.type == CableType.wieland6way)
-        .length;
-        
-    final incomingDmxWays =
+    final incomingSoca =
+        cables.where((cable) => cable.type == CableType.socapex).length;
+    final incomingWieland6way =
+        cables.where((cable) => cable.type == CableType.wieland6way).length;
+    final incomingDmx =
         cables.where((cable) => cable.type == CableType.dmx).length;
-    final incomingSneakWays =
+    final incomingSneak =
         cables.where((cable) => cable.type == CableType.sneak).length;
 
-    return incomingPowerWays <= powerWays &&
-        _satisfiesDataWays(incomingDmxWays, incomingSneakWays);
+    final socaSatisfied =
+        incomingWieland6way > 0 ? false : incomingSoca <= socaWays;
+    final wieland6Satisfied =
+        incomingSoca > 0 ? false : incomingWieland6way <= wieland6Ways;
+    final dmxSatisfied = incomingSneak > 0 ? false : incomingDmx <= dmxWays;
+    final sneakSatisfied = incomingDmx > 0 ? false : incomingSneak <= sneakWays;
+
+    return (socaSatisfied || wieland6Satisfied) &&
+        (sneakSatisfied || dmxSatisfied);
   }
 
-  bool _satisfiesDataWays(int dmxWays, int sneakWays) {
-    if (dataType == CableType.dmx) {
-      return dmxWays <= dataWays;
+  String _buildName() {
+    String name = '';
+
+    if (socaWays > 0) {
+      name = '$name$socaWays Soca ';
     }
 
-    return sneakWays <= dataWays;
+    if (wieland6Ways > 0) {
+      name = '$name$wieland6Ways 6way ';
+    }
+
+    if (dmxWays > 0) {
+      name = '$name+ $dmxWays DMX';
+    }
+
+    if (sneakWays > 0) {
+      name = '$name+ $sneakWays Sneak';
+    }
+
+    return name;
   }
 
-  String get uid => name;
-
-  String get name =>
-      '${powerWays}way ${_humanFriendlyCableType(powerType)} + $dataWays ${_humanFriendlyCableType(dataType)}';
-
-  static Iterable<PermanentLoomComposition> get socapexesOnly =>
-      values.where((value) => value.powerType == CableType.socapex);
-
-  static Iterable<PermanentLoomComposition> get wieland6wayOnly =>
-      values.where((value) => value.powerType == CableType.wieland6way);
-
   static const List<PermanentLoomComposition> values = [
-    ///
-    /// SOCAPEX
-    ///
-
-    // 2way
-    PermanentLoomComposition(
-      powerWays: 2,
-      powerType: CableType.socapex,
-      dataWays: 2,
-      dataType: CableType.dmx,
+    // 2 way Socapex + 2 DMX.
+    PermanentLoomComposition._(
+      socaWays: 2,
+      wieland6Ways: 0,
+      dmxWays: 2,
+      sneakWays: 0,
     ),
 
-    // 3way
-    PermanentLoomComposition(
-      powerWays: 3,
-      powerType: CableType.socapex,
-      dataWays: 1,
-      dataType: CableType.sneak,
+    // 3 way Socapex + Sneak.
+    PermanentLoomComposition._(
+      socaWays: 3,
+      wieland6Ways: 0,
+      dmxWays: 0,
+      sneakWays: 1,
     ),
 
-    // 3way + 2 Sneak
-    PermanentLoomComposition(
-      powerWays: 3,
-      powerType: CableType.socapex,
-      dataWays: 1,
-      dataType: CableType.sneak,
+    // 5 way Socapex + Sneak.
+    PermanentLoomComposition._(
+      socaWays: 5,
+      wieland6Ways: 0,
+      dmxWays: 0,
+      sneakWays: 1,
     ),
 
-    // 5 way
-    PermanentLoomComposition(
-      powerWays: 5,
-      powerType: CableType.socapex,
-      dataWays: 1,
-      dataType: CableType.sneak,
+    // 5 way Socapex + 2 Sneak.
+    PermanentLoomComposition._(
+      socaWays: 5,
+      wieland6Ways: 0,
+      dmxWays: 0,
+      sneakWays: 2,
     ),
 
-    // 5 way + 2 Sneak
-    PermanentLoomComposition(
-      powerWays: 5,
-      powerType: CableType.socapex,
-      dataWays: 2,
-      dataType: CableType.sneak,
+    // 2 way 6way + 2 DMX.
+    PermanentLoomComposition._(
+      socaWays: 0,
+      wieland6Ways: 2,
+      dmxWays: 2,
+      sneakWays: 0,
     ),
 
-    ///
-    /// 6way
-    ///
-
-    // 2way
-    PermanentLoomComposition(
-      powerWays: 2,
-      powerType: CableType.wieland6way,
-      dataWays: 2,
-      dataType: CableType.dmx,
+    // 3 way 6way + Sneak.
+    PermanentLoomComposition._(
+      socaWays: 0,
+      wieland6Ways: 2,
+      dmxWays: 0,
+      sneakWays: 1,
     ),
 
-    // 3way
-    PermanentLoomComposition(
-      powerWays: 3,
-      powerType: CableType.wieland6way,
-      dataWays: 1,
-      dataType: CableType.sneak,
+    // 5 way 6way + Sneak.
+    PermanentLoomComposition._(
+      socaWays: 0,
+      wieland6Ways: 5,
+      dmxWays: 0,
+      sneakWays: 2,
     ),
 
-    // 3way + 2 Sneak
-    PermanentLoomComposition(
-      powerWays: 3,
-      powerType: CableType.wieland6way,
-      dataWays: 1,
-      dataType: CableType.sneak,
-    ),
-
-    // 5 way
-    PermanentLoomComposition(
-      powerWays: 5,
-      powerType: CableType.wieland6way,
-      dataWays: 1,
-      dataType: CableType.sneak,
-    ),
-
-    // 5 way + 2 Sneak
-    PermanentLoomComposition(
-      powerWays: 5,
-      powerType: CableType.wieland6way,
-      dataWays: 2,
-      dataType: CableType.sneak,
+    // 5 way 6way + 2x Sneak.
+    PermanentLoomComposition._(
+      socaWays: 0,
+      wieland6Ways: 5,
+      dmxWays: 0,
+      sneakWays: 2,
     ),
   ];
 
@@ -204,35 +187,6 @@ class PermanentLoomComposition {
       (comp) => MapEntry(comp.name, comp),
     ),
   );
-
-  String _humanFriendlyCableType(CableType value) {
-    return switch (value) {
-      CableType.socapex => 'Soca',
-      CableType.wieland6way => '6way',
-      CableType.dmx => 'DMX',
-      CableType.sneak => 'Sneak',
-      CableType.unknown => throw 'An unexpected Cable type has been provided.',
-    };
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is PermanentLoomComposition &&
-        other.powerWays == powerWays &&
-        other.dataWays == dataWays &&
-        other.powerType == powerType &&
-        other.dataType == dataType;
-  }
-
-  @override
-  int get hashCode {
-    return powerWays.hashCode ^
-        dataWays.hashCode ^
-        powerType.hashCode ^
-        dataType.hashCode;
-  }
 
   @override
   String toString() {
