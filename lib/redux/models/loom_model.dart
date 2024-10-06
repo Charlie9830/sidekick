@@ -1,54 +1,57 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
-
-import 'package:sidekick/redux/models/cable_model.dart';
+import 'package:sidekick/redux/models/loom_type_model.dart';
 
 class LoomModel extends ModelCollectionMember {
   @override
   final String uid;
-  final String locationId;
-  final List<CableModel> children;
+  final Set<String> locationIds;
   final String name;
+  final LoomTypeModel type;
+  final List<String> childrenIds;
 
   LoomModel({
     this.uid = '',
-    this.locationId = '',
-    this.children = const [],
+    this.locationIds = const {},
     this.name = '',
+    this.type = const LoomTypeModel.blank(),
+    this.childrenIds = const [],
   });
 
   LoomModel copyWith({
     String? uid,
-    String? locationId,
-    List<CableModel>? children,
+    Set<String>? locationIds,
     String? name,
+    LoomTypeModel? type,
+    List<String>? childrenIds,
   }) {
     return LoomModel(
       uid: uid ?? this.uid,
-      locationId: locationId ?? this.locationId,
-      children: children ?? this.children,
+      locationIds: locationIds ?? this.locationIds,
       name: name ?? this.name,
+      type: type ?? this.type,
+      childrenIds: childrenIds ?? this.childrenIds,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
-      'locationId': locationId,
-      'children': children.map((x) => x.toMap()).toList(),
+      'locationIds': locationIds.toList(),
       'name': name,
+      'type': type.toMap(),
+      'childrenIds': childrenIds,
     };
   }
 
   factory LoomModel.fromMap(Map<String, dynamic> map) {
     return LoomModel(
       uid: map['uid'] ?? '',
-      locationId: map['locationId'] ?? '',
-      children: List<CableModel>.from(
-          map['children']?.map((x) => CableModel.fromMap(x))),
+      locationIds: Set<String>.from(map['locationIds']),
       name: map['name'] ?? '',
+      type: LoomTypeModel.fromMap(map['type']),
+      childrenIds: List<String>.from(map['childrenIds']),
     );
   }
 
@@ -59,25 +62,6 @@ class LoomModel extends ModelCollectionMember {
 
   @override
   String toString() {
-    return 'LoomModel(uid: $uid, locationId: $locationId, children: $children, name: $name)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is LoomModel &&
-        other.uid == uid &&
-        other.locationId == locationId &&
-        listEquals(other.children, children) &&
-        other.name == name;
-  }
-
-  @override
-  int get hashCode {
-    return uid.hashCode ^
-        locationId.hashCode ^
-        children.hashCode ^
-        name.hashCode;
+    return 'LoomModel(uid: $uid, locationId: $locationIds, name: $name)';
   }
 }

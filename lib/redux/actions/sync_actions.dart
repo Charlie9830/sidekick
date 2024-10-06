@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:sidekick/persistent_settings/persistent_settings_model.dart';
+import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
@@ -12,6 +13,39 @@ import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
+
+class SetCablesAndLooms {
+  final Map<String, CableModel> cables;
+  final Map<String, LoomModel> looms;
+
+  SetCablesAndLooms(this.cables, this.looms);
+}
+
+class UpdateLoomLength {
+  final String id;
+  final String newValue;
+
+  UpdateLoomLength(this.id, this.newValue);
+}
+
+class UpdateLoomName {
+  final String id;
+  final String newValue;
+
+  UpdateLoomName(this.id, this.newValue);
+}
+
+class SetCables {
+  final Map<String, CableModel> cables;
+
+  SetCables(this.cables);
+}
+
+class SetSelectedCableIds {
+  final Set<String> ids;
+
+  SetSelectedCableIds(this.ids);
+}
 
 class SetLocationPowerLock {
   final String locationId;

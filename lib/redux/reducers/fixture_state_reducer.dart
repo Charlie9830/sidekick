@@ -1,10 +1,37 @@
 import 'package:sidekick/model_collection/convert_to_model_map.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
+import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/redux/models/loom_model.dart';
+import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
+  if (a is SetCables) {
+    return state.copyWith(
+      cables: a.cables,
+    );
+  }
+
+  if (a is UpdateLoomName) {
+    return state.copyWith(
+        looms: Map<String, LoomModel>.from(state.looms)
+          ..update(
+              a.id, (existing) => existing.copyWith(name: a.newValue.trim())));
+  }
+
+  if (a is UpdateLoomLength) {
+    return _updateLoomLength(state, a);
+  }
+
+  if (a is SetCablesAndLooms) {
+    return state.copyWith(
+      cables: a.cables,
+      looms: a.looms,
+    );
+  }
+
   if (a is SetLocationPowerLock) {
     return state.copyWith(
         locations: Map<String, LocationModel>.from(state.locations)
@@ -184,4 +211,24 @@ int _convertMaxSequenceBreak(String newValue, int existingValue) {
   }
 
   return asInt;
+}
+
+FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
+  final newLength = double.tryParse(a.newValue.trim()) ?? 0;
+  final existingLoom = state.looms[a.id]!;
+
+  final targetCables = existingLoom.childrenIds.toSet();
+  final updatedCables = Map<String, CableModel>.from(state.cables)
+    ..updateAll((key, value) =>
+        targetCables.contains(key) ? value.copyWith(length: newLength) : value);
+
+  return state.copyWith(
+    looms: Map<String, LoomModel>.from(state.looms)
+      ..update(
+        a.id,
+        (existing) =>
+            existing.copyWith(type: existing.type.copyWith(length: newLength)),
+      ),
+    cables: updatedCables,
+  );
 }

@@ -6,6 +6,10 @@ NavigationState navStateReducer(NavigationState state, dynamic a) {
     return NavigationState.initial();
   }
 
+  if (a is SetSelectedCableIds) {
+    return state.copyWith(selectedCableIds: a.ids);
+  }
+
   if (a is SetSelectedFixtureIds) {
     return state.copyWith(selectedFixtureIds: a.ids);
   }

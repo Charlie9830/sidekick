@@ -20,7 +20,7 @@ class HomeContainer extends StatelessWidget {
       },
       converter: (Store<AppState> store) {
         return HomeViewModel(
-            onDebugAction: () => store.dispatch(generateLooms()),
+            onDebugAction: () => store.dispatch(debugButtonPressed()),
             selectedFixtureIds: store.state.navstate.selectedFixtureIds,
             onSelectedFixturesChanged: (ids) =>
                 store.dispatch(SetSelectedFixtureIds(ids)),

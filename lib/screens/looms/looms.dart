@@ -1,37 +1,135 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:sidekick/redux/models/loom_type_model.dart';
+import 'package:sidekick/screens/looms/cable_row_item.dart';
+import 'package:sidekick/screens/looms/loom_row_item.dart';
+import 'package:sidekick/view_models/loom_screen_item_view_model.dart';
 import 'package:sidekick/view_models/looms_view_model.dart';
-import 'package:sidekick/widgets/property_field.dart';
+import 'package:sidekick/widgets/location_header_row.dart';
+import 'package:sidekick/widgets/mouse_selection_listener.dart';
+import 'package:sidekick/widgets/toolbar.dart';
 
-class Looms extends StatelessWidget {
+class Looms extends StatefulWidget {
   final LoomsViewModel vm;
   const Looms({Key? key, required this.vm}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: vm.rowVms.length,
-      itemBuilder: (context, index) {
-        final rowVm = vm.rowVms[index];
+  State<Looms> createState() => _LoomsState();
+}
 
-        return Card(
-            child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [Text(rowVm.loom.name), Text(rowVm.locationName)],
-            ),
-            ...rowVm.loom.children.map((cable) => Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 200,
-                      child: PropertyField()),
-                    Text(cable.type.name),
-                  ],
-                ))
-          ],
-        ));
-      },
+class _LoomsState extends State<Looms> {
+  Set<String> _hoveringCableIds = {};
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Toolbar(
+          child: Row(
+            children: [
+              ElevatedButton.icon(
+                  onPressed: widget.vm.onGenerateLoomsButtonPressed,
+                  icon: const Icon(Icons.cable),
+                  label: const Text('Generate')),
+              OutlinedButton.icon(
+                onPressed: () => widget.vm
+                    .onCombineCablesIntoNewLoomButtonPressed(
+                        LoomType.permanent),
+                icon: const Icon(Icons.add),
+                label: const Text('Permanent'),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () => widget.vm
+                    .onCombineCablesIntoNewLoomButtonPressed(LoomType.custom),
+                icon: const Icon(Icons.add),
+                label: const Text('Custom'),
+              ),
+              const VerticalDivider(),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.add),
+                label: const Text('Extension'),
+                onPressed: widget.vm.onCreateExtensionFromSelection,
+              )
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: widget.vm.rowVms.length,
+            itemBuilder: (BuildContext context, int index) {
+              final rowVm = widget.vm.rowVms[index];
+
+              return switch (rowVm) {
+                LocationDividerViewModel vm => LocationHeaderRow(
+                    key: Key(vm.location.uid), location: vm.location),
+                LoomViewModel vm => LoomRowItem(
+                    loomVm: vm,
+                    children: vm.children
+                        .mapIndexed((index, cableVm) => _wrapSelectionListener(
+                            vm: cableVm,
+                            child: CableRowItem(
+                              cable: cableVm.cable,
+                              labelColor: cableVm.labelColor,
+                              showTopBorder: index == 0,
+                              isDragSelecting:
+                                  _hoveringCableIds.contains(cableVm.cable.uid),
+                              isSelected: widget.vm.selectedCableIds
+                                  .contains(cableVm.cable.uid),
+                              isExtension: cableVm.isExtension,
+                              hideLength:
+                                  vm.loom.type.type == LoomType.permanent,
+                            )))
+                        .toList()),
+                CableViewModel vm => _wrapSelectionListener(
+                    vm: vm,
+                    child: CableRowItem(
+                      cable: vm.cable,
+                      labelColor: vm.labelColor,
+                      isExtension: vm.isExtension,
+                      isSelected:
+                          widget.vm.selectedCableIds.contains(vm.cable.uid),
+                      isDragSelecting: _hoveringCableIds.contains(vm.cable.uid),
+                      showTopBorder: index == 0 ||
+                          widget.vm.rowVms[index - 1] is! CableViewModel,
+                    )),
+                _ => const Text('WOOOOPS'),
+              };
+            },
+          ),
+        )
+      ],
     );
+  }
+
+  Widget _wrapSelectionListener(
+      {required CableViewModel vm, required Widget child}) {
+    return MouseSelectionListener(
+        onSelectionDragOver: () => setState(
+            () => _hoveringCableIds = {..._hoveringCableIds, vm.cable.uid}),
+        onTapUp: () => _handleCableItemTapUp(vm),
+        onTapDown: () => _handleCableItemTapDown(vm),
+        child: child);
+  }
+
+  void _handleCableItemTapUp(CableViewModel vm) {
+    if (_hoveringCableIds.contains(vm.cable.uid)) {
+      // Complete Drag Gesture.
+      widget.vm.selectCables(_hoveringCableIds.toSet());
+      return;
+    } else {
+      // Single Selection.
+      widget.vm.selectCables({vm.cable.uid});
+    }
+  }
+
+  void _handleCableItemTapDown(CableViewModel vm) {
+    widget.vm.selectCables({vm.cable.uid});
+
+    setState(() {
+      _hoveringCableIds = {};
+    });
   }
 }

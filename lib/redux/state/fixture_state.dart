@@ -1,3 +1,4 @@
+import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
@@ -16,6 +17,7 @@ class FixtureState {
   final Map<String, DataPatchModel> dataPatches;
   final List<PowerOutletModel> outlets;
   final Map<String, LoomModel> looms;
+  final Map<String, CableModel> cables;
   final double balanceTolerance;
   final int maxSequenceBreak;
   final bool honorDataSpans;
@@ -32,6 +34,7 @@ class FixtureState {
     required this.looms,
     required this.fixtureTypes,
     required this.honorDataSpans,
+    required this.cables,
   });
 
   FixtureState.initial()
@@ -45,7 +48,8 @@ class FixtureState {
         dataPatches = {},
         looms = {},
         fixtureTypes = {},
-        honorDataSpans = false;
+        honorDataSpans = false,
+        cables = {};
 
   FixtureState copyWith({
     Map<String, FixtureModel>? fixtures,
@@ -56,6 +60,7 @@ class FixtureState {
     Map<String, DataPatchModel>? dataPatches,
     List<PowerOutletModel>? outlets,
     Map<String, LoomModel>? looms,
+    Map<String, CableModel>? cables,
     double? balanceTolerance,
     int? maxSequenceBreak,
     bool? honorDataSpans,
@@ -69,6 +74,7 @@ class FixtureState {
       dataPatches: dataPatches ?? this.dataPatches,
       outlets: outlets ?? this.outlets,
       looms: looms ?? this.looms,
+      cables: cables ?? this.cables,
       balanceTolerance: balanceTolerance ?? this.balanceTolerance,
       maxSequenceBreak: maxSequenceBreak ?? this.maxSequenceBreak,
       honorDataSpans: honorDataSpans ?? this.honorDataSpans,
