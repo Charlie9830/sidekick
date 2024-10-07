@@ -849,7 +849,7 @@ ThunkAction<AppState> generateDataPatch() {
           .length;
 
       if (spans.length <= 2 && powerMultiCount <= 2) {
-        // Can be 2 Singles.
+        // Can be 2 singles.
         patches.addAll(
           spans.mapIndexed(
             (index, span) {
@@ -860,7 +860,9 @@ ThunkAction<AppState> generateDataPatch() {
                 number: wayNumber,
                 multiId: '',
                 universe: span.universe,
-                name: location?.getPrefixedDataPatch(wayNumber) ?? '',
+                name: location?.getPrefixedDataPatch(
+                        spans.length > 1 ? wayNumber : null) ??
+                    '',
                 startsAtFixtureId: span.startsAt.fid,
                 endsAtFixtureId: span.endsAt?.fid ?? 0,
                 fixtureIds: span.fixtureIds,
@@ -869,14 +871,16 @@ ThunkAction<AppState> generateDataPatch() {
           ),
         );
       } else {
-        final slices = spans.slices(4);
+        final slices = spans.slices(4).toList();
 
         for (final (index, slice) in slices.indexed) {
           final wayNumber = index + 1;
           final parentMulti = DataMultiModel(
             uid: getUid(),
             locationId: locationId,
-            name: location?.getPrefixedDataMultiPatch(wayNumber) ?? '',
+            name: location?.getPrefixedDataMultiPatch(
+                    slices.length > 1 ? wayNumber : null) ??
+                '',
             number: wayNumber,
           );
 
@@ -1190,12 +1194,20 @@ Map<PowerMultiOutletModel, List<PowerOutletModel>>
     if (outlet.name.isEmpty) {
       final location = store.state.fixtureState.locations[outlet.locationId];
 
-      if (location != null) {
-        return MapEntry(
-          outlet.copyWith(name: location.getPrefixedPowerMulti(outlet.number)),
-          entry.value,
-        );
+      if (location == null) {
+        return entry;
       }
+
+      final multisInLocation = balancedMultiOutlets.keys
+          .where((multi) => multi.locationId == location.uid)
+          .toList();
+
+      return MapEntry(
+        outlet.copyWith(
+            name: location.getPrefixedPowerMulti(
+                multisInLocation.length > 1 ? outlet.number : null)),
+        entry.value,
+      );
     }
 
     return entry;

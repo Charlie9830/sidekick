@@ -134,6 +134,14 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     );
   }
 
+  if (a is UpdateLocationName) {
+    return state.copyWith(
+      locations: Map<String, LocationModel>.from(state.locations)
+        ..update(a.locationId,
+            (existing) => existing.copyWith(delimiter: a.newValue.trim())),
+    );
+  }
+
   if (a is UpdateLocationColor) {
     return state.copyWith(
       locations: Map<String, LocationModel>.from(state.locations)

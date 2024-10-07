@@ -251,6 +251,13 @@ class UpdateLocationName {
   UpdateLocationName(this.locationId, this.newValue);
 }
 
+class UpdateLocationDelimiter {
+  final String locationId;
+  final String newValue;
+
+UpdateLocationDelimiter(this.locationId, this.newValue);
+}
+
 class UpdateLocationColor {
   final String locationId;
   final Color newValue;

@@ -17,6 +17,7 @@ class Locations extends StatelessWidget {
             DataColumn(label: Text('Name')),
             DataColumn(label: Text('Colours')),
             DataColumn(label: Text('Loom Prefix')),
+            DataColumn(label: Text('Delimiter')),
             DataColumn(
                 label: IconLabel(
               icon: Icon(Icons.electric_bolt, color: Colors.yellow),
@@ -61,12 +62,24 @@ class Locations extends StatelessWidget {
                 ),
               )),
 
+              // Multi Prefix
               DataCell(
                 withConstraint(
                   PropertyField(
                     value: item.location.multiPrefix,
                     onBlur: (newValue) =>
                         vm.onMultiPrefixChanged(item.location.uid, newValue),
+                  ),
+                ),
+              ),
+
+              // Delimiterx
+              DataCell(
+                withConstraint(
+                  PropertyField(
+                    value: item.location.delimiter,
+                    onBlur: (newValue) => vm.onLocationDelimiterChanged(
+                        item.location.uid, newValue),
                   ),
                 ),
               ),
