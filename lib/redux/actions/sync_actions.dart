@@ -13,6 +13,15 @@ import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
+import 'package:sidekick/view_models/loom_screen_item_view_model.dart';
+
+class ToggleLoomDropperState {
+  final String loomId;
+  final List<CableModel> childCables;
+  final LoomDropState dropState;
+
+  ToggleLoomDropperState(this.loomId, this.dropState, this.childCables);
+}
 
 class SetCablesAndLooms {
   final Map<String, CableModel> cables;

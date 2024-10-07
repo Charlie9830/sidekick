@@ -22,4 +22,5 @@ class NamedColors {
   static const Color orange = Color.fromARGB(255, 255, 100, 0);
   static const Color yellow = Color.fromARGB(255, 255, 255, 0);
   static const Color purple = Color.fromARGB(255, 140, 0, 255);
+  static const Color none = Color.fromARGB(0, 0, 0, 0);
 }

@@ -22,6 +22,7 @@ class CableModel extends ModelCollectionMember {
   final String notes;
   final CableType type;
   final bool isSpare;
+  final bool isDropper;
 
   CableModel({
     required this.uid,
@@ -34,6 +35,7 @@ class CableModel extends ModelCollectionMember {
     this.locationId = '',
     this.notes = '',
     this.isSpare = false,
+    this.isDropper = false,
   });
 
   CableModel copyWith({
@@ -47,6 +49,7 @@ class CableModel extends ModelCollectionMember {
     String? notes,
     CableType? type,
     bool? isSpare,
+    bool? isDropper,
   }) {
     return CableModel(
       uid: uid ?? this.uid,
@@ -59,6 +62,7 @@ class CableModel extends ModelCollectionMember {
       notes: notes ?? this.notes,
       type: type ?? this.type,
       isSpare: isSpare ?? this.isSpare,
+      isDropper: isDropper ?? this.isDropper,
     );
   }
 
@@ -74,6 +78,7 @@ class CableModel extends ModelCollectionMember {
       'notes': notes,
       'locationId': locationId,
       'isSpare': isSpare,
+      'isDropper': isDropper,
     };
   }
 
@@ -89,6 +94,7 @@ class CableModel extends ModelCollectionMember {
       notes: map['notes'] ?? '',
       type: CableType.values.byName(map['type']),
       isSpare: map['isSpare'],
+      isDropper: map['isDropper'],
     );
   }
 

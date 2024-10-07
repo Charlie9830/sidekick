@@ -65,25 +65,33 @@ class _LoomsState extends State<Looms> {
               return switch (rowVm) {
                 LocationDividerViewModel vm => LocationHeaderRow(
                     key: Key(vm.location.uid), location: vm.location),
-                LoomViewModel vm => LoomRowItem(
-                    loomVm: vm,
-                    children: vm.children
-                        .mapIndexed((index, cableVm) => _wrapSelectionListener(
-                            vm: cableVm,
-                            child: CableRowItem(
-                              cable: cableVm.cable,
-                              labelColor: cableVm.labelColor,
-                              showTopBorder: index == 0,
-                              isDragSelecting:
-                                  _hoveringCableIds.contains(cableVm.cable.uid),
-                              isSelected: widget.vm.selectedCableIds
-                                  .contains(cableVm.cable.uid),
-                              isExtension: cableVm.isExtension,
-                              hideLength:
-                                  vm.loom.type.type == LoomType.permanent,
-                            )))
-                        .toList()),
+                LoomViewModel vm => Padding(
+                    key: Key(rowVm.loom.uid),
+                    padding: EdgeInsets.only(top: index != 0 ? 16 : 0),
+                    child: LoomRowItem(
+                        loomVm: vm,
+                        children: vm.children
+                            .mapIndexed(
+                                (index, cableVm) => _wrapSelectionListener(
+                                    vm: cableVm,
+                                    child: CableRowItem(
+                                      cable: cableVm.cable,
+                                      labelColor: cableVm.labelColor,
+                                      showTopBorder: index == 0,
+                                      isDragSelecting: _hoveringCableIds
+                                          .contains(cableVm.cable.uid),
+                                      isSelected: widget.vm.selectedCableIds
+                                          .contains(cableVm.cable.uid),
+                                      isExtension: cableVm.isExtension,
+                                      hideLength: vm.loom.type.type ==
+                                          LoomType.permanent,
+                                      dmxUniverse: cableVm.universe,
+                                      sneakUniverses: cableVm.sneakUniverses,
+                                    )))
+                            .toList()),
+                  ),
                 CableViewModel vm => _wrapSelectionListener(
+                    key: Key(vm.cable.uid),
                     vm: vm,
                     child: CableRowItem(
                       cable: vm.cable,
@@ -94,6 +102,8 @@ class _LoomsState extends State<Looms> {
                       isDragSelecting: _hoveringCableIds.contains(vm.cable.uid),
                       showTopBorder: index == 0 ||
                           widget.vm.rowVms[index - 1] is! CableViewModel,
+                      dmxUniverse: vm.universe,
+                      sneakUniverses: vm.sneakUniverses,
                     )),
                 _ => const Text('WOOOOPS'),
               };
@@ -105,8 +115,9 @@ class _LoomsState extends State<Looms> {
   }
 
   Widget _wrapSelectionListener(
-      {required CableViewModel vm, required Widget child}) {
+      {required CableViewModel vm, required Widget child, Key? key}) {
     return MouseSelectionListener(
+        key: key,
         onSelectionDragOver: () => setState(
             () => _hoveringCableIds = {..._hoveringCableIds, vm.cable.uid}),
         onTapUp: () => _handleCableItemTapUp(vm),

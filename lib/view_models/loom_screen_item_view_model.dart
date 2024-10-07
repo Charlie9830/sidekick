@@ -9,13 +9,23 @@ class CableViewModel extends LoomScreenItemViewModel {
   final String locationId;
   final String labelColor;
   final bool isExtension;
+  final int universe;
+  final List<int> sneakUniverses;
 
   CableViewModel({
     required this.cable,
     required this.locationId,
     required this.labelColor,
     required this.isExtension,
+    required this.universe,
+    required this.sneakUniverses,
   });
+}
+
+enum LoomDropState {
+  isDropdown,
+  various,
+  isNotDropdown
 }
 
 class LoomViewModel extends LoomScreenItemViewModel {
@@ -23,12 +33,18 @@ class LoomViewModel extends LoomScreenItemViewModel {
   final void Function(String newValue) onNameChanged;
   final List<CableViewModel> children;
   final void Function(String newValue) onLengthChanged;
+  final void Function() onDelete;
+  final LoomDropState dropperState;
+  final void Function() onDropperStateButtonPressed;
 
   LoomViewModel({
     required this.loom,
     required this.children,
     required this.onNameChanged,
     required this.onLengthChanged,
+    required this.onDelete,
+    required this.dropperState,
+    required this.onDropperStateButtonPressed,
   });
 }
 

@@ -4,10 +4,14 @@ import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
-import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
+import 'package:sidekick/view_models/loom_screen_item_view_model.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
+  if (a is ToggleLoomDropperState) {
+    return _updateLoomDropperState(state, a.loomId, a.dropState, a.childCables);
+  }
+
   if (a is SetCables) {
     return state.copyWith(
       cables: a.cables,
@@ -201,6 +205,27 @@ double _convertBalanceTolerance(String newValue, double existingValue) {
   }
 
   return asInt / 100;
+}
+
+FixtureState _updateLoomDropperState(FixtureState state, String loomId,
+    LoomDropState dropState, List<CableModel> children) {
+  if (children.isEmpty) {
+    return state;
+  }
+
+  bool targetState = switch (dropState) {
+    LoomDropState.isDropdown || LoomDropState.various => false,
+    LoomDropState.isNotDropdown => true
+  };
+
+  final updatedChildren =
+      convertToModelMap(children.map((child) => child.copyWith(
+            isDropper: targetState,
+          )));
+
+  return state.copyWith(
+    cables: Map<String, CableModel>.from(state.cables)..addAll(updatedChildren),
+  );
 }
 
 int _convertMaxSequenceBreak(String newValue, int existingValue) {

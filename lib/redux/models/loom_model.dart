@@ -1,6 +1,9 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
+import 'package:sidekick/classes/named_colors.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
+import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 
 class LoomModel extends ModelCollectionMember {
@@ -63,5 +66,24 @@ class LoomModel extends ModelCollectionMember {
   @override
   String toString() {
     return 'LoomModel(uid: $uid, locationId: $locationIds, name: $name)';
+  }
+
+  static double matchLength(LocationModel? location) {
+    if (location == null) {
+      return 0;
+    }
+
+    final colorToLengthLookup = <Color, double>{
+      NamedColors.yellow: 50,
+      NamedColors.red: 45,
+      NamedColors.white: 40,
+      NamedColors.blue: 35,
+      NamedColors.orange: 30,
+      NamedColors.brown: 25,
+      NamedColors.grey: 20,
+      NamedColors.purple: 0,
+    };
+
+    return colorToLengthLookup[location.color] ?? 0;
   }
 }
