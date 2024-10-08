@@ -29,8 +29,8 @@ class LocationsContainer extends StatelessWidget {
             onLocationColorChanged: (locationId, color) => store.dispatch(
                   UpdateLocationColor(locationId, color),
                 ),
-            onLocationDelimiterChanged: (locationId, newValue) =>
-                store.dispatch(UpdateLocationDelimiter(locationId, newValue)));
+            onLocationDelimiterChanged: (locationId, newValue) => store
+                .dispatch(updateLocationMultiDelimiter(locationId, newValue)));
       },
     );
   }

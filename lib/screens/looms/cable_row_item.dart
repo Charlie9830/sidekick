@@ -12,6 +12,7 @@ class CableRowItem extends StatelessWidget {
   final bool isExtension;
   final List<int> sneakUniverses;
   final int dmxUniverse;
+  final String label;
 
   const CableRowItem({
     super.key,
@@ -24,6 +25,7 @@ class CableRowItem extends StatelessWidget {
     this.isExtension = false,
     this.sneakUniverses = const [],
     this.dmxUniverse = 0,
+    this.label = '',
   });
 
   @override
@@ -120,7 +122,7 @@ class CableRowItem extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(cable.label),
+                        Text(label),
                         if (sneakUniverses.isNotEmpty)
                           Text(
                               '  -  ${sneakUniverses.map((universe) => 'U$universe').join(',')}',

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/classes/named_colors.dart';
+import 'package:sidekick/data_selectors/select_cable_label.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
@@ -51,13 +52,17 @@ class LoomsContainer extends StatelessWidget {
 
       return MapEntry(location, [
         // Naked Cables
-        ...nakedCables.map((cable) => CableViewModel(
+        ...nakedCables.map(
+          (cable) => CableViewModel(
             cable: cable,
             locationId: location.uid,
             labelColor: NamedColors.names[location.color] ?? '',
             isExtension: cable.upstreamId.isNotEmpty,
             sneakUniverses: _selectSneakUniverses(store, cable),
-            universe: _selectDmxUniverse(store, cable))),
+            universe: _selectDmxUniverse(store, cable),
+            label: _selectCableLabel(store, cable),
+          ),
+        ),
 
         // Looms
         ...loomsInLocation.map(
@@ -72,6 +77,7 @@ class LoomsContainer extends StatelessWidget {
                       isExtension: cable.upstreamId.isNotEmpty,
                       sneakUniverses: _selectSneakUniverses(store, cable),
                       universe: _selectDmxUniverse(store, cable),
+                      label: _selectCableLabel(store, cable),
                     ))
                 .toList();
 
@@ -110,6 +116,14 @@ class LoomsContainer extends StatelessWidget {
         })
         .flattened
         .toList();
+  }
+
+  String _selectCableLabel(Store<AppState> store, CableModel cable) {
+    return selectCableLabel(
+        powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
+        dataMultis: store.state.fixtureState.dataMultis,
+        dataPatches: store.state.fixtureState.dataPatches,
+        cable: cable);
   }
 
   LoomDropState _selectDropperState(List<CableViewModel> children) {

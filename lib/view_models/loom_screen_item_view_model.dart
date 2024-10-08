@@ -11,6 +11,7 @@ class CableViewModel extends LoomScreenItemViewModel {
   final bool isExtension;
   final int universe;
   final List<int> sneakUniverses;
+  final String label;
 
   CableViewModel({
     required this.cable,
@@ -19,6 +20,7 @@ class CableViewModel extends LoomScreenItemViewModel {
     required this.isExtension,
     required this.universe,
     required this.sneakUniverses,
+    required this.label,
   });
 }
 

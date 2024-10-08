@@ -14,7 +14,6 @@ class CableModel extends ModelCollectionMember {
   @override
   final String uid;
   final double length;
-  final String label;
   final String loomId;
   final String outletId;
   final String locationId;
@@ -23,12 +22,12 @@ class CableModel extends ModelCollectionMember {
   final CableType type;
   final bool isSpare;
   final bool isDropper;
+  final int spareIndex;
 
   CableModel({
     required this.uid,
     this.loomId = '',
     this.length = 0,
-    this.label = '',
     required this.type,
     this.outletId = '',
     this.upstreamId = '',
@@ -36,12 +35,12 @@ class CableModel extends ModelCollectionMember {
     this.notes = '',
     this.isSpare = false,
     this.isDropper = false,
+    this.spareIndex = 0,
   });
 
   CableModel copyWith({
     String? uid,
     double? length,
-    String? label,
     String? loomId,
     String? outletId,
     String? locationId,
@@ -50,11 +49,11 @@ class CableModel extends ModelCollectionMember {
     CableType? type,
     bool? isSpare,
     bool? isDropper,
+    int? spareIndex,
   }) {
     return CableModel(
       uid: uid ?? this.uid,
       length: length ?? this.length,
-      label: label ?? this.label,
       loomId: loomId ?? this.loomId,
       outletId: outletId ?? this.outletId,
       locationId: locationId ?? this.locationId,
@@ -63,13 +62,13 @@ class CableModel extends ModelCollectionMember {
       type: type ?? this.type,
       isSpare: isSpare ?? this.isSpare,
       isDropper: isDropper ?? this.isDropper,
+      spareIndex: spareIndex ?? this.spareIndex,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
-      'label': label,
       'length': length,
       'loomId': loomId,
       'outletId': outletId,
@@ -79,13 +78,13 @@ class CableModel extends ModelCollectionMember {
       'locationId': locationId,
       'isSpare': isSpare,
       'isDropper': isDropper,
+      'spareIndex': spareIndex,
     };
   }
 
   factory CableModel.fromMap(Map<String, dynamic> map) {
     return CableModel(
       uid: map['uid'] ?? '',
-      label: map['label'] ?? '',
       length: map['length'] ?? '',
       loomId: map['loomId'] ?? '',
       outletId: map['outletId'] ?? '',
@@ -95,12 +94,13 @@ class CableModel extends ModelCollectionMember {
       type: CableType.values.byName(map['type']),
       isSpare: map['isSpare'],
       isDropper: map['isDropper'],
+      spareIndex: map['spareIndex'],
     );
   }
 
   @override
   String toString() {
-    return '$label    $type    $loomId';
+    return '    $type    $loomId';
   }
 
   String toJson() => json.encode(toMap());

@@ -18,6 +18,7 @@ import 'package:sidekick/excel/create_color_lookup_sheet.dart';
 import 'package:sidekick/excel/create_data_multi_sheet.dart';
 import 'package:sidekick/excel/create_data_patch_sheet.dart';
 import 'package:sidekick/excel/create_fixture_type_validation_sheet.dart';
+import 'package:sidekick/excel/create_permanent_looms_sheet.dart';
 import 'package:sidekick/excel/create_power_patch_sheet.dart';
 import 'package:sidekick/excel/read_fixture_type_database.dart';
 import 'package:sidekick/excel/read_fixtures_patch_data.dart';
@@ -347,7 +348,7 @@ List<
               length: newLoomLength,
               isSpare: true,
               locationId: newCableLocationId,
-              label: 'SP ${index + 1}',
+              spareIndex: index + 1,
               loomId: newLoomId,
             ));
 
@@ -359,7 +360,7 @@ List<
               length: newLoomLength,
               type: CableType.dmx,
               locationId: newCableLocationId,
-              label: 'SP ${index + 1}',
+              spareIndex: index + 1,
               loomId: newLoomId,
             ));
 
@@ -371,7 +372,7 @@ List<
               length: newLoomLength,
               type: CableType.sneak,
               locationId: newCableLocationId,
-              label: 'SP ${index + 1}',
+              spareIndex: index + 1,
               loomId: newLoomId,
             ));
 
@@ -632,7 +633,6 @@ ThunkAction<AppState> generateCables() {
         .map((outlet) => CableModel(
               uid: getUid(),
               type: CableType.socapex,
-              label: outlet.name,
               locationId: outlet.locationId,
               outletId: outlet.uid,
             ));
@@ -642,7 +642,6 @@ ThunkAction<AppState> generateCables() {
         .map((patch) => CableModel(
               type: CableType.dmx,
               uid: getUid(),
-              label: patch.name,
               locationId: patch.locationId,
               outletId: patch.uid,
             ));
@@ -651,7 +650,6 @@ ThunkAction<AppState> generateCables() {
         store.state.fixtureState.dataMultis.values.map((multi) => CableModel(
               type: CableType.sneak,
               uid: getUid(),
-              label: multi.name,
               locationId: multi.locationId,
               outletId: multi.uid,
             ));
@@ -697,7 +695,34 @@ ThunkAction<AppState> updateLocationMultiPrefix(
     updateAssociatedDataMultis(store, locationId, updatedLocation);
 
     // If DataPatches associated to this location have been created, update them as well.
+    updateAssociatedDataPatches(store, locationId, updatedLocation);
+  };
+}
+
+ThunkAction<AppState> updateLocationMultiDelimiter(
+    String locationId, String newValue) {
+  return (Store<AppState> store) async {
+    final existingLocation = store.state.fixtureState.locations[locationId];
+
+    if (existingLocation == null) {
+      return;
+    }
+
+    final updatedLocation =
+        existingLocation.copyWith(delimiter: newValue.trim());
+
+    store.dispatch(SetLocations(
+        Map<String, LocationModel>.from(store.state.fixtureState.locations)
+          ..update(locationId, (_) => updatedLocation)));
+
+    // If PowerMulti's associated to this location have already been created, update them as well.
+    updateAssociatedPowerMultis(store, locationId, updatedLocation);
+
+    // If DataMulti's assocated to this location have been created, update them as well.
     updateAssociatedDataMultis(store, locationId, updatedLocation);
+
+    // If DataPatches associated to this location have been created, update them as well.
+    updateAssociatedDataPatches(store, locationId, updatedLocation);
   };
 }
 
@@ -1029,6 +1054,16 @@ ThunkAction<AppState> export(BuildContext context) {
       locations: store.state.fixtureState.locations,
     );
 
+    createPermanentLoomsSheet(
+      excel: excel,
+      cables: store.state.fixtureState.cables,
+      looms: store.state.fixtureState.looms,
+      locations: store.state.fixtureState.locations,
+      dataMultis: store.state.fixtureState.dataMultis,
+      dataPatches: store.state.fixtureState.dataPatches,
+      powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
+    );
+
     excel.delete('Sheet1');
 
     final fileBytes = excel.save();
@@ -1246,14 +1281,17 @@ void updateAssociatedPowerMultis(
     Store<AppState> store, String locationId, LocationModel updatedLocation) {
   final associatedPowerMultis = store
       .state.fixtureState.powerMultiOutlets.values
-      .where((multi) => multi.locationId == locationId);
+      .where((multi) => multi.locationId == locationId)
+      .toList();
 
   if (associatedPowerMultis.isEmpty) {
     return;
   }
 
-  final updatedPowerMultis = associatedPowerMultis.map((existing) => existing
-      .copyWith(name: updatedLocation.getPrefixedPowerMulti(existing.number)));
+  final updatedPowerMultis = associatedPowerMultis.map((existing) =>
+      existing.copyWith(
+          name: updatedLocation.getPrefixedPowerMulti(
+              associatedPowerMultis.length == 1 ? null : existing.number)));
 
   store.dispatch(SetPowerMultiOutlets(Map<String, PowerMultiOutletModel>.from(
       store.state.fixtureState.powerMultiOutlets)
@@ -1264,7 +1302,8 @@ void updateAssociatedPowerMultis(
 void updateAssociatedDataMultis(
     Store<AppState> store, String locationId, LocationModel updatedLocation) {
   final associatedDataMultis = store.state.fixtureState.dataMultis.values
-      .where((multi) => multi.locationId == locationId);
+      .where((multi) => multi.locationId == locationId)
+      .toList();
 
   if (associatedDataMultis.isEmpty) {
     return;
@@ -1272,30 +1311,38 @@ void updateAssociatedDataMultis(
 
   final updatedDataMultis = associatedDataMultis.map((existing) =>
       existing.copyWith(
-          name: updatedLocation.getPrefixedDataMultiPatch(existing.number)));
+          name: updatedLocation.getPrefixedDataMultiPatch(
+              associatedDataMultis.length == 1 ? null : existing.number)));
 
   store.dispatch(SetDataMultis(
       Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
         ..addEntries(
             updatedDataMultis.map((multi) => MapEntry(multi.uid, multi)))));
+}
 
-  void updateAssociatedDataPatches(
-      Store<AppState> store, String locationId, LocationModel updatedLocation) {
-    final associatedDataPatches = store.state.fixtureState.dataPatches.values
-        .where((multi) => multi.locationId == locationId);
+void updateAssociatedDataPatches(
+    Store<AppState> store, String locationId, LocationModel updatedLocation) {
+  final associatedDataPatches = store.state.fixtureState.dataPatches.values
+      .where((multi) => multi.locationId == locationId)
+      .toList();
 
-    if (associatedDataPatches.isEmpty) {
-      return;
-    }
-
-    final updatedDataPatches = associatedDataPatches.map((existing) => existing
-        .copyWith(name: updatedLocation.getPrefixedDataPatch(existing.number)));
-
-    store.dispatch(SetDataPatches(
-        Map<String, DataPatchModel>.from(store.state.fixtureState.dataPatches)
-          ..addEntries(
-              updatedDataPatches.map((multi) => MapEntry(multi.uid, multi)))));
+  if (associatedDataPatches.isEmpty) {
+    return;
   }
+
+  final updatedDataPatches = associatedDataPatches.map((existing) {
+    return existing.copyWith(
+        name: updatedLocation.getPrefixedDataPatch(
+            associatedDataPatches.length == 1 ? null : existing.number,
+            parentMultiName: existing.multiId.isNotEmpty
+                ? store.state.fixtureState.dataMultis[existing.multiId]?.name
+                : null));
+  });
+
+  store.dispatch(SetDataPatches(
+      Map<String, DataPatchModel>.from(store.state.fixtureState.dataPatches)
+        ..addEntries(
+            updatedDataPatches.map((multi) => MapEntry(multi.uid, multi)))));
 }
 
 int _findNextAvailableSequenceNumber(List<int> sequenceNumbers) {

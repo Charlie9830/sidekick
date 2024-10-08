@@ -87,6 +87,7 @@ class _LoomsState extends State<Looms> {
                                           LoomType.permanent,
                                       dmxUniverse: cableVm.universe,
                                       sneakUniverses: cableVm.sneakUniverses,
+                                      label: cableVm.label,
                                     )))
                             .toList()),
                   ),
@@ -104,6 +105,7 @@ class _LoomsState extends State<Looms> {
                           widget.vm.rowVms[index - 1] is! CableViewModel,
                       dmxUniverse: vm.universe,
                       sneakUniverses: vm.sneakUniverses,
+                      label: rowVm.label,
                     )),
                 _ => const Text('WOOOOPS'),
               };
