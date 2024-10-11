@@ -11,7 +11,7 @@ import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 
-void createPermanentLoomsSheet({
+void createCustomLoomsSheet({
   required Excel excel,
   required Map<String, CableModel> cables,
   required Map<String, LoomModel> looms,
@@ -20,33 +20,33 @@ void createPermanentLoomsSheet({
   required Map<String, DataMultiModel> dataMultis,
   required Map<String, DataPatchModel> dataPatches,
 }) {
-  final sheet = excel['Permanents'];
+  final sheet = excel['Customs'];
 
-  final permanentLooms =
-      looms.values.where((loom) => loom.type.type == LoomType.permanent);
+  final customLooms =
+      looms.values.where((loom) => loom.type.type == LoomType.custom);
 
   final pointer = SheetIndexer();
 
-  for (final loom in permanentLooms) {
+  for (final loom in customLooms) {
     ///
     ///  Header Row.
     ///
 
+    // Metadata Leading Row
+    sheet.setColumnWidth(pointer.columnIndex, 2.5);
+    sheet.updateCell(
+      CellIndex.indexByColumnRow(
+          columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
+      TextCellValue(">"),
+      cellStyle: leadingCellStyle,
+    );
+
     // Loom Name
-    sheet.setColumnWidth(pointer.columnIndex, 10);
+    sheet.setColumnWidth(pointer.columnIndex, 8);
     sheet.updateCell(
       CellIndex.indexByColumnRow(
           columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
       TextCellValue(loom.name),
-      cellStyle: loomHeaderStyle,
-    );
-
-    // 2nd Column
-    sheet.setColumnWidth(pointer.columnIndex, 20);
-    sheet.updateCell(
-      CellIndex.indexByColumnRow(
-          columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
-      null,
       cellStyle: loomHeaderStyle,
     );
 
@@ -59,6 +59,25 @@ void createPermanentLoomsSheet({
       cellStyle: loomHeaderStyle,
     );
 
+    // 4th Column
+    sheet.setColumnWidth(pointer.columnIndex, 20);
+    sheet.updateCell(
+      CellIndex.indexByColumnRow(
+          columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
+      null,
+      cellStyle: loomHeaderStyle,
+    );
+
+    // 5th Column
+    sheet.setColumnWidth(pointer.columnIndex, 20);
+    sheet.updateCell(
+      CellIndex.indexByColumnRow(
+          columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
+      null,
+      cellStyle: loomHeaderStyle,
+    );
+
+
     // Location
     sheet.setColumnWidth(pointer.columnIndex, 20);
     sheet.updateCell(
@@ -68,61 +87,21 @@ void createPermanentLoomsSheet({
           locationIds: loom.locationIds, locations: locations)),
       cellStyle: loomHeaderStyle.copyWith(boldVal: false),
     );
-
-    pointer.carriageReturn();
-
-    ///
-    /// Composition Row
-    ///
-    sheet.updateCell(
-      CellIndex.indexByColumnRow(
-          columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
-      TextCellValue(loom.type.permanentComposition),
-      cellStyle: compositionRowStyle
-          .copyWith(boldVal: false)
-          .copyWith(leftBorderVal: Border(borderStyle: BorderStyle.Thick)),
-    );
-
-    // 2nd Column
-    sheet.updateCell(
-      CellIndex.indexByColumnRow(
-          columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
-      null,
-      cellStyle: compositionRowStyle.copyWith(boldVal: false),
-    );
-
-    // Color Title
-    sheet.updateCell(
-      CellIndex.indexByColumnRow(
-          columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
-      TextCellValue('Color'),
-      cellStyle: compositionRowStyle.copyWith(boldVal: false),
-    );
-
-    // Notes Title
-    sheet.updateCell(
-      CellIndex.indexByColumnRow(
-          columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
-      TextCellValue('Notes'),
-      cellStyle: compositionRowStyle.copyWith(
-          boldVal: false,
-          rightBorderVal: Border(borderStyle: BorderStyle.Thick)),
-    );
-
+    
     ///
     /// Cable Data Rows
     ///
     writeCableRows(
-      loom: loom,
-      looms: looms,
-      cables: cables,
-      dataMultis: dataMultis,
-      dataPatches: dataPatches,
-      locations: locations,
-      pointer: pointer,
-      powerMultiOutlets: powerMultiOutlets,
-      sheet: sheet,
-    );
+        loom: loom,
+        looms: looms,
+        cables: cables,
+        dataMultis: dataMultis,
+        dataPatches: dataPatches,
+        locations: locations,
+        pointer: pointer,
+        powerMultiOutlets: powerMultiOutlets,
+        sheet: sheet,
+        customRow: true);
 
     // Gap Between Looms.
     pointer.carriageReturn();

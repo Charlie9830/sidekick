@@ -15,6 +15,7 @@ import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/classes/universe_span.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/excel/create_color_lookup_sheet.dart';
+import 'package:sidekick/excel/create_custom_looms_sheet.dart';
 import 'package:sidekick/excel/create_data_multi_sheet.dart';
 import 'package:sidekick/excel/create_data_patch_sheet.dart';
 import 'package:sidekick/excel/create_fixture_type_validation_sheet.dart';
@@ -1055,6 +1056,16 @@ ThunkAction<AppState> export(BuildContext context) {
     );
 
     createPermanentLoomsSheet(
+      excel: excel,
+      cables: store.state.fixtureState.cables,
+      looms: store.state.fixtureState.looms,
+      locations: store.state.fixtureState.locations,
+      dataMultis: store.state.fixtureState.dataMultis,
+      dataPatches: store.state.fixtureState.dataPatches,
+      powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
+    );
+
+    createCustomLoomsSheet(
       excel: excel,
       cables: store.state.fixtureState.cables,
       looms: store.state.fixtureState.looms,
