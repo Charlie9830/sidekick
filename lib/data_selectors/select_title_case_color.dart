@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-String titleCaseColor(String colorName) {
+String selectTitleCaseColor(String colorName) {
   if (colorName.isEmpty) {
     return '';
   }
@@ -10,5 +10,5 @@ String titleCaseColor(String colorName) {
         colorName.characters.first, colorName.characters.first.toUpperCase());
   }
 
-  return colorName.split('/').map((color) => titleCaseColor(color)).join('/');
+  return colorName.split('/').map((color) => selectTitleCaseColor(color)).join('/');
 }

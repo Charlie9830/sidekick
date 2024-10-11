@@ -3,7 +3,7 @@ import 'package:sidekick/classes/named_colors.dart';
 import 'package:sidekick/data_selectors/select_cable_label.dart';
 import 'package:sidekick/data_selectors/select_cable_type_label.dart';
 import 'package:sidekick/excel/styles.dart';
-import 'package:sidekick/excel/title_case_color.dart';
+import 'package:sidekick/data_selectors/select_title_case_color.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
@@ -71,7 +71,7 @@ void writeCableLine(
   sheet.updateCell(
     CellIndex.indexByColumnRow(
         columnIndex: getColumnIndex(), rowIndex: rowIndex),
-    TextCellValue(titleCaseColor(color ?? '')),
+    TextCellValue(selectTitleCaseColor(color ?? '')),
     cellStyle: cableRowStyle,
   );
 

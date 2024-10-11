@@ -4,6 +4,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/classes/named_colors.dart';
 import 'package:sidekick/data_selectors/select_cable_label.dart';
+import 'package:sidekick/data_selectors/select_title_case_color.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
@@ -56,7 +57,8 @@ class LoomsContainer extends StatelessWidget {
           (cable) => CableViewModel(
             cable: cable,
             locationId: location.uid,
-            labelColor: NamedColors.names[location.color] ?? '',
+            labelColor:
+                selectTitleCaseColor(NamedColors.names[location.color] ?? ''),
             isExtension: cable.upstreamId.isNotEmpty,
             sneakUniverses: _selectSneakUniverses(store, cable),
             universe: _selectDmxUniverse(store, cable),
@@ -73,7 +75,7 @@ class LoomsContainer extends StatelessWidget {
                 .map((cable) => CableViewModel(
                       cable: cable,
                       locationId: location.uid,
-                      labelColor: NamedColors.names[location.color] ?? '',
+                      labelColor: selectTitleCaseColor(NamedColors.names[location.color] ?? ''),
                       isExtension: cable.upstreamId.isNotEmpty,
                       sneakUniverses: _selectSneakUniverses(store, cable),
                       universe: _selectDmxUniverse(store, cable),
