@@ -120,10 +120,12 @@ class LoomsContainer extends StatelessWidget {
 
   String _selectCableLabel(Store<AppState> store, CableModel cable) {
     return selectCableLabel(
-        powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
-        dataMultis: store.state.fixtureState.dataMultis,
-        dataPatches: store.state.fixtureState.dataPatches,
-        cable: cable);
+      powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
+      dataMultis: store.state.fixtureState.dataMultis,
+      dataPatches: store.state.fixtureState.dataPatches,
+      cable: cable,
+      includeUniverse: false,
+    );
   }
 
   LoomDropState _selectDropperState(List<CableViewModel> children) {
