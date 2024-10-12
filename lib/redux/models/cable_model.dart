@@ -31,7 +31,7 @@ class CableModel extends ModelCollectionMember {
     required this.type,
     this.outletId = '',
     this.upstreamId = '',
-    this.locationId = '',
+    required this.locationId,
     this.notes = '',
     this.isSpare = false,
     this.isDropper = false,

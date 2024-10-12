@@ -1,10 +1,14 @@
 import 'package:sidekick/model_collection/convert_to_model_map.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
+import 'package:sidekick/redux/models/data_multi_model.dart';
+import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
+import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
+import 'package:sidekick/utils/get_uid.dart';
 import 'package:sidekick/view_models/loom_screen_item_view_model.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
@@ -151,11 +155,33 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetDataMultis) {
-    return state.copyWith(dataMultis: a.multis);
+    final (updatedCables, updatedLooms) = _cleanupCablesAndLooms(
+        powerMultiOutlets: state.powerMultiOutlets,
+        dataMultis: a.multis,
+        dataPatches: state.dataPatches,
+        existingCables: state.cables,
+        existingLooms: state.looms);
+
+    return state.copyWith(
+      dataMultis: a.multis,
+      cables: updatedCables,
+      looms: updatedLooms,
+    );
   }
 
   if (a is SetDataPatches) {
-    return state.copyWith(dataPatches: a.patches);
+    final (updatedCables, updatedLooms) = _cleanupCablesAndLooms(
+        powerMultiOutlets: state.powerMultiOutlets,
+        dataMultis: state.dataMultis,
+        dataPatches: a.patches,
+        existingCables: state.cables,
+        existingLooms: state.looms);
+
+    return state.copyWith(
+      dataPatches: a.patches,
+      cables: updatedCables,
+      looms: updatedLooms,
+    );
   }
 
   if (a is SetFixtures) {
@@ -177,7 +203,18 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetPowerMultiOutlets) {
-    return state.copyWith(powerMultiOutlets: a.multiOutlets);
+    final (updatedCables, updatedLooms) = _cleanupCablesAndLooms(
+        powerMultiOutlets: a.multiOutlets,
+        dataMultis: state.dataMultis,
+        dataPatches: state.dataPatches,
+        existingCables: state.cables,
+        existingLooms: state.looms);
+
+    return state.copyWith(
+      powerMultiOutlets: a.multiOutlets,
+      cables: updatedCables,
+      looms: updatedLooms,
+    );
   }
 
   if (a is SetBalanceTolerance) {
@@ -263,5 +300,57 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
             existing.copyWith(type: existing.type.copyWith(length: newLength)),
       ),
     cables: updatedCables,
+  );
+}
+
+(Map<String, CableModel> cables, Map<String, LoomModel> looms)
+    _cleanupCablesAndLooms({
+  required Map<String, PowerMultiOutletModel> powerMultiOutlets,
+  required Map<String, DataMultiModel> dataMultis,
+  required Map<String, DataPatchModel> dataPatches,
+  required Map<String, CableModel> existingCables,
+  required Map<String, LoomModel> existingLooms,
+}) {
+  final cablesByOutletId = Map<String, CableModel>.from(
+      existingCables.map((key, value) => MapEntry(value.outletId, value)));
+
+  final updatedPowerCables = powerMultiOutlets.values
+      .map((outlet) => cablesByOutletId.containsKey(outlet.uid)
+          ? cablesByOutletId[outlet.uid]!
+          : CableModel(
+              uid: getUid(),
+              type: CableType.socapex,
+              outletId: outlet.uid,
+              locationId: outlet.locationId,
+            ));
+
+  final updatedDataMultis =
+      dataMultis.values.map((outlet) => cablesByOutletId.containsKey(outlet.uid)
+          ? cablesByOutletId[outlet.uid]!
+          : CableModel(
+              uid: getUid(),
+              type: CableType.sneak,
+              outletId: outlet.uid,
+              locationId: outlet.locationId,
+            ));
+
+  final updatedDataPatches = dataPatches.values
+      .where((patch) => patch.multiId.isEmpty)
+      .map((outlet) => cablesByOutletId.containsKey(outlet.uid)
+          ? cablesByOutletId[outlet.uid]!
+          : CableModel(
+              uid: getUid(),
+              type: CableType.dmx,
+              outletId: outlet.uid,
+              locationId: outlet.locationId,
+            ));
+
+  return (
+    convertToModelMap([
+      ...updatedPowerCables,
+      ...updatedDataMultis,
+      ...updatedDataPatches,
+    ]),
+    existingLooms,
   );
 }

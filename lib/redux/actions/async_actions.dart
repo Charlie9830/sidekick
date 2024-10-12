@@ -933,20 +933,31 @@ ThunkAction<AppState> generateDataPatch() {
       final locationId = entry.key;
       final spans = entry.value;
 
+      final Queue<String> existingPatchIds = Queue<String>.from(store
+          .state.fixtureState.dataPatches.values
+          .where((patch) => patch.locationId == locationId)
+          .map((patch) => patch.uid));
+
+      final Queue<String> existingMultiIds = Queue<String>.from(store
+          .state.fixtureState.dataMultis.values
+          .where((multi) => multi.locationId == locationId)
+          .map((multi) => multi.uid));
+
+      /// TODO:
+      /// Finish Implementing the queues above, calls to getUID below should first check if their is a relevant id to reuse.
+
       final location = store.state.fixtureState.locations[locationId];
 
-      final powerMultiCount = store.state.fixtureState.powerMultiOutlets.values
-          .where((powerMulti) => powerMulti.locationId == locationId)
-          .length;
-
-      if (spans.length <= 2 && powerMultiCount <= 2) {
+      if (spans.length <= 2) {
         // Can be 2 singles.
         patches.addAll(
           spans.mapIndexed(
             (index, span) {
               final wayNumber = index + 1;
               return DataPatchModel(
-                uid: getUid(),
+                uid: existingPatchIds.isNotEmpty
+                    ? existingPatchIds.removeFirst()
+                    : getUid(),
                 locationId: locationId,
                 number: wayNumber,
                 multiId: '',
@@ -967,7 +978,9 @@ ThunkAction<AppState> generateDataPatch() {
         for (final (index, slice) in slices.indexed) {
           final wayNumber = index + 1;
           final parentMulti = DataMultiModel(
-            uid: getUid(),
+            uid: existingMultiIds.isNotEmpty
+                ? existingMultiIds.removeFirst()
+                : getUid(),
             locationId: locationId,
             name: location?.getPrefixedDataMultiPatch(
                     slices.length > 1 ? wayNumber : null) ??
@@ -982,7 +995,9 @@ ThunkAction<AppState> generateDataPatch() {
               (index, span) {
                 final wayNumber = index + 1;
                 return DataPatchModel(
-                  uid: getUid(),
+                  uid: existingPatchIds.isNotEmpty
+                      ? existingPatchIds.removeFirst()
+                      : getUid(),
                   locationId: locationId,
                   number: wayNumber,
                   multiId: parentMulti.uid,
@@ -1007,7 +1022,9 @@ ThunkAction<AppState> generateDataPatch() {
                 (index) {
                   final wayNumber = index + 1;
                   return DataPatchModel(
-                    uid: getUid(),
+                    uid: existingPatchIds.isNotEmpty
+                        ? existingPatchIds.removeFirst()
+                        : getUid(),
                     locationId: locationId,
                     multiId: parentMulti.uid,
                     number: wayNumber,
@@ -1025,7 +1042,7 @@ ThunkAction<AppState> generateDataPatch() {
         }
       }
     }
-
+    
     store.dispatch(SetDataMultis(Map<String, DataMultiModel>.fromEntries(
         multis.map((multi) => MapEntry(multi.uid, multi)))));
     store.dispatch(SetDataPatches(Map<String, DataPatchModel>.fromEntries(
