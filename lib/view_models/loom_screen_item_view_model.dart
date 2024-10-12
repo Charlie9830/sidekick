@@ -38,6 +38,7 @@ class LoomViewModel extends LoomScreenItemViewModel {
   final void Function() onDelete;
   final LoomDropState dropperState;
   final void Function() onDropperStateButtonPressed;
+  final void Function() onSwitchType;
 
   LoomViewModel({
     required this.loom,
@@ -47,6 +48,7 @@ class LoomViewModel extends LoomScreenItemViewModel {
     required this.onDelete,
     required this.dropperState,
     required this.onDropperStateButtonPressed,
+    required this.onSwitchType,
   });
 }
 

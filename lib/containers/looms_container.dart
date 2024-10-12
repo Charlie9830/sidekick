@@ -75,7 +75,8 @@ class LoomsContainer extends StatelessWidget {
                 .map((cable) => CableViewModel(
                       cable: cable,
                       locationId: location.uid,
-                      labelColor: selectTitleCaseColor(NamedColors.names[location.color] ?? ''),
+                      labelColor: selectTitleCaseColor(
+                          NamedColors.names[location.color] ?? ''),
                       isExtension: cable.upstreamId.isNotEmpty,
                       sneakUniverses: _selectSneakUniverses(store, cable),
                       universe: _selectDmxUniverse(store, cable),
@@ -100,7 +101,9 @@ class LoomsContainer extends StatelessWidget {
                         _selectDropperState(children),
                         children.map((child) => child.cable).toList(),
                       ),
-                    ));
+                    ),
+                onSwitchType: () => store.dispatch(switchLoomType(context,
+                    loom.uid, children.map((child) => child.cable).toList())));
           },
         )
       ]);

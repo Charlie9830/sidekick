@@ -52,6 +52,71 @@ import 'package:sidekick/snack_bars/file_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
+ThunkAction<AppState> switchLoomType(
+    BuildContext context, String loomId, List<CableModel> children) {
+  return (Store<AppState> store) async {
+    final loom = store.state.fixtureState.looms[loomId];
+
+    if (loom == null) {
+      return;
+    }
+
+    if (loom.type.type == LoomType.permanent) {
+      // Super easy to go from Permanent to Custom.
+      final updatedLooms =
+          Map<String, LoomModel>.from(store.state.fixtureState.looms)
+            ..update(
+              loom.uid,
+              (existing) => existing.copyWith(
+                type: LoomTypeModel(
+                  length: existing.type.length,
+                  type: LoomType.custom,
+                ),
+              ),
+            );
+
+      // Ensure the Child cables all adopt the original Permanent Looms Length.
+      final updatedChildCables = convertToModelMap(loom.childrenIds
+          .map((id) => store.state.fixtureState.cables[id])
+          .nonNulls
+          .map((cable) => cable.copyWith(
+                length: loom.type.length,
+              )));
+
+      store.dispatch(SetCablesAndLooms(
+          Map<String, CableModel>.from(store.state.fixtureState.cables)
+            ..addAll(updatedChildCables),
+          updatedLooms));
+
+      return;
+    }
+
+    // We need to do a little bit more work to convert to a Permanent.
+    // Remove the existing Custom Loom from the collection.
+    final children = loom.childrenIds
+        .map((id) => store.state.fixtureState.cables[id])
+        .nonNulls
+        .toList();
+    // Attempt to generate new permanent looms from it's children.
+    final (updatedCables, updatedLooms, error) = buildNewPermanentLooms(
+        store: store,
+        cables: children,
+        allLocations: store.state.fixtureState.locations);
+
+    if (error != null) {
+      await showGenericDialog(
+          context: context,
+          title: 'Woops',
+          message: error,
+          affirmativeText: 'Okay');
+      return;
+    }
+
+    store.dispatch(SetCablesAndLooms(updatedCables,
+        Map<String, LoomModel>.from(updatedLooms)..remove(loomId)));
+  };
+}
+
 ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
   return (Store<AppState> store) async {
     if (uid.isEmpty) {

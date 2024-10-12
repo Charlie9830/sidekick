@@ -22,6 +22,8 @@ class _LoomRowItemState extends State<LoomRowItem> {
 
   @override
   Widget build(BuildContext context) {
+    final loomType = widget.loomVm.loom.type.type;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,7 +59,16 @@ class _LoomRowItemState extends State<LoomRowItem> {
                             backgroundColor: Colors.blueGrey,
                             labelPadding: EdgeInsets.all(0),
                           ),
-                        )
+                        ),
+                      if (widget.loomVm.loom.type.type == LoomType.custom)
+                        const SizedBox(
+                          height: 36,
+                          child: Chip(
+                            label: Text('Custom'),
+                            backgroundColor: Colors.blueAccent,
+                            labelPadding: EdgeInsets.all(0),
+                          ),
+                        ),
                     ],
                   ),
                   Row(
@@ -87,6 +98,15 @@ class _LoomRowItemState extends State<LoomRowItem> {
                           duration: const Duration(milliseconds: 150),
                           child: Row(
                             children: [
+                              Tooltip(
+                                  message: loomType == LoomType.permanent
+                                      ? 'Switch to Custom'
+                                      : 'Switch to Permanent',
+                                  child: IconButton(
+                                    icon: const Icon(
+                                        Icons.switch_access_shortcut),
+                                    onPressed: widget.loomVm.onSwitchType,
+                                  )),
                               Tooltip(
                                 message: "Dropdown Loom",
                                 child: IconButton(
