@@ -53,11 +53,37 @@ class _LoomsState extends State<Looms> {
                 label: const Text('Extension'),
                 onPressed: widget.vm.onCreateExtensionFromSelection,
               ),
-              OutlinedButton.icon(
-                icon: const Icon(Icons.merge),
-                label: const Text('Sneak'),
-                onPressed: widget.vm.onCombineDmxIntoSneak,
-              ),
+              VerticalDivider(),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Sneak',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall!
+                          .copyWith(color: Colors.grey)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Tooltip(
+                        message: 'Combine',
+                        child: IconButton(
+                          icon: const Icon(Icons.merge),
+                          onPressed: widget.vm.onCombineDmxIntoSneak,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Tooltip(
+                        message: 'Split',
+                        child: IconButton(
+                          icon: const Icon(Icons.call_split),
+                          onPressed: widget.vm.onSplitSneakIntoDmx,
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              )
             ],
           ),
         ),

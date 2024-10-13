@@ -37,7 +37,8 @@ class LoomsContainer extends StatelessWidget {
               createExtensionFromSelection(
                   context, store.state.navstate.selectedCableIds)),
           onCombineDmxIntoSneak: () => store.dispatch(combineDmxCablesIntoSneak(
-              context, store.state.navstate.selectedCableIds)));
+              context, store.state.navstate.selectedCableIds)),
+          onSplitSneakIntoDmx: () => store.dispatch(splitSneakIntoDmx(context, store.state.navstate.selectedCableIds)));
     });
   }
 

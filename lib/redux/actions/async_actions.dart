@@ -52,6 +52,84 @@ import 'package:sidekick/snack_bars/file_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
+ThunkAction<AppState> splitSneakIntoDmx(
+    BuildContext context, Set<String> cableIds) {
+  return (Store<AppState> store) async {
+    final validCables = cableIds
+        .map((id) => store.state.fixtureState.cables[id])
+        .nonNulls
+        .where((cable) => cable.type == CableType.sneak)
+        .toList();
+
+    if (validCables.isEmpty) {
+      return;
+    }
+
+    final locationIds = validCables.map((cable) => cable.locationId).toSet();
+
+    if (locationIds.length > 1) {
+      await showGenericDialog(
+          context: context,
+          title: "Woops",
+          message: "Can't split cables from different locations.. yet",
+          affirmativeText: "Okay");
+      return;
+    }
+
+    final loomIds = validCables.map((cable) => cable.loomId).toSet();
+
+    if (loomIds.length > 1) {
+      await showGenericDialog(
+          context: context,
+          title: "Woops",
+          message: "Can't Split cables from different Looms.. yet",
+          affirmativeText: "Okay");
+      return;
+    }
+
+    final locationId = locationIds.first;
+    final location = store.state.fixtureState.locations[locationId];
+
+    if (location == null) {
+      return;
+    }
+
+    final dataMultiIdsToRemove = validCables
+        .map(
+            (cable) => store.state.fixtureState.dataMultis[cable.outletId]?.uid)
+        .nonNulls
+        .toSet();
+
+    final associatedCables = validCables
+        .map((cable) => store.state.fixtureState.cables.values
+            .where((item) => item.multiId == cable.uid))
+        .flattened
+        .toList();
+
+    final spareCableIdsToRemove = associatedCables
+        .where((cable) => cable.isSpare)
+        .map((cable) => cable.uid)
+        .toSet();
+
+    final sneakCableIdsToRemove = validCables.map((cable) => cable.uid).toSet();
+
+    final updatedDataMultis =
+        Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
+          ..removeWhere((key, value) => dataMultiIdsToRemove.contains(key));
+
+    final updatedCables =
+        Map<String, CableModel>.from(store.state.fixtureState.cables)
+          ..addAll(convertToModelMap(
+              associatedCables.map((cable) => cable.copyWith(multiId: ''))))
+          ..removeWhere((key, value) =>
+              spareCableIdsToRemove.contains(key) ||
+              sneakCableIdsToRemove.contains(key));
+
+    store.dispatch(SetCables(updatedCables));
+    store.dispatch(SetDataMultis(updatedDataMultis));
+  };
+}
+
 ThunkAction<AppState> combineDmxCablesIntoSneak(
     BuildContext context, Set<String> cableIds) {
   return (Store<AppState> store) async {
@@ -202,7 +280,10 @@ ThunkAction<AppState> addSelectedCablesToLoom(
         PermanentLoomComposition.matchToPermanents(candidateChildren);
 
     final loomAndChildrenTuples = _mapCablesToPermanentLooms(
-        candidateChildren, permanentComps, store.state.fixtureState.locations,
+        candidateChildren,
+        store.state.fixtureState.cables,
+        permanentComps,
+        store.state.fixtureState.locations,
         recyclableLoomIds: [loomId]);
 
     final (updatedCables, updatedLooms) =
@@ -510,8 +591,8 @@ ThunkAction<AppState> combineCablesIntoNewLoom(
     return ({}, {}, 'No suitable Permanent loom compositions found.');
   }
 
-  final loomsWithChildrenTuples =
-      _mapCablesToPermanentLooms(cables, permanentComps, allLocations);
+  final loomsWithChildrenTuples = _mapCablesToPermanentLooms(
+      cables, existingCables, permanentComps, allLocations);
 
   final (updatedCables, updatedLooms) = _applyPermanentLoomChangesToCollection(
       existingCables, existingLooms, loomsWithChildrenTuples);
@@ -532,8 +613,13 @@ ThunkAction<AppState> combineCablesIntoNewLoom(
     updatedLooms[newLoom.uid] = newLoom;
 
     // Append the children.
-    updatedCables.addAll(Map<String, CableModel>.fromEntries(
-        children.map((cable) => MapEntry(cable.uid, cable))));
+    updatedCables.addAll(
+      Map<String, CableModel>.fromEntries(
+        children.map(
+          (cable) => MapEntry(cable.uid, cable),
+        ),
+      ),
+    );
   }
 
   return (updatedCables, updatedLooms);
@@ -546,6 +632,7 @@ List<
         )>
     _mapCablesToPermanentLooms(
         List<CableModel> cables,
+        Map<String, CableModel> allExistingCables,
         List<PermanentLoomComposition> permanentComps,
         Map<String, LocationModel> allLocations,
         {List<String> recyclableLoomIds = const []}) {
@@ -641,7 +728,17 @@ List<
       ...dmxWays,
       ...spareDmxCables,
       ...sneakWays,
-      ...spareSneakCables
+      ...spareSneakCables,
+
+      // Ensure any children of Sneak Snakes also get their LoomId property updated.
+      // Even though these get usually filtered out on the UI Side of things, we should still
+      // strive to keep them up to date with loom changes.
+      ...cables
+          .where((cable) => cable.type == CableType.sneak)
+          .map((sneak) => allExistingCables.values
+              .where((cable) => cable.multiId == sneak.uid))
+          .flattened
+          .map((cable) => cable.copyWith(loomId: newLoomId))
     ];
 
     return (
@@ -666,6 +763,21 @@ List<
   required Set<String> locationIds,
   required Set<String> cableIds,
 }) {
+  final cableIdsWithSneakChildren = cableIds
+      .map((id) => store.state.fixtureState.cables[id])
+      .nonNulls
+      .map((cable) {
+        if (cable.type != CableType.sneak) {
+          return [cable.uid];
+        } else {
+          return store.state.fixtureState.cables.values
+              .where((item) => item.multiId == cable.uid)
+              .map((item) => item.uid);
+        }
+      })
+      .flattened
+      .toSet();
+
   final newLoom = LoomModel(
     uid: getUid(),
     locationIds: locationIds,
@@ -673,10 +785,11 @@ List<
     type: LoomTypeModel(length: 0, type: LoomType.custom),
   );
 
-  final updatedCables = Map<String, CableModel>.from(
-      store.state.fixtureState.cables)
-    ..updateAll((key, value) =>
-        cableIds.contains(key) ? value.copyWith(loomId: newLoom.uid) : value);
+  final updatedCables =
+      Map<String, CableModel>.from(store.state.fixtureState.cables)
+        ..updateAll((key, value) => cableIdsWithSneakChildren.contains(key)
+            ? value.copyWith(loomId: newLoom.uid)
+            : value);
 
   final updatedLooms =
       Map<String, LoomModel>.from(store.state.fixtureState.looms)
