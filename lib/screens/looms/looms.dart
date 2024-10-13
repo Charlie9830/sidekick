@@ -52,6 +52,11 @@ class _LoomsState extends State<Looms> {
                 icon: const Icon(Icons.add),
                 label: const Text('Extension'),
                 onPressed: widget.vm.onCreateExtensionFromSelection,
+              ),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.merge),
+                label: const Text('Sneak'),
+                onPressed: widget.vm.onCombineDmxIntoSneak,
               )
             ],
           ),

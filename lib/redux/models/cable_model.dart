@@ -23,6 +23,7 @@ class CableModel extends ModelCollectionMember {
   final bool isSpare;
   final bool isDropper;
   final int spareIndex;
+  final String multiId;
 
   CableModel({
     required this.uid,
@@ -36,6 +37,7 @@ class CableModel extends ModelCollectionMember {
     this.isSpare = false,
     this.isDropper = false,
     this.spareIndex = 0,
+    this.multiId = '',
   });
 
   int get typeRank => _cableTypeRankings[type]!;
@@ -52,6 +54,7 @@ class CableModel extends ModelCollectionMember {
     bool? isSpare,
     bool? isDropper,
     int? spareIndex,
+    String? multiId,
   }) {
     return CableModel(
       uid: uid ?? this.uid,
@@ -65,6 +68,7 @@ class CableModel extends ModelCollectionMember {
       isSpare: isSpare ?? this.isSpare,
       isDropper: isDropper ?? this.isDropper,
       spareIndex: spareIndex ?? this.spareIndex,
+      multiId: multiId ?? this.multiId,
     );
   }
 
@@ -81,6 +85,7 @@ class CableModel extends ModelCollectionMember {
       'isSpare': isSpare,
       'isDropper': isDropper,
       'spareIndex': spareIndex,
+      'multiId': multiId,
     };
   }
 
@@ -97,6 +102,7 @@ class CableModel extends ModelCollectionMember {
       isSpare: map['isSpare'],
       isDropper: map['isDropper'],
       spareIndex: map['spareIndex'],
+      multiId: map['multiId'],
     );
   }
 

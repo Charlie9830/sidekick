@@ -8,6 +8,7 @@ class LoomsViewModel {
   final Set<String> selectedCableIds;
   final void Function(LoomType type) onCombineCablesIntoNewLoomButtonPressed;
   final void Function() onCreateExtensionFromSelection;
+  final void Function() onCombineDmxIntoSneak;
 
   LoomsViewModel({
     required this.rowVms,
@@ -16,5 +17,6 @@ class LoomsViewModel {
     required this.selectedCableIds,
     required this.onCombineCablesIntoNewLoomButtonPressed,
     required this.onCreateExtensionFromSelection,
+    required this.onCombineDmxIntoSneak,
   });
 }

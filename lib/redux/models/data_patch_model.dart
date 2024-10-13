@@ -18,15 +18,15 @@ class DataPatchModel extends ModelCollectionMember {
 
   DataPatchModel({
     required this.uid,
-    required this.name,
-    required this.number,
-    required this.universe,
-    required this.multiId,
-    required this.fixtureIds,
+    this.name = '',
+    this.number = 0,
+    this.universe = 0,
+    this.multiId = '',
+    this.fixtureIds = const [],
     required this.locationId,
     this.isSpare = false,
-    required this.startsAtFixtureId,
-    required this.endsAtFixtureId,
+    this.startsAtFixtureId = 0,
+    this.endsAtFixtureId = 0,
   });
 
   String get nameWithUniverse => isSpare ? name : '$name U$universe';

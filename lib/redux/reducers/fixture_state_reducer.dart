@@ -18,7 +18,18 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetCables) {
-    return state.copyWith(cables: a.cables, looms: {});
+    return state.copyWith(cables: a.cables);
+  }
+
+  if (a is UpdateCablesAndDataMultis) {
+    final (cleanCables, cleanLooms) =
+        cleanupCablesAndLooms(a.cables, state.looms);
+        
+    return state.copyWith(
+      cables: cleanCables,
+      looms: cleanLooms,
+      dataMultis: a.dataMultis,
+    );
   }
 
   if (a is UpdateLoomName) {

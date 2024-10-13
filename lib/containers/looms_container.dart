@@ -34,7 +34,9 @@ class LoomsContainer extends StatelessWidget {
                   context, store.state.navstate.selectedCableIds, type)),
           onCreateExtensionFromSelection: () => store.dispatch(
               createExtensionFromSelection(
-                  context, store.state.navstate.selectedCableIds)));
+                  context, store.state.navstate.selectedCableIds)),
+          onCombineDmxIntoSneak: () => store.dispatch(combineDmxCablesIntoSneak(
+              context, store.state.navstate.selectedCableIds)));
     });
   }
 
@@ -42,8 +44,9 @@ class LoomsContainer extends StatelessWidget {
       BuildContext context, Store<AppState> store) {
     final cablesAndLoomsByLocation =
         store.state.fixtureState.locations.map((locationId, location) {
-      final cablesInLocation = store.state.fixtureState.cables.values
-          .where((cable) => cable.locationId == locationId);
+      final cablesInLocation = store.state.fixtureState.cables.values.where(
+        (cable) => cable.locationId == locationId && cable.multiId.isEmpty,
+      );
 
       final loomsInLocation = store.state.fixtureState.looms.values
           .where((loom) => loom.locationIds.contains(locationId));
@@ -165,8 +168,12 @@ class LoomsContainer extends StatelessWidget {
       return [];
     }
 
-    final patchOutlets = store.state.fixtureState.dataPatches.values
-        .where((patch) => patch.multiId == cable.outletId);
+    final associatedChildCables = store.state.fixtureState.cables.values
+        .where((child) => child.multiId == cable.uid);
+
+    final patchOutlets = associatedChildCables
+        .map((child) => store.state.fixtureState.dataPatches[child.outletId])
+        .nonNulls;
 
     return patchOutlets.map((patch) => patch.universe).toList();
   }

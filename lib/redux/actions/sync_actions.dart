@@ -15,6 +15,16 @@ import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
 import 'package:sidekick/view_models/loom_screen_item_view_model.dart';
 
+class UpdateCablesAndDataMultis {
+  final Map<String, CableModel> cables;
+  final Map<String, DataMultiModel> dataMultis;
+
+  UpdateCablesAndDataMultis(
+    this.cables,
+    this.dataMultis,
+  );
+}
+
 class ToggleLoomDropperState {
   final String loomId;
   final List<CableModel> childCables;
@@ -255,7 +265,7 @@ class UpdateLocationDelimiter {
   final String locationId;
   final String newValue;
 
-UpdateLocationDelimiter(this.locationId, this.newValue);
+  UpdateLocationDelimiter(this.locationId, this.newValue);
 }
 
 class UpdateLocationColor {

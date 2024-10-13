@@ -52,6 +52,74 @@ import 'package:sidekick/snack_bars/file_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
+ThunkAction<AppState> combineDmxCablesIntoSneak(
+    BuildContext context, Set<String> cableIds) {
+  return (Store<AppState> store) async {
+    final validCables = cableIds
+        .map((id) => store.state.fixtureState.cables[id])
+        .nonNulls
+        .where((cable) => cable.multiId.isEmpty && cable.type == CableType.dmx)
+        .toList();
+
+    if (validCables.isEmpty) {
+      return;
+    }
+
+    final locationIds = validCables.map((cable) => cable.locationId).toSet();
+
+    if (locationIds.length > 1) {
+      await showGenericDialog(
+          context: context,
+          title: "Woops",
+          message:
+              "Can't combine cables from different locations onto the one sneak.. yet",
+          affirmativeText: "Okay");
+      return;
+    }
+
+    final locationId = locationIds.first;
+
+    final location = store.state.fixtureState.locations[locationId];
+
+    if (location == null) {
+      return;
+    }
+
+    final existingMultiOutletsInLocation = store
+        .state.fixtureState.dataMultis.values
+        .where((multi) => multi.locationId == locationId)
+        .toList();
+
+    final newMultiOutlet = DataMultiModel(
+      uid: getUid(),
+      locationId: locationId,
+      number: existingMultiOutletsInLocation.length + 1,
+      name: location.getPrefixedDataMultiPatch(
+          existingMultiOutletsInLocation.length == 1
+              ? null
+              : existingMultiOutletsInLocation.length + 1),
+    );
+
+    final newSneak = CableModel(
+      uid: getUid(),
+      type: CableType.sneak,
+      locationId: locationId,
+      outletId: newMultiOutlet.uid,
+    );
+
+    final updatedCables = [
+      ...validCables.map((cable) => cable.copyWith(multiId: newSneak.uid)),
+      newSneak,
+    ];
+
+    store.dispatch(UpdateCablesAndDataMultis(
+        Map<String, CableModel>.from(store.state.fixtureState.cables)
+          ..addAll(convertToModelMap(updatedCables)),
+        Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
+          ..addAll(convertToModelMap([newMultiOutlet]))));
+  };
+}
+
 ThunkAction<AppState> addSelectedCablesToLoom(
     BuildContext context, String loomId, Set<String> cableIds) {
   return (Store<AppState> store) async {
@@ -1014,124 +1082,37 @@ ThunkAction<AppState> generateDataPatch() {
     );
 
     final List<DataPatchModel> patches = [];
-    final List<DataMultiModel> multis = [];
 
     for (final entry in spansByLocationId.entries) {
       final locationId = entry.key;
       final spans = entry.value;
 
-      final Queue<String> existingPatchIds = Queue<String>.from(store
-          .state.fixtureState.dataPatches.values
-          .where((patch) => patch.locationId == locationId)
-          .map((patch) => patch.uid));
+      final Queue<DataPatchModel> existingPatches = Queue<DataPatchModel>.from(
+          store.state.fixtureState.dataPatches.values
+              .where((patch) => patch.locationId == locationId));
 
-      final Queue<String> existingMultiIds = Queue<String>.from(store
-          .state.fixtureState.dataMultis.values
-          .where((multi) => multi.locationId == locationId)
-          .map((multi) => multi.uid));
+      final location = store.state.fixtureState.locations[locationId]!;
 
-      /// TODO:
-      /// Finish Implementing the queues above, calls to getUID below should first check if their is a relevant id to reuse.
-
-      final location = store.state.fixtureState.locations[locationId];
-
-      if (spans.length <= 2) {
-        // Can be 2 singles.
-        patches.addAll(
-          spans.mapIndexed(
-            (index, span) {
-              final wayNumber = index + 1;
-              return DataPatchModel(
-                uid: existingPatchIds.isNotEmpty
-                    ? existingPatchIds.removeFirst()
-                    : getUid(),
+      for (final (index, span) in spans.indexed) {
+        final basePatch = existingPatches.isNotEmpty
+            ? existingPatches.removeFirst()
+            : DataPatchModel(
+                uid: getUid(),
                 locationId: locationId,
-                number: wayNumber,
-                multiId: '',
-                universe: span.universe,
-                name: location?.getPrefixedDataPatch(
-                        spans.length > 1 ? wayNumber : null) ??
-                    '',
-                startsAtFixtureId: span.startsAt.fid,
-                endsAtFixtureId: span.endsAt?.fid ?? 0,
-                fixtureIds: span.fixtureIds,
               );
-            },
-          ),
-        );
-      } else {
-        final slices = spans.slices(4).toList();
 
-        for (final (index, slice) in slices.indexed) {
-          final wayNumber = index + 1;
-          final parentMulti = DataMultiModel(
-            uid: existingMultiIds.isNotEmpty
-                ? existingMultiIds.removeFirst()
-                : getUid(),
-            locationId: locationId,
-            name: location?.getPrefixedDataMultiPatch(
-                    slices.length > 1 ? wayNumber : null) ??
-                '',
-            number: wayNumber,
-          );
-
-          multis.add(parentMulti);
-
-          patches.addAll(
-            slice.mapIndexed(
-              (index, span) {
-                final wayNumber = index + 1;
-                return DataPatchModel(
-                  uid: existingPatchIds.isNotEmpty
-                      ? existingPatchIds.removeFirst()
-                      : getUid(),
-                  locationId: locationId,
-                  number: wayNumber,
-                  multiId: parentMulti.uid,
-                  universe: span.universe,
-                  startsAtFixtureId: span.startsAt.fid,
-                  endsAtFixtureId: span.endsAt?.fid ?? 0,
-                  name: location?.getPrefixedDataPatch(wayNumber,
-                          parentMultiName: parentMulti.name) ??
-                      '',
-                  fixtureIds: span.fixtureIds,
-                );
-              },
-            ),
-          );
-
-          // Add Spares if needed
-          if (slice.length < 4) {
-            final int diff = 4 - slice.length;
-            patches.addAll(
-              List<DataPatchModel>.generate(
-                diff,
-                (index) {
-                  final wayNumber = index + 1;
-                  return DataPatchModel(
-                    uid: existingPatchIds.isNotEmpty
-                        ? existingPatchIds.removeFirst()
-                        : getUid(),
-                    locationId: locationId,
-                    multiId: parentMulti.uid,
-                    number: wayNumber,
-                    universe: 0,
-                    name: 'SP $wayNumber',
-                    startsAtFixtureId: 0,
-                    endsAtFixtureId: 0,
-                    isSpare: true,
-                    fixtureIds: [],
-                  );
-                },
-              ),
-            );
-          }
-        }
+        patches.add(basePatch.copyWith(
+          name: location.getPrefixedDataPatch(index + 1),
+          number: index + 1,
+          universe: span.universe,
+          startsAtFixtureId: span.startsAt.fid,
+          endsAtFixtureId: span.endsAt?.fid ?? 0,
+          fixtureIds: span.fixtureIds,
+          isSpare: false,
+        ));
       }
     }
 
-    store.dispatch(SetDataMultis(Map<String, DataMultiModel>.fromEntries(
-        multis.map((multi) => MapEntry(multi.uid, multi)))));
     store.dispatch(SetDataPatches(Map<String, DataPatchModel>.fromEntries(
         patches.map((patch) => MapEntry(patch.uid, patch)))));
   };
