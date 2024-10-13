@@ -8,6 +8,7 @@ import 'package:sidekick/data_selectors/select_title_case_color.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
+import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/looms/looms.dart';
 import 'package:sidekick/view_models/loom_screen_item_view_model.dart';
@@ -72,8 +73,12 @@ class LoomsContainer extends StatelessWidget {
         // Looms
         ...loomsInLocation.map(
           (loom) {
-            final children = store.state.fixtureState.cables.values
-                .where((cable) => cable.loomId == loom.uid && cable.multiId.isEmpty)
+            final childCables = store.state.fixtureState.cables.values
+                .where((cable) =>
+                    cable.loomId == loom.uid && cable.multiId.isEmpty)
+                .toList();
+
+            final childVms = childCables
                 .map((cable) => CableViewModel(
                       cable: cable,
                       locationId: location.uid,
@@ -88,7 +93,10 @@ class LoomsContainer extends StatelessWidget {
 
             return LoomViewModel(
               loom: loom,
-              children: children,
+              isValidComposition: loom.type.type == LoomType.permanent
+                  ? loom.type.checkIsValid(childCables)
+                  : true,
+              children: childVms,
               onNameChanged: (newValue) =>
                   store.dispatch(UpdateLoomName(loom.uid, newValue)),
               onLengthChanged: (newValue) =>
@@ -96,16 +104,16 @@ class LoomsContainer extends StatelessWidget {
               onDelete: () => store.dispatch(
                 deleteLoom(context, loom.uid),
               ),
-              dropperState: _selectDropperState(children),
+              dropperState: _selectDropperState(childVms),
               onDropperStateButtonPressed: () => store.dispatch(
                 ToggleLoomDropperState(
                   loom.uid,
-                  _selectDropperState(children),
-                  children.map((child) => child.cable).toList(),
+                  _selectDropperState(childVms),
+                  childVms.map((child) => child.cable).toList(),
                 ),
               ),
               onSwitchType: () => store.dispatch(switchLoomType(context,
-                  loom.uid, children.map((child) => child.cable).toList())),
+                  loom.uid, childVms.map((child) => child.cable).toList())),
               addSelectedCablesToLoom:
                   store.state.navstate.selectedCableIds.isNotEmpty
                       ? () => store.dispatch(

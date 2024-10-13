@@ -353,7 +353,10 @@ ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
 }
 
 ThunkAction<AppState> debugButtonPressed() {
-  return (Store<AppState> store) async {};
+  return (Store<AppState> store) async {
+    store.dispatch(SetCablesAndLooms({}, {}));
+    store.dispatch(SetDataMultis({}));
+  };
 }
 
 ThunkAction<AppState> createExtensionFromSelection(

@@ -36,6 +36,7 @@ class LoomViewModel extends LoomScreenItemViewModel {
   final void Function() onDropperStateButtonPressed;
   final void Function() onSwitchType;
   final void Function()? addSelectedCablesToLoom;
+  final bool isValidComposition;
 
   LoomViewModel({
     required this.loom,
@@ -47,6 +48,7 @@ class LoomViewModel extends LoomScreenItemViewModel {
     required this.onDropperStateButtonPressed,
     required this.onSwitchType,
     required this.addSelectedCablesToLoom,
+    required this.isValidComposition,
   });
 }
 

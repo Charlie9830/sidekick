@@ -41,7 +41,7 @@ class _LoomRowItemState extends State<LoomRowItem> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       SizedBox(
                         width: 400,
@@ -51,6 +51,14 @@ class _LoomRowItemState extends State<LoomRowItem> {
                           hintText: 'Name',
                         ),
                       ),
+                      const Spacer(),
+                      if (widget.loomVm.isValidComposition == false)
+                        SizedBox(
+                            height: 36,
+                            child: Chip(
+                              label: const Text('Bad Composition'),
+                              backgroundColor: Colors.orange.shade600,
+                            )),
                       if (widget.loomVm.loom.type.type == LoomType.permanent)
                         const SizedBox(
                           height: 36,
@@ -101,9 +109,10 @@ class _LoomRowItemState extends State<LoomRowItem> {
                               Tooltip(
                                   message: 'Add selected cables',
                                   child: IconButton(
-                                      icon: const Icon(Icons.add_circle),
-                                      onPressed: widget
-                                          .loomVm.addSelectedCablesToLoom,)),
+                                    icon: const Icon(Icons.add_circle),
+                                    onPressed:
+                                        widget.loomVm.addSelectedCablesToLoom,
+                                  )),
                               Tooltip(
                                   message: loomType == LoomType.permanent
                                       ? 'Switch to Custom'

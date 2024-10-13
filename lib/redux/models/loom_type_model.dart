@@ -1,5 +1,9 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
+import 'package:sidekick/redux/models/cable_model.dart';
+import 'package:sidekick/redux/models/permanent_loom_composition.dart';
+
 enum LoomType {
   custom,
   permanent,
@@ -20,6 +24,20 @@ class LoomTypeModel {
       : type = LoomType.custom,
         length = 0,
         permanentComposition = '';
+
+  bool checkIsValid(List<CableModel> children) {
+    if (type != LoomType.permanent) {
+      return true;
+    }
+
+    final composition = PermanentLoomComposition.byName[permanentComposition];
+
+    if (composition == null) {
+      return true;
+    }
+
+    return composition.satisfied(children);
+  }
 
   LoomTypeModel copyWith({
     LoomType? type,
