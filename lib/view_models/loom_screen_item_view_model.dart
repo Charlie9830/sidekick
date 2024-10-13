@@ -24,11 +24,7 @@ class CableViewModel extends LoomScreenItemViewModel {
   });
 }
 
-enum LoomDropState {
-  isDropdown,
-  various,
-  isNotDropdown
-}
+enum LoomDropState { isDropdown, various, isNotDropdown }
 
 class LoomViewModel extends LoomScreenItemViewModel {
   final LoomModel loom;
@@ -39,6 +35,7 @@ class LoomViewModel extends LoomScreenItemViewModel {
   final LoomDropState dropperState;
   final void Function() onDropperStateButtonPressed;
   final void Function() onSwitchType;
+  final void Function()? addSelectedCablesToLoom;
 
   LoomViewModel({
     required this.loom,
@@ -49,6 +46,7 @@ class LoomViewModel extends LoomScreenItemViewModel {
     required this.dropperState,
     required this.onDropperStateButtonPressed,
     required this.onSwitchType,
+    required this.addSelectedCablesToLoom,
   });
 }
 

@@ -99,6 +99,12 @@ class _LoomRowItemState extends State<LoomRowItem> {
                           child: Row(
                             children: [
                               Tooltip(
+                                  message: 'Add selected cables',
+                                  child: IconButton(
+                                      icon: const Icon(Icons.add_circle),
+                                      onPressed: widget
+                                          .loomVm.addSelectedCablesToLoom,)),
+                              Tooltip(
                                   message: loomType == LoomType.permanent
                                       ? 'Switch to Custom'
                                       : 'Switch to Permanent',

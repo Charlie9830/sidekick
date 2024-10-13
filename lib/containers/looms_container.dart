@@ -85,25 +85,36 @@ class LoomsContainer extends StatelessWidget {
                 .toList();
 
             return LoomViewModel(
-                loom: loom,
-                children: children,
-                onNameChanged: (newValue) =>
-                    store.dispatch(UpdateLoomName(loom.uid, newValue)),
-                onLengthChanged: (newValue) =>
-                    store.dispatch(UpdateLoomLength(loom.uid, newValue)),
-                onDelete: () => store.dispatch(
-                      deleteLoom(context, loom.uid),
-                    ),
-                dropperState: _selectDropperState(children),
-                onDropperStateButtonPressed: () => store.dispatch(
-                      ToggleLoomDropperState(
-                        loom.uid,
-                        _selectDropperState(children),
-                        children.map((child) => child.cable).toList(),
-                      ),
-                    ),
-                onSwitchType: () => store.dispatch(switchLoomType(context,
-                    loom.uid, children.map((child) => child.cable).toList())));
+              loom: loom,
+              children: children,
+              onNameChanged: (newValue) =>
+                  store.dispatch(UpdateLoomName(loom.uid, newValue)),
+              onLengthChanged: (newValue) =>
+                  store.dispatch(UpdateLoomLength(loom.uid, newValue)),
+              onDelete: () => store.dispatch(
+                deleteLoom(context, loom.uid),
+              ),
+              dropperState: _selectDropperState(children),
+              onDropperStateButtonPressed: () => store.dispatch(
+                ToggleLoomDropperState(
+                  loom.uid,
+                  _selectDropperState(children),
+                  children.map((child) => child.cable).toList(),
+                ),
+              ),
+              onSwitchType: () => store.dispatch(switchLoomType(context,
+                  loom.uid, children.map((child) => child.cable).toList())),
+              addSelectedCablesToLoom:
+                  store.state.navstate.selectedCableIds.isNotEmpty
+                      ? () => store.dispatch(
+                            addSelectedCablesToLoom(
+                              context,
+                              loom.uid,
+                              store.state.navstate.selectedCableIds,
+                            ),
+                          )
+                      : null,
+            );
           },
         )
       ]);

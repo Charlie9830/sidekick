@@ -52,6 +52,65 @@ import 'package:sidekick/snack_bars/file_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
+ThunkAction<AppState> addSelectedCablesToLoom(
+    BuildContext context, String loomId, Set<String> cableIds) {
+  return (Store<AppState> store) async {
+    final cables = cableIds
+        .map((id) => store.state.fixtureState.cables[id])
+        .nonNulls
+        .toList();
+
+    if (cables.isEmpty) {
+      return;
+    }
+
+    final loom = store.state.fixtureState.looms[loomId];
+
+    if (loom == null) {
+      return;
+    }
+
+    final validCables = cables.where((cable) =>
+        cable.loomId != loomId &&
+        cable.isSpare == false &&
+        loom.locationIds.contains(cable.locationId));
+
+    if (validCables.isEmpty) {
+      return;
+    }
+
+    // If its a Custom Loom we can just add the new cables.
+    if (loom.type.type == LoomType.custom) {
+      addCablesToCustomLoom(validCables, loom, store);
+      return;
+    }
+
+    // Its a permanent loom. So we need to ensure we follow composition policies here.
+    final candidateChildren = [
+      ...loom.childrenIds
+          .map((id) => store.state.fixtureState.cables[id])
+          .nonNulls,
+      ...validCables,
+    ];
+
+    final permanentComps =
+        PermanentLoomComposition.matchToPermanents(candidateChildren);
+
+    final loomAndSpareCableTuples = _mapCablesToPermanentLooms(
+        cables, permanentComps, store.state.fixtureState.locations,
+        recyclableLoomIds: [loomId]);
+
+    final (updatedCables, updatedLooms) =
+        _applyPermanentLoomChangesToCollection(store.state.fixtureState.cables,
+            store.state.fixtureState.looms, loomAndSpareCableTuples);
+
+    store.dispatch(SetCablesAndLooms(
+      updatedCables,
+      updatedLooms,
+    ));
+  };
+}
+
 ThunkAction<AppState> switchLoomType(
     BuildContext context, String loomId, List<CableModel> children) {
   return (Store<AppState> store) async {
@@ -99,7 +158,8 @@ ThunkAction<AppState> switchLoomType(
         .toList();
     // Attempt to generate new permanent looms from it's children.
     final (updatedCables, updatedLooms, error) = buildNewPermanentLooms(
-        store: store,
+        existingCables: store.state.fixtureState.cables,
+        existingLooms: store.state.fixtureState.looms,
         cables: children,
         allLocations: store.state.fixtureState.locations);
 
@@ -305,7 +365,8 @@ ThunkAction<AppState> combineCablesIntoNewLoom(
 
     if (type == LoomType.permanent) {
       final (updatedCables, updatedLooms, error) = buildNewPermanentLooms(
-          store: store,
+          existingCables: store.state.fixtureState.cables,
+          existingLooms: store.state.fixtureState.looms,
           allLocations: store.state.fixtureState.locations,
           cables: cableIds
               .map((id) => store.state.fixtureState.cables[id])
@@ -331,7 +392,8 @@ ThunkAction<AppState> combineCablesIntoNewLoom(
   Map<String, LoomModel> updatedLooms,
   String? error
 ) buildNewPermanentLooms({
-  required Store<AppState> store,
+  required Map<String, CableModel> existingCables,
+  required Map<String, LoomModel> existingLooms,
   required List<CableModel> cables,
   required Map<String, LocationModel> allLocations,
 }) {
@@ -344,10 +406,19 @@ ThunkAction<AppState> combineCablesIntoNewLoom(
   final loomsWithNewSpareCableTuples =
       _mapCablesToPermanentLooms(cables, permanentComps, allLocations);
 
-  final updatedCables =
-      Map<String, CableModel>.from(store.state.fixtureState.cables);
-  final updatedLooms =
-      Map<String, LoomModel>.from(store.state.fixtureState.looms);
+  final (updatedCables, updatedLooms) = _applyPermanentLoomChangesToCollection(
+      existingCables, existingLooms, loomsWithNewSpareCableTuples);
+
+  return (updatedCables, updatedLooms, null);
+}
+
+(Map<String, CableModel>, Map<String, LoomModel>)
+    _applyPermanentLoomChangesToCollection(
+        Map<String, CableModel> existingCables,
+        Map<String, LoomModel> existingLooms,
+        List<(LoomModel, List<CableModel>)> loomsWithNewSpareCableTuples) {
+  final updatedCables = Map<String, CableModel>.from(existingCables);
+  final updatedLooms = Map<String, LoomModel>.from(existingLooms);
 
   for (final (newLoom, spareCables) in loomsWithNewSpareCableTuples) {
     // Add the New Loom.
@@ -366,28 +437,35 @@ ThunkAction<AppState> combineCablesIntoNewLoom(
         spareCables.map((cable) => MapEntry(cable.uid, cable))));
   }
 
-  return (updatedCables, updatedLooms, null);
+  return (updatedCables, updatedLooms);
 }
 
 List<
         (
           LoomModel loomModel,
-          List<CableModel> additionalSpareCables,
+          List<CableModel> spareCables,
         )>
     _mapCablesToPermanentLooms(
         List<CableModel> cables,
         List<PermanentLoomComposition> permanentComps,
-        Map<String, LocationModel> allLocations) {
+        Map<String, LocationModel> allLocations,
+        {List<String> recyclableLoomIds = const []}) {
   if (cables.isEmpty) {
     return [];
   }
 
-  final powerQueue = Queue<CableModel>.from(cables.where((cable) =>
+  final activeCables = cables.where((cable) => cable.isSpare == false).toList();
+  final spareCableIdsQueue = Queue<String>.from(
+      cables.where((cable) => cable.isSpare).map((cable) => cable.uid));
+
+  final powerQueue = Queue<CableModel>.from(activeCables.where((cable) =>
       cable.type == CableType.wieland6way || cable.type == CableType.socapex));
   final dmxQueue = Queue<CableModel>.from(
-      cables.where((cable) => cable.type == CableType.dmx));
+      activeCables.where((cable) => cable.type == CableType.dmx));
   final sneakQueue = Queue<CableModel>.from(
-      cables.where((cable) => cable.type == CableType.sneak));
+      activeCables.where((cable) => cable.type == CableType.sneak));
+
+  final recyclableLoomIdsQueue = Queue<String>.from(recyclableLoomIds);
 
   return permanentComps.map((comp) {
     final powerCables = powerQueue.pop(comp.powerWays).toList();
@@ -395,7 +473,9 @@ List<
 
     final sneakWays = sneakQueue.pop(comp.sneakWays).toList();
 
-    final newLoomId = getUid();
+    final newLoomId = recyclableLoomIdsQueue.isNotEmpty
+        ? recyclableLoomIdsQueue.removeFirst()
+        : getUid();
 
     final newCableLocationId = cables.first.locationId;
     final newLoomLength =
@@ -409,7 +489,9 @@ List<
     final sparePowerCables = List<CableModel>.generate(
         comp.powerWays - powerCables.length,
         (index) => CableModel(
-              uid: getUid(),
+              uid: spareCableIdsQueue.isNotEmpty
+                  ? spareCableIdsQueue.removeFirst()
+                  : getUid(),
               type: newPowerCableType,
               length: newLoomLength,
               isSpare: true,
@@ -421,7 +503,9 @@ List<
     final spareDmxCables = List<CableModel>.generate(
         comp.dmxWays - dmxWays.length,
         (index) => CableModel(
-              uid: getUid(),
+              uid: spareCableIdsQueue.isNotEmpty
+                  ? spareCableIdsQueue.removeFirst()
+                  : getUid(),
               isSpare: true,
               length: newLoomLength,
               type: CableType.dmx,
@@ -433,7 +517,9 @@ List<
     final spareSneakCables = List<CableModel>.generate(
         comp.sneakWays - sneakWays.length,
         (index) => CableModel(
-              uid: getUid(),
+              uid: spareCableIdsQueue.isNotEmpty
+                  ? spareCableIdsQueue.removeFirst()
+                  : getUid(),
               isSpare: true,
               length: newLoomLength,
               type: CableType.sneak,
@@ -1042,7 +1128,7 @@ ThunkAction<AppState> generateDataPatch() {
         }
       }
     }
-    
+
     store.dispatch(SetDataMultis(Map<String, DataMultiModel>.fromEntries(
         multis.map((multi) => MapEntry(multi.uid, multi)))));
     store.dispatch(SetDataPatches(Map<String, DataPatchModel>.fromEntries(
@@ -1460,4 +1546,36 @@ int _findNextAvailableSequenceNumber(List<int> sequenceNumbers) {
   }
 
   return sortedSequenceNumbers.last + 1;
+}
+
+void addCablesToCustomLoom(Iterable<CableModel> incomingCables, LoomModel loom,
+    Store<AppState> store) {
+  final rehomedCables =
+      incomingCables.map((cable) => cable.copyWith(loomId: loom.uid));
+  final children = [
+    ...loom.childrenIds
+        .map((id) => store.state.fixtureState.cables[id])
+        .nonNulls,
+    ...rehomedCables,
+  ];
+
+  final updatedLoom =
+      loom.copyWith(childrenIds: children.map((cable) => cable.uid).toList());
+
+  final updatedCables =
+      Map<String, CableModel>.from(store.state.fixtureState.cables)
+        ..addAll(
+          convertToModelMap(rehomedCables),
+        );
+
+  final updatedLooms = Map<String, LoomModel>.from(
+    store.state.fixtureState.looms
+      ..addEntries(
+        [MapEntry(updatedLoom.uid, updatedLoom)],
+      ),
+  );
+
+  store.dispatch(
+    SetCablesAndLooms(updatedCables, updatedLooms),
+  );
 }

@@ -1,3 +1,4 @@
+import 'package:sidekick/loom_and_cable_cleanup/cleanup_cables_and_looms.dart';
 import 'package:sidekick/model_collection/convert_to_model_map.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
@@ -17,9 +18,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetCables) {
-    return state.copyWith(
-      cables: a.cables,
-    );
+    return state.copyWith(cables: a.cables, looms: {});
   }
 
   if (a is UpdateLoomName) {
@@ -34,9 +33,11 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetCablesAndLooms) {
+    final (cleanCables, cleanLooms) = cleanupCablesAndLooms(a.cables, a.looms);
+
     return state.copyWith(
-      cables: a.cables,
-      looms: a.looms,
+      cables: cleanCables,
+      looms: cleanLooms,
     );
   }
 
@@ -155,7 +156,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetDataMultis) {
-    final (updatedCables, updatedLooms) = _cleanupCablesAndLooms(
+    final (updatedCables, updatedLooms) = assertCableAndLoomsExistence(
         powerMultiOutlets: state.powerMultiOutlets,
         dataMultis: a.multis,
         dataPatches: state.dataPatches,
@@ -170,7 +171,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetDataPatches) {
-    final (updatedCables, updatedLooms) = _cleanupCablesAndLooms(
+    final (updatedCables, updatedLooms) = assertCableAndLoomsExistence(
         powerMultiOutlets: state.powerMultiOutlets,
         dataMultis: state.dataMultis,
         dataPatches: a.patches,
@@ -203,7 +204,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetPowerMultiOutlets) {
-    final (updatedCables, updatedLooms) = _cleanupCablesAndLooms(
+    final (updatedCables, updatedLooms) = assertCableAndLoomsExistence(
         powerMultiOutlets: a.multiOutlets,
         dataMultis: state.dataMultis,
         dataPatches: state.dataPatches,
@@ -304,7 +305,7 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
 }
 
 (Map<String, CableModel> cables, Map<String, LoomModel> looms)
-    _cleanupCablesAndLooms({
+    assertCableAndLoomsExistence({
   required Map<String, PowerMultiOutletModel> powerMultiOutlets,
   required Map<String, DataMultiModel> dataMultis,
   required Map<String, DataPatchModel> dataPatches,
@@ -345,12 +346,12 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
               locationId: outlet.locationId,
             ));
 
-  return (
-    convertToModelMap([
-      ...updatedPowerCables,
-      ...updatedDataMultis,
-      ...updatedDataPatches,
-    ]),
-    existingLooms,
-  );
+  final dirtyCables = convertToModelMap([
+    ...updatedPowerCables,
+    ...updatedDataMultis,
+    ...updatedDataPatches,
+  ]);
+  final dirtyLooms = existingLooms;
+
+  return cleanupCablesAndLooms(dirtyCables, dirtyLooms);
 }

@@ -38,6 +38,8 @@ class CableModel extends ModelCollectionMember {
     this.spareIndex = 0,
   });
 
+  int get typeRank => _cableTypeRankings[type]!;
+
   CableModel copyWith({
     String? uid,
     double? length,
@@ -107,4 +109,16 @@ class CableModel extends ModelCollectionMember {
 
   factory CableModel.fromJson(String source) =>
       CableModel.fromMap(json.decode(source));
+
+  static const Map<CableType, int> _cableTypeRankings = {
+    CableType.socapex: 0,
+    CableType.wieland6way: 1,
+    CableType.sneak: 2,
+    CableType.dmx: 3,
+    CableType.unknown: 10
+  };
+
+  int compareAsLoomList(CableModel a, CableModel b) {
+    return a.typeRank - b.typeRank;
+  }
 }
