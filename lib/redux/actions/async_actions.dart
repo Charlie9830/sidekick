@@ -77,6 +77,27 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
       return;
     }
 
+    final loomIds = validCables.map((cable) => cable.loomId).toSet();
+
+    if (loomIds.length > 1) {
+      await showGenericDialog(
+          context: context,
+          title: "Woops",
+          message:
+              "Can't combine cables from different Looms onto the one sneak.. yet",
+          affirmativeText: "Okay");
+      return;
+    }
+
+    if (validCables.length > 4) {
+      await showGenericDialog(
+          context: context,
+          title: "Woops",
+          message: "Can't combine more than 4 cables into Sneak.. yet",
+          affirmativeText: "Okay");
+      return;
+    }
+
     final locationId = locationIds.first;
 
     final location = store.state.fixtureState.locations[locationId];
