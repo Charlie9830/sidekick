@@ -57,7 +57,7 @@ class _LoomsState extends State<Looms> {
                 icon: const Icon(Icons.merge),
                 label: const Text('Sneak'),
                 onPressed: widget.vm.onCombineDmxIntoSneak,
-              )
+              ),
             ],
           ),
         ),

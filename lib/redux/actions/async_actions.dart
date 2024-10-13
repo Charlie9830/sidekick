@@ -99,8 +99,8 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
     }
 
     final locationId = locationIds.first;
-
     final location = store.state.fixtureState.locations[locationId];
+    final loomId = validCables.first.loomId;
 
     if (location == null) {
       return;
@@ -125,11 +125,26 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
       uid: getUid(),
       type: CableType.sneak,
       locationId: locationId,
+      loomId: loomId,
       outletId: newMultiOutlet.uid,
     );
 
     final updatedCables = [
-      ...validCables.map((cable) => cable.copyWith(multiId: newSneak.uid)),
+      ...validCables.map(
+          (cable) => cable.copyWith(multiId: newSneak.uid, loomId: loomId)),
+
+      // Generate Spares if required.
+      ...List<CableModel>.generate(
+        4 - validCables.length,
+        (index) => CableModel(
+          uid: getUid(),
+          locationId: locationId,
+          isSpare: true,
+          spareIndex: index + 1,
+          loomId: loomId,
+          type: CableType.dmx,
+        ),
+      ),
       newSneak,
     ];
 

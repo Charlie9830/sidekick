@@ -73,7 +73,7 @@ class LoomsContainer extends StatelessWidget {
         ...loomsInLocation.map(
           (loom) {
             final children = store.state.fixtureState.cables.values
-                .where((cable) => cable.loomId == loom.uid)
+                .where((cable) => cable.loomId == loom.uid && cable.multiId.isEmpty)
                 .map((cable) => CableViewModel(
                       cable: cable,
                       locationId: location.uid,
