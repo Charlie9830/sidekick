@@ -26,16 +26,6 @@ class LocationRow extends DataPatchRow {
   LocationRow(this.location);
 }
 
-class DataMultiRow extends DataPatchRow {
-  final DataMultiModel multi;
-  final List<DataPatchModel> patches;
-
-  DataMultiRow({
-    required this.multi,
-    required this.patches,
-  });
-}
-
 class SingleDataPatchRow extends DataPatchRow {
   final DataPatchModel patch;
 

@@ -858,29 +858,18 @@ ThunkAction<AppState> generateCables() {
               outletId: outlet.uid,
             ));
 
-    final singleDataCables = store.state.fixtureState.dataPatches.values
-        .where((patch) => patch.multiId.isEmpty)
-        .map((patch) => CableModel(
+    final singleDataCables =
+        store.state.fixtureState.dataPatches.values.map((patch) => CableModel(
               type: CableType.dmx,
               uid: getUid(),
               locationId: patch.locationId,
               outletId: patch.uid,
             ));
 
-    final multiDataCables =
-        store.state.fixtureState.dataMultis.values.map((multi) => CableModel(
-              type: CableType.sneak,
-              uid: getUid(),
-              locationId: multi.locationId,
-              outletId: multi.uid,
-            ));
-
     final sortedByLocation = store.state.fixtureState.locations.keys
         .map((locationId) => [
               ...powerCables.where((cable) => cable.locationId == locationId),
               ...singleDataCables
-                  .where((cable) => cable.locationId == locationId),
-              ...multiDataCables
                   .where((cable) => cable.locationId == locationId),
             ])
         .flattened
@@ -1043,13 +1032,14 @@ ThunkAction<AppState> commitDataPatch() {
         return MapEntry(uid, fixture);
       }
 
-      final associatedMultiPatch =
-          store.state.fixtureState.dataMultis[associatedDataPatch.multiId];
+      // // TODO: Disabled until refactoring to Cable based Sneak children is complete.
+      // final associatedMultiPatch =
+      //     store.state.fixtureState.dataMultis[associatedDataPatch.multiId];
 
       return MapEntry(
           uid,
           fixture.copyWith(
-            dataMulti: associatedMultiPatch?.name ?? '',
+            // dataMulti: associatedMultiPatch?.name ?? '',
             dataPatch: associatedDataPatch.name,
           ));
     });
@@ -1494,10 +1484,8 @@ void updateAssociatedDataPatches(
   final updatedDataPatches = associatedDataPatches.map((existing) {
     return existing.copyWith(
         name: updatedLocation.getPrefixedDataPatch(
-            associatedDataPatches.length == 1 ? null : existing.number,
-            parentMultiName: existing.multiId.isNotEmpty
-                ? store.state.fixtureState.dataMultis[existing.multiId]?.name
-                : null));
+      associatedDataPatches.length == 1 ? null : existing.number,
+    ));
   });
 
   store.dispatch(SetDataPatches(

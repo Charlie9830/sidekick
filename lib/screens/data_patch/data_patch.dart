@@ -64,39 +64,11 @@ class DataPatch extends StatelessWidget {
           key: Key(locationRow.location.uid),
           location: locationRow.location,
         ),
-      DataMultiRow multiRow => _buildMultiRow(multiRow, context),
       SingleDataPatchRow patchRow => DataPatchListItem(
           key: Key(patchRow.patch.uid),
           patch: patchRow.patch,
         ),
       _ => const Text("Error"),
     };
-  }
-
-  Widget _buildMultiRow(DataMultiRow row, BuildContext context) {
-    return Card(
-      key: Key(row.multi.uid),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.settings_input_svideo, color: Colors.blue),
-                const SizedBox(width: 12),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 4.0),
-                  child: Text(
-                    row.multi.name,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-              ],
-            ),
-            ...row.patches.map((patch) => DataPatchListItem(patch: patch))
-          ],
-        ),
-      ),
-    );
   }
 }

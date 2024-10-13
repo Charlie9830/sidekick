@@ -16,12 +16,7 @@ String selectCableTypeLabel({
       return '';
     }
 
-    if (patch.multiId.isEmpty) {
-      return _humanFriendlyType(cable.type);
-    }
-
-    // If a child of a Sneak, Return a slightly different nomenclature.
-    return ' - Data';
+    return _humanFriendlyType(cable.type);
   }
 
   return _humanFriendlyType(cable.type);

@@ -24,7 +24,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   if (a is UpdateCablesAndDataMultis) {
     final (cleanCables, cleanLooms) =
         cleanupCablesAndLooms(a.cables, state.looms);
-        
+
     return state.copyWith(
       cables: cleanCables,
       looms: cleanLooms,
@@ -347,7 +347,6 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
             ));
 
   final updatedDataPatches = dataPatches.values
-      .where((patch) => patch.multiId.isEmpty)
       .map((outlet) => cablesByOutletId.containsKey(outlet.uid)
           ? cablesByOutletId[outlet.uid]!
           : CableModel(

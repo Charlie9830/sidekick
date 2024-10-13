@@ -38,7 +38,8 @@ void createDataPatchSheet({
           'NODE$nodeNumber-PORT${patchNumber % 8 == 0 ? 8 : patchNumber % 8}'),
       IntCellValue(patch.universe),
       TextCellValue(patch.name),
-      TextCellValue(dataMultis.containsKey(patch.multiId) ? 'Sneak' : 'Single'),
+      // TODO: Disabled until refactoring to Cable based Sneak children is complete.
+      //TextCellValue(dataMultis.containsKey(patch.multiId) ? 'Sneak' : 'Single'),
       TextCellValue(namedColor),
     ]);
   }

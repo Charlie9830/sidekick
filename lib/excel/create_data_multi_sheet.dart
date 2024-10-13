@@ -32,9 +32,10 @@ void createDataMultiSheet({
     sheet.appendRow([
       IntCellValue(index + 1),
       TextCellValue(multi.name),
-      for (final childPatch
-          in dataOutlets.where((outlet) => outlet.multiId == multi.uid))
-        TextCellValue(childPatch.nameWithUniverse),
+      // TODO: Disabled until refactoring to Cable based Sneak children is complete.
+      // for (final childPatch
+      //     in dataOutlets.where((outlet) => outlet.multiId == multi.uid))
+      //   TextCellValue(childPatch.nameWithUniverse),
       TextCellValue(namedColor),
     ]);
   }

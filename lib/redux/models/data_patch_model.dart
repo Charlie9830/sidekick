@@ -9,7 +9,6 @@ class DataPatchModel extends ModelCollectionMember {
   final String name;
   final int number;
   final int universe;
-  final String multiId;
   final List<String> fixtureIds;
   final String locationId;
   final bool isSpare;
@@ -21,7 +20,6 @@ class DataPatchModel extends ModelCollectionMember {
     this.name = '',
     this.number = 0,
     this.universe = 0,
-    this.multiId = '',
     this.fixtureIds = const [],
     required this.locationId,
     this.isSpare = false,
@@ -36,7 +34,6 @@ class DataPatchModel extends ModelCollectionMember {
     String? name,
     int? number,
     int? universe,
-    String? multiId,
     List<String>? fixtureIds,
     String? locationId,
     bool? isSpare,
@@ -48,7 +45,6 @@ class DataPatchModel extends ModelCollectionMember {
       name: name ?? this.name,
       number: number ?? this.number,
       universe: universe ?? this.universe,
-      multiId: multiId ?? this.multiId,
       fixtureIds: fixtureIds ?? this.fixtureIds,
       locationId: locationId ?? this.locationId,
       isSpare: isSpare ?? this.isSpare,
@@ -63,7 +59,6 @@ class DataPatchModel extends ModelCollectionMember {
       'name': name,
       'number': number,
       'universe': universe,
-      'multiId': multiId,
       'fixtureIds': fixtureIds,
       'locationId': locationId,
       'isSpare': isSpare,
@@ -78,7 +73,6 @@ class DataPatchModel extends ModelCollectionMember {
       name: map['name'] ?? '',
       number: map['number']?.toInt() ?? 0,
       universe: map['universe']?.toInt() ?? 0,
-      multiId: map['multiId'] ?? '',
       fixtureIds: List<String>.from(map['fixtureIds']),
       locationId: map['locationId'] ?? '',
       isSpare: map['isSpare'] ?? false,
@@ -94,7 +88,7 @@ class DataPatchModel extends ModelCollectionMember {
 
   @override
   String toString() {
-    return 'DataPatchModel(uid: $uid, name: $name, number: $number, universe: $universe, multiId: $multiId, fixtureIds: $fixtureIds, locationId: $locationId, isSpare: $isSpare, startsAtFixtureId: $startsAtFixtureId, endsAtFixtureId: $endsAtFixtureId)';
+    return 'DataPatchModel(uid: $uid, name: $name, number: $number, universe: $universe, fixtureIds: $fixtureIds, locationId: $locationId, isSpare: $isSpare, startsAtFixtureId: $startsAtFixtureId, endsAtFixtureId: $endsAtFixtureId)';
   }
 
   @override
@@ -106,7 +100,6 @@ class DataPatchModel extends ModelCollectionMember {
         other.name == name &&
         other.number == number &&
         other.universe == universe &&
-        other.multiId == multiId &&
         listEquals(other.fixtureIds, fixtureIds) &&
         other.locationId == locationId &&
         other.isSpare == isSpare &&
@@ -120,7 +113,6 @@ class DataPatchModel extends ModelCollectionMember {
         name.hashCode ^
         number.hashCode ^
         universe.hashCode ^
-        multiId.hashCode ^
         fixtureIds.hashCode ^
         locationId.hashCode ^
         isSpare.hashCode ^

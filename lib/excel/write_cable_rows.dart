@@ -48,39 +48,40 @@ void writeCableRows({
         customRow,
       );
 
-      if (cable.type == CableType.sneak) {
-        // We need to write the children of the sneak.
-        final children = dataPatches.values
-            .where((patch) => patch.multiId == cable.outletId);
+      // // TODO: Disabled until refactoring to Cable based Sneak children is complete.
+      // if (cable.type == CableType.sneak) {
+      //   // We need to write the children of the sneak.
+      //   final children = dataPatches.values
+      //       .where((patch) => patch.multiId == cable.outletId);
 
-        int spareIndex = 1;
-        final childrenAsCables = children.map((child) => CableModel(
-              type: CableType.dmx,
-              uid: '',
-              locationId: child.locationId,
-              outletId: child.uid,
-              upstreamId: '',
-              isSpare: child.isSpare,
-              spareIndex: child.isSpare ? spareIndex++ : 0,
-            ));
+      //   int spareIndex = 1;
+      //   final childrenAsCables = children.map((child) => CableModel(
+      //         type: CableType.dmx,
+      //         uid: '',
+      //         locationId: child.locationId,
+      //         outletId: child.uid,
+      //         upstreamId: '',
+      //         isSpare: child.isSpare,
+      //         spareIndex: child.isSpare ? spareIndex++ : 0,
+      //       ));
 
-        for (final (sneakIndex, sneakPatch) in childrenAsCables.indexed) {
-          pointer.carriageReturn();
-          writeCableLine(
-            sheet,
-            pointer.getColumnIndex,
-            pointer.rowIndex,
-            sneakPatch,
-            sneakIndex,
-            cableRowStyle,
-            powerMultiOutlets,
-            dataMultis,
-            dataPatches,
-            locations,
-            customRow,
-          );
-        }
-      }
+      //   for (final (sneakIndex, sneakPatch) in childrenAsCables.indexed) {
+      //     pointer.carriageReturn();
+      //     writeCableLine(
+      //       sheet,
+      //       pointer.getColumnIndex,
+      //       pointer.rowIndex,
+      //       sneakPatch,
+      //       sneakIndex,
+      //       cableRowStyle,
+      //       powerMultiOutlets,
+      //       dataMultis,
+      //       dataPatches,
+      //       locations,
+      //       customRow,
+      //     );
+      //   }
+      // }
     }
   }
 }

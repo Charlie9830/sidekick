@@ -43,10 +43,6 @@ String _selectDMXLabel(DataPatchModel? patch, bool includeUniverse) {
     return '';
   }
 
-  if (patch.multiId.isNotEmpty) {
-    // Child Patch of a Sneak Multi.
-    return 'U${patch.universe}';
-  }
 
   return includeUniverse ? patch.nameWithUniverse : patch.name;
 }

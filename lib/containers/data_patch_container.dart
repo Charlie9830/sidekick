@@ -35,24 +35,11 @@ class DataPatchContainer extends StatelessWidget {
   List<DataPatchRow> _selectDataPatchRows(Store<AppState> store) {
     return store.state.fixtureState.locations.values
         .map((location) {
-          final associatedMultis = store.state.fixtureState.dataMultis.values
-              .where((multi) => multi.locationId == location.uid)
-              .toList();
-
           final singlePatches = store.state.fixtureState.dataPatches.values
-              .where((patch) =>
-                  patch.locationId == location.uid && patch.multiId.isEmpty);
+              .where((patch) => patch.locationId == location.uid);
 
           return [
             LocationRow(location),
-            ...associatedMultis.map(
-              (multi) => DataMultiRow(
-                multi: multi,
-                patches: store.state.fixtureState.dataPatches.values
-                    .where((patch) => patch.multiId == multi.uid)
-                    .toList(),
-              ),
-            ),
             ...singlePatches.map((patch) => SingleDataPatchRow(patch)),
           ];
         })
