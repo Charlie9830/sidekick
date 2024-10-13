@@ -301,9 +301,10 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
 
   final targetCables =
       state.cables.values.where((cable) => cable.loomId == existingLoom.uid);
+
   final updatedCables = Map<String, CableModel>.from(state.cables)
-    ..updateAll((key, value) =>
-        targetCables.contains(key) ? value.copyWith(length: newLength) : value);
+    ..addAll(convertToModelMap(
+        targetCables.map((cable) => cable.copyWith(length: newLength))));
 
   return state.copyWith(
     looms: Map<String, LoomModel>.from(state.looms)
