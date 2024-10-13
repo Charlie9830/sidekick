@@ -161,7 +161,7 @@ class LoomsContainer extends StatelessWidget {
   }
 
   List<int> _selectSneakUniverses(Store<AppState> store, CableModel cable) {
-    if (cable.type != CableType.sneak) {
+    if (cable.type != CableType.sneak || cable.isSpare == true) {
       return [];
     }
 
