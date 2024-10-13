@@ -12,14 +12,12 @@ class LoomModel extends ModelCollectionMember {
   final Set<String> locationIds;
   final String name;
   final LoomTypeModel type;
-  final List<String> childrenIds;
 
   LoomModel({
     this.uid = '',
     this.locationIds = const {},
     this.name = '',
     this.type = const LoomTypeModel.blank(),
-    this.childrenIds = const [],
   });
 
   LoomModel copyWith({
@@ -27,14 +25,12 @@ class LoomModel extends ModelCollectionMember {
     Set<String>? locationIds,
     String? name,
     LoomTypeModel? type,
-    List<String>? childrenIds,
   }) {
     return LoomModel(
       uid: uid ?? this.uid,
       locationIds: locationIds ?? this.locationIds,
       name: name ?? this.name,
       type: type ?? this.type,
-      childrenIds: childrenIds ?? this.childrenIds,
     );
   }
 
@@ -44,7 +40,6 @@ class LoomModel extends ModelCollectionMember {
       'locationIds': locationIds.toList(),
       'name': name,
       'type': type.toMap(),
-      'childrenIds': childrenIds,
     };
   }
 
@@ -54,7 +49,6 @@ class LoomModel extends ModelCollectionMember {
       locationIds: Set<String>.from(map['locationIds']),
       name: map['name'] ?? '',
       type: LoomTypeModel.fromMap(map['type']),
-      childrenIds: List<String>.from(map['childrenIds']),
     );
   }
 

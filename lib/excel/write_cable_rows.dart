@@ -23,8 +23,11 @@ void writeCableRows({
   required Sheet sheet,
   bool customRow = false,
 }) {
-  final associatedCables =
-      loom.childrenIds.map((id) => cables[id]).nonNulls.toList();
+  final associatedCables = cables.values
+      .where((cable) => cable.loomId == loom.uid)
+      .map((id) => cables[id])
+      .nonNulls
+      .toList();
 
   final cablesByType = associatedCables.groupListsBy((element) => element.type);
 
