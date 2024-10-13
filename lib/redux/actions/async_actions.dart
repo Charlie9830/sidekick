@@ -89,7 +89,8 @@ ThunkAction<AppState> addSelectedCablesToLoom(
     final candidateChildren = [
       ...loom.childrenIds
           .map((id) => store.state.fixtureState.cables[id])
-          .nonNulls,
+          .nonNulls
+          .where((cable) => cable.isSpare == false),
       ...validCables,
     ];
 
@@ -97,7 +98,7 @@ ThunkAction<AppState> addSelectedCablesToLoom(
         PermanentLoomComposition.matchToPermanents(candidateChildren);
 
     final loomAndSpareCableTuples = _mapCablesToPermanentLooms(
-        cables, permanentComps, store.state.fixtureState.locations,
+        candidateChildren, permanentComps, store.state.fixtureState.locations,
         recyclableLoomIds: [loomId]);
 
     final (updatedCables, updatedLooms) =
