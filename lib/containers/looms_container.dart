@@ -172,7 +172,7 @@ class LoomsContainer extends StatelessWidget {
   }
 
   int _selectDmxUniverse(Store<AppState> store, CableModel cable) {
-    if (cable.type != CableType.dmx) {
+    if (cable.type != CableType.dmx || cable.isSpare) {
       return 0;
     }
 
