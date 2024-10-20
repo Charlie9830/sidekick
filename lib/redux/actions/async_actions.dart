@@ -184,19 +184,10 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
       return;
     }
 
-    final existingMultiOutletsInLocation = store
-        .state.fixtureState.dataMultis.values
-        .where((multi) => multi.locationId == locationId)
-        .toList();
-
     final newMultiOutlet = DataMultiModel(
       uid: getUid(),
       locationId: locationId,
-      number: existingMultiOutletsInLocation.length + 1,
-      name: location.getPrefixedDataMultiPatch(
-          existingMultiOutletsInLocation.length == 1
-              ? null
-              : existingMultiOutletsInLocation.length + 1),
+      // Name and Number properties will be asserted later.
     );
 
     final newSneak = CableModel(
@@ -204,7 +195,10 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
       type: CableType.sneak,
       locationId: locationId,
       loomId: loomId,
-      length: validCables.map((cable) => cable.length).sorted((a, b) => a.round() - b.round()).first,
+      length: validCables
+          .map((cable) => cable.length)
+          .sorted((a, b) => a.round() - b.round())
+          .first,
       outletId: newMultiOutlet.uid,
     );
 
@@ -227,11 +221,29 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
       newSneak,
     ];
 
+    final dataMultisWithNewEntry =
+        Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
+          ..addAll(convertToModelMap([newMultiOutlet]));
+
+    // Assert correct Labeling of all Data Multis in this location, now that we have updated them.
+    final dataMultisInLocation = dataMultisWithNewEntry.values
+        .where((multi) => multi.locationId == locationId)
+        .toList();
+
+    final updatedDataMultis = Map<String, DataMultiModel>.from(
+        dataMultisWithNewEntry)
+      ..addEntries(dataMultisInLocation.mapIndexed((index, multi) => MapEntry(
+          multi.uid,
+          multi.copyWith(
+            name: location.getPrefixedDataMultiPatch(
+                dataMultisInLocation.length > 1 ? index + 1 : null),
+            number: index + 1,
+          ))));
+
     store.dispatch(UpdateCablesAndDataMultis(
         Map<String, CableModel>.from(store.state.fixtureState.cables)
           ..addAll(convertToModelMap(updatedCables)),
-        Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
-          ..addAll(convertToModelMap([newMultiOutlet]))));
+        updatedDataMultis));
   };
 }
 
