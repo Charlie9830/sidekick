@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:sidekick/loom_and_cable_cleanup/cleanup_cables_and_looms.dart';
 import 'package:sidekick/model_collection/convert_to_model_map.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
@@ -318,19 +319,19 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
 }
 
 (Map<String, CableModel> cables, Map<String, LoomModel> looms)
-    assertCableAndLoomsExistence({
+       assertCableAndLoomsExistence({
   required Map<String, PowerMultiOutletModel> powerMultiOutlets,
   required Map<String, DataMultiModel> dataMultis,
   required Map<String, DataPatchModel> dataPatches,
   required Map<String, CableModel> existingCables,
   required Map<String, LoomModel> existingLooms,
 }) {
-  final cablesByOutletId = Map<String, CableModel>.from(
-      existingCables.map((key, value) => MapEntry(value.outletId, value)));
+  final headCablesByOutletId = Map<String, CableModel>.fromEntries(
+      existingCables.values.where((cable) => cable.upstreamId.isEmpty).map((cable) => MapEntry(cable.outletId, cable)));
 
   final updatedPowerCables = powerMultiOutlets.values
-      .map((outlet) => cablesByOutletId.containsKey(outlet.uid)
-          ? cablesByOutletId[outlet.uid]!
+      .map((outlet) => headCablesByOutletId.containsKey(outlet.uid)
+          ? headCablesByOutletId[outlet.uid]!
           : CableModel(
               uid: getUid(),
               type: CableType.socapex,
@@ -339,8 +340,8 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
             ));
 
   final updatedDataMultis =
-      dataMultis.values.map((outlet) => cablesByOutletId.containsKey(outlet.uid)
-          ? cablesByOutletId[outlet.uid]!
+      dataMultis.values.map((outlet) => headCablesByOutletId.containsKey(outlet.uid)
+          ? headCablesByOutletId[outlet.uid]!
           : CableModel(
               uid: getUid(),
               type: CableType.sneak,
@@ -349,8 +350,8 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
             ));
 
   final updatedDataPatches = dataPatches.values
-      .map((outlet) => cablesByOutletId.containsKey(outlet.uid)
-          ? cablesByOutletId[outlet.uid]!
+      .map((outlet) => headCablesByOutletId.containsKey(outlet.uid)
+          ? headCablesByOutletId[outlet.uid]!
           : CableModel(
               uid: getUid(),
               type: CableType.dmx,
@@ -359,6 +360,7 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
             ));
 
   final dirtyCables = convertToModelMap([
+    ...existingCables.values,
     ...updatedPowerCables,
     ...updatedDataMultis,
     ...updatedDataPatches,
