@@ -204,6 +204,7 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
       type: CableType.sneak,
       locationId: locationId,
       loomId: loomId,
+      length: validCables.map((cable) => cable.length).sorted((a, b) => a.round() - b.round()).first,
       outletId: newMultiOutlet.uid,
     );
 
