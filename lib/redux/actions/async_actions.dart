@@ -783,9 +783,15 @@ List<
         if (cable.type != CableType.sneak) {
           return [cable.uid];
         } else {
-          return store.state.fixtureState.cables.values
-              .where((item) => item.multiId == cable.uid)
-              .map((item) => item.uid);
+          return [
+            // Sneak...
+            cable.uid,
+
+            // and it's children.
+            ...store.state.fixtureState.cables.values
+                .where((item) => item.multiId == cable.uid)
+                .map((item) => item.uid)
+          ];
         }
       })
       .flattened
