@@ -22,7 +22,7 @@ class CableModel extends ModelCollectionMember {
   final CableType type;
   final bool isSpare;
   final int spareIndex;
-  final String multiId;
+  final String dataMultiId;
 
   CableModel({
     required this.uid,
@@ -35,7 +35,7 @@ class CableModel extends ModelCollectionMember {
     this.notes = '',
     this.isSpare = false,
     this.spareIndex = 0,
-    this.multiId = '',
+    this.dataMultiId = '',
   });
 
   int get typeRank => _cableTypeRankings[type]!;
@@ -51,7 +51,7 @@ class CableModel extends ModelCollectionMember {
     CableType? type,
     bool? isSpare,
     int? spareIndex,
-    String? multiId,
+    String? dataMultiId,
   }) {
     return CableModel(
       uid: uid ?? this.uid,
@@ -64,7 +64,7 @@ class CableModel extends ModelCollectionMember {
       type: type ?? this.type,
       isSpare: isSpare ?? this.isSpare,
       spareIndex: spareIndex ?? this.spareIndex,
-      multiId: multiId ?? this.multiId,
+      dataMultiId: dataMultiId ?? this.dataMultiId,
     );
   }
 
@@ -80,7 +80,7 @@ class CableModel extends ModelCollectionMember {
       'locationId': locationId,
       'isSpare': isSpare,
       'spareIndex': spareIndex,
-      'multiId': multiId,
+      'dataMultiId': dataMultiId,
     };
   }
 
@@ -96,7 +96,7 @@ class CableModel extends ModelCollectionMember {
       type: CableType.values.byName(map['type']),
       isSpare: map['isSpare'],
       spareIndex: map['spareIndex'],
-      multiId: map['multiId'],
+      dataMultiId: map['dataMultiId'],
     );
   }
 

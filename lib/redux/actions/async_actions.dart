@@ -102,7 +102,7 @@ ThunkAction<AppState> splitSneakIntoDmx(
 
     final associatedCables = validCables
         .map((cable) => store.state.fixtureState.cables.values
-            .where((item) => item.multiId == cable.uid))
+            .where((item) => item.dataMultiId == cable.uid))
         .flattened
         .toList();
 
@@ -120,7 +120,7 @@ ThunkAction<AppState> splitSneakIntoDmx(
     final updatedCables =
         Map<String, CableModel>.from(store.state.fixtureState.cables)
           ..addAll(convertToModelMap(
-              associatedCables.map((cable) => cable.copyWith(multiId: ''))))
+              associatedCables.map((cable) => cable.copyWith(dataMultiId: ''))))
           ..removeWhere((key, value) =>
               spareCableIdsToRemove.contains(key) ||
               sneakCableIdsToRemove.contains(key));
@@ -136,7 +136,7 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
     final validCables = cableIds
         .map((id) => store.state.fixtureState.cables[id])
         .nonNulls
-        .where((cable) => cable.multiId.isEmpty && cable.type == CableType.dmx)
+        .where((cable) => cable.dataMultiId.isEmpty && cable.type == CableType.dmx)
         .toList();
 
     if (validCables.isEmpty) {
@@ -204,7 +204,7 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
 
     final updatedCables = [
       ...validCables.map(
-          (cable) => cable.copyWith(multiId: newSneak.uid, loomId: loomId)),
+          (cable) => cable.copyWith(dataMultiId: newSneak.uid, loomId: loomId)),
 
       // Generate Spares if required.
       ...List<CableModel>.generate(
@@ -749,7 +749,7 @@ List<
       ...cables
           .where((cable) => cable.type == CableType.sneak)
           .map((sneak) => allExistingCables.values
-              .where((cable) => cable.multiId == sneak.uid))
+              .where((cable) => cable.dataMultiId == sneak.uid))
           .flattened
           .map((cable) => cable.copyWith(loomId: newLoomId))
     ];
@@ -788,7 +788,7 @@ List<
 
             // and it's children.
             ...store.state.fixtureState.cables.values
-                .where((item) => item.multiId == cable.uid)
+                .where((item) => item.dataMultiId == cable.uid)
                 .map((item) => item.uid)
           ];
         }

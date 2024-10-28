@@ -51,7 +51,7 @@ class LoomsContainer extends StatelessWidget {
     final cablesAndLoomsByLocation =
         store.state.fixtureState.locations.map((locationId, location) {
       final cablesInLocation = store.state.fixtureState.cables.values.where(
-        (cable) => cable.locationId == locationId && cable.multiId.isEmpty,
+        (cable) => cable.locationId == locationId && cable.dataMultiId.isEmpty,
       );
 
       final loomsInLocation = store.state.fixtureState.looms.values
@@ -81,7 +81,7 @@ class LoomsContainer extends StatelessWidget {
           (loom) {
             final childCables = store.state.fixtureState.cables.values
                 .where((cable) =>
-                    cable.loomId == loom.uid && cable.multiId.isEmpty)
+                    cable.loomId == loom.uid && cable.dataMultiId.isEmpty)
                 .toList();
 
             final childVms = childCables
@@ -166,7 +166,7 @@ class LoomsContainer extends StatelessWidget {
     }
 
     final associatedChildCables = store.state.fixtureState.cables.values
-        .where((child) => child.multiId == cable.uid);
+        .where((child) => child.dataMultiId == cable.uid);
 
     final patchOutlets = associatedChildCables
         .map((child) => store.state.fixtureState.dataPatches[child.outletId])

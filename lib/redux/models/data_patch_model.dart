@@ -27,7 +27,9 @@ class DataPatchModel extends ModelCollectionMember {
     this.endsAtFixtureId = 0,
   });
 
-  String get nameWithUniverse => isSpare ? name : '$name U$universe';
+  String get nameWithUniverse => isSpare ? name : '$name $universeLabel';
+
+  String get universeLabel => 'U$universe';
 
   DataPatchModel copyWith({
     String? uid,

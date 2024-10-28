@@ -26,7 +26,6 @@ void writeCableRows({
       .where((cable) => cable.loomId == loom.uid)
       .map((cable) => cables[cable.uid])
       .nonNulls
-      .where((cable) => cable.multiId.isEmpty)
       .toList();
 
   final cablesByType = associatedCables.groupListsBy((element) => element.type);

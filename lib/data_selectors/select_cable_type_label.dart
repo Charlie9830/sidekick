@@ -16,13 +16,22 @@ String selectCableTypeLabel({
       return '';
     }
 
-    return _humanFriendlyType(cable.type);
+    if (cable.dataMultiId.isEmpty) {
+      // Top Level / Parent Cable.
+      return _humanFriendlyType(cable.type);
+    } else {
+      return _humanFriendlyType(cable.type, isSneakChild: true);
+    }
   }
 
   return _humanFriendlyType(cable.type);
 }
 
-String _humanFriendlyType(CableType type) {
+String _humanFriendlyType(CableType type, {bool isSneakChild = false}) {
+  if (isSneakChild) {
+    return '  Data';
+  }
+
   return switch (type) {
     CableType.dmx => 'DMX',
     CableType.sneak => 'Sneak',

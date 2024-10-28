@@ -19,6 +19,10 @@ String selectCableLabel({
     return '';
   }
 
+  if (cable.dataMultiId.isNotEmpty && cable.type == CableType.dmx) {
+    return _selectSneakChildLabel(dataPatches[cable.outletId]);
+  }
+
   return switch (cable.type) {
     CableType.socapex ||
     CableType.wieland6way =>
@@ -38,11 +42,18 @@ String _selectSneakLabel(DataMultiModel? multi) {
   return multi.name;
 }
 
-String _selectDMXLabel(DataPatchModel? patch, bool includeUniverse) {
+String _selectSneakChildLabel(DataPatchModel? patch) {
   if (patch == null) {
     return '';
   }
 
+  return patch.universeLabel;
+}
+
+String _selectDMXLabel(DataPatchModel? patch, bool includeUniverse) {
+  if (patch == null) {
+    return '';
+  }
 
   return includeUniverse ? patch.nameWithUniverse : patch.name;
 }
