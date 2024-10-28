@@ -10,6 +10,10 @@ String selectCableTypeLabel({
   required CableModel cable,
 }) {
   if (cable.type == CableType.dmx) {
+    if (cable.isSpare) {
+      return _humanFriendlyType(cable.type);
+    }
+
     final patch = dataPatches[cable.outletId];
 
     if (patch == null) {

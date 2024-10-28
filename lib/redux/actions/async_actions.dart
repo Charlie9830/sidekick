@@ -136,7 +136,8 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
     final validCables = cableIds
         .map((id) => store.state.fixtureState.cables[id])
         .nonNulls
-        .where((cable) => cable.dataMultiId.isEmpty && cable.type == CableType.dmx)
+        .where(
+            (cable) => cable.dataMultiId.isEmpty && cable.type == CableType.dmx)
         .toList();
 
     if (validCables.isEmpty) {
@@ -215,6 +216,7 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
           isSpare: true,
           spareIndex: index + 1,
           loomId: loomId,
+          dataMultiId: newSneak.uid,
           type: CableType.dmx,
         ),
       ),
@@ -1347,13 +1349,15 @@ ThunkAction<AppState> export(BuildContext context) {
       dataOutlets: store.state.fixtureState.dataPatches.values,
       dataMultis: store.state.fixtureState.dataMultis,
       locations: store.state.fixtureState.locations,
+      cables: store.state.fixtureState.cables,
     );
 
     createDataMultiSheet(
       excel: excel,
-      dataOutlets: store.state.fixtureState.dataPatches.values,
+      dataOutlets: store.state.fixtureState.dataPatches,
       dataMultis: store.state.fixtureState.dataMultis,
       locations: store.state.fixtureState.locations,
+      cables: store.state.fixtureState.cables,
     );
 
     createPermanentLoomsSheet(
