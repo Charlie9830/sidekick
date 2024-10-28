@@ -9,7 +9,6 @@ class CableRowItem extends StatelessWidget {
   final bool isSelected;
   final bool isDragSelecting;
   final bool hideLength;
-  final bool isExtension;
   final List<int> sneakUniverses;
   final int dmxUniverse;
   final String label;
@@ -22,7 +21,6 @@ class CableRowItem extends StatelessWidget {
     this.isSelected = false,
     this.isDragSelecting = false,
     this.hideLength = false,
-    this.isExtension = false,
     this.sneakUniverses = const [],
     this.dmxUniverse = 0,
     this.label = '',
@@ -100,15 +98,6 @@ class CableRowItem extends StatelessWidget {
                             Text(_humanFriendlyType(cable.type)),
                           ],
                         ),
-                        switch ((isExtension, cable.isDropper)) {
-                          (_, true) => SizedBox(
-                              height: 24,
-                              child: CableFlag(
-                                  text: 'Drop', color: Colors.teal.shade900)),
-                          (true, false) => const SizedBox(
-                              height: 24, child: CableFlag(text: 'EXT')),
-                          _ => const SizedBox(),
-                        },
                       ],
                     )),
                 const VerticalDivider(

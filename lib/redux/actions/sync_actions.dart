@@ -28,9 +28,9 @@ class UpdateCablesAndDataMultis {
 class ToggleLoomDropperState {
   final String loomId;
   final List<CableModel> childCables;
-  final LoomDropState dropState;
+  final bool isDropper;
 
-  ToggleLoomDropperState(this.loomId, this.dropState, this.childCables);
+  ToggleLoomDropperState(this.loomId, this.isDropper, this.childCables);
 }
 
 class SetCablesAndLooms {
@@ -45,13 +45,6 @@ class UpdateLoomLength {
   final String newValue;
 
   UpdateLoomLength(this.id, this.newValue);
-}
-
-class UpdateLoomName {
-  final String id;
-  final String newValue;
-
-  UpdateLoomName(this.id, this.newValue);
 }
 
 class SetCables {

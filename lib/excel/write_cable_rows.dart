@@ -14,7 +14,6 @@ import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 void writeCableRows({
   required LoomModel loom,
   required Map<String, CableModel> cables,
-  required Map<String, LoomModel> looms,
   required Map<String, LocationModel> locations,
   required Map<String, PowerMultiOutletModel> powerMultiOutlets,
   required Map<String, DataMultiModel> dataMultis,
@@ -25,8 +24,9 @@ void writeCableRows({
 }) {
   final associatedCables = cables.values
       .where((cable) => cable.loomId == loom.uid)
-      .map((id) => cables[id])
+      .map((cable) => cables[cable.uid])
       .nonNulls
+      .where((cable) => cable.multiId.isEmpty)
       .toList();
 
   final cablesByType = associatedCables.groupListsBy((element) => element.type);
@@ -51,7 +51,7 @@ void writeCableRows({
         customRow,
       );
 
-      // // TODO: Disabled until refactoring to Cable based Sneak children is complete.
+      // TODO: Disabled until refactoring to Cable based Sneak children is complete.
       // if (cable.type == CableType.sneak) {
       //   // We need to write the children of the sneak.
       //   final children = dataPatches.values

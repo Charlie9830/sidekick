@@ -53,7 +53,7 @@ class _LoomsState extends State<Looms> {
                 label: const Text('Extension'),
                 onPressed: widget.vm.onCreateExtensionFromSelection,
               ),
-              VerticalDivider(),
+              const VerticalDivider(),
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -113,7 +113,6 @@ class _LoomsState extends State<Looms> {
                                           .contains(cableVm.cable.uid),
                                       isSelected: widget.vm.selectedCableIds
                                           .contains(cableVm.cable.uid),
-                                      isExtension: cableVm.isExtension,
                                       hideLength: vm.loom.type.type ==
                                           LoomType.permanent,
                                       dmxUniverse: cableVm.universe,
@@ -128,7 +127,6 @@ class _LoomsState extends State<Looms> {
                     child: CableRowItem(
                       cable: vm.cable,
                       labelColor: vm.labelColor,
-                      isExtension: vm.isExtension,
                       isSelected:
                           widget.vm.selectedCableIds.contains(vm.cable.uid),
                       isDragSelecting: _hoveringCableIds.contains(vm.cable.uid),

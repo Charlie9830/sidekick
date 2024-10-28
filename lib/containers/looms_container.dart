@@ -4,10 +4,13 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/classes/named_colors.dart';
 import 'package:sidekick/data_selectors/select_cable_label.dart';
+import 'package:sidekick/data_selectors/select_loom_name.dart';
 import 'package:sidekick/data_selectors/select_title_case_color.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
+import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/looms/looms.dart';
@@ -38,7 +41,8 @@ class LoomsContainer extends StatelessWidget {
                   context, store.state.navstate.selectedCableIds)),
           onCombineDmxIntoSneak: () => store.dispatch(combineDmxCablesIntoSneak(
               context, store.state.navstate.selectedCableIds)),
-          onSplitSneakIntoDmx: () => store.dispatch(splitSneakIntoDmx(context, store.state.navstate.selectedCableIds)));
+          onSplitSneakIntoDmx: () => store.dispatch(splitSneakIntoDmx(
+              context, store.state.navstate.selectedCableIds)));
     });
   }
 
@@ -51,7 +55,8 @@ class LoomsContainer extends StatelessWidget {
       );
 
       final loomsInLocation = store.state.fixtureState.looms.values
-          .where((loom) => loom.locationIds.contains(locationId));
+          .where((loom) => loom.locationIds.contains(locationId))
+          .toList();
 
       final nakedCables =
           cablesInLocation.where((cable) => cable.loomId.isEmpty);
@@ -94,22 +99,20 @@ class LoomsContainer extends StatelessWidget {
 
             return LoomViewModel(
               loom: loom,
+              name: selectLoomName(loomsInLocation, location, loom),
               isValidComposition: loom.type.type == LoomType.permanent
                   ? loom.type.checkIsValid(childCables)
                   : true,
               children: childVms,
-              onNameChanged: (newValue) =>
-                  store.dispatch(UpdateLoomName(loom.uid, newValue)),
               onLengthChanged: (newValue) =>
                   store.dispatch(UpdateLoomLength(loom.uid, newValue)),
               onDelete: () => store.dispatch(
                 deleteLoom(context, loom.uid),
               ),
-              dropperState: _selectDropperState(childVms),
-              onDropperStateButtonPressed: () => store.dispatch(
+              onDropperToggleButtonPressed: () => store.dispatch(
                 ToggleLoomDropperState(
                   loom.uid,
-                  _selectDropperState(childVms),
+                  !loom.isDrop,
                   childVms.map((child) => child.cable).toList(),
                 ),
               ),
@@ -145,6 +148,8 @@ class LoomsContainer extends StatelessWidget {
         .toList();
   }
 
+  
+
   String _selectCableLabel(Store<AppState> store, CableModel cable) {
     return selectCableLabel(
       powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
@@ -153,22 +158,6 @@ class LoomsContainer extends StatelessWidget {
       cable: cable,
       includeUniverse: false,
     );
-  }
-
-  LoomDropState _selectDropperState(List<CableViewModel> children) {
-    if (children.isEmpty) {
-      return LoomDropState.isNotDropdown;
-    }
-
-    final states = children.map((child) => child.cable.isDropper).toSet();
-
-    if (states.length == 1) {
-      return states.first == true
-          ? LoomDropState.isDropdown
-          : LoomDropState.isNotDropdown;
-    }
-
-    return LoomDropState.various;
   }
 
   List<int> _selectSneakUniverses(Store<AppState> store, CableModel cable) {

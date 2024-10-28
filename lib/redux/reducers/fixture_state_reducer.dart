@@ -15,7 +15,10 @@ import 'package:sidekick/view_models/loom_screen_item_view_model.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   if (a is ToggleLoomDropperState) {
-    return _updateLoomDropperState(state, a.loomId, a.dropState, a.childCables);
+    return state.copyWith(
+        looms: Map<String, LoomModel>.from(state.looms)
+          ..update(
+              a.loomId, (existing) => existing.copyWith(isDrop: a.isDropper)));
   }
 
   if (a is SetCables) {
@@ -31,13 +34,6 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       looms: cleanLooms,
       dataMultis: a.dataMultis,
     );
-  }
-
-  if (a is UpdateLoomName) {
-    return state.copyWith(
-        looms: Map<String, LoomModel>.from(state.looms)
-          ..update(
-              a.id, (existing) => existing.copyWith(name: a.newValue.trim())));
   }
 
   if (a is UpdateLoomLength) {
@@ -265,27 +261,6 @@ double _convertBalanceTolerance(String newValue, double existingValue) {
   return asInt / 100;
 }
 
-FixtureState _updateLoomDropperState(FixtureState state, String loomId,
-    LoomDropState dropState, List<CableModel> children) {
-  if (children.isEmpty) {
-    return state;
-  }
-
-  bool targetState = switch (dropState) {
-    LoomDropState.isDropdown || LoomDropState.various => false,
-    LoomDropState.isNotDropdown => true
-  };
-
-  final updatedChildren =
-      convertToModelMap(children.map((child) => child.copyWith(
-            isDropper: targetState,
-          )));
-
-  return state.copyWith(
-    cables: Map<String, CableModel>.from(state.cables)..addAll(updatedChildren),
-  );
-}
-
 int _convertMaxSequenceBreak(String newValue, int existingValue) {
   final asInt = int.tryParse(newValue.trim());
 
@@ -319,7 +294,7 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
 }
 
 (Map<String, CableModel> cables, Map<String, LoomModel> looms)
-       assertCableAndLoomsExistence({
+    assertCableAndLoomsExistence({
   required Map<String, PowerMultiOutletModel> powerMultiOutlets,
   required Map<String, DataMultiModel> dataMultis,
   required Map<String, DataPatchModel> dataPatches,
@@ -327,7 +302,9 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
   required Map<String, LoomModel> existingLooms,
 }) {
   final headCablesByOutletId = Map<String, CableModel>.fromEntries(
-      existingCables.values.where((cable) => cable.upstreamId.isEmpty).map((cable) => MapEntry(cable.outletId, cable)));
+      existingCables.values
+          .where((cable) => cable.upstreamId.isEmpty)
+          .map((cable) => MapEntry(cable.outletId, cable)));
 
   final updatedPowerCables = powerMultiOutlets.values
       .map((outlet) => headCablesByOutletId.containsKey(outlet.uid)
@@ -339,8 +316,8 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
               locationId: outlet.locationId,
             ));
 
-  final updatedDataMultis =
-      dataMultis.values.map((outlet) => headCablesByOutletId.containsKey(outlet.uid)
+  final updatedDataMultis = dataMultis.values
+      .map((outlet) => headCablesByOutletId.containsKey(outlet.uid)
           ? headCablesByOutletId[outlet.uid]!
           : CableModel(
               uid: getUid(),

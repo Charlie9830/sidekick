@@ -21,7 +21,6 @@ class CableModel extends ModelCollectionMember {
   final String notes;
   final CableType type;
   final bool isSpare;
-  final bool isDropper;
   final int spareIndex;
   final String multiId;
 
@@ -35,7 +34,6 @@ class CableModel extends ModelCollectionMember {
     required this.locationId,
     this.notes = '',
     this.isSpare = false,
-    this.isDropper = false,
     this.spareIndex = 0,
     this.multiId = '',
   });
@@ -52,7 +50,6 @@ class CableModel extends ModelCollectionMember {
     String? notes,
     CableType? type,
     bool? isSpare,
-    bool? isDropper,
     int? spareIndex,
     String? multiId,
   }) {
@@ -66,7 +63,6 @@ class CableModel extends ModelCollectionMember {
       notes: notes ?? this.notes,
       type: type ?? this.type,
       isSpare: isSpare ?? this.isSpare,
-      isDropper: isDropper ?? this.isDropper,
       spareIndex: spareIndex ?? this.spareIndex,
       multiId: multiId ?? this.multiId,
     );
@@ -83,7 +79,6 @@ class CableModel extends ModelCollectionMember {
       'notes': notes,
       'locationId': locationId,
       'isSpare': isSpare,
-      'isDropper': isDropper,
       'spareIndex': spareIndex,
       'multiId': multiId,
     };
@@ -100,7 +95,6 @@ class CableModel extends ModelCollectionMember {
       notes: map['notes'] ?? '',
       type: CableType.values.byName(map['type']),
       isSpare: map['isSpare'],
-      isDropper: map['isDropper'],
       spareIndex: map['spareIndex'],
       multiId: map['multiId'],
     );

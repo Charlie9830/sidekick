@@ -527,7 +527,7 @@ ThunkAction<AppState> createExtensionFromSelection(
   final existingLoom = source;
   final newLoom = existingLoom.copyWith(
     uid: getUid(),
-    name: '${existingLoom.name} Extension',
+    loomClass: LoomClass.extension,
     locationIds: extensionCables.map((cable) => cable.locationId).toSet(),
   );
 
@@ -758,7 +758,6 @@ List<
       LoomModel(
         uid: newLoomId,
         locationIds: allChildren.map((cable) => cable.locationId).toSet(),
-        name: 'Untitled Loom',
         type: LoomTypeModel(
           length: newLoomLength,
           type: LoomType.permanent,
@@ -800,7 +799,6 @@ List<
   final newLoom = LoomModel(
     uid: getUid(),
     locationIds: locationIds,
-    name: 'Untitled Loom',
     type: LoomTypeModel(length: 0, type: LoomType.custom),
   );
 

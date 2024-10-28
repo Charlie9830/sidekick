@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
+import 'package:sidekick/screens/looms/cable_flag.dart';
 import 'package:sidekick/screens/looms/editable_text_field.dart';
 import 'package:sidekick/view_models/loom_screen_item_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';
@@ -45,10 +47,8 @@ class _LoomRowItemState extends State<LoomRowItem> {
                     children: [
                       SizedBox(
                         width: 400,
-                        child: EditableTextField(
-                          onChanged: widget.loomVm.onNameChanged,
-                          value: widget.loomVm.loom.name,
-                          hintText: 'Name',
+                        child: Text(
+                          widget.loomVm.name,
                         ),
                       ),
                       const Spacer(),
@@ -62,19 +62,43 @@ class _LoomRowItemState extends State<LoomRowItem> {
                       if (widget.loomVm.loom.type.type == LoomType.permanent)
                         const SizedBox(
                           height: 36,
-                          child: Chip(
-                            label: Text('Permanent'),
-                            backgroundColor: Colors.blueGrey,
-                            labelPadding: EdgeInsets.all(0),
+                          child: CableFlag(
+                            text: 'Permanent',
+                            color: Colors.blueGrey,
                           ),
                         ),
                       if (widget.loomVm.loom.type.type == LoomType.custom)
-                        const SizedBox(
-                          height: 36,
-                          child: Chip(
-                            label: Text('Custom'),
-                            backgroundColor: Colors.blueAccent,
-                            labelPadding: EdgeInsets.all(0),
+                        const Padding(
+                          padding: EdgeInsets.only(left: 8.0),
+                          child: SizedBox(
+                            height: 36,
+                            child: CableFlag(
+                              text: 'Custom',
+                              color: Colors.blueAccent,
+                            ),
+                          ),
+                        ),
+                      if (widget.loomVm.loom.loomClass == LoomClass.extension &&
+                          widget.loomVm.loom.isDrop == false)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: SizedBox(
+                            height: 36,
+                            child: CableFlag(
+                              text: 'Extension',
+                              color: Colors.blue.shade900,
+                            ),
+                          ),
+                        ),
+                      if (widget.loomVm.loom.isDrop == true)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: SizedBox(
+                            height: 36,
+                            child: CableFlag(
+                              text: 'Drop',
+                              color: Colors.green.shade700,
+                            ),
                           ),
                         ),
                     ],
@@ -127,15 +151,11 @@ class _LoomRowItemState extends State<LoomRowItem> {
                                 child: IconButton(
                                   icon:
                                       const Icon(Icons.arrow_circle_down_sharp),
-                                  color: switch (widget.loomVm.dropperState) {
-                                    LoomDropState.isNotDropdown => null,
-                                    LoomDropState.isDropdown =>
-                                      Colors.greenAccent,
-                                    LoomDropState.various =>
-                                      Colors.orangeAccent,
-                                  },
-                                  onPressed:
-                                      widget.loomVm.onDropperStateButtonPressed,
+                                  color: widget.loomVm.loom.isDrop
+                                      ? Colors.greenAccent
+                                      : null,
+                                  onPressed: widget
+                                      .loomVm.onDropperToggleButtonPressed,
                                 ),
                               ),
                               IconButton(
