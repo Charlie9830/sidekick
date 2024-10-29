@@ -60,7 +60,7 @@ class LoomModel extends ModelCollectionMember {
     return LoomModel(
       uid: (map['uid'] ?? '') as String,
       locationIds: Set<String>.from(
-          (map['locationIds'] ?? const <String>{}) as Set<String>),
+          (map['locationIds'] ?? const <String>{}) as List<dynamic>),
       type: LoomTypeModel.fromMap(map['type'] as Map<String, dynamic>),
       loomClass: LoomClass.values[(map['loomClass'] ?? 0) as int],
       isDrop: (map['isDrop'] ?? false) as bool,

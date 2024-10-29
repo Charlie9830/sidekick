@@ -86,6 +86,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       outlets: a.project.outlets,
       powerMultiOutlets: convertToModelMap(a.project.powerMultiOutlets),
       maxSequenceBreak: a.project.maxSequenceBreak,
+      cables: convertToModelMap(a.project.cables),
     );
   }
 
