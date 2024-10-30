@@ -57,7 +57,7 @@ class ProjectFileModel {
   factory ProjectFileModel.fromMap(Map<String, dynamic> map) {
     return ProjectFileModel(
       metadata: ProjectFileMetadataModel.fromMap(map['metadata'] as Map<String,dynamic>),
-      fixtures: List<FixtureModel>.from((map['fixtures'] as List<int>).map<FixtureModel>((x) => FixtureModel.fromMap(x as Map<String,dynamic>),),),
+      fixtures: List<FixtureModel>.from((map['fixtures'] as List<dynamic>).map<FixtureModel>((x) => FixtureModel.fromMap(x as Map<String,dynamic>),),),
       powerMultiOutlets: List<PowerMultiOutletModel>.from((map['powerMultiOutlets'] as List<int>).map<PowerMultiOutletModel>((x) => PowerMultiOutletModel.fromMap(x as Map<String,dynamic>),),),
       outlets: List<PowerOutletModel>.from((map['outlets'] as List<int>).map<PowerOutletModel>((x) => PowerOutletModel.fromMap(x as Map<String,dynamic>),),),
       dataMultis: List<DataMultiModel>.from((map['dataMultis'] as List<int>).map<DataMultiModel>((x) => DataMultiModel.fromMap(x as Map<String,dynamic>),),),

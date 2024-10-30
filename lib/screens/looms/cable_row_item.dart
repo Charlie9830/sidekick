@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/screens/looms/cable_flag.dart';
+import 'package:sidekick/screens/looms/editable_text_field.dart';
 
 class CableRowItem extends StatelessWidget {
   final CableModel cable;
@@ -12,7 +13,6 @@ class CableRowItem extends StatelessWidget {
   final List<int> sneakUniverses;
   final int dmxUniverse;
   final String label;
-
   const CableRowItem({
     super.key,
     required this.cable,
@@ -28,6 +28,8 @@ class CableRowItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String length = cable.length.floor().toString();
+
     return Container(
       decoration: BoxDecoration(
         color: _getBackgroundColor(context),
@@ -54,7 +56,15 @@ class CableRowItem extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('${cable.length.floor().toString()}m'),
+                          SizedBox(
+                            width: length.length >= 3 ? 60 : 40,
+                            child: EditableTextField(
+                              
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              value: cable.length.floor().toString(),
+                              suffix: 'm',
+                            ),
+                          ),
                           if (cable.length == 0)
                             const Tooltip(
                               waitDuration: Duration(milliseconds: 500),
