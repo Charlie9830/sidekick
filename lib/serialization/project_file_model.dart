@@ -92,7 +92,7 @@ class ProjectFileModel {
       dataPatches: List<DataPatchModel>.from((map['dataPatches'] as List<dynamic>).map<DataPatchModel>((x) => DataPatchModel.fromMap(x as Map<String,dynamic>),),),
       locations: List<LocationModel>.from((map['locations'] as List<dynamic>).map<LocationModel>((x) => LocationModel.fromMap(x as Map<String,dynamic>),),),
       looms: List<LoomModel>.from((map['looms'] as List<dynamic>).map<LoomModel>((x) => LoomModel.fromMap(x as Map<String,dynamic>),),),
-      cables: List<CableModel>.from((map['cables'] as List<dynamic>).map<CableModel>((x) => CableModel.fromMap(x as Map<String,dynamic>),),),
+      cables: List<CableModel>.from((map['cables'] ?? []).map<CableModel>((x) => CableModel.fromMap(x as Map<String,dynamic>),),),
       maxSequenceBreak: (map['maxSequenceBreak'] ?? 0) as int,
       balanceTolerance: (map['balanceTolerance'] ?? 0.0) as double,
     );
