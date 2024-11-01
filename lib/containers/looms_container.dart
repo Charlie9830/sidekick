@@ -65,15 +65,16 @@ class LoomsContainer extends StatelessWidget {
         // Naked Cables
         ...nakedCables.map(
           (cable) => CableViewModel(
-            cable: cable,
-            locationId: location.uid,
-            labelColor:
-                selectTitleCaseColor(NamedColors.names[location.color] ?? ''),
-            isExtension: cable.upstreamId.isNotEmpty,
-            sneakUniverses: _selectSneakUniverses(store, cable),
-            universe: _selectDmxUniverse(store, cable),
-            label: _selectCableLabel(store, cable),
-          ),
+              cable: cable,
+              locationId: location.uid,
+              labelColor:
+                  selectTitleCaseColor(NamedColors.names[location.color] ?? ''),
+              isExtension: cable.upstreamId.isNotEmpty,
+              sneakUniverses: _selectSneakUniverses(store, cable),
+              universe: _selectDmxUniverse(store, cable),
+              label: _selectCableLabel(store, cable),
+              onLengthChanged: (newValue) =>
+                  store.dispatch(UpdateCableLength(cable.uid, newValue))),
         ),
 
         // Looms
@@ -86,19 +87,21 @@ class LoomsContainer extends StatelessWidget {
 
             final childVms = childCables
                 .map((cable) => CableViewModel(
-                      cable: cable,
-                      locationId: location.uid,
-                      labelColor: selectTitleCaseColor(
-                          NamedColors.names[location.color] ?? ''),
-                      isExtension: cable.upstreamId.isNotEmpty,
-                      sneakUniverses: _selectSneakUniverses(store, cable),
-                      universe: _selectDmxUniverse(store, cable),
-                      label: _selectCableLabel(store, cable),
-                    ))
+                    cable: cable,
+                    locationId: location.uid,
+                    labelColor: selectTitleCaseColor(
+                        NamedColors.names[location.color] ?? ''),
+                    isExtension: cable.upstreamId.isNotEmpty,
+                    sneakUniverses: _selectSneakUniverses(store, cable),
+                    universe: _selectDmxUniverse(store, cable),
+                    label: _selectCableLabel(store, cable),
+                    onLengthChanged: (newValue) =>
+                        store.dispatch(UpdateCableLength(cable.uid, newValue))))
                 .toList();
 
             return LoomViewModel(
               loom: loom,
+              hasVariedLengthChildren: childCables.map((cable) => cable.length).toSet().length > 1,
               name: selectLoomName(loomsInLocation, location, loom),
               isValidComposition: loom.type.type == LoomType.permanent
                   ? loom.type.checkIsValid(childCables)
@@ -147,8 +150,6 @@ class LoomsContainer extends StatelessWidget {
         .flattened
         .toList();
   }
-
-  
 
   String _selectCableLabel(Store<AppState> store, CableModel cable) {
     return selectCableLabel(

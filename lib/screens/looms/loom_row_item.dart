@@ -49,6 +49,7 @@ class _LoomRowItemState extends State<LoomRowItem> {
                         width: 400,
                         child: Text(
                           widget.loomVm.name,
+                          style: Theme.of(context).textTheme.titleMedium
                         ),
                       ),
                       const Spacer(),
@@ -119,7 +120,7 @@ class _LoomRowItemState extends State<LoomRowItem> {
                       const SizedBox(width: 16),
                       Text(
                           widget.loomVm.loom.type.permanentComposition.isEmpty
-                              ? 'Custom'
+                              ? '${widget.loomVm.hasVariedLengthChildren ? 'Staggered ' : ''}Custom'
                               : widget.loomVm.loom.type.permanentComposition,
                           style: Theme.of(context).textTheme.titleSmall),
                       const Spacer(),

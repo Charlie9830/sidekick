@@ -14,6 +14,16 @@ import 'package:sidekick/utils/get_uid.dart';
 import 'package:sidekick/view_models/loom_screen_item_view_model.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
+  if (a is UpdateCableLength) {
+    return state.copyWith(
+        cables: Map<String, CableModel>.from(state.cables)
+          ..update(
+              a.uid,
+              (existing) => existing.copyWith(
+                  length:
+                      double.tryParse(a.newLength.trim()) ?? existing.length)));
+  }
+
   if (a is ToggleLoomDropperState) {
     return state.copyWith(
         looms: Map<String, LoomModel>.from(state.looms)

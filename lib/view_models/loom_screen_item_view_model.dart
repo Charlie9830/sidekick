@@ -12,6 +12,7 @@ class CableViewModel extends LoomScreenItemViewModel {
   final int universe;
   final List<int> sneakUniverses;
   final String label;
+  final void Function(String newValue) onLengthChanged;
 
   CableViewModel({
     required this.cable,
@@ -21,11 +22,13 @@ class CableViewModel extends LoomScreenItemViewModel {
     required this.universe,
     required this.sneakUniverses,
     required this.label,
+    required this.onLengthChanged,
   });
 }
 
 class LoomViewModel extends LoomScreenItemViewModel {
   final LoomModel loom;
+  final bool hasVariedLengthChildren;
   final String name;
   final List<CableViewModel> children;
   final void Function(String newValue) onLengthChanged;
@@ -37,6 +40,7 @@ class LoomViewModel extends LoomScreenItemViewModel {
 
   LoomViewModel({
     required this.loom,
+    required this.hasVariedLengthChildren,
     required this.children,
     required this.onLengthChanged,
     required this.onDelete,

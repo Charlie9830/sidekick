@@ -118,6 +118,7 @@ class _LoomsState extends State<Looms> {
                                       dmxUniverse: cableVm.universe,
                                       sneakUniverses: cableVm.sneakUniverses,
                                       label: cableVm.label,
+                                      onLengthChanged: cableVm.onLengthChanged,
                                     )))
                             .toList()),
                   ),
@@ -135,6 +136,7 @@ class _LoomsState extends State<Looms> {
                       dmxUniverse: vm.universe,
                       sneakUniverses: vm.sneakUniverses,
                       label: rowVm.label,
+                      onLengthChanged: vm.onLengthChanged,
                     )),
                 _ => const Text('WOOOOPS'),
               };

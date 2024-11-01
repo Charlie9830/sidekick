@@ -13,6 +13,8 @@ class CableRowItem extends StatelessWidget {
   final List<int> sneakUniverses;
   final int dmxUniverse;
   final String label;
+  final void Function(String newValue)? onLengthChanged;
+
   const CableRowItem({
     super.key,
     required this.cable,
@@ -24,6 +26,7 @@ class CableRowItem extends StatelessWidget {
     this.sneakUniverses = const [],
     this.dmxUniverse = 0,
     this.label = '',
+    this.onLengthChanged,
   });
 
   @override
@@ -57,9 +60,11 @@ class CableRowItem extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           SizedBox(
-                            width: length.length >= 3 ? 60 : 40,
+                            width: length.length >= 3 ? 42 : 36,
                             child: EditableTextField(
-                              
+                              onChanged: (newValue) =>
+                                  onLengthChanged?.call(newValue),
+                              selectAllOnFocus: true,
                               style: Theme.of(context).textTheme.bodyMedium,
                               value: cable.length.floor().toString(),
                               suffix: 'm',
