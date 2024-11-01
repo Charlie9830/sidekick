@@ -39,6 +39,14 @@ class _EditableTextFieldState extends State<EditableTextField> {
   }
 
   @override
+  void didUpdateWidget(covariant EditableTextField oldWidget) {
+    if (widget.value != oldWidget.value) {
+      _controller.text = widget.value;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlurListener(
       onBlur: () => widget.onChanged?.call(_controller.text),
