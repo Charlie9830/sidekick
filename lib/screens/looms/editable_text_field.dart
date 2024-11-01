@@ -9,6 +9,7 @@ class EditableTextField extends StatefulWidget {
   final String? suffix;
   final TextAlign? textAlign;
   final double? cursorHeight;
+  final bool selectAllOnFocus;
   final void Function(String newValue)? onChanged;
 
   const EditableTextField({
@@ -21,6 +22,7 @@ class EditableTextField extends StatefulWidget {
     this.suffix,
     this.textAlign,
     this.cursorHeight,
+    this.selectAllOnFocus = false,
   });
 
   @override
@@ -40,6 +42,12 @@ class _EditableTextFieldState extends State<EditableTextField> {
   Widget build(BuildContext context) {
     return BlurListener(
       onBlur: () => widget.onChanged?.call(_controller.text),
+      onFocus: () {
+        if (widget.selectAllOnFocus) {
+          _controller.selection =
+              TextSelection(baseOffset: 0, extentOffset: widget.value.length);
+        }
+      },
       child: TextField(
         controller: _controller,
         textAlign: widget.textAlign ?? TextAlign.start,
@@ -47,12 +55,10 @@ class _EditableTextFieldState extends State<EditableTextField> {
         cursorHeight: widget.cursorHeight,
         decoration: InputDecoration(
           isDense: true,
-          
           hintText: widget.hintText,
           enabledBorder: InputBorder.none,
           prefixText: widget.prefix,
           suffixText: widget.suffix,
-        
         ),
       ),
     );
