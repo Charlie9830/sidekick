@@ -47,10 +47,8 @@ class _LoomRowItemState extends State<LoomRowItem> {
                     children: [
                       SizedBox(
                         width: 400,
-                        child: Text(
-                          widget.loomVm.name,
-                          style: Theme.of(context).textTheme.titleMedium
-                        ),
+                        child: Text(widget.loomVm.name,
+                            style: Theme.of(context).textTheme.titleMedium),
                       ),
                       const Spacer(),
                       if (widget.loomVm.isValidComposition == false)
@@ -132,9 +130,15 @@ class _LoomRowItemState extends State<LoomRowItem> {
                           child: Row(
                             children: [
                               Tooltip(
-                                  message: 'Add selected cables',
+                                  message: 'Add Spares',
                                   child: IconButton(
                                     icon: const Icon(Icons.add_circle),
+                                    onPressed: widget.loomVm.addSpareCablesToLoom,
+                                  )),
+                              Tooltip(
+                                  message: 'Add selected cables',
+                                  child: IconButton(
+                                    icon: const Icon(Icons.move_down),
                                     onPressed:
                                         widget.loomVm.addSelectedCablesToLoom,
                                   )),

@@ -13,6 +13,7 @@ class PropertyField extends StatefulWidget {
   final List<TextInputFormatter> inputFormatters;
   final OnBlurCallback? onBlur;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
 
   const PropertyField({
     Key? key,
@@ -24,6 +25,7 @@ class PropertyField extends StatefulWidget {
     this.inputFormatters = const <TextInputFormatter>[],
     this.onBlur,
     this.controller,
+    this.focusNode,
   }) : super(key: key);
 
   @override
@@ -55,6 +57,7 @@ class PropertyFieldState extends State<PropertyField> {
       child: BlurListener(
         onBlur: () => widget.onBlur?.call(_controller.text),
         child: TextField(
+          focusNode: widget.focusNode,
           autofocus: widget.autofocus,
           controller: _controller,
           inputFormatters: widget.inputFormatters,

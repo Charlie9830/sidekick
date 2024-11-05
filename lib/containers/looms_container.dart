@@ -100,38 +100,40 @@ class LoomsContainer extends StatelessWidget {
                 .toList();
 
             return LoomViewModel(
-              loom: loom,
-              hasVariedLengthChildren: childCables.map((cable) => cable.length).toSet().length > 1,
-              name: selectLoomName(loomsInLocation, location, loom),
-              isValidComposition: loom.type.type == LoomType.permanent
-                  ? loom.type.checkIsValid(childCables)
-                  : true,
-              children: childVms,
-              onLengthChanged: (newValue) =>
-                  store.dispatch(UpdateLoomLength(loom.uid, newValue)),
-              onDelete: () => store.dispatch(
-                deleteLoom(context, loom.uid),
-              ),
-              onDropperToggleButtonPressed: () => store.dispatch(
-                ToggleLoomDropperState(
-                  loom.uid,
-                  !loom.isDrop,
-                  childVms.map((child) => child.cable).toList(),
-                ),
-              ),
-              onSwitchType: () => store.dispatch(switchLoomType(context,
-                  loom.uid, childVms.map((child) => child.cable).toList())),
-              addSelectedCablesToLoom:
-                  store.state.navstate.selectedCableIds.isNotEmpty
-                      ? () => store.dispatch(
-                            addSelectedCablesToLoom(
-                              context,
-                              loom.uid,
-                              store.state.navstate.selectedCableIds,
-                            ),
-                          )
-                      : null,
-            );
+                loom: loom,
+                hasVariedLengthChildren:
+                    childCables.map((cable) => cable.length).toSet().length > 1,
+                name: selectLoomName(loomsInLocation, location, loom),
+                isValidComposition: loom.type.type == LoomType.permanent
+                    ? loom.type.checkIsValid(childCables)
+                    : true,
+                children: childVms,
+                onLengthChanged: (newValue) =>
+                    store.dispatch(UpdateLoomLength(loom.uid, newValue)),
+                onDelete: () => store.dispatch(
+                      deleteLoom(context, loom.uid),
+                    ),
+                onDropperToggleButtonPressed: () => store.dispatch(
+                      ToggleLoomDropperState(
+                        loom.uid,
+                        !loom.isDrop,
+                        childVms.map((child) => child.cable).toList(),
+                      ),
+                    ),
+                onSwitchType: () => store.dispatch(switchLoomType(context,
+                    loom.uid, childVms.map((child) => child.cable).toList())),
+                addSelectedCablesToLoom:
+                    store.state.navstate.selectedCableIds.isNotEmpty
+                        ? () => store.dispatch(
+                              addSelectedCablesToLoom(
+                                context,
+                                loom.uid,
+                                store.state.navstate.selectedCableIds,
+                              ),
+                            )
+                        : null,
+                addSpareCablesToLoom: () =>
+                    store.dispatch(addSpareCablesToLoom(context, loom.uid)));
           },
         )
       ]);

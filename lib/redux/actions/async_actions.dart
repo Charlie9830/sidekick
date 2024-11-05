@@ -46,12 +46,62 @@ import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:path/path.dart' as p;
+import 'package:sidekick/screens/looms/add_spare_cables.dart';
 import 'package:sidekick/screens/sequencer_dialog/sequencer_dialog.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
 import 'package:sidekick/serialization/serialize_project_file.dart';
 import 'package:sidekick/snack_bars/file_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
+
+ThunkAction<AppState> addSpareCablesToLoom(
+    BuildContext context, String loomId) {
+  return (Store<AppState> store) async {
+    final loom = store.state.fixtureState.looms[loomId];
+
+    if (loom == null) {
+      return;
+    }
+
+    final result = await showModalBottomSheet(
+        context: context, builder: (context) => const AddSpareCables());
+
+    if (result == null) {
+      return;
+    }
+
+    if (result is AddSpareCablesResult) {
+      final qty = result.qty;
+      final type = result.type;
+
+      final existingCablesOfType = store.state.fixtureState.cables.values
+          .where((cable) => cable.loomId == loomId && cable.type == type)
+          .toList();
+      final existingSpareCablesOfType =
+          existingCablesOfType.where((cable) => cable.isSpare == true).toList();
+
+      final newSpareCables = List<CableModel>.generate(qty, (index) {
+        return CableModel(
+          uid: getUid(),
+          locationId: loom.locationIds.first,
+          type: type,
+          isSpare: true,
+          length: existingSpareCablesOfType.isNotEmpty
+              ? existingSpareCablesOfType.first.length
+              : existingCablesOfType.isNotEmpty
+                  ? existingCablesOfType.first.length
+                  : 0,
+          loomId: loomId,
+          spareIndex: existingSpareCablesOfType.length + index + 1,
+        );
+      });
+
+      store.dispatch(SetCables(
+          Map<String, CableModel>.from(store.state.fixtureState.cables)
+            ..addAll(convertToModelMap(newSpareCables))));
+    }
+  };
+}
 
 ThunkAction<AppState> splitSneakIntoDmx(
     BuildContext context, Set<String> cableIds) {
@@ -475,7 +525,7 @@ ThunkAction<AppState> createExtensionFromSelection(
     if (upstreamCablesTuples.isEmpty) {
       return;
     }
-    
+
     // Create new Extension cables templated off of existing upstream cables. We have to be careful with Sneaks though in order to correctly
     // grab their children. We do this in multiple passes of .map to keep things readable.
     final extensionTuples = upstreamCablesTuples
@@ -495,14 +545,14 @@ ThunkAction<AppState> createExtensionFromSelection(
                   .toList()),
         )
         // Now reparent any child cables.
-        .map((tuple) => tuple.parent.type == CableType.sneak &&
-                tuple.children.isNotEmpty
-            ? tuple.copyWith(
-                children: tuple.children
-                    .map(
-                        (cable) => cable.copyWith(dataMultiId: tuple.parent.uid))
-                    .toList())
-            : tuple)
+        .map((tuple) =>
+            tuple.parent.type == CableType.sneak && tuple.children.isNotEmpty
+                ? tuple.copyWith(
+                    children: tuple.children
+                        .map((cable) =>
+                            cable.copyWith(dataMultiId: tuple.parent.uid))
+                        .toList())
+                : tuple)
         // Now Destructure the elements out of the Tuple.
         .expand((tuple) => [tuple.parent, ...tuple.children]);
 
