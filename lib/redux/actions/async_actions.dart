@@ -54,6 +54,33 @@ import 'package:sidekick/snack_bars/file_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
+ThunkAction<AppState> deleteSelectedCables(BuildContext context) {
+  return (Store<AppState> store) async {
+    final selectedCables = store.state.navstate.selectedCableIds
+        .map((id) => store.state.fixtureState.cables[id])
+        .nonNulls
+        .toList();
+
+    final cablesEligibleForDelete = selectedCables
+        .where((cable) => cable.isSpare || cable.upstreamId.isNotEmpty);
+
+    final withSneakChildren =
+        cablesEligibleForDelete.expand((cable) => cable.type == CableType.sneak
+            ? [
+                cable,
+                ...store.state.fixtureState.cables.values
+                    .where((child) => child.dataMultiId == cable.uid)
+              ]
+            : [cable]);
+
+    final idsToRemove = withSneakChildren.map((cable) => cable.uid).toSet();
+
+    store.dispatch(SetCables(
+        Map<String, CableModel>.from(store.state.fixtureState.cables)
+          ..removeWhere((key, value) => idsToRemove.contains(key))));
+  };
+}
+
 ThunkAction<AppState> addSpareCablesToLoom(
     BuildContext context, String loomId) {
   return (Store<AppState> store) async {

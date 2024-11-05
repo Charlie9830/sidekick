@@ -57,6 +57,31 @@ class _LoomsState extends State<Looms> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Text('Cable',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall!
+                          .copyWith(color: Colors.grey)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(width: 8),
+                      Tooltip(
+                        message: 'Delete',
+                        child: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: widget.vm.onDeleteSelectedCables,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                  )
+                ],
+              ),
+              const VerticalDivider(),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
                   Text('Sneak',
                       style: Theme.of(context)
                           .textTheme
@@ -94,7 +119,7 @@ class _LoomsState extends State<Looms> {
               itemCount: widget.vm.rowVms.length,
               itemBuilder: (BuildContext context, int index) {
                 final rowVm = widget.vm.rowVms[index];
-            
+
                 return switch (rowVm) {
                   LocationDividerViewModel vm => LocationHeaderRow(
                       key: Key(vm.location.uid), location: vm.location),
@@ -120,7 +145,8 @@ class _LoomsState extends State<Looms> {
                                         dmxUniverse: cableVm.universe,
                                         sneakUniverses: cableVm.sneakUniverses,
                                         label: cableVm.label,
-                                        onLengthChanged: cableVm.onLengthChanged,
+                                        onLengthChanged:
+                                            cableVm.onLengthChanged,
                                       )))
                               .toList()),
                     ),
@@ -132,7 +158,8 @@ class _LoomsState extends State<Looms> {
                         labelColor: vm.labelColor,
                         isSelected:
                             widget.vm.selectedCableIds.contains(vm.cable.uid),
-                        isDragSelecting: _hoveringCableIds.contains(vm.cable.uid),
+                        isDragSelecting:
+                            _hoveringCableIds.contains(vm.cable.uid),
                         showTopBorder: index == 0 ||
                             widget.vm.rowVms[index - 1] is! CableViewModel,
                         dmxUniverse: vm.universe,

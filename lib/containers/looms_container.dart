@@ -9,8 +9,6 @@ import 'package:sidekick/data_selectors/select_title_case_color.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
-import 'package:sidekick/redux/models/location_model.dart';
-import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/looms/looms.dart';
@@ -28,21 +26,31 @@ class LoomsContainer extends StatelessWidget {
         vm: viewModel,
       );
     }, converter: (Store<AppState> store) {
+      final selectedCables = store.state.navstate.selectedCableIds
+          .map((id) => store.state.fixtureState.cables[id])
+          .nonNulls
+          .toList();
+
       return LoomsViewModel(
-          selectedCableIds: store.state.navstate.selectedCableIds,
-          selectCables: (ids) => store.dispatch(SetSelectedCableIds(ids)),
-          onGenerateLoomsButtonPressed: () => store.dispatch(generateCables()),
-          rowVms: _selectRows(context, store),
-          onCombineCablesIntoNewLoomButtonPressed: (type) => store.dispatch(
-              combineCablesIntoNewLoom(
-                  context, store.state.navstate.selectedCableIds, type)),
-          onCreateExtensionFromSelection: () => store.dispatch(
-              createExtensionFromSelection(
-                  context, store.state.navstate.selectedCableIds)),
-          onCombineDmxIntoSneak: () => store.dispatch(combineDmxCablesIntoSneak(
-              context, store.state.navstate.selectedCableIds)),
-          onSplitSneakIntoDmx: () => store.dispatch(splitSneakIntoDmx(
-              context, store.state.navstate.selectedCableIds)));
+        selectedCableIds: store.state.navstate.selectedCableIds,
+        selectCables: (ids) => store.dispatch(SetSelectedCableIds(ids)),
+        onGenerateLoomsButtonPressed: () => store.dispatch(generateCables()),
+        rowVms: _selectRows(context, store),
+        onCombineCablesIntoNewLoomButtonPressed: (type) => store.dispatch(
+            combineCablesIntoNewLoom(
+                context, store.state.navstate.selectedCableIds, type)),
+        onCreateExtensionFromSelection: () => store.dispatch(
+            createExtensionFromSelection(
+                context, store.state.navstate.selectedCableIds)),
+        onCombineDmxIntoSneak: () => store.dispatch(combineDmxCablesIntoSneak(
+            context, store.state.navstate.selectedCableIds)),
+        onSplitSneakIntoDmx: () => store.dispatch(
+          splitSneakIntoDmx(context, store.state.navstate.selectedCableIds),
+        ),
+        onDeleteSelectedCables: _selectCanDeleteSelectedCables(selectedCables)
+            ? () => store.dispatch(deleteSelectedCables(context))
+            : null,
+      );
     });
   }
 
@@ -190,5 +198,10 @@ class LoomsContainer extends StatelessWidget {
     }
 
     return patchOutlet.universe;
+  }
+
+  bool _selectCanDeleteSelectedCables(List<CableModel> selectedCables) {
+    return selectedCables
+        .any((cable) => cable.upstreamId.isNotEmpty || cable.isSpare);
   }
 }
