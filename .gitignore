@@ -49,3 +49,6 @@ app.*.map.json
 
 # Output Data
 /output/
+
+# Excel Junk
+/design_docs/~*
