@@ -39,7 +39,7 @@ void createDataPatchSheet({
         locationColor != null ? NamedColors.names[locationColor] ?? '' : '';
 
     // Lookup Sneak Parent if any.
-    final associatedCable = cablesByOutletId[patch];
+    final associatedCable = cablesByOutletId[patch.uid];
     final associatedSneak = cables[associatedCable?.dataMultiId];
 
     sheet.appendRow([
