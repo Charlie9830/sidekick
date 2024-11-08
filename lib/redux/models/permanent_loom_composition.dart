@@ -97,19 +97,23 @@ class PermanentLoomComposition {
     String name = '';
 
     if (socaWays > 0) {
-      name = '$name$socaWays Soca ';
+      name = '$name${socaWays}way Soca ';
     }
 
     if (wieland6Ways > 0) {
-      name = '$name$wieland6Ways 6way ';
+      name = '$name${wieland6Ways}way 6way ';
     }
 
     if (dmxWays > 0) {
-      name = '$name+ $dmxWays DMX';
+      name = '$name+ $dmxWays XLR';
     }
 
     if (sneakWays > 0) {
-      name = '$name+ $sneakWays Sneak';
+      if (sneakWays == 1) {
+        name = '$name+ Sneak';
+      } else {
+        name = '$name+ $sneakWays Sneak';
+      }
     }
 
     return name;

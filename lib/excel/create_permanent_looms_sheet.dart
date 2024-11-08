@@ -85,9 +85,8 @@ void createPermanentLoomsSheet({
       sheet.updateCell(
         CellIndex.indexByColumnRow(
             columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
-        TextCellValue(loom.type.permanentComposition),
+        TextCellValue('${loom.type.length.toInt()}m ${loom.type.permanentComposition}'),
         cellStyle: compositionRowStyle
-            .copyWith(boldVal: false)
             .copyWith(leftBorderVal: Border(borderStyle: BorderStyle.Thick)),
       );
 
