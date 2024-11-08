@@ -1046,9 +1046,10 @@ ThunkAction<AppState> saveProjectFile(BuildContext context, SaveType saveType) {
     // Perform the File Operations.
     final newMetadata = await serializeProjectFile(store.state, targetFilePath);
 
-    // Save the updated MEtadata.
+    // Save the updated Metadata.
     store.dispatch(SetProjectFileMetadata(newMetadata));
     store.dispatch(SetLastUsedProjectDirectory(p.dirname(targetFilePath)));
+    store.dispatch(SetProjectFilePath(targetFilePath));
 
     if (homeScaffoldKey.currentState?.mounted == true &&
         homeScaffoldKey.currentContext != null) {

@@ -31,7 +31,7 @@ FileState fileStateReducer(FileState state, dynamic a) {
     return state.copyWith(fixturePatchImportPath: a.path);
   }
 
-  if (a is SetLastUsedProjectDirectory) {
+  if (a is SetProjectFilePath) {
     return state.copyWith(projectFilePath: a.path);
   }
 
