@@ -641,8 +641,10 @@ ThunkAction<AppState> createExtensionFromSelection(
   final newLoom = existingLoom.copyWith(
     uid: getUid(),
     loomClass: LoomClass.extension,
-    secondaryLocationIds:
-        extensionCables.map((cable) => cable.locationId).toSet(),
+    secondaryLocationIds: extensionCables
+        .map((cable) => cable.locationId)
+        .where((id) => id != existingLoom.locationId)
+        .toSet(),
   );
 
   final updatedLooms = Map<String, LoomModel>.from(existingLooms)
