@@ -28,13 +28,14 @@ void writeCableRows({
       .nonNulls
       .toList();
 
-  final cablesByType = associatedCables.groupListsBy((element) => element.type);
+  final cableGroupsSortedByType = associatedCables
+      .sorted(cableTypeComparator)
+      .groupListsBy((cable) => cable.type);
 
-  final cablesSortedByType =
-      cableTypeOrdering.map((type) => cablesByType[type] ?? []);
 
-  for (final cableList in cablesSortedByType) {
+  for (final cableList in cableGroupsSortedByType.values) {
     for (final (index, cable) in cableList.indexed) {
+      print('Doot');
       pointer.carriageReturn();
       writeCableLine(
         sheet,
