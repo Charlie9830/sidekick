@@ -4,6 +4,8 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/classes/named_colors.dart';
 import 'package:sidekick/data_selectors/select_cable_label.dart';
+import 'package:sidekick/data_selectors/select_cable_specific_location.dart';
+import 'package:sidekick/data_selectors/select_cable_specific_location_color_label.dart';
 import 'package:sidekick/data_selectors/select_loom_name.dart';
 import 'package:sidekick/data_selectors/select_title_case_color.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
@@ -57,32 +59,34 @@ class LoomsContainer extends StatelessWidget {
   List<LoomScreenItemViewModel> _selectRows(
       BuildContext context, Store<AppState> store) {
     final cablesAndLoomsByLocation =
-        store.state.fixtureState.locations.map((locationId, location) {
+        store.state.fixtureState.locations.map((locationId, loomLocation) {
       final cablesInLocation = store.state.fixtureState.cables.values.where(
         (cable) => cable.locationId == locationId && cable.dataMultiId.isEmpty,
       );
 
       final loomsInLocation = store.state.fixtureState.looms.values
-          .where((loom) => loom.locationIds.contains(locationId))
+          .where((loom) => loom.locationId == locationId)
           .toList();
 
       final nakedCables =
           cablesInLocation.where((cable) => cable.loomId.isEmpty);
 
-      return MapEntry(location, [
+      return MapEntry(loomLocation, [
         // Naked Cables
         ...nakedCables.map(
-          (cable) => CableViewModel(
-              cable: cable,
-              locationId: location.uid,
-              labelColor:
-                  selectTitleCaseColor(NamedColors.names[location.color] ?? ''),
-              isExtension: cable.upstreamId.isNotEmpty,
-              sneakUniverses: _selectSneakUniverses(store, cable),
-              universe: _selectDmxUniverse(store, cable),
-              label: _selectCableLabel(store, cable),
-              onLengthChanged: (newValue) =>
-                  store.dispatch(UpdateCableLength(cable.uid, newValue))),
+          (cable) {
+            return CableViewModel(
+                cable: cable,
+                locationId: cable.locationId,
+                labelColor: selectCableSpecificLocationColorLabel(
+                    cable, store.state.fixtureState.locations),
+                isExtension: cable.upstreamId.isNotEmpty,
+                sneakUniverses: _selectSneakUniverses(store, cable),
+                universe: _selectDmxUniverse(store, cable),
+                label: _selectCableLabel(store, cable),
+                onLengthChanged: (newValue) =>
+                    store.dispatch(UpdateCableLength(cable.uid, newValue)));
+          },
         ),
 
         // Looms
@@ -96,9 +100,9 @@ class LoomsContainer extends StatelessWidget {
             final childVms = childCables
                 .map((cable) => CableViewModel(
                     cable: cable,
-                    locationId: location.uid,
-                    labelColor: selectTitleCaseColor(
-                        NamedColors.names[location.color] ?? ''),
+                    locationId: cable.locationId,
+                    labelColor: selectCableSpecificLocationColorLabel(
+                        cable, store.state.fixtureState.locations),
                     isExtension: cable.upstreamId.isNotEmpty,
                     sneakUniverses: _selectSneakUniverses(store, cable),
                     universe: _selectDmxUniverse(store, cable),
@@ -111,7 +115,14 @@ class LoomsContainer extends StatelessWidget {
                 loom: loom,
                 hasVariedLengthChildren:
                     childCables.map((cable) => cable.length).toSet().length > 1,
-                name: selectLoomName(loomsInLocation, location, loom),
+                name: selectLoomName(
+                    loomsInLocation,
+                    loomLocation,
+                    loom,
+                    loom.secondaryLocationIds
+                        .map((id) => store.state.fixtureState.locations[id])
+                        .nonNulls
+                        .toList()),
                 isValidComposition: loom.type.type == LoomType.permanent
                     ? loom.type.checkIsValid(childCables)
                     : true,

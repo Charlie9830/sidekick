@@ -26,7 +26,7 @@ void createCustomLoomsSheet({
   final loomsByLocation = locations.values.map((location) => (
         location,
         looms.values
-            .where((loom) => loom.locationIds.contains(location.uid))
+            .where((loom) => loom.secondaryLocationIds.contains(location.uid))
             .toList()
       ));
 
@@ -54,7 +54,14 @@ void createCustomLoomsSheet({
       sheet.updateCell(
         CellIndex.indexByColumnRow(
             columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
-        TextCellValue(selectLoomName(loomsInLocation, location, loom)),
+        TextCellValue(selectLoomName(
+            loomsInLocation,
+            location,
+            loom,
+            loom.secondaryLocationIds
+                .map((id) => locations[id])
+                .nonNulls
+                .toList())),
         cellStyle: loomHeaderStyle,
       );
 
@@ -91,10 +98,9 @@ void createCustomLoomsSheet({
         CellIndex.indexByColumnRow(
             columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
         TextCellValue(selectLocationLabel(
-            locationIds: loom.locationIds, locations: locations)),
+            locationIds: loom.secondaryLocationIds, locations: locations)),
         cellStyle: loomHeaderStyle.copyWith(boldVal: false),
       );
-
 
       ///
       /// Cable Data Rows

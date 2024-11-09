@@ -16,15 +16,18 @@ enum LoomClass {
 class LoomModel extends ModelCollectionMember {
   @override
   final String uid;
-  final Set<String> locationIds;
+  final String locationId;
+  final Set<String> secondaryLocationIds;
   final LoomTypeModel type;
+
   // enum
   final LoomClass loomClass;
   final bool isDrop;
 
   LoomModel({
     this.uid = '',
-    this.locationIds = const {},
+    this.locationId = '',
+    this.secondaryLocationIds = const {},
     this.type = const LoomTypeModel.blank(),
     this.loomClass = LoomClass.feeder,
     this.isDrop = false,
@@ -32,14 +35,16 @@ class LoomModel extends ModelCollectionMember {
 
   LoomModel copyWith({
     String? uid,
-    Set<String>? locationIds,
+    String? locationId,
+    Set<String>? secondaryLocationIds,
     LoomTypeModel? type,
     LoomClass? loomClass,
     bool? isDrop,
   }) {
     return LoomModel(
       uid: uid ?? this.uid,
-      locationIds: locationIds ?? this.locationIds,
+      locationId: locationId ?? this.locationId,
+      secondaryLocationIds: secondaryLocationIds ?? this.secondaryLocationIds,
       type: type ?? this.type,
       loomClass: loomClass ?? this.loomClass,
       isDrop: isDrop ?? this.isDrop,
@@ -49,7 +54,8 @@ class LoomModel extends ModelCollectionMember {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'uid': uid,
-      'locationIds': locationIds.toList(),
+      'locationId': locationId,
+      'secondaryLocationIds': secondaryLocationIds.toList(),
       'type': type.toMap(),
       'loomClass': loomClass.index,
       'isDrop': isDrop,
@@ -59,8 +65,9 @@ class LoomModel extends ModelCollectionMember {
   factory LoomModel.fromMap(Map<String, dynamic> map) {
     return LoomModel(
       uid: (map['uid'] ?? '') as String,
-      locationIds: Set<String>.from(
-          (map['locationIds'] ?? const <String>{}) as List<dynamic>),
+      locationId: map['locationId'] ?? '',
+      secondaryLocationIds:
+          Set<String>.from(map['secondaryLocationIds'] ?? const <String>{}),
       type: LoomTypeModel.fromMap(map['type'] as Map<String, dynamic>),
       loomClass: LoomClass.values[(map['loomClass'] ?? 0) as int],
       isDrop: (map['isDrop'] ?? false) as bool,
@@ -74,7 +81,7 @@ class LoomModel extends ModelCollectionMember {
 
   @override
   String toString() {
-    return 'LoomModel(uid: $uid, locationId: $locationIds)';
+    return 'LoomModel(uid: $uid, locationId: $locationId, secondaryLocationIds: $secondaryLocationIds)';
   }
 
   static double matchLength(LocationModel? location) {

@@ -14,6 +14,7 @@ import 'package:sidekick/balancer/naive_balancer.dart';
 import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/classes/cable_and_children_tuple.dart';
 import 'package:sidekick/classes/universe_span.dart';
+import 'package:sidekick/data_selectors/select_primary_and_secondary_location_ids.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/excel/create_color_lookup_sheet.dart';
 import 'package:sidekick/excel/create_custom_looms_sheet.dart';
@@ -110,7 +111,7 @@ ThunkAction<AppState> addSpareCablesToLoom(
       final newSpareCables = List<CableModel>.generate(qty, (index) {
         return CableModel(
           uid: getUid(),
-          locationId: loom.locationIds.first,
+          locationId: loom.secondaryLocationIds.first,
           type: type,
           isSpare: true,
           length: existingSpareCablesOfType.isNotEmpty
@@ -348,7 +349,7 @@ ThunkAction<AppState> addSelectedCablesToLoom(
     final validCables = cables.where((cable) =>
         cable.loomId != loomId &&
         cable.isSpare == false &&
-        loom.locationIds.contains(cable.locationId));
+        loom.secondaryLocationIds.contains(cable.locationId));
 
     if (validCables.isEmpty) {
       return;
@@ -528,8 +529,7 @@ ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
 
 ThunkAction<AppState> debugButtonPressed() {
   return (Store<AppState> store) async {
-    store.dispatch(SetCablesAndLooms({}, {}));
-    store.dispatch(SetDataMultis({}));
+    print('Nothing implemented');
   };
 }
 
@@ -641,7 +641,8 @@ ThunkAction<AppState> createExtensionFromSelection(
   final newLoom = existingLoom.copyWith(
     uid: getUid(),
     loomClass: LoomClass.extension,
-    locationIds: extensionCables.map((cable) => cable.locationId).toSet(),
+    secondaryLocationIds:
+        extensionCables.map((cable) => cable.locationId).toSet(),
   );
 
   final updatedLooms = Map<String, LoomModel>.from(existingLooms)
@@ -660,18 +661,24 @@ ThunkAction<AppState> combineCablesIntoNewLoom(
   LoomType type,
 ) {
   return (Store<AppState> store) async {
-    final cables =
-        cableIds.map((id) => store.state.fixtureState.cables[id]).nonNulls;
+    final cables = cableIds
+        .map((id) => store.state.fixtureState.cables[id])
+        .nonNulls
+        .toList();
 
     if (cables.isEmpty) {
       return;
     }
 
-    final locationIds = cables.map((cable) => cable.locationId).toSet();
-
     if (type == LoomType.custom) {
+      final (String primaryLocationId, Set<String> secondaryLocationIds) =
+          selectPrimaryAndSecondaryLocationIds(cables);
+
       final (updatedCables, updatedLooms) = buildNewCustomLooms(
-          store: store, locationIds: locationIds, cableIds: cableIds);
+          store: store,
+          primaryLocationId: primaryLocationId,
+          secondaryLocationIds: secondaryLocationIds,
+          cableIds: cableIds);
       store.dispatch(SetCablesAndLooms(updatedCables, updatedLooms));
 
       return;
@@ -797,9 +804,11 @@ List<
         .map((cable) => cable.copyWith(loomId: newLoomId))
         .toList();
 
-    final newCableLocationId = cables.first.locationId;
+    final (String primaryLocationId, Set<String> secondaryLocationIds) =
+        selectPrimaryAndSecondaryLocationIds(cables);
+
     final newLoomLength =
-        LoomModel.matchLength(allLocations[newCableLocationId]);
+        LoomModel.matchLength(allLocations[primaryLocationId]);
 
     final newPowerCableType = cables
             .firstWhereOrNull((cable) => cable.type == CableType.socapex)
@@ -815,7 +824,7 @@ List<
               type: newPowerCableType,
               length: newLoomLength,
               isSpare: true,
-              locationId: newCableLocationId,
+              locationId: primaryLocationId,
               spareIndex: index + 1,
               loomId: newLoomId,
             ));
@@ -829,7 +838,7 @@ List<
               isSpare: true,
               length: newLoomLength,
               type: CableType.dmx,
-              locationId: newCableLocationId,
+              locationId: primaryLocationId,
               spareIndex: index + 1,
               loomId: newLoomId,
             ));
@@ -843,7 +852,7 @@ List<
               isSpare: true,
               length: newLoomLength,
               type: CableType.sneak,
-              locationId: newCableLocationId,
+              locationId: primaryLocationId,
               spareIndex: index + 1,
               loomId: newLoomId,
             ));
@@ -870,7 +879,8 @@ List<
     return (
       LoomModel(
         uid: newLoomId,
-        locationIds: allChildren.map((cable) => cable.locationId).toSet(),
+        locationId: primaryLocationId,
+        secondaryLocationIds: secondaryLocationIds,
         type: LoomTypeModel(
           length: newLoomLength,
           type: LoomType.permanent,
@@ -885,7 +895,8 @@ List<
 (Map<String, CableModel> updatedCables, Map<String, LoomModel> updatedLooms)
     buildNewCustomLooms({
   required Store<AppState> store,
-  required Set<String> locationIds,
+  required String primaryLocationId,
+  required Set<String> secondaryLocationIds,
   required Set<String> cableIds,
 }) {
   final cableIdsWithSneakChildren = cableIds
@@ -911,7 +922,8 @@ List<
 
   final newLoom = LoomModel(
     uid: getUid(),
-    locationIds: locationIds,
+    locationId: primaryLocationId,
+    secondaryLocationIds: secondaryLocationIds,
     type: LoomTypeModel(length: 0, type: LoomType.custom),
   );
 
