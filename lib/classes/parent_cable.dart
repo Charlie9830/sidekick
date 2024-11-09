@@ -1,17 +1,17 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:sidekick/redux/models/cable_model.dart';
 
-class CableAndChildrenTuple {
+class ParentCable {
   final CableModel parent;
   final List<CableModel> children;
 
-  CableAndChildrenTuple(this.parent, this.children);
+  ParentCable(this.parent, this.children);
 
-  CableAndChildrenTuple copyWith({
+  ParentCable copyWith({
     CableModel? parent,
     List<CableModel>? children,
   }) {
-    return CableAndChildrenTuple(
+    return ParentCable(
       parent ?? this.parent,
       children ?? this.children,
     );
