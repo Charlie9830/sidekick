@@ -54,14 +54,14 @@ void writeCableRows({
       );
 
       // Write rows for the Sneak child (if any).
-      for (final child in cable.children) {
+      for (final (childIndex, child) in cable.children.indexed) {
         pointer.carriageReturn();
         writeCableLine(
           sheet,
           pointer.getColumnIndex,
           pointer.rowIndex,
           child,
-          index,
+          childIndex,
           cableRowStyle,
           powerMultiOutlets,
           dataMultis,
