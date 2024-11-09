@@ -12,7 +12,7 @@ import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
 import 'package:sidekick/balancer/models/balancer_power_outlet_model.dart';
 import 'package:sidekick/balancer/naive_balancer.dart';
 import 'package:sidekick/balancer/phase_load.dart';
-import 'package:sidekick/classes/parent_cable.dart';
+import 'package:sidekick/classes/folded_cable.dart';
 import 'package:sidekick/classes/universe_span.dart';
 import 'package:sidekick/data_selectors/select_primary_and_secondary_location_ids.dart';
 import 'package:sidekick/enums.dart';
@@ -541,12 +541,12 @@ ThunkAction<AppState> createExtensionFromSelection(
         .nonNulls
         // If cable is a Sneak, place it into a Tuple with it's children, otherwise return just the tuple with an empty list.
         .map((cable) => cable.type == CableType.sneak
-            ? ParentCable(
+            ? FoldedCable(
                 cable,
                 store.state.fixtureState.cables.values
                     .where((item) => item.dataMultiId == cable.uid)
                     .toList())
-            : ParentCable(cable, const []))
+            : FoldedCable(cable, const []))
         .toList();
 
     if (upstreamParentCables.isEmpty) {
@@ -560,9 +560,9 @@ ThunkAction<AppState> createExtensionFromSelection(
         .map(
           (tuple) => tuple.copyWith(
               // Parent Cable
-              parent: tuple.parent.copyWith(
+              cable: tuple.cable.copyWith(
                 uid: getUid(),
-                upstreamId: tuple.parent.uid,
+                upstreamId: tuple.cable.uid,
               ),
 
               // Children..
@@ -573,17 +573,17 @@ ThunkAction<AppState> createExtensionFromSelection(
         )
         // Now reparent any child cables.
         .map((tuple) =>
-            tuple.parent.type == CableType.sneak && tuple.children.isNotEmpty
+            tuple.cable.type == CableType.sneak && tuple.children.isNotEmpty
                 ? tuple.copyWith(
                     children: tuple.children
                         .map((cable) =>
-                            cable.copyWith(dataMultiId: tuple.parent.uid))
+                            cable.copyWith(dataMultiId: tuple.cable.uid))
                         .toList())
                 : tuple)
         // Now Destructure the elements out of the Tuple.
-        .expand((tuple) => [tuple.parent, ...tuple.children]);
+        .expand((tuple) => [tuple.cable, ...tuple.children]);
 
-    if (upstreamParentCables.every((tuple) => tuple.parent.loomId.isEmpty)) {
+    if (upstreamParentCables.every((tuple) => tuple.cable.loomId.isEmpty)) {
       // No cables were part of any loom. So we only need to modify the cables collection.
       store.dispatch(SetCables(
           Map<String, CableModel>.from(store.state.fixtureState.cables)

@@ -25,9 +25,7 @@ void createCustomLoomsSheet({
 
   final loomsByLocation = locations.values.map((location) => (
         location,
-        looms.values
-            .where((loom) => loom.secondaryLocationIds.contains(location.uid))
-            .toList()
+        looms.values.where((loom) => loom.locationId == location.uid).toList()
       ));
 
   final pointer = SheetIndexer();

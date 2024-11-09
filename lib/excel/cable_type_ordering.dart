@@ -1,3 +1,4 @@
+import 'package:sidekick/classes/folded_cable.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 
 const _ranking = {
@@ -10,4 +11,8 @@ const _ranking = {
 
 int cableTypeComparator(CableModel a, CableModel b) {
   return _ranking[a.type]! - _ranking[b.type]!;
+}
+
+int parentCableTypeComparator(FoldedCable a, FoldedCable b) {
+  return cableTypeComparator(a.cable, b.cable);
 }

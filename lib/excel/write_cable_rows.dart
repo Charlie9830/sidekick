@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:excel/excel.dart';
+import 'package:sidekick/classes/folded_cable.dart';
 import 'package:sidekick/excel/cable_type_ordering.dart';
 import 'package:sidekick/excel/sheet_indexer.dart';
 import 'package:sidekick/excel/styles.dart';
@@ -28,20 +29,21 @@ void writeCableRows({
       .nonNulls
       .toList();
 
-  final cableGroupsSortedByType = associatedCables
-      .sorted(cableTypeComparator)
-      .groupListsBy((cable) => cable.type);
+  final parentWithChildCables =
+      FoldedCable.foldCablesIntoSneaks(associatedCables);
 
+  final cableGroupsSortedByType = parentWithChildCables
+      .sorted(parentCableTypeComparator)
+      .groupListsBy((cable) => cable.cable.type);
 
   for (final cableList in cableGroupsSortedByType.values) {
     for (final (index, cable) in cableList.indexed) {
-      print('Doot');
       pointer.carriageReturn();
       writeCableLine(
         sheet,
         pointer.getColumnIndex,
         pointer.rowIndex,
-        cable,
+        cable.cable,
         index,
         cableRowStyle,
         powerMultiOutlets,
@@ -51,40 +53,23 @@ void writeCableRows({
         customRow,
       );
 
-      // TODO: Disabled until refactoring to Cable based Sneak children is complete.
-      // if (cable.type == CableType.sneak) {
-      //   // We need to write the children of the sneak.
-      //   final children = dataPatches.values
-      //       .where((patch) => patch.multiId == cable.outletId);
-
-      //   int spareIndex = 1;
-      //   final childrenAsCables = children.map((child) => CableModel(
-      //         type: CableType.dmx,
-      //         uid: '',
-      //         locationId: child.locationId,
-      //         outletId: child.uid,
-      //         upstreamId: '',
-      //         isSpare: child.isSpare,
-      //         spareIndex: child.isSpare ? spareIndex++ : 0,
-      //       ));
-
-      //   for (final (sneakIndex, sneakPatch) in childrenAsCables.indexed) {
-      //     pointer.carriageReturn();
-      //     writeCableLine(
-      //       sheet,
-      //       pointer.getColumnIndex,
-      //       pointer.rowIndex,
-      //       sneakPatch,
-      //       sneakIndex,
-      //       cableRowStyle,
-      //       powerMultiOutlets,
-      //       dataMultis,
-      //       dataPatches,
-      //       locations,
-      //       customRow,
-      //     );
-      //   }
-      // }
+      // Write rows for the Sneak child (if any).
+      for (final child in cable.children) {
+        pointer.carriageReturn();
+        writeCableLine(
+          sheet,
+          pointer.getColumnIndex,
+          pointer.rowIndex,
+          child,
+          index,
+          cableRowStyle,
+          powerMultiOutlets,
+          dataMultis,
+          dataPatches,
+          locations,
+          customRow,
+        );
+      }
     }
   }
 }
