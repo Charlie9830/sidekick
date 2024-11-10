@@ -19,7 +19,7 @@ String selectCableLabel({
     return '';
   }
 
-  if (cable.dataMultiId.isNotEmpty && cable.type == CableType.dmx) {
+  if (cable.parentMultiId.isNotEmpty && cable.type == CableType.dmx) {
     return _selectSneakChildLabel(dataPatches[cable.outletId]);
   }
 

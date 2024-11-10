@@ -40,7 +40,7 @@ void createDataPatchSheet({
 
     // Lookup Sneak Parent if any.
     final associatedCable = cablesByOutletId[patch.uid];
-    final associatedSneak = cables[associatedCable?.dataMultiId];
+    final associatedSneak = cables[associatedCable?.parentMultiId];
 
     sheet.appendRow([
       TextCellValue(

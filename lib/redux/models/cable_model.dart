@@ -22,7 +22,7 @@ class CableModel extends ModelCollectionMember {
   final CableType type;
   final bool isSpare;
   final int spareIndex;
-  final String dataMultiId;
+  final String parentMultiId;
 
   CableModel({
     required this.uid,
@@ -35,10 +35,8 @@ class CableModel extends ModelCollectionMember {
     this.notes = '',
     this.isSpare = false,
     this.spareIndex = 0,
-    this.dataMultiId = '',
+    this.parentMultiId = '',
   });
-
-  int get typeRank => _cableTypeRankings[type]!;
 
   CableModel copyWith({
     String? uid,
@@ -51,7 +49,7 @@ class CableModel extends ModelCollectionMember {
     CableType? type,
     bool? isSpare,
     int? spareIndex,
-    String? dataMultiId,
+    String? parentMultiId,
   }) {
     return CableModel(
       uid: uid ?? this.uid,
@@ -64,7 +62,7 @@ class CableModel extends ModelCollectionMember {
       type: type ?? this.type,
       isSpare: isSpare ?? this.isSpare,
       spareIndex: spareIndex ?? this.spareIndex,
-      dataMultiId: dataMultiId ?? this.dataMultiId,
+      parentMultiId: parentMultiId ?? this.parentMultiId,
     );
   }
 
@@ -80,7 +78,7 @@ class CableModel extends ModelCollectionMember {
       'locationId': locationId,
       'isSpare': isSpare,
       'spareIndex': spareIndex,
-      'dataMultiId': dataMultiId,
+      'parentMultiId': parentMultiId,
     };
   }
 
@@ -96,7 +94,7 @@ class CableModel extends ModelCollectionMember {
       type: CableType.values.byName(map['type']),
       isSpare: map['isSpare'],
       spareIndex: map['spareIndex'],
-      dataMultiId: map['dataMultiId'],
+      parentMultiId: map['parentMultiId'] ?? '',
     );
   }
 
@@ -109,16 +107,4 @@ class CableModel extends ModelCollectionMember {
 
   factory CableModel.fromJson(String source) =>
       CableModel.fromMap(json.decode(source));
-
-  static const Map<CableType, int> _cableTypeRankings = {
-    CableType.socapex: 0,
-    CableType.wieland6way: 1,
-    CableType.sneak: 2,
-    CableType.dmx: 3,
-    CableType.unknown: 10
-  };
-
-  int compareAsLoomList(CableModel a, CableModel b) {
-    return a.typeRank - b.typeRank;
-  }
 }

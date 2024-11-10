@@ -26,8 +26,8 @@ void createDataMultiSheet({
     TextCellValue('Color'),
   ]);
 
-  final cablesByMultiId =
-      cables.values.groupListsBy((cable) => cable.dataMultiId);
+  final cablesByParentMultiId =
+      cables.values.groupListsBy((cable) => cable.parentMultiId);
 
   for (final (index, multi) in dataMultis.values.indexed) {
     final locationColor = locations[multi.locationId]?.color;
@@ -39,7 +39,7 @@ void createDataMultiSheet({
         cables.values.firstWhereOrNull((cable) => cable.outletId == multi.uid);
 
     final childPatches = associatedSneak != null
-        ? cablesByMultiId[associatedSneak.uid]
+        ? cablesByParentMultiId[associatedSneak.uid]
                 ?.map((cable) => dataOutlets[cable.outletId])
                 .nonNulls
                 .toList() ??

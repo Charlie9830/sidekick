@@ -21,15 +21,14 @@ class FoldedCable {
   /// Will return a list of [FoldedCable] where relevant child cables are folded into their parent cables. Children that have been folded
   /// will not appear in the top level collection.
   static List<FoldedCable> foldCablesIntoSneaks(Iterable<CableModel> cables) {
-    final cablesByDataMultiId = cables
-        .where((cable) => cable.dataMultiId.isNotEmpty)
-        .groupListsBy((cable) => cable.dataMultiId);
-
+    final cablesByParentMultiId = cables
+        .where((cable) => cable.parentMultiId.isNotEmpty)
+        .groupListsBy((cable) => cable.parentMultiId);
 
     return cables
-        .map(
-            (cable) => FoldedCable(cable, cablesByDataMultiId[cable.uid] ?? []))
-        .where((foldedCable) => foldedCable.cable.dataMultiId.isEmpty)
+        .map((cable) =>
+            FoldedCable(cable, cablesByParentMultiId[cable.uid] ?? []))
+        .where((foldedCable) => foldedCable.cable.parentMultiId.isEmpty)
         .toList();
   }
 

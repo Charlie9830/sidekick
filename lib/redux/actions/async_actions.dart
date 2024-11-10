@@ -70,7 +70,7 @@ ThunkAction<AppState> deleteSelectedCables(BuildContext context) {
             ? [
                 cable,
                 ...store.state.fixtureState.cables.values
-                    .where((child) => child.dataMultiId == cable.uid)
+                    .where((child) => child.parentMultiId == cable.uid)
               ]
             : [cable]);
 
@@ -181,7 +181,7 @@ ThunkAction<AppState> splitSneakIntoDmx(
 
     final associatedCables = validCables
         .map((cable) => store.state.fixtureState.cables.values
-            .where((item) => item.dataMultiId == cable.uid))
+            .where((item) => item.parentMultiId == cable.uid))
         .flattened
         .toList();
 
@@ -196,13 +196,13 @@ ThunkAction<AppState> splitSneakIntoDmx(
         Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
           ..removeWhere((key, value) => dataMultiIdsToRemove.contains(key));
 
-    final updatedCables =
-        Map<String, CableModel>.from(store.state.fixtureState.cables)
-          ..addAll(convertToModelMap(
-              associatedCables.map((cable) => cable.copyWith(dataMultiId: ''))))
-          ..removeWhere((key, value) =>
-              spareCableIdsToRemove.contains(key) ||
-              sneakCableIdsToRemove.contains(key));
+    final updatedCables = Map<String, CableModel>.from(
+        store.state.fixtureState.cables)
+      ..addAll(convertToModelMap(
+          associatedCables.map((cable) => cable.copyWith(parentMultiId: ''))))
+      ..removeWhere((key, value) =>
+          spareCableIdsToRemove.contains(key) ||
+          sneakCableIdsToRemove.contains(key));
 
     store.dispatch(SetCables(updatedCables));
     store.dispatch(SetDataMultis(updatedDataMultis));
@@ -215,8 +215,8 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
     final validCables = cableIds
         .map((id) => store.state.fixtureState.cables[id])
         .nonNulls
-        .where(
-            (cable) => cable.dataMultiId.isEmpty && cable.type == CableType.dmx)
+        .where((cable) =>
+            cable.parentMultiId.isEmpty && cable.type == CableType.dmx)
         .toList();
 
     if (validCables.isEmpty) {
@@ -283,8 +283,8 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
     );
 
     final updatedCables = [
-      ...validCables.map(
-          (cable) => cable.copyWith(dataMultiId: newSneak.uid, loomId: loomId)),
+      ...validCables.map((cable) =>
+          cable.copyWith(parentMultiId: newSneak.uid, loomId: loomId)),
 
       // Generate Spares if required.
       ...List<CableModel>.generate(
@@ -295,7 +295,7 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
           isSpare: true,
           spareIndex: index + 1,
           loomId: loomId,
-          dataMultiId: newSneak.uid,
+          parentMultiId: newSneak.uid,
           type: CableType.dmx,
         ),
       ),
@@ -528,9 +528,7 @@ ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
 }
 
 ThunkAction<AppState> debugButtonPressed() {
-  return (Store<AppState> store) async {
-    print('Nothing implemented');
-  };
+  return (Store<AppState> store) async {};
 }
 
 ThunkAction<AppState> createExtensionFromSelection(
@@ -544,7 +542,7 @@ ThunkAction<AppState> createExtensionFromSelection(
             ? FoldedCable(
                 cable,
                 store.state.fixtureState.cables.values
-                    .where((item) => item.dataMultiId == cable.uid)
+                    .where((item) => item.parentMultiId == cable.uid)
                     .toList())
             : FoldedCable(cable, const []))
         .toList();
@@ -577,7 +575,7 @@ ThunkAction<AppState> createExtensionFromSelection(
                 ? tuple.copyWith(
                     children: tuple.children
                         .map((cable) =>
-                            cable.copyWith(dataMultiId: tuple.cable.uid))
+                            cable.copyWith(parentMultiId: tuple.cable.uid))
                         .toList())
                 : tuple)
         // Now Destructure the elements out of the Tuple.
@@ -873,7 +871,7 @@ List<
       ...cables
           .where((cable) => cable.type == CableType.sneak)
           .map((sneak) => allExistingCables.values
-              .where((cable) => cable.dataMultiId == sneak.uid))
+              .where((cable) => cable.parentMultiId == sneak.uid))
           .flattened
           .map((cable) => cable.copyWith(loomId: newLoomId))
     ];
@@ -914,7 +912,7 @@ List<
 
             // and it's children.
             ...store.state.fixtureState.cables.values
-                .where((item) => item.dataMultiId == cable.uid)
+                .where((item) => item.parentMultiId == cable.uid)
                 .map((item) => item.uid)
           ];
         }

@@ -11,6 +11,10 @@ String selectCableTypeLabel({
 }) {
   if (cable.type == CableType.dmx) {
     if (cable.isSpare) {
+      if (cable.parentMultiId.isNotEmpty) {
+        return _humanFriendlyType(cable.type, isSneakChild: true);
+      }
+
       return _humanFriendlyType(cable.type);
     }
 
@@ -20,7 +24,7 @@ String selectCableTypeLabel({
       return '';
     }
 
-    if (cable.dataMultiId.isEmpty) {
+    if (cable.parentMultiId.isEmpty) {
       // Top Level / Parent Cable.
       return _humanFriendlyType(cable.type);
     } else {
