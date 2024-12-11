@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:sidekick/item_selection/item_selection_controller.dart';
 import 'package:sidekick/item_selection/item_selection_messenger.dart';
 
@@ -39,8 +40,8 @@ class _ItemSelectionContainerState extends State<ItemSelectionContainer> {
     );
   }
 
-  void _handleItemPointerUp(PointerUpEvent e, int itemIndex) {
-    widget.controller.handleSelection(itemIndex);
+  void _handleItemPointerUp(PointerUpEvent e, Object value) {
+    widget.controller.handleSelection(value);
   }
 
   void _dispatchKeyEvent(KeyEvent e) {

@@ -8,7 +8,6 @@ class CableRowItem extends StatelessWidget {
   final String labelColor;
   final bool showTopBorder;
   final bool isSelected;
-  final bool isDragSelecting;
   final bool hideLength;
   final List<int> sneakUniverses;
   final int dmxUniverse;
@@ -21,7 +20,6 @@ class CableRowItem extends StatelessWidget {
     required this.labelColor,
     this.showTopBorder = false,
     this.isSelected = false,
-    this.isDragSelecting = false,
     this.hideLength = false,
     this.sneakUniverses = const [],
     this.dmxUniverse = 0,
@@ -180,10 +178,6 @@ class CableRowItem extends StatelessWidget {
   Color? _getBackgroundColor(BuildContext context) {
     if (isSelected) {
       return Theme.of(context).focusColor.withAlpha(60);
-    }
-
-    if (isDragSelecting) {
-      return Theme.of(context).hoverColor.withAlpha(20);
     }
 
     return null;

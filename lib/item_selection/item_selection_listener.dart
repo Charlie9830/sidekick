@@ -3,12 +3,12 @@ import 'package:sidekick/item_selection/item_selection_messenger.dart';
 
 class ItemSelectionListener extends StatelessWidget {
   final Widget child;
-  final int index;
+  final Object value;
 
   const ItemSelectionListener({
     super.key,
     required this.child,
-    required this.index,
+    required this.value,
   });
 
   @override
@@ -18,7 +18,7 @@ class ItemSelectionListener extends StatelessWidget {
 
     return Listener(
       onPointerUp: (e) =>
-          ItemSelectionMessenger.of(context)!.onItemPointerUp(e, index),
+          ItemSelectionMessenger.of(context)!.onItemPointerUp(e, value),
       child: child,
     );
   }

@@ -1,13 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:sidekick/extension_methods/add_if_absent_else_remove.dart';
+
+enum UpdateType {
+  overwrite,
+  addIfAbsentElseRemove,
+}
 
 class ItemSelectionController extends ChangeNotifier {
   bool _isModDown = false;
   bool _isShiftDown = false;
-  Set<int> _selectedItems = {};
 
-  Set<int> get selectedItems => _selectedItems;
+  final void Function(UpdateType updateType, Set<Object> values)
+      onUpdateSelection;
+
+  Set<Object> currentlySelectedValues;
+  Map<Object, int> itemIndices;
+
+  ItemSelectionController({
+    required this.onUpdateSelection,
+    required this.currentlySelectedValues,
+    required this.itemIndices,
+  });
 
   set isModDown(bool value) {
     _isModDown = value;
@@ -57,51 +70,55 @@ class ItemSelectionController extends ChangeNotifier {
     );
   }
 
-  void handleSelection(int index) {
+  void handleSelection(Object value) {
     if (_isModDown && _isShiftDown) {
       return;
     }
 
     if (_isModDown) {
-      _handleModDownSelection(index);
+      _handleModDownSelection(value);
       return;
     }
 
     if (_isShiftDown) {
-      _handleShiftDownSelection(index);
+      _handleShiftDownSelection(value);
       return;
     }
 
-    _handleCommonSelection(index);
+    _handleCommonSelection(value);
   }
 
-  void _handleShiftDownSelection(int index) {
-    if (_selectedItems.isEmpty) {
-      _handleCommonSelection(index);
+  void _handleShiftDownSelection(Object value) {
+    if (currentlySelectedValues.isEmpty) {
+      _handleCommonSelection(value);
       return;
     }
 
-    final [int lower, int upper] = [_selectedItems.first, index]..sort();
+    final [int lower, int upper] = [
+      itemIndices[currentlySelectedValues.first] ?? 0,
+      itemIndices[value] ?? 0
+    ]..sort();
     final diff = upper - lower;
 
-    final range = [
+    final selectionRange = [
       ...List<int>.generate(diff, (baseIndex) => baseIndex + lower),
       upper
     ];
-    final updatedItems = _selectedItems.toSet()..addAll(range);
 
-    _selectedItems = updatedItems;
-    notifyListeners();
+    final inverseLookup = Map<int, Object>.fromEntries(
+        itemIndices.entries.map((entry) => MapEntry(entry.value, entry.key)));
+
+    final updatedItems =
+        selectionRange.map((index) => inverseLookup[index]).nonNulls.toSet();
+
+    onUpdateSelection(UpdateType.overwrite, updatedItems);
   }
 
-  void _handleCommonSelection(int index) {
-    _selectedItems = {index};
-    notifyListeners();
+  void _handleCommonSelection(Object value) {
+    onUpdateSelection(UpdateType.overwrite, {value});
   }
 
-  void _handleModDownSelection(int index) {
-    final updatedItems = _selectedItems.toSet()..addIfAbsentElseRemove(index);
-    _selectedItems = updatedItems;
-    notifyListeners();
+  void _handleModDownSelection(Object value) {
+    onUpdateSelection(UpdateType.addIfAbsentElseRemove, {value});
   }
 }
