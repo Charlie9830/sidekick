@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 
-class ItemSelectionMessenger extends InheritedWidget {
-  final void Function(PointerUpEvent e, Object value) onItemPointerUp;
+class ItemSelectionMessenger<T> extends InheritedWidget {
+  final void Function(PointerUpEvent e, T value) onItemPointerUp;
+
   const ItemSelectionMessenger(
       {super.key, required this.child, required this.onItemPointerUp})
       : super(child: child);
 
   final Widget child;
 
-  static ItemSelectionMessenger? of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<ItemSelectionMessenger>();
+  static ItemSelectionMessenger? of<T>(BuildContext context) {
+    return context
+        .dependOnInheritedWidgetOfExactType<ItemSelectionMessenger<T>>();
   }
 
   @override

@@ -1,7 +1,5 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:quiver/collection.dart';
-import 'package:sidekick/extension_methods/add_if_absent_else_remove.dart';
 import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
@@ -24,7 +22,7 @@ class Looms extends StatefulWidget {
 class _LoomsState extends State<Looms> {
   @override
   Widget build(BuildContext context) {
-    return ItemSelectionContainer(
+    return ItemSelectionContainer<String>(
       itemIndicies: _buildCableIndices(),
       selectedItems: widget.vm.selectedCableIds,
       onSelectionUpdated: _handleSelectionUpdate,
@@ -181,7 +179,7 @@ class _LoomsState extends State<Looms> {
     );
   }
 
-  void _handleSelectionUpdate(UpdateType type, Set<Object> ids) {
+  void _handleSelectionUpdate(UpdateType type, Set<String> ids) {
     final selectedIds = switch (type) {
       UpdateType.addIfAbsentElseRemove => widget.vm.selectedCableIds.toSet()
         ..addAllIfAbsentElseRemove(ids.cast<String>()),
@@ -210,7 +208,7 @@ class _LoomsState extends State<Looms> {
 
   Widget _wrapSelectionListener(
       {required CableViewModel vm, required Widget child, Key? key}) {
-    return ItemSelectionListener(
+    return ItemSelectionListener<String>(
       key: key,
       value: vm.cable.uid,
       child: child,

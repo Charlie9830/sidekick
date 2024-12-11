@@ -7,12 +7,11 @@ enum UpdateType {
   addIfAbsentElseRemove,
 }
 
-class ItemSelectionContainer extends StatefulWidget {
+class ItemSelectionContainer<T> extends StatefulWidget {
   final Widget child;
-  final Set<Object> selectedItems;
-  final Map<Object, int> itemIndicies;
-  final void Function(UpdateType updateType, Set<Object> values)
-      onSelectionUpdated;
+  final Set<T> selectedItems;
+  final Map<T, int> itemIndicies;
+  final void Function(UpdateType updateType, Set<T> values) onSelectionUpdated;
 
   const ItemSelectionContainer({
     super.key,
@@ -23,10 +22,11 @@ class ItemSelectionContainer extends StatefulWidget {
   });
 
   @override
-  State<ItemSelectionContainer> createState() => _ItemSelectionContainerState();
+  State<ItemSelectionContainer<T>> createState() =>
+      _ItemSelectionContainerState<T>();
 }
 
-class _ItemSelectionContainerState extends State<ItemSelectionContainer> {
+class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
   late final FocusNode _keyboardFocusNode;
   bool _isModDown = false;
   bool _isShiftDown = false;
@@ -41,7 +41,7 @@ class _ItemSelectionContainerState extends State<ItemSelectionContainer> {
 
   @override
   Widget build(BuildContext context) {
-    return ItemSelectionMessenger(
+    return ItemSelectionMessenger<T>(
       onItemPointerUp: _handleItemPointerUp,
       child: KeyboardListener(
         focusNode: _keyboardFocusNode,
@@ -51,7 +51,7 @@ class _ItemSelectionContainerState extends State<ItemSelectionContainer> {
     );
   }
 
-  void _handleSelection(Object value) {
+  void _handleSelection(T value) {
     if (_isModDown && _isShiftDown) {
       return;
     }
@@ -69,7 +69,7 @@ class _ItemSelectionContainerState extends State<ItemSelectionContainer> {
     _handleCommonSelection(value);
   }
 
-  void _handleShiftDownSelection(Object value) {
+  void _handleShiftDownSelection(T value) {
     if (widget.selectedItems.isEmpty) {
       _handleCommonSelection(value);
       return;
@@ -86,21 +86,23 @@ class _ItemSelectionContainerState extends State<ItemSelectionContainer> {
       upper
     ];
 
-    final inverseLookup = Map<int, Object>.fromEntries(widget
-        .itemIndicies.entries
+    final inverseLookup = Map<int, T>.fromEntries(widget.itemIndicies.entries
         .map((entry) => MapEntry(entry.value, entry.key)));
 
-    final updatedItems =
-        selectionRange.map((index) => inverseLookup[index]).nonNulls.toSet();
+    final updatedItems = selectionRange
+        .map((index) => inverseLookup[index])
+        .where((item) => item != null)
+        .cast<T>()
+        .toSet();
 
     widget.onSelectionUpdated(UpdateType.overwrite, updatedItems);
   }
 
-  void _handleCommonSelection(Object value) {
+  void _handleCommonSelection(T value) {
     widget.onSelectionUpdated(UpdateType.overwrite, {value});
   }
 
-  void _handleModDownSelection(Object value) {
+  void _handleModDownSelection(T value) {
     widget.onSelectionUpdated(UpdateType.addIfAbsentElseRemove, {value});
   }
 
@@ -130,7 +132,7 @@ class _ItemSelectionContainerState extends State<ItemSelectionContainer> {
     });
   }
 
-  void _handleItemPointerUp(PointerUpEvent e, Object value) {
+  void _handleItemPointerUp(PointerUpEvent e, T value) {
     _handleSelection(value);
   }
 
