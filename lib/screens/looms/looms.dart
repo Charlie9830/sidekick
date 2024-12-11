@@ -4,7 +4,6 @@ import 'package:quiver/collection.dart';
 import 'package:sidekick/extension_methods/add_if_absent_else_remove.dart';
 import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
-import 'package:sidekick/item_selection/item_selection_controller.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/screens/looms/cable_row_item.dart';
@@ -23,60 +22,12 @@ class Looms extends StatefulWidget {
 }
 
 class _LoomsState extends State<Looms> {
-  late final ItemSelectionController _selectionController;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectionController = ItemSelectionController(
-      currentlySelectedValues: widget.vm.selectedCableIds,
-      itemIndices: _buildCableIndices(),
-      onUpdateSelection: _handleSelectionUpdate,
-    );
-  }
-
-  void _handleSelectionUpdate(UpdateType type, Set<Object> ids) {
-    final selectedIds = switch (type) {
-      UpdateType.addIfAbsentElseRemove => widget.vm.selectedCableIds.toSet()
-        ..addAllIfAbsentElseRemove(ids.cast<String>()),
-      UpdateType.overwrite => ids.cast<String>(),
-    };
-
-    widget.vm.selectCables(selectedIds);
-  }
-
-  @override
-  void didUpdateWidget(covariant Looms oldWidget) {
-    if (oldWidget.vm.rowVms != widget.vm.rowVms ||
-        oldWidget.vm.selectedCableIds != widget.vm.selectedCableIds) {
-      _selectionController.itemIndices = _buildCableIndices();
-      _selectionController.currentlySelectedValues = widget.vm.selectedCableIds;
-    }
-
-    super.didUpdateWidget(oldWidget);
-  }
-
-  Map<String, int> _buildCableIndices() {
-    return Map<String, int>.fromEntries(widget.vm.rowVms
-        .map((rowVm) {
-          if (rowVm is CableViewModel) {
-            return [rowVm.cable.uid];
-          }
-
-          if (rowVm is LoomViewModel) {
-            return rowVm.children.map((child) => child.cable.uid).toList();
-          }
-
-          return null;
-        })
-        .expand((i) => i ?? <String>[])
-        .mapIndexed((index, id) => MapEntry(id, index)));
-  }
-
   @override
   Widget build(BuildContext context) {
     return ItemSelectionContainer(
-      controller: _selectionController,
+      itemIndicies: _buildCableIndices(),
+      selectedItems: widget.vm.selectedCableIds,
+      onSelectionUpdated: _handleSelectionUpdate,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisAlignment: MainAxisAlignment.start,
@@ -230,6 +181,33 @@ class _LoomsState extends State<Looms> {
     );
   }
 
+  void _handleSelectionUpdate(UpdateType type, Set<Object> ids) {
+    final selectedIds = switch (type) {
+      UpdateType.addIfAbsentElseRemove => widget.vm.selectedCableIds.toSet()
+        ..addAllIfAbsentElseRemove(ids.cast<String>()),
+      UpdateType.overwrite => ids.cast<String>(),
+    };
+
+    widget.vm.selectCables(selectedIds);
+  }
+
+  Map<String, int> _buildCableIndices() {
+    return Map<String, int>.fromEntries(widget.vm.rowVms
+        .map((rowVm) {
+          if (rowVm is CableViewModel) {
+            return [rowVm.cable.uid];
+          }
+
+          if (rowVm is LoomViewModel) {
+            return rowVm.children.map((child) => child.cable.uid).toList();
+          }
+
+          return null;
+        })
+        .expand((i) => i ?? <String>[])
+        .mapIndexed((index, id) => MapEntry(id, index)));
+  }
+
   Widget _wrapSelectionListener(
       {required CableViewModel vm, required Widget child, Key? key}) {
     return ItemSelectionListener(
@@ -237,11 +215,5 @@ class _LoomsState extends State<Looms> {
       value: vm.cable.uid,
       child: child,
     );
-  }
-
-  @override
-  void dispose() {
-    _selectionController.dispose();
-    super.dispose();
   }
 }
