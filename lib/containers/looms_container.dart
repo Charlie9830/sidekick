@@ -58,19 +58,17 @@ class LoomsContainer extends StatelessWidget {
 
   List<LoomScreenItemViewModel> _selectRows(
       BuildContext context, Store<AppState> store) {
+    final allCables = store.state.fixtureState.cables;
+    final allLooms = store.state.fixtureState.looms;
+
     final cablesAndLoomsByLocation =
         store.state.fixtureState.locations.map((locationId, loomLocation) {
-      final cablesInLocation = store.state.fixtureState.cables.values.where(
-        (cable) =>
-            cable.locationId == locationId && cable.parentMultiId.isEmpty,
-      );
-
-      final loomsInLocation = store.state.fixtureState.looms.values
+      final loomsInLocation = allLooms.values
           .where((loom) => loom.locationId == locationId)
           .toList();
 
-      final nakedCables =
-          cablesInLocation.where((cable) => cable.loomId.isEmpty);
+      final unassignedCablesInLocation = allCables.values.where(
+          (cable) => cable.loomId.isEmpty && cable.locationId == locationId);
 
       // Wrapper Function to wrap multiple similiar calls to Cable VM creation.
       CableViewModel wrapCableVm(CableModel cable) => CableViewModel(
@@ -83,12 +81,11 @@ class LoomsContainer extends StatelessWidget {
             label: _selectCableLabel(store, cable),
             onLengthChanged: (newValue) =>
                 store.dispatch(UpdateCableLength(cable.uid, newValue)),
-          
           );
 
       return MapEntry(loomLocation, [
         // Naked Cables
-        ...nakedCables.map(
+        ...unassignedCablesInLocation.map(
           (cable) {
             return [
               // Cable

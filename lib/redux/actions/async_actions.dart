@@ -225,28 +225,6 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
 
     final locationIds = validCables.map((cable) => cable.locationId).toSet();
 
-    if (locationIds.length > 1) {
-      await showGenericDialog(
-          context: context,
-          title: "Woops",
-          message:
-              "Can't combine cables from different locations onto the one sneak.. yet",
-          affirmativeText: "Okay");
-      return;
-    }
-
-    final loomIds = validCables.map((cable) => cable.loomId).toSet();
-
-    if (loomIds.length > 1) {
-      await showGenericDialog(
-          context: context,
-          title: "Woops",
-          message:
-              "Can't combine cables from different Looms onto the one sneak.. yet",
-          affirmativeText: "Okay");
-      return;
-    }
-
     if (validCables.length > 4) {
       await showGenericDialog(
           context: context,
