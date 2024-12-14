@@ -195,7 +195,6 @@ class _LoomsState extends State<Looms> {
   }
 
   void _requestSelectionFocus() {
-    print("Requesting FOcus");
     _itemSelectionFocusNode.requestFocus();
   }
 
