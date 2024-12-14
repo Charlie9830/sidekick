@@ -55,6 +55,28 @@ import 'package:sidekick/snack_bars/file_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
+ThunkAction<AppState> setSelectedCableIds(Set<String> ids) {
+  return (Store<AppState> store) async {
+    final cables =
+        ids.map((id) => store.state.fixtureState.cables[id]).nonNulls.toList();
+
+    // If we have selected any Parent Multi cable, select all it's children as well.
+    final withChildCables = cables.expand((cable) => cable.isMultiCable
+        ? [
+            // Parent Multi Cable
+            cable,
+
+            // It's Children.
+            ...store.state.fixtureState.cables.values
+                .where((child) => child.parentMultiId == cable.uid)
+          ]
+        : [cable]);
+
+    store.dispatch(
+        SetSelectedCableIds(withChildCables.map((cable) => cable.uid).toSet()));
+  };
+}
+
 ThunkAction<AppState> deleteSelectedCables(BuildContext context) {
   return (Store<AppState> store) async {
     final selectedCables = store.state.navstate.selectedCableIds
@@ -331,39 +353,9 @@ ThunkAction<AppState> addSelectedCablesToLoom(
       return;
     }
 
-    // If its a Custom Loom we can just add the new cables.
-    if (loom.type.type == LoomType.custom) {
-      addCablesToCustomLoom(validCables, loom, store);
-      return;
-    }
-
-    // Its a permanent loom. So we need to ensure we follow composition policies here.
-    final candidateChildren = [
-      ...store.state.fixtureState.cables.values
-          .where((cable) => cable.loomId == loomId)
-          .nonNulls
-          .where((cable) => cable.isSpare == false),
-      ...validCables,
-    ];
-
-    final permanentComps =
-        PermanentLoomComposition.matchToPermanents(candidateChildren);
-
-    final loomAndChildrenTuples = _mapCablesToPermanentLooms(
-        candidateChildren,
-        store.state.fixtureState.cables,
-        permanentComps,
-        store.state.fixtureState.locations,
-        recyclableLoomIds: [loomId]);
-
-    final (updatedCables, updatedLooms) =
-        _applyPermanentLoomChangesToCollection(store.state.fixtureState.cables,
-            store.state.fixtureState.looms, loomAndChildrenTuples);
-
-    store.dispatch(SetCablesAndLooms(
-      updatedCables,
-      updatedLooms,
-    ));
+    // Just add the Cables to the Loom, if it screws up the composition of a permanent loom, it will be indicated to the user anyway.
+    _addCablesToLoom(validCables, loom, store);
+    return;
   };
 }
 
@@ -637,16 +629,16 @@ ThunkAction<AppState> combineCablesIntoNewLoom(
   LoomType type,
 ) {
   return (Store<AppState> store) async {
-    final cables = cableIds
+    final selectedCables = cableIds
         .map((id) => store.state.fixtureState.cables[id])
         .nonNulls
         .toList();
 
-    if (cables.isEmpty) {
+    if (selectedCables.isEmpty) {
       return;
     }
 
-    final primaryLocationId = cables.first.locationId;
+    final primaryLocationId = selectedCables.first.locationId;
 
     if (type == LoomType.custom) {
       final (updatedCables, updatedLooms) = buildNewCustomLooms(
@@ -690,14 +682,23 @@ ThunkAction<AppState> combineCablesIntoNewLoom(
   required List<CableModel> cables,
   required Map<String, LocationModel> allLocations,
 }) {
-  final permanentComps = PermanentLoomComposition.matchToPermanents(cables);
+  // Find matching Permanent Loom compositions. Don't include the Children of multi cables
+  final parentCables =
+      cables.where((cable) => cable.parentMultiId.isEmpty).toList();
+  final permanentComps =
+      PermanentLoomComposition.matchToPermanents(parentCables);
 
   if (permanentComps.isEmpty) {
     return ({}, {}, 'No suitable Permanent loom compositions found.');
   }
 
   final loomsWithChildrenTuples = _mapCablesToPermanentLooms(
-      cables, existingCables, permanentComps, allLocations);
+      parentCables: parentCables,
+      multiCableChildren:
+          cables.where((cable) => cable.parentMultiId.isNotEmpty).toList(),
+      allExistingCables: existingCables,
+      permanentComps: permanentComps,
+      allLocations: allLocations);
 
   final (updatedCables, updatedLooms) = _applyPermanentLoomChangesToCollection(
       existingCables, existingLooms, loomsWithChildrenTuples);
@@ -736,18 +737,20 @@ List<
           List<CableModel> children,
         )>
     _mapCablesToPermanentLooms(
-        List<CableModel> cables,
-        Map<String, CableModel> allExistingCables,
-        List<PermanentLoomComposition> permanentComps,
-        Map<String, LocationModel> allLocations,
-        {List<String> recyclableLoomIds = const []}) {
-  if (cables.isEmpty) {
+        {required List<CableModel> parentCables,
+        required List<CableModel> multiCableChildren,
+        required Map<String, CableModel> allExistingCables,
+        required List<PermanentLoomComposition> permanentComps,
+        required Map<String, LocationModel> allLocations,
+        List<String> recyclableLoomIds = const []}) {
+  if (parentCables.isEmpty) {
     return [];
   }
 
-  final activeCables = cables.where((cable) => cable.isSpare == false).toList();
+  final activeCables =
+      parentCables.where((cable) => cable.isSpare == false).toList();
   final spareCableIdsQueue = Queue<String>.from(
-      cables.where((cable) => cable.isSpare).map((cable) => cable.uid));
+      parentCables.where((cable) => cable.isSpare).map((cable) => cable.uid));
 
   final powerQueue = Queue<CableModel>.from(activeCables.where((cable) =>
       cable.type == CableType.wieland6way || cable.type == CableType.socapex));
@@ -776,13 +779,11 @@ List<
         .map((cable) => cable.copyWith(loomId: newLoomId))
         .toList();
 
-    final (String primaryLocationId, Set<String> secondaryLocationIds) =
-        selectPrimaryAndSecondaryLocationIds(cables);
+    final String locationId = parentCables.first.locationId;
 
-    final newLoomLength =
-        LoomModel.matchLength(allLocations[primaryLocationId]);
+    final newLoomLength = LoomModel.matchLength(allLocations[locationId]);
 
-    final newPowerCableType = cables
+    final newPowerCableType = parentCables
             .firstWhereOrNull((cable) => cable.type == CableType.socapex)
             ?.type ??
         CableType.wieland6way;
@@ -796,7 +797,7 @@ List<
               type: newPowerCableType,
               length: newLoomLength,
               isSpare: true,
-              locationId: primaryLocationId,
+              locationId: locationId,
               spareIndex: index + 1,
               loomId: newLoomId,
             ));
@@ -810,7 +811,7 @@ List<
               isSpare: true,
               length: newLoomLength,
               type: CableType.dmx,
-              locationId: primaryLocationId,
+              locationId: locationId,
               spareIndex: index + 1,
               loomId: newLoomId,
             ));
@@ -824,7 +825,7 @@ List<
               isSpare: true,
               length: newLoomLength,
               type: CableType.sneak,
-              locationId: primaryLocationId,
+              locationId: locationId,
               spareIndex: index + 1,
               loomId: newLoomId,
             ));
@@ -835,12 +836,20 @@ List<
       ...dmxWays,
       ...spareDmxCables,
       ...sneakWays,
+
+      // Extract any Children of Sneaks and update their [loomId] property.
+      ...sneakWays
+          .map((sneak) => multiCableChildren
+              .where((cable) => cable.parentMultiId == sneak.uid))
+          .flattened
+          .map((cable) => cable.copyWith(loomId: newLoomId)),
+
       ...spareSneakCables,
 
       // Ensure any children of Sneak Snakes also get their LoomId property updated.
       // Even though these get usually filtered out on the UI Side of things, we should still
       // strive to keep them up to date with loom changes.
-      ...cables
+      ...parentCables
           .where((cable) => cable.type == CableType.sneak)
           .map((sneak) => allExistingCables.values
               .where((cable) => cable.parentMultiId == sneak.uid))
@@ -851,7 +860,7 @@ List<
     return (
       LoomModel(
         uid: newLoomId,
-        locationId: primaryLocationId,
+        locationId: locationId,
         type: LoomTypeModel(
           length: newLoomLength,
           type: LoomType.permanent,
@@ -1776,7 +1785,7 @@ int _findNextAvailableSequenceNumber(List<int> sequenceNumbers) {
   return sortedSequenceNumbers.last + 1;
 }
 
-void addCablesToCustomLoom(Iterable<CableModel> incomingCables, LoomModel loom,
+void _addCablesToLoom(Iterable<CableModel> incomingCables, LoomModel loom,
     Store<AppState> store) {
   final rehomedCables =
       incomingCables.map((cable) => cable.copyWith(loomId: loom.uid));
@@ -1787,7 +1796,26 @@ void addCablesToCustomLoom(Iterable<CableModel> incomingCables, LoomModel loom,
           convertToModelMap(rehomedCables),
         );
 
-  store.dispatch(
-    SetCables(updatedCables),
-  );
+  store.dispatch(SetCables(updatedCables));
+
+  if (loom.type.type == LoomType.permanent) {
+    // Attempt to update the Permanent Loom Composition.
+    final compositionAffectingCables = updatedCables.values
+        .where(
+            (cable) => cable.loomId == loom.uid && cable.parentMultiId.isEmpty)
+        .toList();
+
+    final newComposition = PermanentLoomComposition.matchSuitablePermanent(
+        compositionAffectingCables);
+
+    if (newComposition != null &&
+        newComposition.name != loom.type.permanentComposition) {
+      final updatedLoom = loom.copyWith(
+          type: loom.type.copyWith(permanentComposition: newComposition.name));
+
+      store.dispatch(SetLooms(
+          Map<String, LoomModel>.from(store.state.fixtureState.looms)
+            ..update(loom.uid, (_) => updatedLoom)));
+    }
+  }
 }

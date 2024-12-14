@@ -47,7 +47,7 @@ String _selectSneakChildLabel(DataPatchModel? patch) {
     return '';
   }
 
-  return patch.universeLabel;
+  return patch.name;
 }
 
 String _selectDMXLabel(DataPatchModel? patch, bool includeUniverse) {

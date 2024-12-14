@@ -35,7 +35,7 @@ class LoomsContainer extends StatelessWidget {
 
       return LoomsViewModel(
         selectedCableIds: store.state.navstate.selectedCableIds,
-        selectCables: (ids) => store.dispatch(SetSelectedCableIds(ids)),
+        selectCables: (ids) => store.dispatch(setSelectedCableIds(ids)),
         onGenerateLoomsButtonPressed: () => store.dispatch(generateCables()),
         rowVms: _selectRows(context, store),
         onCombineCablesIntoNewLoomButtonPressed: (type) => store.dispatch(
@@ -88,8 +88,8 @@ class LoomsContainer extends StatelessWidget {
         ...unassignedCablesInLocation.map(
           (cable) {
             return [
-              // Cable
-              wrapCableVm(cable),
+              // Parent Cable
+              if (cable.parentMultiId.isEmpty) wrapCableVm(cable),
 
               /// Optional Child Cables
               ..._selectChildCables(cable, store)
@@ -107,9 +107,10 @@ class LoomsContainer extends StatelessWidget {
                 .toList();
 
             final loomedCableVms = childCables
+                .sorted((a, b) => CableModel.compareByType(a, b))
                 .map((cable) => [
                       // Top Level Cable
-                      wrapCableVm(cable),
+                      if (cable.parentMultiId.isEmpty) wrapCableVm(cable),
 
                       // Optional Children of Multi Cables.
                       ..._selectChildCables(cable, store)
