@@ -20,9 +20,18 @@ class Looms extends StatefulWidget {
 }
 
 class _LoomsState extends State<Looms> {
+  late final FocusNode _itemSelectionFocusNode;
+
+  @override
+  void initState() {
+    _itemSelectionFocusNode = FocusNode();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ItemSelectionContainer<String>(
+      focusNode: _itemSelectionFocusNode,
       itemIndicies: _buildCableIndices(),
       selectedItems: widget.vm.selectedCableIds,
       onSelectionUpdated: _handleSelectionUpdate,
@@ -132,6 +141,7 @@ class _LoomsState extends State<Looms> {
                         padding: EdgeInsets.only(top: index != 0 ? 16 : 0),
                         child: LoomRowItem(
                             loomVm: vm,
+                            onFocusDone: _requestSelectionFocus,
                             children: vm.children
                                 .mapIndexed(
                                     (index, cableVm) => _wrapSelectionListener(
@@ -143,11 +153,15 @@ class _LoomsState extends State<Looms> {
                                           isSelected: widget.vm.selectedCableIds
                                               .contains(cableVm.cable.uid),
                                           hideLength: vm.loom.type.type ==
-                                              LoomType.permanent || cableVm.cable.parentMultiId.isNotEmpty,
+                                                  LoomType.permanent ||
+                                              cableVm.cable.parentMultiId
+                                                  .isNotEmpty,
                                           dmxUniverse: cableVm.universe,
                                           label: cableVm.label,
-                                          onLengthChanged:
-                                              cableVm.onLengthChanged,
+                                          onLengthChanged: (newValue) {
+                                            cableVm.onLengthChanged(newValue);
+                                            _requestSelectionFocus();
+                                          },
                                         )))
                                 .toList()),
                       ),
@@ -163,7 +177,10 @@ class _LoomsState extends State<Looms> {
                               widget.vm.rowVms[index - 1] is! CableViewModel,
                           dmxUniverse: vm.universe,
                           label: rowVm.label,
-                          onLengthChanged: vm.onLengthChanged,
+                          onLengthChanged: (newValue) {
+                            vm.onLengthChanged(newValue);
+                            _requestSelectionFocus();
+                          },
                           hideLength: vm.cable.parentMultiId.isNotEmpty,
                         )),
                     _ => const Text('WOOOOPS'),
@@ -175,6 +192,11 @@ class _LoomsState extends State<Looms> {
         ],
       ),
     );
+  }
+
+  void _requestSelectionFocus() {
+    print("Requesting FOcus");
+    _itemSelectionFocusNode.requestFocus();
   }
 
   void _handleSelectionUpdate(UpdateType type, Set<String> ids) {

@@ -11,15 +11,16 @@ class ItemSelectionContainer<T> extends StatefulWidget {
   final Widget child;
   final Set<T> selectedItems;
   final Map<T, int> itemIndicies;
+  final FocusNode? focusNode;
   final void Function(UpdateType updateType, Set<T> values) onSelectionUpdated;
 
-  const ItemSelectionContainer({
-    super.key,
-    required this.child,
-    required this.selectedItems,
-    required this.itemIndicies,
-    required this.onSelectionUpdated,
-  });
+  const ItemSelectionContainer(
+      {super.key,
+      required this.child,
+      required this.selectedItems,
+      required this.itemIndicies,
+      required this.onSelectionUpdated,
+      this.focusNode});
 
   @override
   State<ItemSelectionContainer<T>> createState() =>
@@ -33,7 +34,7 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
 
   @override
   void initState() {
-    _keyboardFocusNode = FocusNode();
+    _keyboardFocusNode = widget.focusNode ?? FocusNode();
     _keyboardFocusNode.requestFocus();
 
     super.initState();

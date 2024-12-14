@@ -9,10 +9,13 @@ import 'package:sidekick/widgets/hover_region.dart';
 class LoomRowItem extends StatefulWidget {
   final LoomViewModel loomVm;
   final List<Widget> children;
+  final void Function() onFocusDone;
+
   const LoomRowItem({
     super.key,
     required this.loomVm,
     required this.children,
+    required this.onFocusDone,
   });
 
   @override
@@ -109,7 +112,10 @@ class _LoomRowItemState extends State<LoomRowItem> {
                         child: EditableTextField(
                           value:
                               widget.loomVm.loom.type.length.toStringAsFixed(0),
-                          onChanged: widget.loomVm.onLengthChanged,
+                          onChanged: (newValue) {
+                            widget.onFocusDone();
+                            widget.loomVm.onLengthChanged(newValue);
+                          },
                           suffix: 'm',
                           textAlign: TextAlign.end,
                           style: Theme.of(context).textTheme.titleSmall,
@@ -133,7 +139,8 @@ class _LoomRowItemState extends State<LoomRowItem> {
                                   message: 'Add Spares',
                                   child: IconButton(
                                     icon: const Icon(Icons.add_circle),
-                                    onPressed: widget.loomVm.addSpareCablesToLoom,
+                                    onPressed:
+                                        widget.loomVm.addSpareCablesToLoom,
                                   )),
                               Tooltip(
                                   message: 'Add selected cables',
