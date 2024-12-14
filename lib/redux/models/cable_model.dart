@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:sidekick/classes/folded_cable.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 
 enum CableType {
@@ -9,6 +10,14 @@ enum CableType {
   sneak,
   dmx,
 }
+
+const _ranking = {
+  CableType.socapex: 0,
+  CableType.wieland6way: 1,
+  CableType.sneak: 2,
+  CableType.dmx: 3,
+  CableType.unknown: 4,
+};
 
 class CableModel extends ModelCollectionMember {
   @override
@@ -110,4 +119,8 @@ class CableModel extends ModelCollectionMember {
 
   factory CableModel.fromJson(String source) =>
       CableModel.fromMap(json.decode(source));
+
+  static int compareByType(CableModel a, CableModel b) {
+    return _ranking[a.type]! - _ranking[b.type]!;
+  }
 }
