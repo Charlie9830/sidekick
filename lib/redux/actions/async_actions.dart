@@ -51,9 +51,93 @@ import 'package:sidekick/screens/looms/add_spare_cables.dart';
 import 'package:sidekick/screens/sequencer_dialog/sequencer_dialog.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
 import 'package:sidekick/serialization/serialize_project_file.dart';
+import 'package:sidekick/snack_bars/composition_repair_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
+
+ThunkAction<AppState> repairLoomComposition(
+    LoomModel loom, BuildContext context) {
+  return (Store<AppState> store) async {
+    final parentCables = store.state.fixtureState.cables.values
+        .where(
+            (cable) => cable.loomId == loom.uid && cable.parentMultiId.isEmpty)
+        .toList();
+
+    // Attempt a simple repair first.
+    final firstRunComposition =
+        PermanentLoomComposition.matchSuitablePermanent(parentCables);
+
+    if (firstRunComposition != null) {
+      store.dispatch(
+        SetCablesAndLooms(
+          // Cables
+          Map<String, CableModel>.from(store.state.fixtureState.cables)
+            ..addAll(convertToModelMap(_generateSpareCablesToMeetComposition(
+                loom, parentCables, firstRunComposition))),
+          // Looms
+          Map<String, LoomModel>.from(store.state.fixtureState.looms)
+            ..update(
+              loom.uid,
+              (_) => loom.copyWith(
+                type: loom.type
+                    .copyWith(permanentComposition: firstRunComposition.name),
+              ),
+            ),
+        ),
+      );
+      return;
+    }
+
+    if (homeScaffoldKey.currentContext != null &&
+        homeScaffoldKey.currentContext!.mounted) {
+      ScaffoldMessenger.of(homeScaffoldKey.currentContext!).showSnackBar(
+          compositionRepairSnackBar(context,
+              'Unable to auto repair composition. Try combining DMX into Sneak or convert to a custom loom'));
+    }
+  };
+}
+
+List<CableModel> _generateSpareCablesToMeetComposition(
+    LoomModel existingLoom,
+    List<CableModel> existingParentCablesInLoom,
+    PermanentLoomComposition targetComposition) {
+  // Create any Spare cables if we have to in order to reach the desired composition.
+  final cablesByType =
+      existingParentCablesInLoom.groupListsBy((cable) => cable.type);
+  final neededSocaWays = targetComposition.socaWays -
+      (cablesByType[CableType.socapex]?.length ?? 0).clamp(0, 100);
+  final neededWielandWays = targetComposition.wieland6Ways -
+      (cablesByType[CableType.wieland6way]?.length ?? 0).clamp(0, 100);
+  final neededSneakWays = targetComposition.sneakWays -
+      (cablesByType[CableType.sneak]?.length ?? 0).clamp(0, 100);
+  final neededDmxWays = targetComposition.dmxWays -
+      (cablesByType[CableType.dmx]?.length ?? 0).clamp(0, 100);
+
+  final existingSpareCablesByType = cablesByType.map((key, value) =>
+      MapEntry(key, value.where((cable) => cable.isSpare == true).toList()));
+
+  List<CableModel> generateSpares(int qty, CableType type) =>
+      List<CableModel>.generate(
+          qty,
+          (index) => CableModel(
+                uid: getUid(),
+                locationId: existingLoom.locationId,
+                loomId: existingLoom.uid,
+                type: type,
+                length: existingLoom.type.length,
+                isSpare: true,
+                spareIndex: (index + 1) +
+                    (existingSpareCablesByType[type]?.length ?? 0),
+              ));
+
+  return [
+    ...generateSpares(neededSocaWays, CableType.socapex),
+    ...generateSpares(neededWielandWays, CableType.wieland6way),
+    ...generateSpares(neededSneakWays, CableType.sneak),
+    ...generateSpares(neededDmxWays, CableType.dmx),
+  ];
+}
 
 ThunkAction<AppState> removeSelectedCablesFromLoom(BuildContext context) {
   return (Store<AppState> store) async {
@@ -1815,25 +1899,4 @@ void _addCablesToLoom(Iterable<CableModel> incomingCables, LoomModel loom,
         );
 
   store.dispatch(SetCables(updatedCables));
-
-  if (loom.type.type == LoomType.permanent) {
-    // Attempt to update the Permanent Loom Composition.
-    final compositionAffectingCables = updatedCables.values
-        .where(
-            (cable) => cable.loomId == loom.uid && cable.parentMultiId.isEmpty)
-        .toList();
-
-    final newComposition = PermanentLoomComposition.matchSuitablePermanent(
-        compositionAffectingCables);
-
-    if (newComposition != null &&
-        newComposition.name != loom.type.permanentComposition) {
-      final updatedLoom = loom.copyWith(
-          type: loom.type.copyWith(permanentComposition: newComposition.name));
-
-      store.dispatch(SetLooms(
-          Map<String, LoomModel>.from(store.state.fixtureState.looms)
-            ..update(loom.uid, (_) => updatedLoom)));
-    }
-  }
 }

@@ -72,6 +72,22 @@ class PermanentLoomComposition {
     return values.firstWhereOrNull((comp) => comp.satisfied(cables));
   }
 
+  bool isValidComposition(List<CableModel> cables) {
+    final incomingSoca =
+        cables.where((cable) => cable.type == CableType.socapex).length;
+    final incomingWieland6way =
+        cables.where((cable) => cable.type == CableType.wieland6way).length;
+    final incomingDmx =
+        cables.where((cable) => cable.type == CableType.dmx).length;
+    final incomingSneak =
+        cables.where((cable) => cable.type == CableType.sneak).length;
+
+    return incomingSoca == socaWays &&
+        incomingWieland6way == wieland6Ways &&
+        incomingSneak == sneakWays &&
+        incomingDmx == dmxWays;
+  }
+
   bool satisfied(List<CableModel> cables) {
     final incomingSoca =
         cables.where((cable) => cable.type == CableType.socapex).length;

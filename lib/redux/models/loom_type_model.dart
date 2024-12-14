@@ -36,7 +36,7 @@ class LoomTypeModel {
       return true;
     }
 
-    return composition.satisfied(children);
+    return composition.isValidComposition(children);
   }
 
   LoomTypeModel copyWith({

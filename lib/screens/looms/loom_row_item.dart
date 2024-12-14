@@ -55,12 +55,17 @@ class _LoomRowItemState extends State<LoomRowItem> {
                       ),
                       const Spacer(),
                       if (widget.loomVm.isValidComposition == false)
-                        SizedBox(
-                            height: 36,
-                            child: Chip(
-                              label: const Text('Bad Composition'),
-                              backgroundColor: Colors.orange.shade600,
-                            )),
+                        Row(
+                          children: [
+                            SizedBox(
+                                height: 36,
+                                child: Chip(
+                                  label: const Text('Bad Composition'),
+                                  backgroundColor: Colors.orange.shade600,
+                                )),
+                            const SizedBox(width: 8),
+                          ],
+                        ),
                       if (widget.loomVm.loom.type.type == LoomType.permanent)
                         const SizedBox(
                           height: 36,
@@ -148,6 +153,17 @@ class _LoomRowItemState extends State<LoomRowItem> {
                                     icon: const Icon(Icons.move_down),
                                     onPressed:
                                         widget.loomVm.addSelectedCablesToLoom,
+                                  )),
+                              Tooltip(
+                                  message: 'Auto repair composition',
+                                  child: IconButton(
+                                    icon: const Icon(Icons.build_circle),
+                                    onPressed: widget
+                                                .loomVm.isValidComposition ==
+                                            false
+                                        ? widget.loomVm
+                                            .onRepairCompositionButtonPressed
+                                        : null,
                                   )),
                               Tooltip(
                                   message: loomType == LoomType.permanent

@@ -36,6 +36,7 @@ class LoomViewModel extends LoomScreenItemViewModel {
   final void Function()? addSelectedCablesToLoom;
   final bool isValidComposition;
   final void Function() addSpareCablesToLoom;
+  final void Function() onRepairCompositionButtonPressed;
 
   LoomViewModel({
     required this.loom,
@@ -49,6 +50,7 @@ class LoomViewModel extends LoomScreenItemViewModel {
     required this.isValidComposition,
     required this.name,
     required this.addSpareCablesToLoom,
+    required this.onRepairCompositionButtonPressed,
   });
 }
 

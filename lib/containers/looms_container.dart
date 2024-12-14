@@ -136,6 +136,7 @@ class LoomsContainer extends StatelessWidget {
                     ? loom.type.checkIsValid(childCables)
                     : true,
                 children: loomedCableVms,
+                onRepairCompositionButtonPressed: () => store.dispatch(repairLoomComposition(loom, context)),
                 onLengthChanged: (newValue) =>
                     store.dispatch(UpdateLoomLength(loom.uid, newValue)),
                 onDelete: () => store.dispatch(
