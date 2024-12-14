@@ -10,7 +10,6 @@ class CableViewModel extends LoomScreenItemViewModel {
   final String labelColor;
   final bool isExtension;
   final int universe;
-  final List<int> sneakUniverses;
   final String label;
   final void Function(String newValue) onLengthChanged;
 
@@ -20,7 +19,6 @@ class CableViewModel extends LoomScreenItemViewModel {
     required this.labelColor,
     required this.isExtension,
     required this.universe,
-    required this.sneakUniverses,
     required this.label,
     required this.onLengthChanged,
   });

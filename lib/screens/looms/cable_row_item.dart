@@ -9,7 +9,6 @@ class CableRowItem extends StatelessWidget {
   final bool showTopBorder;
   final bool isSelected;
   final bool hideLength;
-  final List<int> sneakUniverses;
   final int dmxUniverse;
   final String label;
   final void Function(String newValue)? onLengthChanged;
@@ -21,7 +20,6 @@ class CableRowItem extends StatelessWidget {
     this.showTopBorder = false,
     this.isSelected = false,
     this.hideLength = false,
-    this.sneakUniverses = const [],
     this.dmxUniverse = 0,
     this.label = '',
     this.onLengthChanged,
@@ -90,6 +88,10 @@ class CableRowItem extends StatelessWidget {
                       children: [
                         Row(
                           children: [
+                            // Multi Cable Child Offset.
+                            if (cable.parentMultiId.isNotEmpty)
+                              const SizedBox(width: 16),
+
                             switch (cable.type) {
                               CableType.socapex => const Icon(
                                   Icons.electric_bolt,
@@ -101,14 +103,17 @@ class CableRowItem extends StatelessWidget {
                                   Icons.settings_ethernet,
                                   size: 16,
                                   color: Colors.grey),
-                              CableType.dmx => const Icon(
-                                  Icons.settings_input_svideo,
+                              CableType.dmx => Icon(
+                                  cable.parentMultiId.isEmpty
+                                      ? Icons.settings_input_svideo
+                                      : Icons.subdirectory_arrow_right,
                                   size: 16,
                                   color: Colors.grey),
                               CableType.unknown => const SizedBox(),
                             },
                             const SizedBox(width: 8),
-                            Text(_humanFriendlyType(cable.type)),
+                            Text(_humanFriendlyType(cable.type,
+                                isSneakChild: cable.parentMultiId.isNotEmpty)),
                           ],
                         ),
                       ],
@@ -125,13 +130,6 @@ class CableRowItem extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(label),
-                        if (sneakUniverses.isNotEmpty)
-                          Text(
-                              '  -  ${sneakUniverses.map((universe) => 'U$universe').join(',')}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium!
-                                  .copyWith(color: Colors.grey)),
                         if (dmxUniverse != 0)
                           Text('  -  U$dmxUniverse',
                               style: Theme.of(context)
@@ -184,7 +182,11 @@ class CableRowItem extends StatelessWidget {
   }
 }
 
-String _humanFriendlyType(CableType type) {
+String _humanFriendlyType(CableType type, {bool isSneakChild = false}) {
+  if (isSneakChild) {
+    return 'Data';
+  }
+
   return switch (type) {
     CableType.dmx => 'DMX',
     CableType.socapex => 'Soca',

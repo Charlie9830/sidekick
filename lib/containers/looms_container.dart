@@ -61,7 +61,8 @@ class LoomsContainer extends StatelessWidget {
     final cablesAndLoomsByLocation =
         store.state.fixtureState.locations.map((locationId, loomLocation) {
       final cablesInLocation = store.state.fixtureState.cables.values.where(
-        (cable) => cable.locationId == locationId && cable.parentMultiId.isEmpty,
+        (cable) =>
+            cable.locationId == locationId && cable.parentMultiId.isEmpty,
       );
 
       final loomsInLocation = store.state.fixtureState.looms.values
@@ -71,23 +72,34 @@ class LoomsContainer extends StatelessWidget {
       final nakedCables =
           cablesInLocation.where((cable) => cable.loomId.isEmpty);
 
+      // Wrapper Function to wrap multiple similiar calls to Cable VM creation.
+      CableViewModel wrapCableVm(CableModel cable) => CableViewModel(
+            cable: cable,
+            locationId: cable.locationId,
+            labelColor: selectCableSpecificLocationColorLabel(
+                cable, store.state.fixtureState.locations),
+            isExtension: cable.upstreamId.isNotEmpty,
+            universe: _selectDmxUniverse(store, cable),
+            label: _selectCableLabel(store, cable),
+            onLengthChanged: (newValue) =>
+                store.dispatch(UpdateCableLength(cable.uid, newValue)),
+          
+          );
+
       return MapEntry(loomLocation, [
         // Naked Cables
         ...nakedCables.map(
           (cable) {
-            return CableViewModel(
-                cable: cable,
-                locationId: cable.locationId,
-                labelColor: selectCableSpecificLocationColorLabel(
-                    cable, store.state.fixtureState.locations),
-                isExtension: cable.upstreamId.isNotEmpty,
-                sneakUniverses: _selectSneakUniverses(store, cable),
-                universe: _selectDmxUniverse(store, cable),
-                label: _selectCableLabel(store, cable),
-                onLengthChanged: (newValue) =>
-                    store.dispatch(UpdateCableLength(cable.uid, newValue)));
+            return [
+              // Cable
+              wrapCableVm(cable),
+
+              /// Optional Child Cables
+              ..._selectChildCables(cable, store)
+                  .map((child) => wrapCableVm(child))
+            ];
           },
-        ),
+        ).flattened,
 
         // Looms
         ...loomsInLocation.map(
@@ -97,18 +109,16 @@ class LoomsContainer extends StatelessWidget {
                     cable.loomId == loom.uid && cable.parentMultiId.isEmpty)
                 .toList();
 
-            final childVms = childCables
-                .map((cable) => CableViewModel(
-                    cable: cable,
-                    locationId: cable.locationId,
-                    labelColor: selectCableSpecificLocationColorLabel(
-                        cable, store.state.fixtureState.locations),
-                    isExtension: cable.upstreamId.isNotEmpty,
-                    sneakUniverses: _selectSneakUniverses(store, cable),
-                    universe: _selectDmxUniverse(store, cable),
-                    label: _selectCableLabel(store, cable),
-                    onLengthChanged: (newValue) =>
-                        store.dispatch(UpdateCableLength(cable.uid, newValue))))
+            final loomedCableVms = childCables
+                .map((cable) => [
+                      // Top Level Cable
+                      wrapCableVm(cable),
+
+                      // Optional Children of Multi Cables.
+                      ..._selectChildCables(cable, store)
+                          .map((child) => wrapCableVm(child))
+                    ])
+                .flattened
                 .toList();
 
             return LoomViewModel(
@@ -126,7 +136,7 @@ class LoomsContainer extends StatelessWidget {
                 isValidComposition: loom.type.type == LoomType.permanent
                     ? loom.type.checkIsValid(childCables)
                     : true,
-                children: childVms,
+                children: loomedCableVms,
                 onLengthChanged: (newValue) =>
                     store.dispatch(UpdateLoomLength(loom.uid, newValue)),
                 onDelete: () => store.dispatch(
@@ -136,11 +146,13 @@ class LoomsContainer extends StatelessWidget {
                       ToggleLoomDropperState(
                         loom.uid,
                         !loom.isDrop,
-                        childVms.map((child) => child.cable).toList(),
+                        loomedCableVms.map((child) => child.cable).toList(),
                       ),
                     ),
-                onSwitchType: () => store.dispatch(switchLoomType(context,
-                    loom.uid, childVms.map((child) => child.cable).toList())),
+                onSwitchType: () => store.dispatch(switchLoomType(
+                    context,
+                    loom.uid,
+                    loomedCableVms.map((child) => child.cable).toList())),
                 addSelectedCablesToLoom:
                     store.state.navstate.selectedCableIds.isNotEmpty
                         ? () => store.dispatch(
@@ -172,6 +184,15 @@ class LoomsContainer extends StatelessWidget {
         .toList();
   }
 
+  List<CableModel> _selectChildCables(
+      CableModel parentCable, Store<AppState> store) {
+    return parentCable.isMultiCable
+        ? store.state.fixtureState.cables.values
+            .where((child) => child.parentMultiId == parentCable.uid)
+            .toList()
+        : const [];
+  }
+
   String _selectCableLabel(Store<AppState> store, CableModel cable) {
     return selectCableLabel(
       powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
@@ -180,21 +201,6 @@ class LoomsContainer extends StatelessWidget {
       cable: cable,
       includeUniverse: false,
     );
-  }
-
-  List<int> _selectSneakUniverses(Store<AppState> store, CableModel cable) {
-    if (cable.type != CableType.sneak || cable.isSpare == true) {
-      return [];
-    }
-
-    final associatedChildCables = store.state.fixtureState.cables.values
-        .where((child) => child.parentMultiId == cable.uid);
-
-    final patchOutlets = associatedChildCables
-        .map((child) => store.state.fixtureState.dataPatches[child.outletId])
-        .nonNulls;
-
-    return patchOutlets.map((patch) => patch.universe).toList();
   }
 
   int _selectDmxUniverse(Store<AppState> store, CableModel cable) {

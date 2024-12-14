@@ -143,10 +143,8 @@ class _LoomsState extends State<Looms> {
                                           isSelected: widget.vm.selectedCableIds
                                               .contains(cableVm.cable.uid),
                                           hideLength: vm.loom.type.type ==
-                                              LoomType.permanent,
+                                              LoomType.permanent || cableVm.cable.parentMultiId.isNotEmpty,
                                           dmxUniverse: cableVm.universe,
-                                          sneakUniverses:
-                                              cableVm.sneakUniverses,
                                           label: cableVm.label,
                                           onLengthChanged:
                                               cableVm.onLengthChanged,
@@ -164,9 +162,9 @@ class _LoomsState extends State<Looms> {
                           showTopBorder: index == 0 ||
                               widget.vm.rowVms[index - 1] is! CableViewModel,
                           dmxUniverse: vm.universe,
-                          sneakUniverses: vm.sneakUniverses,
                           label: rowVm.label,
                           onLengthChanged: vm.onLengthChanged,
+                          hideLength: vm.cable.parentMultiId.isNotEmpty,
                         )),
                     _ => const Text('WOOOOPS'),
                   };

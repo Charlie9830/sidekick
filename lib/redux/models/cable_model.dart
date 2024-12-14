@@ -98,6 +98,9 @@ class CableModel extends ModelCollectionMember {
     );
   }
 
+  bool get isMultiCable =>
+      switch (type) { CableType.sneak => true, _ => false };
+
   @override
   String toString() {
     return '    $type    $loomId';
