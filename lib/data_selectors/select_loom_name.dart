@@ -2,11 +2,8 @@ import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 
 String selectLoomName(List<LoomModel> loomsInLocation, LocationModel location,
-    LoomModel current, List<LocationModel> secondaryLocations) {
-  final locationLeader = secondaryLocations.isEmpty
-      ? location.name
-      : [location.name, ...secondaryLocations.map((item) => item.name)]
-          .join(', ');
+    LoomModel current) {
+  final locationLeader = location.name;
 
   final currentLoomIndex = loomsInLocation.indexOf(current);
 

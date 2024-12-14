@@ -123,13 +123,10 @@ class LoomsContainer extends StatelessWidget {
                 hasVariedLengthChildren:
                     childCables.map((cable) => cable.length).toSet().length > 1,
                 name: selectLoomName(
-                    loomsInLocation,
-                    loomLocation,
-                    loom,
-                    loom.secondaryLocationIds
-                        .map((id) => store.state.fixtureState.locations[id])
-                        .nonNulls
-                        .toList()),
+                  loomsInLocation,
+                  loomLocation,
+                  loom,
+                ),
                 isValidComposition: loom.type.type == LoomType.permanent
                     ? loom.type.checkIsValid(childCables)
                     : true,

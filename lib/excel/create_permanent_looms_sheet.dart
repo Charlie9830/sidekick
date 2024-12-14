@@ -1,5 +1,4 @@
 import 'package:excel/excel.dart';
-import 'package:sidekick/data_selectors/select_location_label.dart';
 import 'package:sidekick/data_selectors/select_loom_name.dart';
 import 'package:sidekick/excel/sheet_indexer.dart';
 import 'package:sidekick/excel/styles.dart';
@@ -44,13 +43,10 @@ void createPermanentLoomsSheet({
         CellIndex.indexByColumnRow(
             columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
         TextCellValue(selectLoomName(
-            loomsInLocation,
-            location,
-            loom,
-            loom.secondaryLocationIds
-                .map((id) => locations[id])
-                .nonNulls
-                .toList())),
+          loomsInLocation,
+          location,
+          loom,
+        )),
         cellStyle: loomHeaderStyle,
       );
 
@@ -77,8 +73,7 @@ void createPermanentLoomsSheet({
       sheet.updateCell(
         CellIndex.indexByColumnRow(
             columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
-        TextCellValue(selectLocationLabel(
-            locationIds: loom.secondaryLocationIds, locations: locations)),
+        TextCellValue(location.name),
         cellStyle: loomHeaderStyle.copyWith(boldVal: false),
       );
 

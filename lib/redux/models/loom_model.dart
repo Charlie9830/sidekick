@@ -17,7 +17,6 @@ class LoomModel extends ModelCollectionMember {
   @override
   final String uid;
   final String locationId;
-  final Set<String> secondaryLocationIds;
   final LoomTypeModel type;
 
   // enum
@@ -27,7 +26,6 @@ class LoomModel extends ModelCollectionMember {
   LoomModel({
     this.uid = '',
     this.locationId = '',
-    this.secondaryLocationIds = const {},
     this.type = const LoomTypeModel.blank(),
     this.loomClass = LoomClass.feeder,
     this.isDrop = false,
@@ -44,7 +42,6 @@ class LoomModel extends ModelCollectionMember {
     return LoomModel(
       uid: uid ?? this.uid,
       locationId: locationId ?? this.locationId,
-      secondaryLocationIds: secondaryLocationIds ?? this.secondaryLocationIds,
       type: type ?? this.type,
       loomClass: loomClass ?? this.loomClass,
       isDrop: isDrop ?? this.isDrop,
@@ -55,7 +52,6 @@ class LoomModel extends ModelCollectionMember {
     return <String, dynamic>{
       'uid': uid,
       'locationId': locationId,
-      'secondaryLocationIds': secondaryLocationIds.toList(),
       'type': type.toMap(),
       'loomClass': loomClass.index,
       'isDrop': isDrop,
@@ -66,8 +62,6 @@ class LoomModel extends ModelCollectionMember {
     return LoomModel(
       uid: (map['uid'] ?? '') as String,
       locationId: map['locationId'] ?? '',
-      secondaryLocationIds:
-          Set<String>.from(map['secondaryLocationIds'] ?? const <String>{}),
       type: LoomTypeModel.fromMap(map['type'] as Map<String, dynamic>),
       loomClass: LoomClass.values[(map['loomClass'] ?? 0) as int],
       isDrop: (map['isDrop'] ?? false) as bool,
@@ -81,7 +75,7 @@ class LoomModel extends ModelCollectionMember {
 
   @override
   String toString() {
-    return 'LoomModel(uid: $uid, locationId: $locationId, secondaryLocationIds: $secondaryLocationIds)';
+    return 'LoomModel(uid: $uid, locationId: $locationId)';
   }
 
   static double matchLength(LocationModel? location) {

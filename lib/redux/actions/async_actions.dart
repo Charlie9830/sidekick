@@ -111,7 +111,7 @@ ThunkAction<AppState> addSpareCablesToLoom(
       final newSpareCables = List<CableModel>.generate(qty, (index) {
         return CableModel(
           uid: getUid(),
-          locationId: loom.secondaryLocationIds.first,
+          locationId: loom.locationId,
           type: type,
           isSpare: true,
           length: existingSpareCablesOfType.isNotEmpty
@@ -324,10 +324,8 @@ ThunkAction<AppState> addSelectedCablesToLoom(
       return;
     }
 
-    final validCables = cables.where((cable) =>
-        cable.loomId != loomId &&
-        cable.isSpare == false &&
-        loom.secondaryLocationIds.contains(cable.locationId));
+    final validCables = cables
+        .where((cable) => cable.loomId != loomId && cable.isSpare == false);
 
     if (validCables.isEmpty) {
       return;
@@ -648,15 +646,11 @@ ThunkAction<AppState> combineCablesIntoNewLoom(
       return;
     }
 
-    if (type == LoomType.custom) {
-      final (String primaryLocationId, Set<String> secondaryLocationIds) =
-          selectPrimaryAndSecondaryLocationIds(cables);
+    final primaryLocationId = cables.first.locationId;
 
+    if (type == LoomType.custom) {
       final (updatedCables, updatedLooms) = buildNewCustomLooms(
-          store: store,
-          primaryLocationId: primaryLocationId,
-          secondaryLocationIds: secondaryLocationIds,
-          cableIds: cableIds);
+          store: store, locationId: primaryLocationId, cableIds: cableIds);
       store.dispatch(SetCablesAndLooms(updatedCables, updatedLooms));
 
       return;
@@ -858,7 +852,6 @@ List<
       LoomModel(
         uid: newLoomId,
         locationId: primaryLocationId,
-        secondaryLocationIds: secondaryLocationIds,
         type: LoomTypeModel(
           length: newLoomLength,
           type: LoomType.permanent,
@@ -873,8 +866,7 @@ List<
 (Map<String, CableModel> updatedCables, Map<String, LoomModel> updatedLooms)
     buildNewCustomLooms({
   required Store<AppState> store,
-  required String primaryLocationId,
-  required Set<String> secondaryLocationIds,
+  required String locationId,
   required Set<String> cableIds,
 }) {
   final cableIdsWithSneakChildren = cableIds
@@ -900,8 +892,7 @@ List<
 
   final newLoom = LoomModel(
     uid: getUid(),
-    locationId: primaryLocationId,
-    secondaryLocationIds: secondaryLocationIds,
+    locationId: locationId,
     type: LoomTypeModel(length: 0, type: LoomType.custom),
   );
 
