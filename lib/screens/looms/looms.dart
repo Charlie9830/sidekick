@@ -80,6 +80,13 @@ class _LoomsState extends State<Looms> {
                       children: [
                         const SizedBox(width: 8),
                         Tooltip(
+                          message: 'Remove from Loom',
+                          child: IconButton(
+                            icon: const Icon(Icons.exit_to_app),
+                            onPressed: widget.vm.onRemoveSelectedCablesFromLoom,
+                          ),
+                        ),
+                        Tooltip(
                           message: 'Delete',
                           child: IconButton(
                             icon: const Icon(Icons.delete),

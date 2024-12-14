@@ -34,25 +34,29 @@ class LoomsContainer extends StatelessWidget {
           .toList();
 
       return LoomsViewModel(
-        selectedCableIds: store.state.navstate.selectedCableIds,
-        selectCables: (ids) => store.dispatch(setSelectedCableIds(ids)),
-        onGenerateLoomsButtonPressed: () => store.dispatch(generateCables()),
-        rowVms: _selectRows(context, store),
-        onCombineCablesIntoNewLoomButtonPressed: (type) => store.dispatch(
-            combineCablesIntoNewLoom(
-                context, store.state.navstate.selectedCableIds, type)),
-        onCreateExtensionFromSelection: () => store.dispatch(
-            createExtensionFromSelection(
-                context, store.state.navstate.selectedCableIds)),
-        onCombineDmxIntoSneak: () => store.dispatch(combineDmxCablesIntoSneak(
-            context, store.state.navstate.selectedCableIds)),
-        onSplitSneakIntoDmx: () => store.dispatch(
-          splitSneakIntoDmx(context, store.state.navstate.selectedCableIds),
-        ),
-        onDeleteSelectedCables: _selectCanDeleteSelectedCables(selectedCables)
-            ? () => store.dispatch(deleteSelectedCables(context))
-            : null,
-      );
+          selectedCableIds: store.state.navstate.selectedCableIds,
+          selectCables: (ids) => store.dispatch(setSelectedCableIds(ids)),
+          onGenerateLoomsButtonPressed: () => store.dispatch(generateCables()),
+          rowVms: _selectRows(context, store),
+          onCombineCablesIntoNewLoomButtonPressed: (type) => store.dispatch(
+              combineCablesIntoNewLoom(
+                  context, store.state.navstate.selectedCableIds, type)),
+          onCreateExtensionFromSelection: () => store.dispatch(
+              createExtensionFromSelection(
+                  context, store.state.navstate.selectedCableIds)),
+          onCombineDmxIntoSneak: () => store.dispatch(combineDmxCablesIntoSneak(
+              context, store.state.navstate.selectedCableIds)),
+          onSplitSneakIntoDmx: () => store.dispatch(
+                splitSneakIntoDmx(
+                    context, store.state.navstate.selectedCableIds),
+              ),
+          onDeleteSelectedCables: _selectCanDeleteSelectedCables(selectedCables)
+              ? () => store.dispatch(deleteSelectedCables(context))
+              : null,
+          onRemoveSelectedCablesFromLoom:
+              _selectCanRemoveSelectedCablesFromLoom(selectedCables)
+                  ? () => store.dispatch(removeSelectedCablesFromLoom(context))
+                  : null);
     });
   }
 
@@ -215,5 +219,10 @@ class LoomsContainer extends StatelessWidget {
   bool _selectCanDeleteSelectedCables(List<CableModel> selectedCables) {
     return selectedCables
         .any((cable) => cable.upstreamId.isNotEmpty || cable.isSpare);
+  }
+
+  bool _selectCanRemoveSelectedCablesFromLoom(List<CableModel> selectedCables) {
+    return selectedCables
+        .every((cable) => cable.loomId.isNotEmpty && cable.isSpare == false);
   }
 }

@@ -55,6 +55,24 @@ import 'package:sidekick/snack_bars/file_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
+ThunkAction<AppState> removeSelectedCablesFromLoom(BuildContext context) {
+  return (Store<AppState> store) async {
+    final cables = store.state.navstate.selectedCableIds
+        .map((id) => store.state.fixtureState.cables[id])
+        .nonNulls
+        .toList();
+
+    if (cables.isEmpty) {
+      return;
+    }
+
+    store.dispatch(SetCables(
+        Map<String, CableModel>.from(store.state.fixtureState.cables)
+          ..addAll(convertToModelMap(
+              cables.map((cable) => cable.copyWith(loomId: ''))))));
+  };
+}
+
 ThunkAction<AppState> setSelectedCableIds(Set<String> ids) {
   return (Store<AppState> store) async {
     final cables =

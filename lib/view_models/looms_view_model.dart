@@ -11,6 +11,7 @@ class LoomsViewModel {
   final void Function() onCombineDmxIntoSneak;
   final void Function() onSplitSneakIntoDmx;
   final void Function()? onDeleteSelectedCables;
+  final void Function()? onRemoveSelectedCablesFromLoom;
 
   LoomsViewModel({
     required this.rowVms,
@@ -22,5 +23,6 @@ class LoomsViewModel {
     required this.onCombineDmxIntoSneak,
     required this.onSplitSneakIntoDmx,
     required this.onDeleteSelectedCables,
+    required this.onRemoveSelectedCablesFromLoom,
   });
 }
