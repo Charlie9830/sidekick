@@ -1,4 +1,11 @@
 ## TODO ##
+
+
+::::::::::::::: CURRENT TASK ::::::::::::::::::
+
+
+:::::::::::::::::::::::::::::::::::::::::::::::
+
 -> Cable Upstream attachment system, we probably need a way to explicitly attach downstream cables to Upstream cables.. in other words 'plug' them in. This will allow for more complicated loom setups, like a Sneak breaking out to DMX for a dropdown, or breaking out to DMX to more then 1 location.
 
 -> Spliting and combining sneaks in Feeders and their extensions causes strange behaviour, often incorrectly renumbering the other Sneak. It's likely due

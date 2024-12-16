@@ -1,6 +1,6 @@
-import 'package:sidekick/classes/folded_cable.dart';
+import 'package:sidekick/classes/cable_family.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 
-int parentCableTypeComparator(FoldedCable a, FoldedCable b) {
-  return CableModel.compareByType(a.cable, b.cable);
+int parentCableTypeComparator(CableFamily a, CableFamily b) {
+  return CableModel.compareByType(a.parent, b.parent);
 }

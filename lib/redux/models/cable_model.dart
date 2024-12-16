@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:sidekick/classes/folded_cable.dart';
+import 'package:sidekick/classes/cable_family.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 
 enum CableType {

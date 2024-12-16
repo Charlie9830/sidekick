@@ -12,7 +12,7 @@ import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
 import 'package:sidekick/balancer/models/balancer_power_outlet_model.dart';
 import 'package:sidekick/balancer/naive_balancer.dart';
 import 'package:sidekick/balancer/phase_load.dart';
-import 'package:sidekick/classes/folded_cable.dart';
+import 'package:sidekick/classes/cable_family.dart';
 import 'package:sidekick/classes/universe_span.dart';
 import 'package:sidekick/data_selectors/select_primary_and_secondary_location_ids.dart';
 import 'package:sidekick/enums.dart';
@@ -604,125 +604,116 @@ ThunkAction<AppState> debugButtonPressed() {
 ThunkAction<AppState> createExtensionFromSelection(
     BuildContext context, Set<String> cableIds) {
   return (Store<AppState> store) async {
-    final upstreamParentCables = cableIds
+    if (cableIds.isEmpty) {
+      return;
+    }
+
+    final selectedCables = cableIds
         .map((id) => store.state.fixtureState.cables[id])
         .nonNulls
-        // If cable is a Sneak, place it into a Tuple with it's children, otherwise return just the tuple with an empty list.
-        .map((cable) => cable.type == CableType.sneak
-            ? FoldedCable(
-                cable,
-                store.state.fixtureState.cables.values
-                    .where((item) => item.parentMultiId == cable.uid)
-                    .toList())
-            : FoldedCable(cable, const []))
         .toList();
 
-    if (upstreamParentCables.isEmpty) {
+    if (selectedCables.isEmpty) {
       return;
     }
 
-    // Create new Extension cables templated off of existing upstream cables. We have to be careful with Sneaks though in order to correctly
-    // grab their children. We do this in multiple passes of .map to keep things readable.
-    final extensionTuples = upstreamParentCables
-        // Create new Parent Cables. Dont try and reparent the children yet.
-        .map(
-          (tuple) => tuple.copyWith(
-              // Parent Cable
-              cable: tuple.cable.copyWith(
-                uid: getUid(),
-                upstreamId: tuple.cable.uid,
-              ),
+    final locationId = selectedCables.first.locationId;
 
-              // Children..
-              children: tuple.children
-                  .map((cable) =>
-                      cable.copyWith(uid: getUid(), upstreamId: cable.uid))
-                  .toList()),
-        )
-        // Now reparent any child cables.
-        .map((tuple) =>
-            tuple.cable.type == CableType.sneak && tuple.children.isNotEmpty
-                ? tuple.copyWith(
-                    children: tuple.children
-                        .map((cable) =>
-                            cable.copyWith(parentMultiId: tuple.cable.uid))
-                        .toList())
-                : tuple)
-        // Now Destructure the elements out of the Tuple.
-        .expand((tuple) => [tuple.cable, ...tuple.children]);
+    // If we have any Multi Cables selected. We assume that the user is trying to create an extension of the Multi cable (and by extension it's children),
+    // therefore we have to ensure that it's children get cloned and applied to the new Extension. However, if the user has only selected one or more of the
+    // children of a Multi cable, we must assume that they are only extending that particular child.
+    // In order to honor the above conditions, we should first 'Fold' all the selected cables into cable families. Folding any child of a multi cable into
+    // it's parent cable BUT ONLY if the parent itself is selected.
 
-    if (upstreamParentCables.every((tuple) => tuple.cable.loomId.isEmpty)) {
-      // No cables were part of any loom. So we only need to modify the cables collection.
-      store.dispatch(SetCables(
-          Map<String, CableModel>.from(store.state.fixtureState.cables)
-            ..addAll(convertToModelMap(extensionTuples))));
-      return;
-    }
+    /// Child cables that have been selected individually (without having their parent also selected), need to be treated differently, almost as parent cables
+    /// so we first extract a collection of these responsible child cables.
+    final unsupervisedChildCables = selectedCables
+        .where((cable) =>
+            cable.parentMultiId.isNotEmpty &&
+            cableIds.contains(cable.parentMultiId) == false)
+        .toList();
 
-    // Upstream cables belong to 1 or multiple Looms.
-    // Break up the extension cables by Loom Id. Then process each Loom one by one
-    final extensionCablesByLoomId =
-        extensionTuples.groupListsBy((cable) => cable.loomId);
+    final unsupervisedChildCableIds =
+        unsupervisedChildCables.map((cable) => cable.uid).toSet();
 
-    final (updatedCables, updatedLooms) = extensionCablesByLoomId.entries
-        .fold((store.state.fixtureState.cables, store.state.fixtureState.looms),
-            (accum, entry) {
-      if (entry.key.isEmpty) {
-        // If the key is empty, it means that cable didn't belong to a Loom. We will deal with these cables a bit later.
-        return accum;
+    final supervisedChildCableIds = selectedCables
+        .where((cable) =>
+            cable.parentMultiId.isNotEmpty &&
+            cableIds.contains(cable.parentMultiId))
+        .map((cable) => cable.uid)
+        .toSet();
+
+    final upstreamCableFamilies = selectedCables
+        .where((cable) => supervisedChildCableIds.contains(cable.uid) == false)
+        .map((cable) {
+      if (cable.isMultiCable == false && cable.parentMultiId.isEmpty) {
+        // Is a standard Cable.
+        return CableFamily(cable, []);
       }
 
-      final loom = store.state.fixtureState.looms[entry.key];
-
-      if (loom == null) {
-        return accum;
+      if (unsupervisedChildCableIds.contains(cable.uid)) {
+        // Unsupervised Child Cable. Treat it like a parent.
+        return CableFamily(cable, []);
       }
 
-      final extensionCables = entry.value;
-
-      return _createExtensionLoom(
-        source: loom,
-        extensionCables: extensionCables,
-        existingCables: accum.$1,
-        existingLooms: accum.$2,
-      );
+      // Parent Cable, Fold it's children (if Any) into it.
+      return CableFamily(
+          cable,
+          selectedCables
+              .where((item) => item.parentMultiId == cable.uid)
+              .toList());
     });
 
-    // Deal with any cables that were not part of any loom, we specifically ignored these cables in the last step.
-    if (extensionCablesByLoomId.containsKey('')) {
-      final orphanExtensionCables = extensionCablesByLoomId['']!;
-      updatedCables.addAll(convertToModelMap(orphanExtensionCables));
-    }
+    // See if we can fit this in a Permanent Loom.
+    final extensionLoomComposition =
+        PermanentLoomComposition.matchSuitablePermanent(
+            upstreamCableFamilies.map((family) => family.parent).toList());
 
-    store.dispatch(SetCablesAndLooms(updatedCables, updatedLooms));
-    return;
+    final extensionLoom = LoomModel(
+        uid: getUid(),
+        locationId: locationId,
+        loomClass: LoomClass.extension,
+        type: LoomTypeModel(
+          length: 0,
+          type: extensionLoomComposition == null
+              ? LoomType.custom
+              : LoomType.permanent,
+          permanentComposition: extensionLoomComposition?.name ?? '',
+        ));
+
+    final extensionCables = upstreamCableFamilies
+        .map((family) {
+          final newParentId = getUid();
+          return [
+            // "Top Level Cable" either a legitimate parent, a normal childless cable, or an Unsupervised child.
+            family.parent.copyWith(
+              uid: newParentId,
+              loomId: extensionLoom.uid,
+              length: 0,
+              upstreamId: family.parent.uid,
+              parentMultiId:
+                  '', // In the case of this being an unsupervised child, we need to emancipate it from it's parent.
+            ),
+
+            // Child Cables (if any)
+            ...family.children.map((child) => child.copyWith(
+                  uid: getUid(),
+                  length: 0,
+                  loomId: extensionLoom.uid,
+                  upstreamId: child.uid,
+                  parentMultiId: newParentId,
+                ))
+          ];
+        })
+        .flattened
+        .toList();
+
+    store.dispatch(SetCablesAndLooms(
+        Map<String, CableModel>.from(store.state.fixtureState.cables)
+          ..addAll(convertToModelMap(extensionCables)),
+        Map<String, LoomModel>.from(store.state.fixtureState.looms)
+          ..addAll(convertToModelMap([extensionLoom]))));
   };
-}
-
-(Map<String, CableModel> updatedCables, Map<String, LoomModel> updatedLooms)
-    _createExtensionLoom(
-        {required LoomModel source,
-        required List<CableModel> extensionCables,
-        required Map<String, CableModel> existingCables,
-        required Map<String, LoomModel> existingLooms}) {
-  final existingLoom = source;
-  final newLoom = existingLoom.copyWith(
-    uid: getUid(),
-    loomClass: LoomClass.extension,
-    secondaryLocationIds: extensionCables
-        .map((cable) => cable.locationId)
-        .where((id) => id != existingLoom.locationId)
-        .toSet(),
-  );
-
-  final updatedLooms = Map<String, LoomModel>.from(existingLooms)
-    ..addAll({newLoom.uid: newLoom});
-
-  final updatedCables = Map<String, CableModel>.from(existingCables)
-    ..addAll(convertToModelMap(
-        extensionCables.map((cable) => cable.copyWith(loomId: newLoom.uid))));
-
-  return (updatedCables, updatedLooms);
 }
 
 ThunkAction<AppState> combineCablesIntoNewLoom(

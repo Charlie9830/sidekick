@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:excel/excel.dart';
-import 'package:sidekick/classes/folded_cable.dart';
+import 'package:sidekick/classes/cable_family.dart';
 import 'package:sidekick/excel/cable_type_ordering.dart';
 import 'package:sidekick/excel/sheet_indexer.dart';
 import 'package:sidekick/excel/styles.dart';
@@ -30,11 +30,11 @@ void writeCableRows({
       .toList();
 
   final parentWithChildCables =
-      FoldedCable.foldCablesIntoSneaks(associatedCables);
+      CableFamily.createFamilies(associatedCables);
 
   final cableGroupsSortedByType = parentWithChildCables
       .sorted(parentCableTypeComparator)
-      .groupListsBy((cable) => cable.cable.type);
+      .groupListsBy((cable) => cable.parent.type);
 
   for (final cableList in cableGroupsSortedByType.values) {
     for (final (index, cable) in cableList.indexed) {
@@ -43,7 +43,7 @@ void writeCableRows({
         sheet,
         pointer.getColumnIndex,
         pointer.rowIndex,
-        cable.cable,
+        cable.parent,
         index,
         cableRowStyle,
         powerMultiOutlets,
