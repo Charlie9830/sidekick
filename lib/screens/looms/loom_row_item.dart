@@ -54,14 +54,25 @@ class _LoomRowItemState extends State<LoomRowItem> {
                             style: Theme.of(context).textTheme.titleMedium),
                       ),
                       const Spacer(),
+                      if (widget.loomVm.loom.type.type == LoomType.permanent &&
+                          widget.loomVm.loom.type.length == 0)
+                        Row(children: [
+                          SizedBox(
+                              height: 36,
+                              child: CableFlag(
+                                text: 'Bad Length',
+                                color: Colors.orange.shade700,
+                              )),
+                          const SizedBox(width: 8),
+                        ]),
                       if (widget.loomVm.isValidComposition == false)
                         Row(
                           children: [
                             SizedBox(
                                 height: 36,
-                                child: Chip(
-                                  label: const Text('Bad Composition'),
-                                  backgroundColor: Colors.orange.shade600,
+                                child: CableFlag(
+                                  text: 'Bad Composition',
+                                  color: Colors.orange.shade700,
                                 )),
                             const SizedBox(width: 8),
                           ],
