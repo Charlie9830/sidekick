@@ -56,6 +56,45 @@ import 'package:sidekick/snack_bars/file_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
+ThunkAction<AppState> changeExistingPowerMultisToDefault(BuildContext context) {
+  return (Store<AppState> store) async {
+    final targetValue = store.state.fixtureState.defaultPowerMulti;
+    final existingValue = targetValue == CableType.socapex
+        ? CableType.wieland6way
+        : CableType.socapex;
+
+    final updatedCables =
+        Map<String, CableModel>.from(store.state.fixtureState.cables)
+          ..updateAll((_, existingCable) => existingCable.type == existingValue
+              ? existingCable.copyWith(type: targetValue)
+              : existingCable);
+
+    String permanentCompositionNameSwitcher(String value) =>
+        targetValue == CableType.socapex
+            ? value.replaceAll(kWielandSlug, kSocaSlug)
+            : value.replaceAll(kSocaSlug, kWielandSlug);
+
+    final keyword =
+        existingValue == CableType.socapex ? kSocaSlug : kWielandSlug;
+    final updatedLooms =
+        Map<String, LoomModel>.from(store.state.fixtureState.looms)
+          ..updateAll(
+            (_, existingLoom) => existingLoom.type.permanentComposition
+                    .contains(keyword)
+                ? existingLoom.copyWith(
+                    type: existingLoom.type.copyWith(
+                        permanentComposition: permanentCompositionNameSwitcher(
+                            existingLoom.type.permanentComposition)))
+                : existingLoom,
+          );
+
+    store.dispatch(SetCablesAndLooms(
+      updatedCables,
+      updatedLooms,
+    ));
+  };
+}
+
 ThunkAction<AppState> repairLoomComposition(
     LoomModel loom, BuildContext context) {
   return (Store<AppState> store) async {
@@ -876,10 +915,8 @@ List<
 
     final newLoomLength = LoomModel.matchLength(allLocations[locationId]);
 
-    final newPowerCableType = parentCables
-            .firstWhereOrNull((cable) => cable.type == CableType.socapex)
-            ?.type ??
-        CableType.wieland6way;
+    final newPowerCableType =
+        comp.socaWays > 0 ? CableType.socapex : CableType.wieland6way;
 
     final sparePowerCables = List<CableModel>.generate(
         comp.powerWays - powerCables.length,
@@ -1211,7 +1248,7 @@ ThunkAction<AppState> generateCables() {
     final powerCables = store.state.fixtureState.powerMultiOutlets.values
         .map((outlet) => CableModel(
               uid: getUid(),
-              type: CableType.socapex,
+              type: store.state.fixtureState.defaultPowerMulti,
               locationId: outlet.locationId,
               outletId: outlet.uid,
             ));

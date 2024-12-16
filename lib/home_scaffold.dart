@@ -13,6 +13,7 @@ class HomeScaffold extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(
               seedColor: Colors.indigoAccent, brightness: Brightness.dark),
           useMaterial3: true,
+          visualDensity: VisualDensity.compact,
         ),
         initialRoute: Routes.home,
         routes: {Routes.home: (context) => const HomeContainer()});

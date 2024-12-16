@@ -6,6 +6,7 @@ import 'package:sidekick/item_selection/item_selection_listener.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/screens/looms/cable_row_item.dart';
 import 'package:sidekick/screens/looms/loom_row_item.dart';
+import 'package:sidekick/screens/looms/power_multi_selector.dart';
 import 'package:sidekick/view_models/loom_screen_item_view_model.dart';
 import 'package:sidekick/view_models/looms_view_model.dart';
 import 'package:sidekick/widgets/location_header_row.dart';
@@ -128,6 +129,16 @@ class _LoomsState extends State<Looms> {
                       ],
                     )
                   ],
+                ),
+                const SizedBox(width: 16),
+                PowerMultiSelector(
+                  onChanged: (type) {
+                    _requestSelectionFocus();
+                    widget.vm.onDefaultPowerMultiChanged(type);
+                  },
+                  value: widget.vm.defaultPowerMulti,
+                  onChangedExistingPressed:
+                      widget.vm.onChangeExistingPowerMultiTypes,
                 )
               ],
             ),

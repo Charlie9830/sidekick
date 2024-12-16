@@ -56,7 +56,12 @@ class LoomsContainer extends StatelessWidget {
           onRemoveSelectedCablesFromLoom:
               _selectCanRemoveSelectedCablesFromLoom(selectedCables)
                   ? () => store.dispatch(removeSelectedCablesFromLoom(context))
-                  : null);
+                  : null,
+          onDefaultPowerMultiChanged: (value) =>
+              store.dispatch(SetDefaultPowerMulti(value!)),
+          defaultPowerMulti: store.state.fixtureState.defaultPowerMulti,
+          onChangeExistingPowerMultiTypes: () =>
+              store.dispatch(changeExistingPowerMultisToDefault(context)));
     });
   }
 
@@ -136,7 +141,8 @@ class LoomsContainer extends StatelessWidget {
                     ? loom.type.checkIsValid(childCables)
                     : true,
                 children: loomedCableVms,
-                onRepairCompositionButtonPressed: () => store.dispatch(repairLoomComposition(loom, context)),
+                onRepairCompositionButtonPressed: () =>
+                    store.dispatch(repairLoomComposition(loom, context)),
                 onLengthChanged: (newValue) =>
                     store.dispatch(UpdateLoomLength(loom.uid, newValue)),
                 onDelete: () => store.dispatch(

@@ -4,6 +4,9 @@ import 'package:collection/collection.dart';
 import 'package:sidekick/extension_methods/queue_pop.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 
+const String kSocaSlug = 'Soca';
+const String kWielandSlug = '6way';
+
 class PermanentLoomComposition {
   final int socaWays;
   final int wieland6Ways;
@@ -113,11 +116,11 @@ class PermanentLoomComposition {
     String name = '';
 
     if (socaWays > 0) {
-      name = '$name${socaWays}way Soca ';
+      name = '$name${socaWays}way $kSocaSlug ';
     }
 
     if (wieland6Ways > 0) {
-      name = '$name${wieland6Ways}way 6way ';
+      name = '$name${wieland6Ways}way $kWielandSlug ';
     }
 
     if (dmxWays > 0) {

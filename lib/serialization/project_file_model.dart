@@ -23,6 +23,7 @@ class ProjectFileModel {
   final List<CableModel> cables;
   final int maxSequenceBreak;
   final double balanceTolerance;
+  final CableType defaultPowerMulti;
 
   ProjectFileModel({
     required this.metadata,
@@ -36,6 +37,7 @@ class ProjectFileModel {
     required this.cables,
     required this.maxSequenceBreak,
     required this.balanceTolerance,
+    required this.defaultPowerMulti,
   });
 
   ProjectFileModel copyWith({
@@ -50,6 +52,7 @@ class ProjectFileModel {
     List<CableModel>? cables,
     int? maxSequenceBreak,
     double? balanceTolerance,
+    CableType? defaultPowerMulti,
   }) {
     return ProjectFileModel(
       metadata: metadata ?? this.metadata,
@@ -63,6 +66,7 @@ class ProjectFileModel {
       cables: cables ?? this.cables,
       maxSequenceBreak: maxSequenceBreak ?? this.maxSequenceBreak,
       balanceTolerance: balanceTolerance ?? this.balanceTolerance,
+      defaultPowerMulti: defaultPowerMulti ?? this.defaultPowerMulti,
     );
   }
 
@@ -79,26 +83,63 @@ class ProjectFileModel {
       'cables': cables.map((x) => x.toMap()).toList(),
       'maxSequenceBreak': maxSequenceBreak,
       'balanceTolerance': balanceTolerance,
+      'defaultPowerMulti': defaultPowerMulti.name,
     };
   }
 
   factory ProjectFileModel.fromMap(Map<String, dynamic> map) {
     return ProjectFileModel(
-      metadata: ProjectFileMetadataModel.fromMap(map['metadata'] as Map<String,dynamic>),
-      fixtures: List<FixtureModel>.from((map['fixtures'] as List<dynamic>).map<FixtureModel>((x) => FixtureModel.fromMap(x as Map<String,dynamic>),),),
-      powerMultiOutlets: List<PowerMultiOutletModel>.from((map['powerMultiOutlets'] as List<dynamic>).map<PowerMultiOutletModel>((x) => PowerMultiOutletModel.fromMap(x as Map<String,dynamic>),),),
-      outlets: List<PowerOutletModel>.from((map['outlets'] as List<dynamic>).map<PowerOutletModel>((x) => PowerOutletModel.fromMap(x as Map<String,dynamic>),),),
-      dataMultis: List<DataMultiModel>.from((map['dataMultis'] as List<dynamic>).map<DataMultiModel>((x) => DataMultiModel.fromMap(x as Map<String,dynamic>),),),
-      dataPatches: List<DataPatchModel>.from((map['dataPatches'] as List<dynamic>).map<DataPatchModel>((x) => DataPatchModel.fromMap(x as Map<String,dynamic>),),),
-      locations: List<LocationModel>.from((map['locations'] as List<dynamic>).map<LocationModel>((x) => LocationModel.fromMap(x as Map<String,dynamic>),),),
-      looms: List<LoomModel>.from((map['looms'] as List<dynamic>).map<LoomModel>((x) => LoomModel.fromMap(x as Map<String,dynamic>),),),
-      cables: List<CableModel>.from((map['cables'] ?? []).map<CableModel>((x) => CableModel.fromMap(x as Map<String,dynamic>),),),
+      metadata: ProjectFileMetadataModel.fromMap(
+          map['metadata'] as Map<String, dynamic>),
+      fixtures: List<FixtureModel>.from(
+        (map['fixtures'] as List<dynamic>).map<FixtureModel>(
+          (x) => FixtureModel.fromMap(x as Map<String, dynamic>),
+        ),
+      ),
+      powerMultiOutlets: List<PowerMultiOutletModel>.from(
+        (map['powerMultiOutlets'] as List<dynamic>).map<PowerMultiOutletModel>(
+          (x) => PowerMultiOutletModel.fromMap(x as Map<String, dynamic>),
+        ),
+      ),
+      outlets: List<PowerOutletModel>.from(
+        (map['outlets'] as List<dynamic>).map<PowerOutletModel>(
+          (x) => PowerOutletModel.fromMap(x as Map<String, dynamic>),
+        ),
+      ),
+      dataMultis: List<DataMultiModel>.from(
+        (map['dataMultis'] as List<dynamic>).map<DataMultiModel>(
+          (x) => DataMultiModel.fromMap(x as Map<String, dynamic>),
+        ),
+      ),
+      dataPatches: List<DataPatchModel>.from(
+        (map['dataPatches'] as List<dynamic>).map<DataPatchModel>(
+          (x) => DataPatchModel.fromMap(x as Map<String, dynamic>),
+        ),
+      ),
+      locations: List<LocationModel>.from(
+        (map['locations'] as List<dynamic>).map<LocationModel>(
+          (x) => LocationModel.fromMap(x as Map<String, dynamic>),
+        ),
+      ),
+      looms: List<LoomModel>.from(
+        (map['looms'] as List<dynamic>).map<LoomModel>(
+          (x) => LoomModel.fromMap(x as Map<String, dynamic>),
+        ),
+      ),
+      cables: List<CableModel>.from(
+        (map['cables'] ?? []).map<CableModel>(
+          (x) => CableModel.fromMap(x as Map<String, dynamic>),
+        ),
+      ),
       maxSequenceBreak: (map['maxSequenceBreak'] ?? 0) as int,
       balanceTolerance: (map['balanceTolerance'] ?? 0.0) as double,
+      defaultPowerMulti:
+          CableType.values.byName(map['type'] ?? CableType.socapex.name),
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory ProjectFileModel.fromJson(String source) => ProjectFileModel.fromMap(json.decode(source) as Map<String, dynamic>);
+  factory ProjectFileModel.fromJson(String source) =>
+      ProjectFileModel.fromMap(json.decode(source) as Map<String, dynamic>);
 }

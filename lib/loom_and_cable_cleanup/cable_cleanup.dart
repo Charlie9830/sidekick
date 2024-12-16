@@ -13,20 +13,24 @@ class _CleanerParams {
   final Map<String, PowerMultiOutletModel> powerMultis;
   final Map<String, DataMultiModel> dataMultis;
   final Map<String, DataPatchModel> dataPatches;
+  final CableType defaultPowerMultiType;
 
   _CleanerParams({
     required this.cables,
     required this.powerMultis,
     required this.dataMultis,
     required this.dataPatches,
+    required this.defaultPowerMultiType,
   });
 
   _CleanerParams withUpdatedCables(List<CableModel> updatedCables) {
     return _CleanerParams(
-        cables: updatedCables,
-        powerMultis: powerMultis,
-        dataMultis: dataMultis,
-        dataPatches: dataPatches);
+      cables: updatedCables,
+      powerMultis: powerMultis,
+      dataMultis: dataMultis,
+      dataPatches: dataPatches,
+      defaultPowerMultiType: defaultPowerMultiType,
+    );
   }
 }
 
@@ -35,6 +39,7 @@ Map<String, CableModel> performCableCleanup({
   required Map<String, PowerMultiOutletModel> powerMultis,
   required Map<String, DataMultiModel> dataMultis,
   required Map<String, DataPatchModel> dataPatches,
+  required CableType defaultPowerMultiType,
 }) {
   final cleaners = <_CableCleaner>[
     // Remove any cables that have had their associated outlet deleted.
@@ -51,6 +56,7 @@ Map<String, CableModel> performCableCleanup({
         dataMultis: dataMultis,
         powerMultis: powerMultis,
         dataPatches: dataPatches,
+        defaultPowerMultiType: defaultPowerMultiType,
       ),
       (params, cleaner) => params.withUpdatedCables(cleaner(params)));
 
@@ -91,7 +97,7 @@ List<CableModel> _createNewCables(_CleanerParams params) {
             ? null
             : CableModel(
                 uid: getUid(),
-                type: CableType.socapex,
+                type: params.defaultPowerMultiType,
                 locationId: outlet.locationId,
                 outletId: outlet.uid))
         .nonNulls,

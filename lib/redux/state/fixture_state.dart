@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
@@ -21,6 +22,7 @@ class FixtureState {
   final double balanceTolerance;
   final int maxSequenceBreak;
   final bool honorDataSpans;
+  final CableType defaultPowerMulti;
 
   FixtureState({
     required this.fixtures,
@@ -35,6 +37,7 @@ class FixtureState {
     required this.fixtureTypes,
     required this.honorDataSpans,
     required this.cables,
+    required this.defaultPowerMulti,
   });
 
   FixtureState.initial()
@@ -49,7 +52,8 @@ class FixtureState {
         looms = {},
         fixtureTypes = {},
         honorDataSpans = false,
-        cables = {};
+        cables = {},
+        defaultPowerMulti = CableType.socapex;
 
   FixtureState copyWith({
     Map<String, FixtureModel>? fixtures,
@@ -64,6 +68,7 @@ class FixtureState {
     double? balanceTolerance,
     int? maxSequenceBreak,
     bool? honorDataSpans,
+    CableType? defaultPowerMulti,
   }) {
     return FixtureState(
       fixtures: fixtures ?? this.fixtures,
@@ -78,6 +83,7 @@ class FixtureState {
       balanceTolerance: balanceTolerance ?? this.balanceTolerance,
       maxSequenceBreak: maxSequenceBreak ?? this.maxSequenceBreak,
       honorDataSpans: honorDataSpans ?? this.honorDataSpans,
+      defaultPowerMulti: defaultPowerMulti ?? this.defaultPowerMulti,
     );
   }
 }

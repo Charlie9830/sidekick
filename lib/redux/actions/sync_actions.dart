@@ -15,6 +15,12 @@ import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
 import 'package:sidekick/view_models/loom_screen_item_view_model.dart';
 
+class SetDefaultPowerMulti {
+  final CableType value;
+
+  SetDefaultPowerMulti(this.value);
+}
+
 class UpdateCableLength {
   final String uid;
   final String newLength;
