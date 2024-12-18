@@ -117,7 +117,6 @@ class NaiveBalancer implements Balancer {
           final familiesInLocation = entry.value;
 
           return familiesInLocation.mapIndexed((index, family) {
-            print("Assigning ${index + 1}");
             return family.copyWith(
                 parent: family.parent.copyWith(number: index + 1));
           });
