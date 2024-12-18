@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:sidekick/loom_and_cable_cleanup/cable_cleanup.dart';
 import 'package:sidekick/loom_and_cable_cleanup/cleanup_cables_and_looms.dart';
 import 'package:sidekick/model_collection/convert_to_model_map.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
@@ -41,12 +42,15 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is UpdateCablesAndDataMultis) {
-    final (cleanCables, cleanLooms) =
-        cleanupCablesAndLooms(a.cables, state.looms);
+    final cleanCables = performCableCleanup(
+        cables: a.cables,
+        powerMultis: state.powerMultiOutlets,
+        dataMultis: a.dataMultis,
+        dataPatches: state.dataPatches,
+        defaultPowerMultiType: state.defaultPowerMulti);
 
     return state.copyWith(
       cables: cleanCables,
-      looms: cleanLooms,
       dataMultis: a.dataMultis,
     );
   }
@@ -56,11 +60,16 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetCablesAndLooms) {
-    final (cleanCables, cleanLooms) = cleanupCablesAndLooms(a.cables, a.looms);
+    final cleanCables = performCableCleanup(
+        cables: a.cables,
+        powerMultis: state.powerMultiOutlets,
+        dataMultis: state.dataMultis,
+        dataPatches: state.dataPatches,
+        defaultPowerMultiType: state.defaultPowerMulti);
 
     return state.copyWith(
       cables: cleanCables,
-      looms: cleanLooms,
+      looms: a.looms,
     );
   }
 
@@ -367,5 +376,12 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
   ]);
   final dirtyLooms = existingLooms;
 
-  return cleanupCablesAndLooms(dirtyCables, dirtyLooms);
+  return cleanupCablesAndLooms(
+      dirtyCables: performCableCleanup(
+          cables: dirtyCables,
+          powerMultis: powerMultiOutlets,
+          dataMultis: dataMultis,
+          dataPatches: dataPatches,
+          defaultPowerMultiType: defaultPowerMultiType),
+      dirtyLooms: dirtyLooms);
 }
