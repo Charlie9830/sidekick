@@ -637,7 +637,9 @@ ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
 }
 
 ThunkAction<AppState> debugButtonPressed() {
-  return (Store<AppState> store) async {};
+  return (Store<AppState> store) async {
+    store.dispatch(SetPowerMultiOutlets({}));
+  };
 }
 
 ThunkAction<AppState> createExtensionFromSelection(
@@ -1732,35 +1734,19 @@ Map<PowerMultiOutletModel, List<PowerOutletModel>> _balanceOutlets({
   });
 }
 
-List<PowerMultiOutletModel> _updateMultiOutletNames(
-  Iterable<PowerMultiOutletModel> multiOutlets,
-) {
-  final multiOutletsByLocationId =
-      multiOutlets.groupListsBy((outlet) => outlet.locationId);
-
-  return multiOutletsByLocationId.entries
-      .map((entry) {
-        final multiOutlets = entry.value;
-
-        return multiOutlets
-            .mapIndexed((index, outlet) => outlet.copyWith(number: index + 1));
-      })
-      .flattened
-      .toList();
-}
-
 void _updatePowerMultisAndOutlets(Store<AppState> store,
     Map<PowerMultiOutletModel, List<PowerOutletModel>> balancedMultiOutlets) {
   final balancedAndDefaultNamedOutlets =
       _applyDefaultMultiOutletNames(balancedMultiOutlets, store);
 
+  // Power Outlets
   store.dispatch(SetPowerOutlets(
       balancedAndDefaultNamedOutlets.values.flattened.toList()));
+
+  // Power Multis.
   store.dispatch(
     SetPowerMultiOutlets(
-      Map<String, PowerMultiOutletModel>.fromEntries(
-          _updateMultiOutletNames(balancedAndDefaultNamedOutlets.keys)
-              .map((multiOutlet) => MapEntry(multiOutlet.uid, multiOutlet))),
+      Map<String, PowerMultiOutletModel>.from(balancedAndDefaultNamedOutlets),
     ),
   );
 }
@@ -1774,26 +1760,23 @@ Map<PowerMultiOutletModel, List<PowerOutletModel>>
       balancedMultiOutlets.entries.map((entry) {
     final outlet = entry.key;
 
-    if (outlet.name.isEmpty) {
-      final location = store.state.fixtureState.locations[outlet.locationId];
+    final location = store.state.fixtureState.locations[outlet.locationId];
 
-      if (location == null) {
-        return entry;
-      }
-
-      final multisInLocation = balancedMultiOutlets.keys
-          .where((multi) => multi.locationId == location.uid)
-          .toList();
-
-      return MapEntry(
-        outlet.copyWith(
-            name: location.getPrefixedPowerMulti(
-                multisInLocation.length > 1 ? outlet.number : null)),
-        entry.value,
-      );
+    if (location == null) {
+      return entry;
     }
 
-    return entry;
+    final multisInLocation = balancedMultiOutlets.keys
+        .where((multi) => multi.locationId == location.uid)
+        .toList();
+
+    final outletName = location.getPrefixedPowerMulti(
+        multisInLocation.length > 1 ? outlet.number : null);
+
+    return MapEntry(
+      outlet.copyWith(name: outletName),
+      entry.value,
+    );
   }));
 }
 

@@ -8,6 +8,7 @@ import 'package:sidekick/balancer/balancer_result.dart';
 import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
 import 'package:sidekick/balancer/models/balancer_power_patch_model.dart';
 import 'package:sidekick/balancer/phase_load.dart';
+import 'package:sidekick/balancer/power_family.dart';
 import 'package:sidekick/balancer/power_span.dart';
 import 'package:sidekick/balancer/shared_utils.dart';
 import 'package:sidekick/extension_methods/queue_pop.dart';
@@ -48,7 +49,7 @@ class NaiveBalancer implements Balancer {
             Map<PowerSpan, List<BalancerPowerPatchModel>>.fromEntries(
                 spanEntry)));
 
-    final resultMap = <PowerMultiOutletModel, List<BalancerPowerOutletModel>>{};
+    final List<PowerFamily> families = [];
 
     for (final locationEntry in patchSpansByLocationId.entries) {
       final locationId = locationEntry.key;
@@ -63,18 +64,15 @@ class NaiveBalancer implements Balancer {
 
         final patchesQueue = Queue<BalancerPowerPatchModel>.from(patchesInSpan);
 
-        int? multiNumber;
         while (patchesQueue.isNotEmpty) {
-          // Iterator to apply numbers to Multi Outlets.
-          multiNumber = multiNumber == null ? 1 : multiNumber + 1;
-
           // Create a new Multi Outlet if we don't have one, otherwise use an existing one.
           final multiOutlet =
               existingMultiOutletsAssignedToLocationQueue.isEmpty
                   ? PowerMultiOutletModel(
                       uid: getUid(),
                       locationId: locationId,
-                      number: multiNumber,
+                      number:
+                          0, // We will iterate through and update these once we have the full picture.
                       name: '',
                       desiredSpareCircuits: 0,
                     )
@@ -93,7 +91,7 @@ class NaiveBalancer implements Balancer {
           if (multiOutlet.desiredSpareCircuits == 0 &&
               patchSlice.every((patch) => patch.isEmpty)) {
             // No spare circuits required here AND every element in the patch slice is empty. So
-            // no point in generating a compltly empty Multi Outlet.
+            // no point in generating a completly empty Multi Outlet.
             continue;
           }
 
@@ -105,12 +103,32 @@ class NaiveBalancer implements Balancer {
                   phase: getPhaseFromIndex(index),
                   multiPatch: getMultiPatchFromIndex(index)));
 
-          resultMap[multiOutlet] = outlets.toList();
+          families.add(
+              PowerFamily(parent: multiOutlet, children: outlets.toList()));
         }
       }
     }
 
-    return resultMap;
+    final familiesByLocationId =
+        families.groupListsBy((family) => family.parent.locationId);
+
+    final familiesWithMultiNumbering = familiesByLocationId.entries
+        .map((entry) {
+          final familiesInLocation = entry.value;
+
+          return familiesInLocation.mapIndexed((index, family) {
+            print("Assigning ${index + 1}");
+            return family.copyWith(
+                parent: family.parent.copyWith(number: index + 1));
+          });
+        })
+        .flattened
+        .toList();
+
+    return Map<PowerMultiOutletModel,
+            List<BalancerPowerOutletModel>>.fromEntries(
+        familiesWithMultiNumbering
+            .map((family) => MapEntry(family.parent, family.children)));
   }
 
   @override
