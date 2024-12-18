@@ -10,10 +10,12 @@ List<BalancerPowerPatchModel> performPiggybacking(
   final Set<String> assignedFixtureUids = {};
   final List<BalancerPowerPatchModel> patches = [];
   int fixtureIndex = 0;
+  String currentContigiousRunningFixtureTypeId = '';
 
   while (patches.length <= assignedFixtureUids.length &&
       fixtureIndex < fixtures.length) {
     final currentFixture = fixtures[fixtureIndex];
+
     if (assignedFixtureUids.contains(currentFixture.uid)) {
       // Fixture has already been assigned to a patch.
       fixtureIndex++;
@@ -25,11 +27,15 @@ List<BalancerPowerPatchModel> performPiggybacking(
       currentFixture,
     ]);
 
+    currentContigiousRunningFixtureTypeId = currentFixture.type.uid;
+
     if (currentFixture.type.canPiggyback == false) {
       // Current Fixture can't Piggyback with anything else. So we are done here.
       patches.add(patch);
 
+      currentContigiousRunningFixtureTypeId = '';
       assignedFixtureUids.add(currentFixture.uid);
+
       fixtureIndex++;
       continue;
     }
@@ -38,7 +44,9 @@ List<BalancerPowerPatchModel> performPiggybacking(
     // Look ahead up to a max of the maxSequenceBreak.. So we don't end up pairing fixtures that
     // are miles from eachother.
     for (int sequenceOffset = 1;
-        sequenceOffset <= maxSequenceBreak;
+        sequenceOffset <= maxSequenceBreak ||
+            _canOverrideMaxSequenceBreak(currentFixture, maxSequenceBreak,
+                currentContigiousRunningFixtureTypeId);
         sequenceOffset++) {
       final candidateFixture =
           fixtures.elementAtOrNull(fixtureIndex + sequenceOffset);
@@ -50,6 +58,11 @@ List<BalancerPowerPatchModel> performPiggybacking(
       if (candidateFixture.type == currentFixture.type &&
           patch.fixtures.length + 1 <= currentFixture.type.maxPiggybacks) {
         patch.fixtures.add(candidateFixture);
+
+        if (candidateFixture.type.uid !=
+            currentContigiousRunningFixtureTypeId) {
+          currentContigiousRunningFixtureTypeId = '';
+        }
       }
     }
 
@@ -60,4 +73,14 @@ List<BalancerPowerPatchModel> performPiggybacking(
   }
 
   return patches;
+}
+
+/// The properties of Some fixture types can allow for the rules to be bent when it comes to Max Sequence break.
+/// This function will return true if the [currentFixture] meets those conditions.
+bool _canOverrideMaxSequenceBreak(BalancerFixtureModel currentFixture,
+    int maxSequenceBreak, String currentContigiousRunningFixtureTypeId) {
+  // If the Fixture Type allows for more Piggybacks then the Max Sequence break, and we are running a contigious line of that fixture type
+  // return true
+  return (currentFixture.type.maxPiggybacks > maxSequenceBreak &&
+      currentFixture.type.uid == currentContigiousRunningFixtureTypeId);
 }
