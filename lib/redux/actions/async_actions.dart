@@ -1746,7 +1746,8 @@ void _updatePowerMultisAndOutlets(Store<AppState> store,
   // Power Multis.
   store.dispatch(
     SetPowerMultiOutlets(
-      Map<String, PowerMultiOutletModel>.from(balancedAndDefaultNamedOutlets),
+      Map<String, PowerMultiOutletModel>.from(
+          convertToModelMap(balancedAndDefaultNamedOutlets.keys)),
     ),
   );
 }
