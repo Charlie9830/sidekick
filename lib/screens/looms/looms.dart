@@ -171,9 +171,9 @@ class _LoomsState extends State<Looms> {
                                           isSelected: widget.vm.selectedCableIds
                                               .contains(cableVm.cable.uid),
                                           hideLength: vm.loom.type.type ==
-                                                  LoomType.permanent ||
-                                              cableVm.cable.parentMultiId
-                                                  .isNotEmpty,
+                                              LoomType.permanent,
+                                          disableLength: cableVm
+                                              .cable.parentMultiId.isNotEmpty,
                                           dmxUniverse: cableVm.universe,
                                           label: cableVm.label,
                                           onLengthChanged: (newValue) {
@@ -191,6 +191,7 @@ class _LoomsState extends State<Looms> {
                           labelColor: vm.labelColor,
                           isSelected:
                               widget.vm.selectedCableIds.contains(vm.cable.uid),
+                          disableLength: vm.cable.parentMultiId.isNotEmpty,
                           showTopBorder: index == 0 ||
                               widget.vm.rowVms[index - 1] is! CableViewModel,
                           dmxUniverse: vm.universe,

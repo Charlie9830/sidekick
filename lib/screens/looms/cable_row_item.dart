@@ -9,6 +9,7 @@ class CableRowItem extends StatelessWidget {
   final bool showTopBorder;
   final bool isSelected;
   final bool hideLength;
+  final bool disableLength;
   final int dmxUniverse;
   final String label;
   final void Function(String newValue)? onLengthChanged;
@@ -20,6 +21,7 @@ class CableRowItem extends StatelessWidget {
     this.showTopBorder = false,
     this.isSelected = false,
     this.hideLength = false,
+    this.disableLength = false,
     this.dmxUniverse = 0,
     this.label = '',
     this.onLengthChanged,
@@ -52,29 +54,32 @@ class CableRowItem extends StatelessWidget {
                 if (hideLength == false) ...[
                   SizedBox(
                       width: 100,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          SizedBox(
-                            width: length.length >= 3 ? 42 : 36,
-                            child: EditableTextField(
-                              onChanged: (newValue) =>
-                                  onLengthChanged?.call(newValue),
-                              selectAllOnFocus: true,
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              value: cable.length.floor().toString(),
-                              suffix: 'm',
-                            ),
-                          ),
-                          if (cable.length == 0)
-                            const Tooltip(
-                              waitDuration: Duration(milliseconds: 500),
-                              message: 'Invalid Length',
-                              child:
-                                  Icon(Icons.error, color: Colors.orangeAccent),
-                            )
-                        ],
-                      )),
+                      child: disableLength
+                          ? const SizedBox()
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                SizedBox(
+                                  width: length.length >= 3 ? 42 : 36,
+                                  child: EditableTextField(
+                                    onChanged: (newValue) =>
+                                        onLengthChanged?.call(newValue),
+                                    selectAllOnFocus: true,
+                                    style:
+                                        Theme.of(context).textTheme.bodyMedium,
+                                    value: cable.length.floor().toString(),
+                                    suffix: 'm',
+                                  ),
+                                ),
+                                if (cable.length == 0)
+                                  const Tooltip(
+                                    waitDuration: Duration(milliseconds: 500),
+                                    message: 'Invalid Length',
+                                    child: Icon(Icons.error,
+                                        color: Colors.orangeAccent),
+                                  )
+                              ],
+                            )),
                   const VerticalDivider(
                     color: Colors.grey,
                   ),
