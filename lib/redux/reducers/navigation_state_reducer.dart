@@ -6,6 +6,10 @@ NavigationState navStateReducer(NavigationState state, dynamic a) {
     return NavigationState.initial();
   }
 
+  if (a is SetOpenAfterExport) {
+    return state.copyWith(openAfterExport: a.value);
+  }
+
   if (a is SetSelectedCableIds) {
     return state.copyWith(selectedCableIds: a.ids);
   }

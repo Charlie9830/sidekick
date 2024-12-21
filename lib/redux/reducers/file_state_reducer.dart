@@ -1,6 +1,7 @@
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/state/file_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
+import 'package:path/path.dart' as p;
 
 FileState fileStateReducer(FileState state, dynamic a) {
   if (a is NewProject) {
@@ -9,6 +10,18 @@ FileState fileStateReducer(FileState state, dynamic a) {
       projectFilePath: '',
       projectMetadata: const ProjectFileMetadataModel.initial(),
     );
+  }
+
+  if (a is UpdateProjectName) {
+    return state.copyWith(
+        projectMetadata:
+            state.projectMetadata.copyWith(projectName: a.newValue.trim()));
+  }
+
+  if (a is SetLastUsedExportDirectory) {
+    return state.copyWith(
+        projectMetadata: state.projectMetadata
+            .copyWith(lastUsedExportDirectory: a.value.trim()));
   }
 
   if (a is SetIsFixtureTypeDatabasePathValid) {
@@ -32,7 +45,11 @@ FileState fileStateReducer(FileState state, dynamic a) {
   }
 
   if (a is SetProjectFilePath) {
-    return state.copyWith(projectFilePath: a.path);
+    return state.copyWith(
+        projectFilePath: a.path,
+        projectMetadata: state.projectMetadata.copyWith(
+          projectName: p.basenameWithoutExtension(a.path),
+        ));
   }
 
   if (a is SetLastUsedProjectDirectory) {

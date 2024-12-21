@@ -14,6 +14,7 @@ class PropertyField extends StatefulWidget {
   final OnBlurCallback? onBlur;
   final TextEditingController? controller;
   final FocusNode? focusNode;
+  final String? hintText;
 
   const PropertyField({
     Key? key,
@@ -26,6 +27,7 @@ class PropertyField extends StatefulWidget {
     this.onBlur,
     this.controller,
     this.focusNode,
+    this.hintText,
   }) : super(key: key);
 
   @override
@@ -64,7 +66,7 @@ class PropertyFieldState extends State<PropertyField> {
           style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 14),
           textAlignVertical: TextAlignVertical.top,
           textAlign: widget.textAlign,
-          decoration: buildInputDecoration(widget.suffix),
+          decoration: buildInputDecoration(widget.suffix, widget.hintText),
         ),
       ),
       label: widget.label,
@@ -83,10 +85,11 @@ class PropertyFieldState extends State<PropertyField> {
 }
 
 /// The Styling and layout is shared with [AutocompleteTextField]. Hence the Static Methods.
-InputDecoration buildInputDecoration(String suffix) {
+InputDecoration buildInputDecoration(String suffix, String? hintText) {
   return InputDecoration(
     contentPadding: const EdgeInsets.only(left: 12, right: 12),
     suffix: Text(suffix),
+    hintText: hintText,
     border: const OutlineInputBorder(
       borderSide: BorderSide(),
     ),

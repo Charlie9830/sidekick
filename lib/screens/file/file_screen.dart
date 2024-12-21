@@ -1,5 +1,6 @@
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:sidekick/card_subtitle.dart';
 import 'package:sidekick/containers/import_container.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/file_type_groups.dart';
@@ -68,8 +69,7 @@ class FileScreen extends StatelessWidget {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('Fixture Type Database',
-                            style: Theme.of(context).textTheme.labelLarge),
+                        const CardSubtitle('Fixture Type Database'),
                         const SizedBox(width: 16),
                         switch (vm.isFixtureTypeDatabasePathValid) {
                           true => const Icon(Icons.check, color: Colors.green),

@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import 'package:excel/excel.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
@@ -13,6 +14,7 @@ import 'package:sidekick/balancer/models/balancer_power_outlet_model.dart';
 import 'package:sidekick/balancer/naive_balancer.dart';
 import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/classes/cable_family.dart';
+import 'package:sidekick/classes/export_file_paths.dart';
 import 'package:sidekick/classes/universe_span.dart';
 import 'package:sidekick/data_selectors/select_primary_and_secondary_location_ids.dart';
 import 'package:sidekick/enums.dart';
@@ -49,12 +51,39 @@ import 'package:sidekick/redux/state/app_state.dart';
 import 'package:path/path.dart' as p;
 import 'package:sidekick/screens/looms/add_spare_cables.dart';
 import 'package:sidekick/screens/sequencer_dialog/sequencer_dialog.dart';
+import 'package:sidekick/serialization/deserialize_project_file.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
 import 'package:sidekick/serialization/serialize_project_file.dart';
 import 'package:sidekick/snack_bars/composition_repair_error_snack_bar.dart';
+import 'package:sidekick/snack_bars/export_success_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+ThunkAction<AppState> chooseExportDirectory(BuildContext context) {
+  return (Store<AppState> store) async {
+    final lastUsedExportDirectory =
+        store.state.fileState.projectMetadata.lastUsedExportDirectory.isNotEmpty
+            ? store.state.fileState.projectMetadata.lastUsedExportDirectory
+            : store.state.fileState.lastUsedProjectDirectory;
+
+    final lastUsedExportDirectoryExists =
+        await Directory(lastUsedExportDirectory).exists();
+
+    final pathResult = await getDirectoryPath(
+        initialDirectory:
+            lastUsedExportDirectoryExists && lastUsedExportDirectory.isNotEmpty
+                ? lastUsedExportDirectory
+                : null);
+
+    if (pathResult == null) {
+      return;
+    }
+
+    store.dispatch(SetLastUsedExportDirectory(pathResult));
+  };
+}
 
 ThunkAction<AppState> changeExistingPowerMultisToDefault(BuildContext context) {
   return (Store<AppState> store) async {
@@ -638,7 +667,7 @@ ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
 
 ThunkAction<AppState> debugButtonPressed() {
   return (Store<AppState> store) async {
-    store.dispatch(SetPowerMultiOutlets({}));
+    print(store.state.fileState.projectMetadata.projectName);
   };
 }
 
@@ -1122,8 +1151,7 @@ ThunkAction<AppState> startNewProject(BuildContext context, bool saveCurrent) {
 ThunkAction<AppState> openProjectFile(
     BuildContext context, bool saveCurrent, String path) {
   return (Store<AppState> store) async {
-    final contents = await File(path).readAsString();
-    final projectFile = ProjectFileModel.fromJson(contents);
+    final projectFile = await deserializeProjectFile(path);
 
     store.dispatch(OpenProject(
       project: projectFile,
@@ -1166,17 +1194,16 @@ ThunkAction<AppState> saveProjectFile(BuildContext context, SaveType saveType) {
     }
 
     // Perform the File Operations.
-    final newMetadata = await serializeProjectFile(store.state, targetFilePath);
+    var newMetadata = await serializeProjectFile(store.state, targetFilePath);
 
     // Save the updated Metadata.
     store.dispatch(SetProjectFileMetadata(newMetadata));
     store.dispatch(SetLastUsedProjectDirectory(p.dirname(targetFilePath)));
     store.dispatch(SetProjectFilePath(targetFilePath));
 
-    if (homeScaffoldKey.currentState?.mounted == true &&
-        homeScaffoldKey.currentContext != null) {
-      ScaffoldMessenger.of(homeScaffoldKey.currentContext!)
-          .showSnackBar(fileSaveSuccessSnackBar());
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(fileSaveSuccessSnackBar(context));
     }
   };
 }
@@ -1554,10 +1581,42 @@ ThunkAction<AppState> commitPowerPatch(BuildContext context) {
 
 ThunkAction<AppState> export(BuildContext context) {
   return (Store<AppState> store) async {
-    final excel = Excel.createExcel();
+    final outputPaths = ExportFilePaths(
+        directoryPath:
+            store.state.fileState.projectMetadata.lastUsedExportDirectory,
+        projectName: store.state.fileState.projectMetadata.projectName,
+        excelFileExtension: '.xlsx');
 
+    if (await outputPaths.parentDirectoryExists == false) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            fileErrorSnackBar(context, 'Parent directory could not be found. Have you selected a target directory?'));
+      }
+      return;
+    }
+
+    final existingFileNames = await outputPaths.getAlreadyExistingFileNames();
+
+    if (existingFileNames.isNotEmpty) {
+      if (context.mounted) {
+        final dialogResult = await showGenericDialog(
+          context: context,
+          title: 'Overwrite existing files',
+          message:
+              'If you proceed, the following files will be overwritten.\n${existingFileNames.join('\n')}',
+          affirmativeText: 'Overwrite',
+          declineText: 'Cancel',
+        );
+
+        if (dialogResult == null || dialogResult == false) {
+          return;
+        }
+      }
+    }
+
+    final referenceDataExcel = Excel.createExcel();
     createPowerPatchSheet(
-      excel: excel,
+      excel: referenceDataExcel,
       outlets: store.state.fixtureState.outlets,
       powerMultis: store.state.fixtureState.powerMultiOutlets,
       locations: store.state.fixtureState.locations,
@@ -1566,20 +1625,20 @@ ThunkAction<AppState> export(BuildContext context) {
     );
 
     createColorLookupSheet(
-      excel: excel,
+      excel: referenceDataExcel,
       powerMultis: store.state.fixtureState.powerMultiOutlets,
       locations: store.state.fixtureState.locations,
     );
 
     createFixtureTypeValidationSheet(
-      excel: excel,
+      excel: referenceDataExcel,
       outlets: store.state.fixtureState.outlets,
       fixtures: store.state.fixtureState.fixtures,
       fixtureTypes: store.state.fixtureState.fixtureTypes,
     );
 
     createDataPatchSheet(
-      excel: excel,
+      excel: referenceDataExcel,
       dataOutlets: store.state.fixtureState.dataPatches.values,
       dataMultis: store.state.fixtureState.dataMultis,
       locations: store.state.fixtureState.locations,
@@ -1587,15 +1646,19 @@ ThunkAction<AppState> export(BuildContext context) {
     );
 
     createDataMultiSheet(
-      excel: excel,
+      excel: referenceDataExcel,
       dataOutlets: store.state.fixtureState.dataPatches,
       dataMultis: store.state.fixtureState.dataMultis,
       locations: store.state.fixtureState.locations,
       cables: store.state.fixtureState.cables,
     );
 
+    referenceDataExcel.delete('Sheet1');
+
+    final loomsExcel = Excel.createExcel();
+
     createPermanentLoomsSheet(
-      excel: excel,
+      excel: loomsExcel,
       cables: store.state.fixtureState.cables,
       looms: store.state.fixtureState.looms,
       locations: store.state.fixtureState.locations,
@@ -1605,7 +1668,7 @@ ThunkAction<AppState> export(BuildContext context) {
     );
 
     createCustomLoomsSheet(
-      excel: excel,
+      excel: loomsExcel,
       cables: store.state.fixtureState.cables,
       looms: store.state.fixtureState.looms,
       locations: store.state.fixtureState.locations,
@@ -1614,16 +1677,62 @@ ThunkAction<AppState> export(BuildContext context) {
       powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
     );
 
-    excel.delete('Sheet1');
+    loomsExcel.delete('Sheet1');
 
-    final fileBytes = excel.save();
+    final referenceDataBytes = referenceDataExcel.save();
+    final loomsBytes = loomsExcel.save();
+    final powerPatchTemplateBytes =
+        await rootBundle.load('assets/excel/prg_power_patch.xlsx');
+    final dataPatchTemplateBytes =
+        await rootBundle.load('assets/excel/prg_data_patch.xlsx');
 
-    if (fileBytes == null) {
-      print("File Bytes were null");
+    if (referenceDataBytes == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(fileErrorSnackBar(
+            context, 'An error occured writing reference data excel'));
+      }
+
       return;
     }
 
-    await File('./output/rack_patch.xlsx').writeAsBytes(fileBytes);
+    if (loomsBytes == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(fileErrorSnackBar(
+            context, 'An error occured writing looms data excel'));
+      }
+
+      return;
+    }
+
+    final fileWrites = [
+      File(outputPaths.referenceDataPath).writeAsBytes(referenceDataBytes),
+      File(outputPaths.loomsPath).writeAsBytes(loomsBytes),
+      File(outputPaths.powerPatchPath)
+          .writeAsBytes(powerPatchTemplateBytes.buffer.asUint8List()),
+      File(outputPaths.dataPatchPath)
+          .writeAsBytes(dataPatchTemplateBytes.buffer.asUint8List())
+    ];
+
+    try {
+      final writeResults = await Future.wait(fileWrites);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(fileErrorSnackBar(
+            context, 'One or more files failed to write to disk'));
+
+        return;
+      }
+    }
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(exportSuccessSnackbar(context));
+    }
+
+    if (store.state.navstate.openAfterExport == true) {
+      await launchUrl(Uri.file(outputPaths.powerPatchPath));
+      await launchUrl(Uri.file(outputPaths.dataPatchPath));
+    }
   };
 }
 

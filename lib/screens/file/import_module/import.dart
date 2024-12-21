@@ -1,5 +1,6 @@
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:sidekick/card_subtitle.dart';
 import 'package:sidekick/file_type_groups.dart';
 import 'package:sidekick/redux/models/import_settings_model.dart';
 import 'package:sidekick/screens/file/file_selector_button.dart';
@@ -18,8 +19,7 @@ class Import extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Source Path', style: Theme.of(context).textTheme.labelLarge),
-          const SizedBox(height: 16),
+          const CardSubtitle('Source Path'),
           FileSelectorButton(
               path: vm.importFilePath,
               onPressed: () => _handleChooseButtonPressed(context)),
