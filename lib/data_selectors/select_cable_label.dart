@@ -2,7 +2,6 @@ import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
-import 'package:sidekick/screens/data_patch/data_patch.dart';
 
 String selectCableLabel({
   required Map<String, PowerMultiOutletModel> powerMultiOutlets,
