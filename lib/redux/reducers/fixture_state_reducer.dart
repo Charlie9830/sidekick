@@ -125,6 +125,9 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       maxSequenceBreak: FixtureState.initial().maxSequenceBreak,
       outlets: FixtureState.initial().outlets,
       powerMultiOutlets: FixtureState.initial().powerMultiOutlets,
+      cables: FixtureState.initial().cables,
+      defaultPowerMulti: FixtureState.initial().defaultPowerMulti,
+      honorDataSpans: FixtureState.initial().honorDataSpans,
     );
   }
 
