@@ -1733,6 +1733,7 @@ ThunkAction<AppState> export(BuildContext context) {
     if (store.state.navstate.openAfterExport == true) {
       await launchUrl(Uri.file(outputPaths.powerPatchPath));
       await launchUrl(Uri.file(outputPaths.dataPatchPath));
+      await launchUrl(Uri.file(outputPaths.loomsPath));
     }
   };
 }
