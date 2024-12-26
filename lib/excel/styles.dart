@@ -21,6 +21,16 @@ final cableRowStyle = CellStyle(
   rightBorder: Border(borderStyle: BorderStyle.Medium),
 );
 
+final parentRowStyle = CellStyle(
+  fontFamily: 'Verdana',
+  bold: true,
+  bottomBorder: Border(borderStyle: BorderStyle.Medium),
+  topBorder: Border(borderStyle: BorderStyle.Medium),
+  leftBorder: Border(borderStyle: BorderStyle.Medium),
+  rightBorder: Border(borderStyle: BorderStyle.Medium),
+  backgroundColorHex: ExcelColor.fromHexString('#BFBFBF'),
+);
+
 final leadingCellStyle = CellStyle(
   backgroundColorHex: ExcelColor.fromHexString("#404040"),
   fontColorHex: ExcelColor.fromHexString("#404040"),

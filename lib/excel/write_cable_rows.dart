@@ -29,8 +29,7 @@ void writeCableRows({
       .nonNulls
       .toList();
 
-  final parentWithChildCables =
-      CableFamily.createFamilies(associatedCables);
+  final parentWithChildCables = CableFamily.createFamilies(associatedCables);
 
   final cableGroupsSortedByType = parentWithChildCables
       .sorted(parentCableTypeComparator)
@@ -45,7 +44,7 @@ void writeCableRows({
         pointer.rowIndex,
         cable.parent,
         index,
-        cableRowStyle,
+        cable.parent.isMultiCable ? parentRowStyle : cableRowStyle,
         powerMultiOutlets,
         dataMultis,
         dataPatches,
@@ -53,7 +52,7 @@ void writeCableRows({
         customRow,
       );
 
-      // Write rows for the Sneak child (if any).
+      // Write rows for the Sneak children (if any).
       for (final (childIndex, child) in cable.children.indexed) {
         pointer.carriageReturn();
         writeCableLine(
