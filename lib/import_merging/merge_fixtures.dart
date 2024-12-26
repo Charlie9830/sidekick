@@ -25,7 +25,7 @@ Map<String, FixtureModel> mergeFixtures(
 
   if (settings.type == ImportType.addNewRecords) {
     updatedFixtures.addAll(incomingFixturesByFid.values.where(
-        (fixture) => incomingFixturesByFid.containsKey(fixture.fid) == false));
+        (fixture) => existingFixturesByFid.containsKey(fixture.fid) == false));
   }
 
   return convertToModelMap(updatedFixtures);

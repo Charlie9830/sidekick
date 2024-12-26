@@ -34,7 +34,7 @@ class PowerPatchContainer extends StatelessWidget {
                     .toString(),
             onBalanceToleranceChanged: (newValue) =>
                 store.dispatch(SetBalanceTolerance(newValue)),
-            onGeneratePatch: () => store.dispatch(generatePatch()),
+            onGeneratePatch: () => store.dispatch(generatePatch(context)),
             onAddSpareOutlet: (uid) => store.dispatch(addSpareOutlet(uid)),
             onDeleteSpareOutlet: (uid) =>
                 store.dispatch(deleteSpareOutlet(uid)),

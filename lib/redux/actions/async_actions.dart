@@ -58,6 +58,7 @@ import 'package:sidekick/snack_bars/composition_repair_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/export_success_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
+import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -1589,8 +1590,8 @@ ThunkAction<AppState> export(BuildContext context) {
 
     if (await outputPaths.parentDirectoryExists == false) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            fileErrorSnackBar(context, 'Parent directory could not be found. Have you selected a target directory?'));
+        ScaffoldMessenger.of(context).showSnackBar(fileErrorSnackBar(context,
+            'Parent directory could not be found. Have you selected a target directory?'));
       }
       return;
     }
@@ -1736,28 +1737,37 @@ ThunkAction<AppState> export(BuildContext context) {
   };
 }
 
-ThunkAction<AppState> generatePatch() {
+ThunkAction<AppState> generatePatch(BuildContext context) {
   return (Store<AppState> store) async {
     final fixtures = store.state.fixtureState.fixtures.values.toList();
     final balancer = NaiveBalancer();
 
-    final unbalancedMultiOutlets = balancer.assignToOutlets(
-      fixtures: fixtures
-          .map((fixture) => BalancerFixtureModel.fromFixture(
-              fixture: fixture,
-              type: store.state.fixtureState.fixtureTypes[fixture.typeId]!))
-          .toList(),
-      multiOutlets: store.state.fixtureState.powerMultiOutlets.values.toList(),
-      maxSequenceBreak: store.state.fixtureState.maxSequenceBreak,
-    );
+    try {
+      final unbalancedMultiOutlets = balancer.assignToOutlets(
+        fixtures: fixtures
+            .map((fixture) => BalancerFixtureModel.fromFixture(
+                fixture: fixture,
+                type: store.state.fixtureState.fixtureTypes[fixture.typeId]!))
+            .toList(),
+        multiOutlets:
+            store.state.fixtureState.powerMultiOutlets.values.toList(),
+        maxSequenceBreak: store.state.fixtureState.maxSequenceBreak,
+      );
 
-    final balancedMultiOutlets = _balanceOutlets(
-      unbalancedMultiOutlets: unbalancedMultiOutlets,
-      balancer: balancer,
-      balanceTolerance: store.state.fixtureState.balanceTolerance,
-    );
+      final balancedMultiOutlets = _balanceOutlets(
+        unbalancedMultiOutlets: unbalancedMultiOutlets,
+        balancer: balancer,
+        balanceTolerance: store.state.fixtureState.balanceTolerance,
+      );
 
-    _updatePowerMultisAndOutlets(store, balancedMultiOutlets);
+      _updatePowerMultisAndOutlets(store, balancedMultiOutlets);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
+          context: context,
+          message: 'A balancing error occurred',
+          extendedMessage: e.toString()));
+      rethrow;
+    }
   };
 }
 
