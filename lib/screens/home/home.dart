@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/containers/data_patch_container.dart';
+import 'package:sidekick/containers/diffing_container.dart';
 import 'package:sidekick/containers/export_container.dart';
 import 'package:sidekick/containers/file_container.dart';
 import 'package:sidekick/containers/fixture_table_container.dart';
@@ -32,7 +33,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return DefaultTabController(
       animationDuration: Duration.zero,
-      length: 8,
+      length: 9,
       initialIndex: 0,
       child: Scaffold(
         key: homeScaffoldKey,
@@ -74,6 +75,10 @@ class _HomeState extends State<Home> {
                 Tab(
                   icon: Icon(Icons.save_alt),
                   child: Text('Export'),
+                ),
+                Tab(
+                  icon: Icon(Icons.difference),
+                  child: Text('Diff'),
                 )
               ]),
         ),
@@ -88,6 +93,7 @@ class _HomeState extends State<Home> {
             LocationsContainer(),
             FixtureTypesContainer(),
             ExportContainer(),
+            DiffingContainer(),
           ],
         ),
         floatingActionButton: Column(

@@ -1,10 +1,10 @@
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
-import 'package:sidekick/view_models/loom_screen_item_view_model.dart';
+import 'package:sidekick/view_models/loom_item_view_model.dart';
 
 class LoomsViewModel {
   final void Function() onGenerateLoomsButtonPressed;
-  final List<LoomScreenItemViewModel> rowVms;
+  final List<LoomItemViewModel> rowVms;
   final void Function(Set<String> ids) selectCables;
   final Set<String> selectedCableIds;
   final void Function(LoomType type) onCombineCablesIntoNewLoomButtonPressed;

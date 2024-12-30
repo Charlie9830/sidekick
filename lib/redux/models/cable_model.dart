@@ -1,7 +1,7 @@
 import 'dart:convert';
-
-import 'package:sidekick/classes/cable_family.dart';
+import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
+import 'package:sidekick/screens/diffing/property_delta.dart';
 
 enum CableType {
   unknown,
@@ -19,7 +19,7 @@ const _ranking = {
   CableType.unknown: 4,
 };
 
-class CableModel extends ModelCollectionMember {
+class CableModel extends ModelCollectionMember with DiffComparable {
   @override
   final String uid;
   final double length;
@@ -123,4 +123,12 @@ class CableModel extends ModelCollectionMember {
   static int compareByType(CableModel a, CableModel b) {
     return _ranking[a.type]! - _ranking[b.type]!;
   }
+
+  @override
+  Map<DiffPropertyName, Object> getDiffValues() => {
+        DiffPropertyName.length: length,
+        DiffPropertyName.notes: notes,
+        DiffPropertyName.CableType: type,
+        DiffPropertyName.isSpare: isSpare,
+      };
 }

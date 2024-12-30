@@ -100,17 +100,9 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is OpenProject) {
-    return state.copyWith(
-      balanceTolerance: a.project.balanceTolerance,
-      dataMultis: convertToModelMap(a.project.dataMultis),
-      dataPatches: convertToModelMap(a.project.dataPatches),
-      fixtures: convertToModelMap(a.project.fixtures),
-      locations: convertToModelMap(a.project.locations),
-      looms: convertToModelMap(a.project.looms),
-      outlets: a.project.outlets,
-      powerMultiOutlets: convertToModelMap(a.project.powerMultiOutlets),
-      maxSequenceBreak: a.project.maxSequenceBreak,
-      cables: convertToModelMap(a.project.cables),
+    return a.project.toFixtureState(
+      fixtureTypes: state.fixtureTypes,
+      honorDataSpans: state.honorDataSpans,
     );
   }
 

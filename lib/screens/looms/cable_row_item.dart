@@ -87,7 +87,7 @@ class CableRowItem extends StatelessWidget {
 
                 // Cable Type
                 SizedBox(
-                    width: 200,
+                    width: 120,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -129,7 +129,7 @@ class CableRowItem extends StatelessWidget {
 
                 // Label
                 SizedBox(
-                    width: 300,
+                    width: 120,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -152,10 +152,13 @@ class CableRowItem extends StatelessWidget {
                 const VerticalDivider(
                   color: Colors.grey,
                 ),
-                SizedBox(width: 300, child: Text(labelColor)),
+
+                // Color
+                SizedBox(width: 100, child: Text(labelColor)),
                 const VerticalDivider(
                   color: Colors.grey,
                 ),
+                
                 Expanded(
                     child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

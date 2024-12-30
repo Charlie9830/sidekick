@@ -4,9 +4,11 @@ import 'dart:ui';
 import 'package:collection/collection.dart';
 
 import 'package:sidekick/classes/named_colors.dart';
+import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
+import 'package:sidekick/screens/diffing/property_delta.dart';
 
-class LocationModel extends ModelCollectionMember {
+class LocationModel extends ModelCollectionMember with DiffComparable {
   @override
   final String uid;
   final String name;
@@ -349,4 +351,12 @@ class LocationModel extends ModelCollectionMember {
 
     return lookup[key]!;
   }
+
+  @override
+  Map<DiffPropertyName, Object> getDiffValues() => {
+        DiffPropertyName.name: name,
+        DiffPropertyName.color: color,
+        DiffPropertyName.multiPrefix: multiPrefix,
+        DiffPropertyName.delimiter: delimiter,
+      };
 }

@@ -1,14 +1,17 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
+import 'package:sidekick/model_collection/convert_to_model_map.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
+import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 
 class ProjectFileModel {
@@ -142,4 +145,24 @@ class ProjectFileModel {
 
   factory ProjectFileModel.fromJson(String source) =>
       ProjectFileModel.fromMap(json.decode(source) as Map<String, dynamic>);
+
+  FixtureState toFixtureState({
+    Map<String, FixtureTypeModel>? fixtureTypes,
+    bool? honorDataSpans,
+  }) {
+    return FixtureState(
+        fixtures: convertToModelMap(fixtures),
+        outlets: outlets,
+        powerMultiOutlets: convertToModelMap(powerMultiOutlets),
+        balanceTolerance: balanceTolerance,
+        maxSequenceBreak: maxSequenceBreak,
+        locations: convertToModelMap(locations),
+        dataMultis: convertToModelMap(dataMultis),
+        dataPatches: convertToModelMap(dataPatches),
+        looms: convertToModelMap(looms),
+        fixtureTypes: fixtureTypes ?? FixtureState.initial().fixtureTypes,
+        honorDataSpans: honorDataSpans ?? FixtureState.initial().honorDataSpans,
+        cables: convertToModelMap(cables),
+        defaultPowerMulti: defaultPowerMulti);
+  }
 }

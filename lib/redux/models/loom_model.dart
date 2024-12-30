@@ -4,16 +4,18 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import 'package:sidekick/classes/named_colors.dart';
+import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
+import 'package:sidekick/screens/diffing/property_delta.dart';
 
 enum LoomClass {
   feeder,
   extension,
 }
 
-class LoomModel extends ModelCollectionMember {
+class LoomModel extends ModelCollectionMember with DiffComparable {
   @override
   final String uid;
   final String locationId;
@@ -96,4 +98,12 @@ class LoomModel extends ModelCollectionMember {
 
     return colorToLengthLookup[location.color] ?? 0;
   }
+
+  @override
+  Map<DiffPropertyName, Object> getDiffValues() => {
+        DiffPropertyName.length: type,
+        DiffPropertyName.loomClass: loomClass,
+        DiffPropertyName.loomType: type,
+        DiffPropertyName.isDrop: isDrop,
+      };
 }

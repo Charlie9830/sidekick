@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
+import 'package:sidekick/screens/diffing/change_overlay.dart';
+import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/screens/looms/cable_flag.dart';
 import 'package:sidekick/screens/looms/editable_text_field.dart';
-import 'package:sidekick/view_models/loom_screen_item_view_model.dart';
+import 'package:sidekick/view_models/loom_item_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';
 
 class LoomRowItem extends StatefulWidget {
   final LoomViewModel loomVm;
   final List<Widget> children;
+  final Set<PropertyDelta> deltas;
   final void Function() onFocusDone;
 
   const LoomRowItem({
@@ -16,6 +19,7 @@ class LoomRowItem extends StatefulWidget {
     required this.loomVm,
     required this.children,
     required this.onFocusDone,
+    this.deltas = const {},
   });
 
   @override
@@ -123,18 +127,25 @@ class _LoomRowItemState extends State<LoomRowItem> {
                   ),
                   Row(
                     children: [
-                      SizedBox(
-                        width: 42,
-                        child: EditableTextField(
-                          value:
-                              widget.loomVm.loom.type.length.toStringAsFixed(0),
-                          onChanged: (newValue) {
-                            widget.onFocusDone();
-                            widget.loomVm.onLengthChanged(newValue);
-                          },
-                          suffix: 'm',
-                          textAlign: TextAlign.end,
-                          style: Theme.of(context).textTheme.titleSmall,
+                      ChangeOverlay(
+                        changeType: widget.deltas
+                                .lookup(PropertyDelta.modified(
+                                    DiffPropertyName.length))
+                                ?.type ??
+                            ChangeType.none,
+                        child: SizedBox(
+                          width: 42,
+                          child: EditableTextField(
+                            value: widget.loomVm.loom.type.length
+                                .toStringAsFixed(0),
+                            onChanged: (newValue) {
+                              widget.onFocusDone();
+                              widget.loomVm.onLengthChanged(newValue);
+                            },
+                            suffix: 'm',
+                            textAlign: TextAlign.end,
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),

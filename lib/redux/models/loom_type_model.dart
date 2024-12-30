@@ -1,15 +1,17 @@
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/permanent_loom_composition.dart';
+import 'package:sidekick/screens/diffing/property_delta.dart';
 
 enum LoomType {
   custom,
   permanent,
 }
 
-class LoomTypeModel {
+class LoomTypeModel with DiffComparable {
   final LoomType type;
   final double length;
   final String permanentComposition;
@@ -71,4 +73,11 @@ class LoomTypeModel {
 
   factory LoomTypeModel.fromJson(String source) =>
       LoomTypeModel.fromMap(json.decode(source));
+
+  @override
+  Map<DiffPropertyName, Object> getDiffValues() => {
+        DiffPropertyName.length: length,
+        DiffPropertyName.permanentComposition: permanentComposition,
+        DiffPropertyName.loomType: type,
+      };
 }

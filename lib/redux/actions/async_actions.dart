@@ -1,6 +1,5 @@
 import 'dart:collection';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:excel/excel.dart';
@@ -16,7 +15,7 @@ import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/classes/cable_family.dart';
 import 'package:sidekick/classes/export_file_paths.dart';
 import 'package:sidekick/classes/universe_span.dart';
-import 'package:sidekick/data_selectors/select_primary_and_secondary_location_ids.dart';
+import 'package:sidekick/diffing/union_proxy.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/excel/create_color_lookup_sheet.dart';
 import 'package:sidekick/excel/create_custom_looms_sheet.dart';
@@ -52,7 +51,6 @@ import 'package:path/path.dart' as p;
 import 'package:sidekick/screens/looms/add_spare_cables.dart';
 import 'package:sidekick/screens/sequencer_dialog/sequencer_dialog.dart';
 import 'package:sidekick/serialization/deserialize_project_file.dart';
-import 'package:sidekick/serialization/project_file_model.dart';
 import 'package:sidekick/serialization/serialize_project_file.dart';
 import 'package:sidekick/snack_bars/composition_repair_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/export_success_snack_bar.dart';
@@ -668,7 +666,26 @@ ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
 
 ThunkAction<AppState> debugButtonPressed() {
   return (Store<AppState> store) async {
-    print(store.state.fileState.projectMetadata.projectName);
+    final oldProjectFile = await deserializeProjectFile(
+        p.join(p.current, 'test_data', 'difference.phase'));
+
+    final originalCables = oldProjectFile.cables.toSet();
+    final originalLooms = oldProjectFile.looms.toSet();
+
+    final currentCables = store.state.fixtureState.cables.values.toSet();
+    final currentLooms = store.state.fixtureState.looms.values.toSet();
+
+    store.dispatch(SetDiffingUnions(cables: {
+      ...originalCables.map((cable) => UnionProxy(ProxySource.original, cable)),
+      ...currentCables.map((cable) => UnionProxy(ProxySource.current, cable)),
+    }, looms: {
+      ...originalLooms.map((loom) => UnionProxy(ProxySource.original, loom)),
+      ...currentLooms.map((loom) => UnionProxy(ProxySource.current, loom)),
+    }));
+
+    store.dispatch(SetDiffingOriginalSource(
+      oldProjectFile.toFixtureState(),
+    ));
   };
 }
 

@@ -4,6 +4,7 @@ class NavigationState {
   final bool showAllFixtureTypes;
   final Set<String> selectedCableIds;
   final bool openAfterExport;
+  final int selectedDiffingTab;
 
   NavigationState({
     required this.selectedMultiOutlet,
@@ -11,6 +12,7 @@ class NavigationState {
     required this.showAllFixtureTypes,
     required this.selectedCableIds,
     required this.openAfterExport,
+    required this.selectedDiffingTab,
   });
 
   NavigationState.initial()
@@ -18,7 +20,8 @@ class NavigationState {
         selectedFixtureIds = {},
         selectedCableIds = {},
         showAllFixtureTypes = false,
-        openAfterExport = true;
+        openAfterExport = true,
+        selectedDiffingTab = 0;
 
   NavigationState copyWith({
     String? selectedMultiOutlet,
@@ -26,6 +29,7 @@ class NavigationState {
     bool? showAllFixtureTypes,
     Set<String>? selectedCableIds,
     bool? openAfterExport,
+    int? selectedDiffingTab,
   }) {
     return NavigationState(
       selectedMultiOutlet: selectedMultiOutlet ?? this.selectedMultiOutlet,
@@ -33,6 +37,7 @@ class NavigationState {
       showAllFixtureTypes: showAllFixtureTypes ?? this.showAllFixtureTypes,
       selectedCableIds: selectedCableIds ?? this.selectedCableIds,
       openAfterExport: openAfterExport ?? this.openAfterExport,
+      selectedDiffingTab: selectedDiffingTab ?? this.selectedDiffingTab,
     );
   }
 }

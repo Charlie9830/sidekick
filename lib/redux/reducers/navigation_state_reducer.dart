@@ -2,6 +2,10 @@ import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/state/navigation_state.dart';
 
 NavigationState navStateReducer(NavigationState state, dynamic a) {
+  if (a is SetSelectedDiffingTab) {
+    return state.copyWith(selectedDiffingTab: a.value);
+  }
+
   if (a is NewProject || a is OpenProject) {
     return NavigationState.initial();
   }

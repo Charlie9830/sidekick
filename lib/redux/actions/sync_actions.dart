@@ -1,6 +1,5 @@
 import 'dart:ui';
-
-import 'package:sidekick/persistent_settings/persistent_settings_model.dart';
+import 'package:sidekick/diffing/union_proxy.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
@@ -11,8 +10,33 @@ import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
+import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
+
+class SetDiffingOriginalSource {
+  final FixtureState value;
+
+  SetDiffingOriginalSource(this.value);
+}
+
+class SetDiffingUnions {
+  final Set<UnionProxy<CableModel>> cables;
+  final Set<UnionProxy<LoomModel>> looms;
+
+  SetDiffingUnions({
+    required this.cables,
+    required this.looms,
+  });
+}
+
+class SetSelectedDiffingTab {
+  final int value;
+
+  SetSelectedDiffingTab(
+    this.value,
+  );
+}
 
 class SetOpenAfterExport {
   final bool value;
