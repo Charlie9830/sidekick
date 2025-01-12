@@ -2,21 +2,13 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:excel/excel.dart';
+import 'package:sidekick/excel/excel_columns.dart';
 import 'package:sidekick/model_collection/convert_to_model_map.dart';
 import 'package:sidekick/redux/models/dmx_address_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/utils/get_uid.dart';
-
-class _FixtureExcelColumns {
-  static const int fid = 0;
-  static const int fixtureType = 1;
-  // static const int fixtureMode = 2;
-  static const int location = 3;
-  static const int universe = 4;
-  static const int address = 5;
-}
 
 class FixturesDataReadResult {
   final Map<String, FixtureModel> fixtures;
@@ -32,13 +24,13 @@ class FixturesDataReadResult {
   });
 }
 
+const int kDataOffset = 1;
+
 Future<FixturesDataReadResult> readFixturesPatchData({
   required String path,
   required Map<String, FixtureTypeModel> fixtureTypes,
   required String? patchSheetName,
 }) async {
-  const int kDataOffset = 1;
-
   final file = File(path);
 
   if (await file.exists() == false) {
@@ -93,7 +85,7 @@ Future<FixturesDataReadResult> readFixturesPatchData({
 
     for (final (index, row) in rawDataRows.indexed) {
       final (fixtureId, fidError) =
-          _extractFixtureIdCellValue(row[_FixtureExcelColumns.fid]);
+          _extractFixtureIdCellValue(row[ExcelColumns.getColumnIndex(ExcelColumnName.fixtureId)]);
 
       if (fidError != null) {
         return FixturesDataReadResult(errorMessage: fidError);
@@ -105,8 +97,8 @@ Future<FixturesDataReadResult> readFixturesPatchData({
                 'Duplicate Fixture number detected, Fixture ID $fixtureId, detected at row ${index + kDataOffset}');
       }
 
-      final (fixtureTypeName, fixtureTypeError) =
-          _extractFixtureTypeCellValue(row[_FixtureExcelColumns.fixtureType]);
+      final (fixtureTypeName, fixtureTypeError) = _extractFixtureTypeCellValue(
+          row[ExcelColumns.getColumnIndex(ExcelColumnName.fixtureType)]);
 
       if (fixtureTypeError != null) {
         return FixturesDataReadResult(errorMessage: fixtureTypeError);
@@ -124,17 +116,19 @@ Future<FixturesDataReadResult> readFixturesPatchData({
       inUseTypeIds.add(fixtureType.uid);
 
       final String locationId = locationNameMap[_convertRawLocationToString(
-                  row[_FixtureExcelColumns.location])]
+                  row[ExcelColumns.getColumnIndex(ExcelColumnName.location)])]
               ?.uid ??
           '';
 
-      final int universe = switch (row[_FixtureExcelColumns.universe]?.value) {
+      final int universe =
+          switch (row[ExcelColumns.getColumnIndex(ExcelColumnName.universe)]?.value) {
         TextCellValue v => int.parse(v.value.text?.trim() ?? ""),
         IntCellValue v => v.value,
         _ => 0,
       };
 
-      final int address = switch (row[_FixtureExcelColumns.address]?.value) {
+      final int address =
+          switch (row[ExcelColumns.getColumnIndex(ExcelColumnName.address)]?.value) {
         TextCellValue v => int.parse(v.value.text?.trim() ?? ""),
         IntCellValue v => v.value,
         _ => 0,
@@ -237,7 +231,7 @@ Future<FixturesDataReadResult> readFixturesPatchData({
 Map<String, LocationModel> _readLocations(List<List<Data?>> rows) {
   final locationsSet = rows
       .map((row) => _convertRawLocationToString(
-          row.elementAtOrNull(_FixtureExcelColumns.location)))
+          row.elementAtOrNull(ExcelColumns.getColumnIndex(ExcelColumnName.location))))
       .toSet();
 
   return Map<String, LocationModel>.fromEntries(locationsSet.map(

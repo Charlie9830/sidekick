@@ -60,6 +60,67 @@ import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+ThunkAction<AppState> setImportPath(BuildContext context, String importPath) {
+  return (Store<AppState> store) async {
+    final sourceFile = File(importPath);
+    final fileExtension = p.extension(importPath);
+
+    if (await sourceFile.exists() == false && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
+          context: context,
+          message: 'File cannot be found.',
+          extendedMessage: 'Could not find file at location:\n$importPath'));
+      return;
+    }
+
+    final extensionRegex = RegExp(r'.xlsx|.xls');
+
+    if (extensionRegex.hasMatch(fileExtension) == false) {
+      ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
+        context: context,
+        message: 'Invalid file format. Only excel files are supported.',
+      ));
+      return;
+    }
+
+    late final Uint8List bytes;
+    try {
+      bytes = await sourceFile.readAsBytes();
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
+          context: context,
+          message:
+              'Unable to read file. Ensure the file is not currently open in Excel',
+          error: e,
+        ));
+      }
+      return;
+    }
+
+    late final Excel excel;
+    try {
+      excel = Excel.decodeBytes(bytes);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
+          context: context,
+          message: 'Unable to decode Excel file.',
+          extendedMessage: e.toString(),
+          error: e,
+        ));
+      }
+
+      return;
+    }
+
+    store.dispatch(
+        SetExcelSheetNames(excel.sheets.keys.toSet(), excel.getDefaultSheet()));
+    store.dispatch(SetPatchImportFilePath(importPath));
+    store.dispatch(SetImportExcelDocument(excel));
+  };
+}
+
 ThunkAction<AppState> chooseExportDirectory(BuildContext context) {
   return (Store<AppState> store) async {
     final lastUsedExportDirectory =

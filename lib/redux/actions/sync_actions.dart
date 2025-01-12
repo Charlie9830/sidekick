@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:excel/excel.dart';
 import 'package:sidekick/diffing/union_proxy.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
@@ -13,6 +14,27 @@ import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
+
+class SetImportExcelDocument {
+  final Excel document;
+
+  SetImportExcelDocument(
+    this.document,
+  );
+}
+
+class SetSelectedExcelSheet {
+  final String value;
+
+  SetSelectedExcelSheet(this.value);
+}
+
+class SetExcelSheetNames {
+  final Set<String> value;
+  final String? selectedSheet;
+
+  SetExcelSheetNames(this.value, this.selectedSheet);
+}
 
 class SetDiffingOriginalSource {
   final FixtureState value;

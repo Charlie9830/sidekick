@@ -25,14 +25,26 @@ class Import extends StatelessWidget {
               onPressed: () => _handleChooseButtonPressed(context)),
           const SizedBox(height: 32),
           SizedBox(
-            width: 200,
-            child: PropertyField(
-              label: 'If source contains multiple sheets',
-              value: vm.settings.patchDataSourceSheetName,
-              onBlur: (newValue) => vm.onSettingsChanged(
-                  vm.settings.copyWith(patchDataSourceSheetName: newValue)),
-            ),
-          ),
+              width: 200,
+              child: DropdownButton<String>(
+                
+                style: Theme.of(context).textTheme.bodyMedium,
+                onChanged: vm.sheetNames.isEmpty
+                    ? null
+                    : (value) => vm.onSettingsChanged(
+                        vm.settings.copyWith(patchDataSourceSheetName: value)),
+                items: vm.sheetNames
+                    .map((name) => DropdownMenuItem<String>(
+                          value: name,
+                          child: Text(name),
+                        ))
+                    .toList(),
+                hint: const Text('Select Sheet...'),
+                isExpanded: true,
+                value: vm.settings.patchDataSourceSheetName.isEmpty
+                    ? null
+                    : vm.settings.patchDataSourceSheetName,
+              )),
           const SizedBox(height: 16),
           CheckboxListTile(
               title: const Text("Merge with Existing"),

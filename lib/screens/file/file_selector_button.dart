@@ -14,6 +14,7 @@ class FileSelectorButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         switch (path) {
           "" => const Text('No file selected'),
@@ -25,7 +26,7 @@ class FileSelectorButton extends StatelessWidget {
         ),
         OutlinedButton(
           onPressed: onPressed,
-          child: const Text('Choose'),
+          child: Text(path.isEmpty ? 'Choose' : 'Change'),
         ),
       ],
     );
