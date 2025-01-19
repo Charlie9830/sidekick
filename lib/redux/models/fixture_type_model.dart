@@ -7,6 +7,7 @@ class FixtureTypeModel extends ModelCollectionMember {
   final String originalModel;
   final String name;
   final String shortName;
+  final String originalShortName;
   final double amps;
   final int maxPiggybacks;
 
@@ -16,6 +17,7 @@ class FixtureTypeModel extends ModelCollectionMember {
     this.originalModel = '',
     this.name = '',
     this.shortName = '',
+    this.originalShortName = '',
     this.amps = 0.0,
     this.maxPiggybacks = 1,
   });
@@ -26,6 +28,7 @@ class FixtureTypeModel extends ModelCollectionMember {
         shortName = "",
         originalMake = '',
         originalModel = '',
+        originalShortName = '',
         amps = 0,
         maxPiggybacks = 1;
 
@@ -35,6 +38,7 @@ class FixtureTypeModel extends ModelCollectionMember {
     String? uid,
     String? originalMake,
     String? originalModel,
+    String? originalShortName,
     String? name,
     String? shortName,
     double? amps,
@@ -44,6 +48,7 @@ class FixtureTypeModel extends ModelCollectionMember {
       uid: uid ?? this.uid,
       originalMake: originalMake ?? this.originalMake,
       originalModel: originalModel ?? this.originalModel,
+      originalShortName: originalShortName ?? this.originalShortName,
       name: name ?? this.name,
       shortName: shortName ?? this.shortName,
       amps: amps ?? this.amps,

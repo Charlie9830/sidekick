@@ -2,7 +2,6 @@ import 'package:sidekick/redux/models/fixture_type_model.dart';
 
 class FixtureTypesViewModel {
   final List<FixtureTypeViewModel> itemVms;
-  final void Function(String id, String newValue) onNameChanged;
   final void Function(String id, String newValue) onShortNameChanged;
   final void Function(String id, String newValue) onMaxPairingsChanged;
   final void Function(bool newValue) onShowAllFixtureTypesChanged;
@@ -10,7 +9,6 @@ class FixtureTypesViewModel {
 
   FixtureTypesViewModel({
     required this.itemVms,
-    required this.onNameChanged,
     required this.onShortNameChanged,
     required this.onMaxPairingsChanged,
     required this.showAllFixtureTypes,

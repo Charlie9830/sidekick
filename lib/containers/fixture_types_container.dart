@@ -23,8 +23,6 @@ class FixtureTypesContainer extends StatelessWidget {
             itemVms: _selectFixtureTypeItems(store),
             onMaxPairingsChanged: (id, newValue) =>
                 store.dispatch(UpdateFixtureTypeMaxPiggybacks(id, newValue)),
-            onNameChanged: (id, newValue) =>
-                store.dispatch(UpdateFixtureTypeName(id, newValue)),
             onShortNameChanged: (id, newValue) =>
                 store.dispatch(UpdateFixtureTypeShortName(id, newValue)),
             showAllFixtureTypes: store.state.navstate.showAllFixtureTypes,

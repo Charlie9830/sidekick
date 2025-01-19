@@ -123,18 +123,6 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     );
   }
 
-  if (a is UpdateFixtureTypeName) {
-    return state.copyWith(
-      fixtureTypes: Map<String, FixtureTypeModel>.from(state.fixtureTypes)
-        ..update(
-          a.id,
-          (type) => type.copyWith(
-            name: a.newValue.trim(),
-          ),
-        ),
-    );
-  }
-
   if (a is UpdateFixtureTypeShortName) {
     return state.copyWith(
       fixtureTypes: Map<String, FixtureTypeModel>.from(state.fixtureTypes)

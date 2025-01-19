@@ -37,8 +37,16 @@ class FixtureTypes extends StatelessWidget {
                 columns: const [
                   // Name
                   DataColumn(
-                    label: Text('Name'),
+                    tooltip:
+                        'Taken from the Make and Manufacturer columns of the Fixture Database.',
+                    label: Text('Original Make & Model'),
                   ),
+
+                  // Original Short Name
+                  DataColumn(
+                      tooltip:
+                          'Taken from the Short Name (Patchinator, IJAP) column of the Fixture Database.',
+                      label: Text('Original Short Name')),
 
                   // Short Name
                   DataColumn(
@@ -62,15 +70,13 @@ class FixtureTypes extends StatelessWidget {
                       : '';
                   return DataRow(cells: [
                     DataCell(
-                      // Name
-                      withConstraint(
-                        PropertyField(
-                          value: item.type.name,
-                          onBlur: (newValue) =>
-                              vm.onNameChanged(item.type.uid, newValue),
-                        ),
-                        width: 240,
-                      ),
+                      // Original Make & Model
+                      Text(item.type.name),
+                    ),
+
+                    // Original Short Name
+                    DataCell(
+                      Text(item.type.originalShortName),
                     ),
 
                     // Short Name

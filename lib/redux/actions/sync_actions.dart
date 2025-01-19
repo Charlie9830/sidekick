@@ -254,13 +254,6 @@ class UpdateFixtureTypeMaxPiggybacks {
   UpdateFixtureTypeMaxPiggybacks(this.id, this.newValue);
 }
 
-class UpdateFixtureTypeName {
-  final String id;
-  final String newValue;
-
-  UpdateFixtureTypeName(this.id, this.newValue);
-}
-
 class UpdateFixtureTypeShortName {
   final String id;
   final String newValue;

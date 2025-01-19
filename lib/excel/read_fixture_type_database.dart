@@ -8,7 +8,7 @@ import 'package:excel/excel.dart';
 const String _kSheetName = "Master List";
 const String _kManufactureColumnHeader = "Manufacture";
 const String _kModelColumnHeader = "Model";
-const String _kShortNameColumnHeader = "Short Name";
+const String _kShortNameColumnHeader = "Short Name (Patchinator, IJAP)";
 const String _kMaxPiggybacksColumnHeader = "Max 16A Piggybacks";
 const String _kPowerDrawColumnHeader = "Power Draw (amps)";
 
@@ -177,6 +177,7 @@ Future<FixtureTypeDatabaseReadResult> readFixtureTypeDatabase(
         maxPiggybacks: int.tryParse(maxPiggybacks.trim()) ?? 1,
         name: _concatMakeAndModel(manufacturer, model),
         shortName: shortName,
+        originalShortName: shortName,
         originalMake: manufacturer,
         originalModel: model,
       ));
