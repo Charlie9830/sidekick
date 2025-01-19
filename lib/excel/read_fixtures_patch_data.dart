@@ -79,13 +79,13 @@ Future<FixturesDataReadResult> readFixturesPatchData({
     final Set<String> inUseTypeIds = {};
 
     // Construct a Map of our Library Fixture Types by their short Name.
-    Map<String, FixtureTypeModel> fixtureTypesByShortName =
-        Map<String, FixtureTypeModel>.fromEntries(
-            fixtureTypes.values.map((type) => MapEntry(type.shortName, type)));
+    Map<String, FixtureTypeModel> fixtureTypesByOriginalShortName =
+        Map<String, FixtureTypeModel>.fromEntries(fixtureTypes.values
+            .map((type) => MapEntry(type.originalShortName, type)));
 
     for (final (index, row) in rawDataRows.indexed) {
-      final (fixtureId, fidError) =
-          _extractFixtureIdCellValue(row[ExcelColumns.getColumnIndex(ExcelColumnName.fixtureId)]);
+      final (fixtureId, fidError) = _extractFixtureIdCellValue(
+          row[ExcelColumns.getColumnIndex(ExcelColumnName.fixtureId)]);
 
       if (fidError != null) {
         return FixturesDataReadResult(errorMessage: fidError);
@@ -104,7 +104,8 @@ Future<FixturesDataReadResult> readFixturesPatchData({
         return FixturesDataReadResult(errorMessage: fixtureTypeError);
       }
 
-      if (fixtureTypesByShortName.containsKey(fixtureTypeName) == false) {
+      if (fixtureTypesByOriginalShortName.containsKey(fixtureTypeName) ==
+          false) {
         return FixturesDataReadResult(
             errorMessage:
                 "Unable to find a matching Fixture type for the fixture type short name value '$fixtureTypeName'"
@@ -112,7 +113,7 @@ Future<FixturesDataReadResult> readFixturesPatchData({
                 "Please ensure the fixture database has a matching entry with the same 'Short Name'.");
       }
 
-      final fixtureType = fixtureTypesByShortName[fixtureTypeName]!;
+      final fixtureType = fixtureTypesByOriginalShortName[fixtureTypeName]!;
       inUseTypeIds.add(fixtureType.uid);
 
       final String locationId = locationNameMap[_convertRawLocationToString(
@@ -120,15 +121,15 @@ Future<FixturesDataReadResult> readFixturesPatchData({
               ?.uid ??
           '';
 
-      final int universe =
-          switch (row[ExcelColumns.getColumnIndex(ExcelColumnName.universe)]?.value) {
+      final int universe = switch (
+          row[ExcelColumns.getColumnIndex(ExcelColumnName.universe)]?.value) {
         TextCellValue v => int.parse(v.value.text?.trim() ?? ""),
         IntCellValue v => v.value,
         _ => 0,
       };
 
-      final int address =
-          switch (row[ExcelColumns.getColumnIndex(ExcelColumnName.address)]?.value) {
+      final int address = switch (
+          row[ExcelColumns.getColumnIndex(ExcelColumnName.address)]?.value) {
         TextCellValue v => int.parse(v.value.text?.trim() ?? ""),
         IntCellValue v => v.value,
         _ => 0,
@@ -230,8 +231,8 @@ Future<FixturesDataReadResult> readFixturesPatchData({
 ///
 Map<String, LocationModel> _readLocations(List<List<Data?>> rows) {
   final locationsSet = rows
-      .map((row) => _convertRawLocationToString(
-          row.elementAtOrNull(ExcelColumns.getColumnIndex(ExcelColumnName.location))))
+      .map((row) => _convertRawLocationToString(row.elementAtOrNull(
+          ExcelColumns.getColumnIndex(ExcelColumnName.location))))
       .toSet();
 
   return Map<String, LocationModel>.fromEntries(locationsSet.map(
