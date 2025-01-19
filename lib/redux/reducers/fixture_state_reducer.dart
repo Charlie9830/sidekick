@@ -159,14 +159,6 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     );
   }
 
-  if (a is UpdateLocationName) {
-    return state.copyWith(
-      locations: Map<String, LocationModel>.from(state.locations)
-        ..update(a.locationId,
-            (existing) => existing.copyWith(name: a.newValue.trim())),
-    );
-  }
-
   if (a is UpdateLocationDelimiter) {
     return state.copyWith(
       locations: Map<String, LocationModel>.from(state.locations)

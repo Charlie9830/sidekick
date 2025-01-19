@@ -4,14 +4,13 @@ import 'package:sidekick/redux/models/location_model.dart';
 class LocationsViewModel {
   final List<LocationItemViewModel> itemVms;
   final void Function(String location, String newValue) onMultiPrefixChanged;
-  final void Function(String locationId, String newValue) onLocationNameChanged;
   final void Function(String locationId, Color color) onLocationColorChanged;
-  final void Function(String locationId, String newValue) onLocationDelimiterChanged;
+  final void Function(String locationId, String newValue)
+      onLocationDelimiterChanged;
 
   LocationsViewModel({
     required this.itemVms,
     required this.onMultiPrefixChanged,
-    required this.onLocationNameChanged,
     required this.onLocationColorChanged,
     required this.onLocationDelimiterChanged,
   });

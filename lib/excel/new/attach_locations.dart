@@ -5,13 +5,13 @@ import 'package:sidekick/redux/models/location_model.dart';
 
 List<RawRowData> attachLocations(
     List<RawRowData> rawRows, Map<String, LocationModel> locations) {
-  final locationsByOriginalName =
-      locations.values.groupListsBy((element) => element.originalName);
+  final locationsByName =
+      locations.values.groupListsBy((element) => element.name);
 
   return rawRows.map((row) {
-    if (locationsByOriginalName.containsKey(row.location)) {
+    if (locationsByName.containsKey(row.location)) {
       return row.copyWith(
-          attachedLocationId: locationsByOriginalName[row.location]!.first.uid);
+          attachedLocationId: locationsByName[row.location]!.first.uid);
     } else {
       return row.copyWithError(NoMatchingLocationError(row.location));
     }

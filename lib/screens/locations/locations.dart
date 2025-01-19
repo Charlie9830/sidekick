@@ -36,14 +36,7 @@ class Locations extends StatelessWidget {
             return DataRow(key: ValueKey(item.location.uid), cells: [
               // Name
               DataCell(
-                withConstraint(
-                  PropertyField(
-                    value: item.location.name,
-                    onBlur: (newValue) =>
-                        vm.onLocationNameChanged(item.location.uid, newValue),
-                  ),
-                  width: 240,
-                ),
+                Text(item.location.name, style: Theme.of(context).textTheme.bodyLarge),
               ),
 
               // Colours

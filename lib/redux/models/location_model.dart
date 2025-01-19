@@ -11,7 +11,6 @@ import 'package:sidekick/screens/diffing/property_delta.dart';
 class LocationModel extends ModelCollectionMember with DiffComparable {
   @override
   final String uid;
-  final String originalName;
   final String name;
   final Color color;
   final String multiPrefix;
@@ -24,7 +23,6 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
   LocationModel({
     required this.uid,
     this.name = '',
-    this.originalName = '',
     required this.color,
     this.multiPrefix = '',
     this.isDataPatchLocked = false,
@@ -35,7 +33,6 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
   const LocationModel.none()
       : uid = 'none',
         name = '',
-        originalName = '',
         multiPrefix = '',
         isDataPatchLocked = false,
         isPowerPatchLocked = false,
@@ -45,7 +42,6 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
   LocationModel copyWith({
     String? uid,
     String? name,
-    String? originalName,
     Color? color,
     String? multiPrefix,
     bool? isPowerPatchLocked,
@@ -55,7 +51,6 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
     return LocationModel(
       uid: uid ?? this.uid,
       name: name ?? this.name,
-      originalName: originalName ?? this.originalName,
       color: color ?? this.color,
       multiPrefix: multiPrefix ?? this.multiPrefix,
       isPowerPatchLocked: isPowerPatchLocked ?? this.isPowerPatchLocked,
@@ -107,7 +102,6 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
     return {
       'uid': uid,
       'name': name,
-      'originalName': originalName,
       'color': color.value,
       'multiPrefix': multiPrefix,
       'isPowerPatchLocked': isPowerPatchLocked,
@@ -120,7 +114,6 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
     return LocationModel(
       uid: map['uid'] ?? '',
       name: map['name'] ?? '',
-      originalName: map['originalName'] ?? '',
       color: Color(map['color']),
       multiPrefix: map['multiPrefix'] ?? '',
       isPowerPatchLocked: map['isPowerPatchLocked'] ?? false,
