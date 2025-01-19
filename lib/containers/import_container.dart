@@ -28,6 +28,7 @@ class ImportContainer extends StatelessWidget {
               store.dispatch(setImportPath(context, path)),
           onImportButtonPressed: () => store.dispatch(importPatchFile(context)),
           sheetNames: store.state.importState.sheetNames.toList(),
+          onImportManagerButtonPressed: () => store.dispatch(openImportManager(context)),
         );
       },
     );

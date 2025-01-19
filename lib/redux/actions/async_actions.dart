@@ -15,6 +15,7 @@ import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/classes/cable_family.dart';
 import 'package:sidekick/classes/export_file_paths.dart';
 import 'package:sidekick/classes/universe_span.dart';
+import 'package:sidekick/containers/import_manager_container.dart';
 import 'package:sidekick/diffing/union_proxy.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/excel/create_color_lookup_sheet.dart';
@@ -24,6 +25,7 @@ import 'package:sidekick/excel/create_data_patch_sheet.dart';
 import 'package:sidekick/excel/create_fixture_type_validation_sheet.dart';
 import 'package:sidekick/excel/create_permanent_looms_sheet.dart';
 import 'package:sidekick/excel/create_power_patch_sheet.dart';
+import 'package:sidekick/excel/new/read_raw_patch_data.dart';
 import 'package:sidekick/excel/read_fixture_type_database.dart';
 import 'package:sidekick/excel/read_fixtures_patch_data.dart';
 import 'package:sidekick/extension_methods/queue_pop.dart';
@@ -59,6 +61,26 @@ import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+ThunkAction<AppState> openImportManager(BuildContext context) {
+  return (Store<AppState> store) async {
+    store.dispatch(readInitialRawPatchData());
+
+    await showDialog(
+        context: context,
+        builder: (innerContext) => const ImportManagerContainer());
+  };
+}
+
+ThunkAction<AppState> readInitialRawPatchData() {
+  return (Store<AppState> store) async {
+    final sheet = store.state.importState.document
+        .sheets[store.state.fileState.importSettings.patchDataSourceSheetName]!;
+
+    final rawData = readRawPatchData(sheet, kDataOffset).toList();
+    store.dispatch(SetRawPatchData(rawData));
+  };
+}
 
 ThunkAction<AppState> setImportPath(BuildContext context, String importPath) {
   return (Store<AppState> store) async {

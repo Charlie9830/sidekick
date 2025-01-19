@@ -5,7 +5,7 @@ import 'package:sidekick/excel/patch_data_item_error.dart';
 import 'package:sidekick/excel/new/raw_row_data.dart';
 
 Iterable<RawRowData> readRawPatchData(Sheet sheet, int dataOffset) sync* {
-  for (int i = dataOffset; i <= sheet.rows.length; i++) {
+  for (int i = dataOffset; i < sheet.rows.length; i++) {
     final rowNumber = i + 1;
     final row = sheet.rows[i];
     RawRowData rawRow = RawRowData(rowNumber: rowNumber);

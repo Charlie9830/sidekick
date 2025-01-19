@@ -27,7 +27,6 @@ class Import extends StatelessWidget {
           SizedBox(
               width: 200,
               child: DropdownButton<String>(
-                
                 style: Theme.of(context).textTheme.bodyMedium,
                 onChanged: vm.sheetNames.isEmpty
                     ? null
@@ -105,6 +104,10 @@ class Import extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              TextButton(
+                  onPressed: () => vm.onImportManagerButtonPressed(),
+                  child: const Text('Start Import Manager')),
+              const SizedBox(width: 16),
               FilledButton(
                   onPressed: () => vm.onImportButtonPressed(),
                   child: const Text('Import')),

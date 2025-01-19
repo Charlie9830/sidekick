@@ -6,6 +6,10 @@ NavigationState navStateReducer(NavigationState state, dynamic a) {
     return state.copyWith(selectedDiffingTab: a.value);
   }
 
+  if (a is SetSelectedRawPatchRow) {
+    return state.copyWith(selectedRawPatchRow: a.value);
+  }
+
   if (a is NewProject || a is OpenProject) {
     return NavigationState.initial();
   }

@@ -7,10 +7,16 @@ enum UpdateType {
   addIfAbsentElseRemove,
 }
 
+enum SelectionMode {
+  multi,
+  single,
+}
+
 class ItemSelectionContainer<T> extends StatefulWidget {
   final Widget child;
   final Set<T> selectedItems;
-  final Map<T, int> itemIndicies;
+  final SelectionMode mode;
+  final Map<T, int>? itemIndicies;
   final FocusNode? focusNode;
   final void Function(UpdateType updateType, Set<T> values) onSelectionUpdated;
 
@@ -18,7 +24,8 @@ class ItemSelectionContainer<T> extends StatefulWidget {
       {super.key,
       required this.child,
       required this.selectedItems,
-      required this.itemIndicies,
+      this.mode = SelectionMode.multi,
+      this.itemIndicies,
       required this.onSelectionUpdated,
       this.focusNode});
 
@@ -42,6 +49,9 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
 
   @override
   Widget build(BuildContext context) {
+    assert(widget.mode == SelectionMode.multi && widget.itemIndicies != null,
+        "When using [SelectionMode.multi], the [itemIndicies] property must be provided");
+
     return ItemSelectionMessenger<T>(
       onItemPointerUp: _handleItemPointerUp,
       child: KeyboardListener(
@@ -53,6 +63,10 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
   }
 
   void _handleSelection(T value) {
+    if (widget.mode == SelectionMode.single) {
+      _handleCommonSelection(value);
+    }
+
     if (_isModDown && _isShiftDown) {
       return;
     }
@@ -77,8 +91,8 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
     }
 
     final [int lower, int upper] = [
-      widget.itemIndicies[widget.selectedItems.first] ?? 0,
-      widget.itemIndicies[value] ?? 0
+      widget.itemIndicies![widget.selectedItems.first] ?? 0,
+      widget.itemIndicies![value] ?? 0
     ]..sort();
     final diff = upper - lower;
 
@@ -87,7 +101,7 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
       upper
     ];
 
-    final inverseLookup = Map<int, T>.fromEntries(widget.itemIndicies.entries
+    final inverseLookup = Map<int, T>.fromEntries(widget.itemIndicies!.entries
         .map((entry) => MapEntry(entry.value, entry.key)));
 
     final updatedItems = selectionRange

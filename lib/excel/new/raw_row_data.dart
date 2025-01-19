@@ -25,7 +25,7 @@ class RawRowData {
     this.address = 0,
     this.errors = const {},
   });
-
+  
   RawRowData copyWith({
     int? rowNumber,
     String? fid,

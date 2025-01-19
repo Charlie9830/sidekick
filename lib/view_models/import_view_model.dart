@@ -7,6 +7,7 @@ class ImportViewModel {
   final void Function(ImportSettingsModel newSettings) onSettingsChanged;
   final void Function(String path) onFileSelected;
   final void Function() onImportButtonPressed;
+  final void Function() onImportManagerButtonPressed;
 
   ImportViewModel({
     required this.importFilePath,
@@ -15,5 +16,6 @@ class ImportViewModel {
     required this.onFileSelected,
     required this.onImportButtonPressed,
     required this.sheetNames,
+    required this.onImportManagerButtonPressed,
   });
 }

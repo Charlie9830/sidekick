@@ -3,7 +3,7 @@ enum PatchDataErrorLevel {
   critical,
 }
 
-abstract class PatchDataItemError {
+sealed class PatchDataItemError {
   final PatchDataErrorLevel level;
 
   PatchDataItemError()

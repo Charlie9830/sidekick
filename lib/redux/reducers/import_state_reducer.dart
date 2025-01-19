@@ -10,14 +10,20 @@ ImportState importStateReducer(ImportState state, dynamic action) {
     return ImportState.initial();
   }
 
-  if (action is SetSelectedExcelSheet) {
-    return state.copyWith(selectedSheet: action.value);
-  }
-
   if (action is SetExcelSheetNames) {
     return state.copyWith(
       sheetNames: action.value,
     );
+  }
+
+  if (action is SetRawPatchData) {
+    return state.copyWith(
+      rawPatchData: action.data,
+    );
+  }
+
+  if (action is SetImportExcelDocument) {
+    return state.copyWith(document: action.document);
   }
 
   return state;

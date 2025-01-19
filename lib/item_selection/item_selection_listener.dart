@@ -17,6 +17,7 @@ class ItemSelectionListener<T> extends StatelessWidget {
         '[SelectionController] ancestor could not be found. Ensure a [SelectionController] has been provided as an ancestor widget to [ItemSelectionListener]');
 
     return Listener(
+      behavior: HitTestBehavior.opaque,
       onPointerUp: (e) =>
           ItemSelectionMessenger.of<T>(context)!.onItemPointerUp(e, value),
       child: child,

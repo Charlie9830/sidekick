@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 class NavigationState {
   final String selectedMultiOutlet;
   final Set<String> selectedFixtureIds;
@@ -5,6 +6,7 @@ class NavigationState {
   final Set<String> selectedCableIds;
   final bool openAfterExport;
   final int selectedDiffingTab;
+  final String selectedRawPatchRow;
 
   NavigationState({
     required this.selectedMultiOutlet,
@@ -13,6 +15,7 @@ class NavigationState {
     required this.selectedCableIds,
     required this.openAfterExport,
     required this.selectedDiffingTab,
+    required this.selectedRawPatchRow,
   });
 
   NavigationState.initial()
@@ -21,7 +24,8 @@ class NavigationState {
         selectedCableIds = {},
         showAllFixtureTypes = false,
         openAfterExport = true,
-        selectedDiffingTab = 0;
+        selectedDiffingTab = 0,
+        selectedRawPatchRow = '';
 
   NavigationState copyWith({
     String? selectedMultiOutlet,
@@ -30,6 +34,7 @@ class NavigationState {
     Set<String>? selectedCableIds,
     bool? openAfterExport,
     int? selectedDiffingTab,
+    String? selectedRawPatchRow,
   }) {
     return NavigationState(
       selectedMultiOutlet: selectedMultiOutlet ?? this.selectedMultiOutlet,
@@ -38,6 +43,7 @@ class NavigationState {
       selectedCableIds: selectedCableIds ?? this.selectedCableIds,
       openAfterExport: openAfterExport ?? this.openAfterExport,
       selectedDiffingTab: selectedDiffingTab ?? this.selectedDiffingTab,
+      selectedRawPatchRow: selectedRawPatchRow ?? this.selectedRawPatchRow,
     );
   }
 }
