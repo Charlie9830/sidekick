@@ -7,11 +7,14 @@ class ImportManagerViewModel {
   final String importFilePath;
   final ImportSettingsModel settings;
   final List<String> sheetNames;
+  final List<RawRowViewModel> incomingRowVms;
   final List<RowPairViewModel> rowPairings;
   final void Function() onRefreshButtonPressed;
   final void Function(String selectedItem) onRowSelectionChanged;
   final String selectedRow;
   final List<PatchDataItemError> rowErrors;
+  final int step;
+  final void Function()? onNextButtonPressed;
 
   ImportManagerViewModel({
     required this.importFilePath,
@@ -22,6 +25,19 @@ class ImportManagerViewModel {
     required this.onRowSelectionChanged,
     required this.selectedRow,
     required this.rowErrors,
+    required this.step,
+    required this.onNextButtonPressed,
+    required this.incomingRowVms,
+  });
+}
+
+class RawRowViewModel {
+  final RawRowData row;
+  final String selectionId;
+
+  RawRowViewModel({
+    required this.row,
+    required this.selectionId,
   });
 }
 
@@ -35,15 +51,17 @@ class RowPairViewModel {
     required this.existing,
     required this.selectionId,
   });
+
+  bool get hasBoth => incoming != null && existing != null;
 }
 
 class FixtureViewModel {
-  final FixtureModel fixture;
+  final FixtureModel existingFixture;
   final String locationName;
   final String fixtureTypeName;
 
   FixtureViewModel({
-    required this.fixture,
+    required this.existingFixture,
     required this.locationName,
     required this.fixtureTypeName,
   });

@@ -7,6 +7,7 @@ class NavigationState {
   final bool openAfterExport;
   final int selectedDiffingTab;
   final String selectedRawPatchRow;
+  final int activeImportManagerStep;
 
   NavigationState({
     required this.selectedMultiOutlet,
@@ -16,6 +17,7 @@ class NavigationState {
     required this.openAfterExport,
     required this.selectedDiffingTab,
     required this.selectedRawPatchRow,
+    required this.activeImportManagerStep,
   });
 
   NavigationState.initial()
@@ -25,7 +27,8 @@ class NavigationState {
         showAllFixtureTypes = false,
         openAfterExport = true,
         selectedDiffingTab = 0,
-        selectedRawPatchRow = '';
+        selectedRawPatchRow = '',
+        activeImportManagerStep = 1;
 
   NavigationState copyWith({
     String? selectedMultiOutlet,
@@ -35,6 +38,7 @@ class NavigationState {
     bool? openAfterExport,
     int? selectedDiffingTab,
     String? selectedRawPatchRow,
+    int? activeImportManagerStep,
   }) {
     return NavigationState(
       selectedMultiOutlet: selectedMultiOutlet ?? this.selectedMultiOutlet,
@@ -44,6 +48,8 @@ class NavigationState {
       openAfterExport: openAfterExport ?? this.openAfterExport,
       selectedDiffingTab: selectedDiffingTab ?? this.selectedDiffingTab,
       selectedRawPatchRow: selectedRawPatchRow ?? this.selectedRawPatchRow,
+      activeImportManagerStep:
+          activeImportManagerStep ?? this.activeImportManagerStep,
     );
   }
 }

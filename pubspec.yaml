@@ -33,6 +33,7 @@ dependencies:
   collection: ^1.18.0
   cupertino_icons: ^1.0.2
   desktop_drop: ^0.4.4
+  easy_stepper: ^0.8.5+1
   excel: ^4.0.3
   file_selector: ^1.0.3
   flutter:

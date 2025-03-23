@@ -1,7 +1,6 @@
 import 'package:collection/collection.dart';
+import 'package:easy_stepper/easy_stepper.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:sidekick/full_screen_dialog_header.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
 import 'package:sidekick/screens/file/import_module/cell_geometry.dart';
@@ -34,71 +33,102 @@ class _ImportManagerState extends State<ImportManager> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.all(8),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          FullScreenDialogHeader(
-              title: 'Import Manager',
-              trailing: Row(
-                children: [
-                  Tooltip(
-                    message: widget.vm.importFilePath,
-                    child: Text(
-                      p.basename(widget.vm.importFilePath),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.refresh),
-                    onPressed: widget.vm.onRefreshButtonPressed,
-                  )
-                ],
-              ),
-              onClosed: () => Navigator.of(context).pop()),
-          Expanded(
-              flex: 2,
-              child: ItemSelectionContainer<String>(
-                  focusNode: _selectionFocusNode,
-                  itemIndicies: Map<String, int>.fromEntries(
-                      widget.vm.rowPairings.mapIndexed((index, pairVm) =>
-                          MapEntry(pairVm.selectionId, index))),
-                  selectedItems: {
-                    widget.vm.selectedRow,
-                  },
-                  onSelectionUpdated: _handleSelectionUpdate,
-                  child: _buildFixtureTable(context))),
-          _buildErrorPane(context),
+    return Scaffold(
+      appBar: AppBar(
+        elevation: 1,
+        title: const Text('Import Manager'),
+        actions: [
+          Tooltip(
+            message: widget.vm.importFilePath,
+            child: Text(
+              p.basename(widget.vm.importFilePath),
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: widget.vm.onRefreshButtonPressed,
+          ),
         ],
       ),
+      body: Row(
+        children: [
+          SizedBox(
+              width: 180,
+              child: Card(
+                elevation: 2,
+                child: EasyStepper(
+                  lineStyle: const LineStyle(
+                    lineType: LineType.normal,
+                  ),
+                  direction: Axis.vertical,
+                  activeStep: widget.vm.step,
+                  enableStepTapping: false,
+                  showLoadingAnimation: false,
+                  defaultStepBorderType: BorderType.normal,
+                  stepRadius: 32,
+                  steps: const [
+                    EasyStep(icon: Icon(Icons.dry_cleaning), title: 'Validate'),
+                    EasyStep(
+                      icon: Icon(Icons.merge),
+                      title: 'Merge',
+                    )
+                  ],
+                ),
+              )),
+          Expanded(
+              child: Column(
+            children: [
+              Expanded(
+                flex: 2,
+                child: ItemSelectionContainer<String>(
+                    focusNode: _selectionFocusNode,
+                    itemIndicies: Map<String, int>.fromEntries(
+                        widget.vm.rowPairings.mapIndexed((index, pairVm) =>
+                            MapEntry(pairVm.selectionId, index))),
+                    selectedItems: {
+                      widget.vm.selectedRow,
+                    },
+                    onSelectionUpdated: _handleSelectionUpdate,
+                    child: _buildIncomingFixtureTable(context)),
+              ),
+              if (widget.vm.rowErrors.isNotEmpty)
+                Expanded(flex: 1, child: _buildErrorPane(context)),
+            ],
+          )),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+          onPressed: widget.vm.onNextButtonPressed,
+          label: const Text('Next'),
+          icon: const Icon(Icons.arrow_circle_right)),
     );
   }
 
   Widget _buildErrorPane(BuildContext context) {
-    return Expanded(
-        flex: 1,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Card(
-              elevation: 10,
-              child: Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text('Errors and Warnings'),
-                ),
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Card(
+          elevation: 10,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.zero)),
+          child: Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Errors and Warnings'),
             ),
-            Expanded(
-                child: ListView.builder(
-              itemCount: widget.vm.rowErrors.length,
-              itemBuilder: (context, index) =>
-                  RowErrorItem(value: widget.vm.rowErrors[index]),
-            )),
-          ],
-        ));
+          ),
+        ),
+        Expanded(
+            child: ListView.builder(
+          itemCount: widget.vm.rowErrors.length,
+          itemBuilder: (context, index) =>
+              RowErrorItem(value: widget.vm.rowErrors[index]),
+        )),
+      ],
+    );
   }
 
   void _handleSelectionUpdate(UpdateType type, Set<String> items) {
@@ -107,20 +137,49 @@ class _ImportManagerState extends State<ImportManager> {
     }
   }
 
-  Widget _buildFixtureTable(BuildContext context) {
+  Widget _buildIncomingFixtureTable(BuildContext context) {
     return Column(
       children: [
-        _buildFixtureTableHeaders(context),
+        _buildIncomingFixtureTableHeaders(context),
         Expanded(
             child: ListView.builder(
                 padding: const EdgeInsets.only(left: 12),
                 itemExtent: CellGeometry.itemExtent,
-                itemCount: widget.vm.rowPairings.length,
+                itemCount: widget.vm.incomingRowVms.length,
                 itemBuilder: (context, index) {
-                  return _buildFixtureTableRow(
-                      context, widget.vm.rowPairings[index]);
+                  return _buildIncomignFixtureTableRow(
+                      context, widget.vm.incomingRowVms[index]);
                 }))
       ],
+    );
+  }
+
+  Widget _buildIncomignFixtureTableRow(
+      BuildContext context, RawRowViewModel rowVm) {
+    return ItemSelectionListener<String>(
+      value: rowVm.selectionId,
+      child: SizedBox(
+        height: CellGeometry.itemExtent,
+        child: Container(
+          color: widget.vm.selectedRow == rowVm.selectionId
+              ? Theme.of(context).focusColor
+              : null,
+          child: Row(
+            children: [
+              // Incoming Data.
+              Expanded(
+                  child: RowSide(
+                hasErrors: rowVm.row.errors.isNotEmpty,
+                fid: rowVm.row.fid,
+                fixtureType: rowVm.row.fixtureType,
+                location: rowVm.row.location,
+                address: rowVm.row.address,
+                universe: rowVm.row.universe,
+              )),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -148,22 +207,46 @@ class _ImportManagerState extends State<ImportManager> {
                           universe: pairVm.incoming!.universe,
                         )),
 
-              // Match Column
-              SizedBox(width: CellGeometry.matchWidth),
+              // // Match Column
+              // const SizedBox(width: CellGeometry.matchWidth),
 
-              // Existing Data.
-              Expanded(
-                child: pairVm.existing == null
-                    ? const NoRowSide()
-                    : RowSide(
-                        hasErrors: false,
-                        fid: pairVm.existing!.fixture.fid.toString(),
-                        fixtureType: pairVm.existing!.fixtureTypeName,
-                        location: pairVm.existing!.locationName,
-                        universe: pairVm.existing!.fixture.dmxAddress.universe,
-                        address: pairVm.existing!.fixture.dmxAddress.address,
-                      ),
-              )
+              // // Existing Data.
+              // Expanded(
+              //   child: pairVm.existing == null
+              //       ? const NoRowSide()
+              //       : RowSide(
+              //           hasErrors: false,
+              //           fid: pairVm.existing!.existingFixture.fid.toString(),
+              //           fixtureType: pairVm.existing!.fixtureTypeName,
+              //           location: pairVm.existing!.locationName,
+              //           universe: pairVm
+              //               .existing!.existingFixture.dmxAddress.universe,
+              //           address:
+              //               pairVm.existing!.existingFixture.dmxAddress.address,
+              //           fidChanged: pairVm.hasBoth
+              //               ? pairVm.incoming!.fid.trim() !=
+              //                   pairVm.existing!.existingFixture.fid.toString()
+              //               : false,
+              //           fixtureTypeChanged: pairVm.hasBoth
+              //               ? pairVm.incoming!.fixtureType !=
+              //                   pairVm.existing!.fixtureTypeName
+              //               : false,
+              //           locationChanged: pairVm.hasBoth
+              //               ? pairVm.incoming!.location !=
+              //                   pairVm.existing!.locationName
+              //               : false,
+              //           universeChanged: pairVm.hasBoth
+              //               ? pairVm.incoming!.universe !=
+              //                   pairVm.existing!.existingFixture.dmxAddress
+              //                       .universe
+              //               : false,
+              //           addressChanged: pairVm.hasBoth
+              //               ? pairVm.incoming!.address !=
+              //                   pairVm.existing!.existingFixture.dmxAddress
+              //                       .address
+              //               : false,
+              //         ),
+              // )
             ],
           ),
         ),
@@ -171,20 +254,13 @@ class _ImportManagerState extends State<ImportManager> {
     );
   }
 
-  Widget _buildFixtureTableHeaders(BuildContext context) {
-    return SizedBox(
+  Widget _buildIncomingFixtureTableHeaders(BuildContext context) {
+    return const SizedBox(
         height: 56,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            const Expanded(child: TableHeader()),
-            SizedBox(
-                width: CellGeometry.matchWidth,
-                child: TableHeaderCard(
-                    child: Center(
-                        child: Text('Match',
-                            style: Theme.of(context).textTheme.labelLarge)))),
-            const Expanded(child: TableHeader()),
+            Expanded(child: TableHeader()),
           ],
         ));
   }

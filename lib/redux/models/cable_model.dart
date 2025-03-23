@@ -128,7 +128,7 @@ class CableModel extends ModelCollectionMember with DiffComparable {
   Map<DiffPropertyName, Object> getDiffValues() => {
         DiffPropertyName.length: length,
         DiffPropertyName.notes: notes,
-        DiffPropertyName.CableType: type,
+        DiffPropertyName.cableType: type,
         DiffPropertyName.isSpare: isSpare,
       };
 }

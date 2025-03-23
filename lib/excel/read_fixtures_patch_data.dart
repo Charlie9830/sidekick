@@ -193,6 +193,8 @@ Future<FixturesDataReadResult> readFixturesPatchData({
   final rowIndex = data.rowIndex;
 
   if (cell == null) {
+    return (0, null);
+
     return (0, 'No Fixture Id data at row $rowIndex');
   }
 
@@ -200,6 +202,9 @@ Future<FixturesDataReadResult> readFixturesPatchData({
     final int? fid = int.tryParse(cell.value.text?.trim() ?? '');
 
     if (fid == null) {
+      return (0, null);
+
+      
       return (0, "Invalid Fixture ID data at row $rowIndex");
     }
 

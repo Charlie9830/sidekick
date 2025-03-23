@@ -16,6 +16,12 @@ import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
 
+class SetActiveImportManagerStep {
+  final int value;
+
+  SetActiveImportManagerStep(this.value);
+}
+
 class SetSelectedRawPatchRow {
   final String value;
 

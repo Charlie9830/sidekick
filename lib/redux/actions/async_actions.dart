@@ -1444,7 +1444,7 @@ ThunkAction<AppState> updateLocationMultiDelimiter(
     }
 
     final updatedLocation =
-        existingLocation.copyWith(delimiter: newValue.trim());
+        existingLocation.copyWith(delimiter: newValue);
 
     store.dispatch(SetLocations(
         Map<String, LocationModel>.from(store.state.fixtureState.locations)

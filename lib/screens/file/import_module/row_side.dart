@@ -8,6 +8,11 @@ class RowSide extends StatelessWidget {
   final String location;
   final int universe;
   final int address;
+  final bool fidChanged;
+  final bool fixtureTypeChanged;
+  final bool locationChanged;
+  final bool universeChanged;
+  final bool addressChanged;
 
   const RowSide({
     super.key,
@@ -17,6 +22,11 @@ class RowSide extends StatelessWidget {
     required this.location,
     required this.universe,
     required this.address,
+    this.fidChanged = false,
+    this.addressChanged = false,
+    this.fixtureTypeChanged = false,
+    this.locationChanged = false,
+    this.universeChanged = false,
   });
 
   @override
@@ -30,7 +40,8 @@ class RowSide extends StatelessWidget {
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(fid),
+                      Text(fid,
+                          style: _getPropertyTextStyle(context, fidChanged)),
                       if (hasErrors)
                         const Row(
                           mainAxisAlignment: MainAxisAlignment.end,
@@ -46,7 +57,9 @@ class RowSide extends StatelessWidget {
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(fixtureType),
+                      Text(fixtureType,
+                          style: _getPropertyTextStyle(
+                              context, fixtureTypeChanged)),
                       const VerticalDivider(),
                     ])),
             SizedBox(
@@ -54,7 +67,9 @@ class RowSide extends StatelessWidget {
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(location),
+                      Text(location,
+                          style:
+                              _getPropertyTextStyle(context, locationChanged)),
                       const VerticalDivider(),
                     ])),
             SizedBox(
@@ -62,7 +77,9 @@ class RowSide extends StatelessWidget {
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(universe.toString()),
+                      Text(universe.toString(),
+                          style:
+                              _getPropertyTextStyle(context, universeChanged)),
                       const VerticalDivider(),
                     ])),
             SizedBox(
@@ -70,12 +87,22 @@ class RowSide extends StatelessWidget {
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(address.toString()),
+                      Text(address.toString(),
+                          style:
+                              _getPropertyTextStyle(context, addressChanged)),
                     ])),
           ],
         ),
       ],
     );
+  }
+
+  TextStyle _getPropertyTextStyle(
+      BuildContext context, bool hasPropertyChanged) {
+    return Theme.of(context)
+        .textTheme
+        .bodySmall!
+        .copyWith(color: hasPropertyChanged ? Colors.orangeAccent : null);
   }
 }
 

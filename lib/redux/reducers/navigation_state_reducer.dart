@@ -10,6 +10,10 @@ NavigationState navStateReducer(NavigationState state, dynamic a) {
     return state.copyWith(selectedRawPatchRow: a.value);
   }
 
+  if (a is SetActiveImportManagerStep) {
+    return state.copyWith(activeImportManagerStep: a.value);
+  }
+
   if (a is NewProject || a is OpenProject) {
     return NavigationState.initial();
   }
