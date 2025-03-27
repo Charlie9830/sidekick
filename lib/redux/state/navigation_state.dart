@@ -1,4 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:sidekick/enums.dart';
+
 class NavigationState {
   final String selectedMultiOutlet;
   final Set<String> selectedFixtureIds;
@@ -8,6 +10,8 @@ class NavigationState {
   final int selectedDiffingTab;
   final String selectedRawPatchRow;
   final int activeImportManagerStep;
+  final Set<String> selectedLoomOutlets;
+  final LoomsDraggingState loomsDraggingState;
 
   NavigationState({
     required this.selectedMultiOutlet,
@@ -18,6 +22,8 @@ class NavigationState {
     required this.selectedDiffingTab,
     required this.selectedRawPatchRow,
     required this.activeImportManagerStep,
+    required this.selectedLoomOutlets,
+    required this.loomsDraggingState,
   });
 
   NavigationState.initial()
@@ -28,7 +34,9 @@ class NavigationState {
         openAfterExport = true,
         selectedDiffingTab = 0,
         selectedRawPatchRow = '',
-        activeImportManagerStep = 1;
+        activeImportManagerStep = 1,
+        selectedLoomOutlets = {},
+        loomsDraggingState = LoomsDraggingState.idle;
 
   NavigationState copyWith({
     String? selectedMultiOutlet,
@@ -39,6 +47,8 @@ class NavigationState {
     int? selectedDiffingTab,
     String? selectedRawPatchRow,
     int? activeImportManagerStep,
+    Set<String>? selectedLoomOutlets,
+    LoomsDraggingState? loomsDraggingState,
   }) {
     return NavigationState(
       selectedMultiOutlet: selectedMultiOutlet ?? this.selectedMultiOutlet,
@@ -50,6 +60,8 @@ class NavigationState {
       selectedRawPatchRow: selectedRawPatchRow ?? this.selectedRawPatchRow,
       activeImportManagerStep:
           activeImportManagerStep ?? this.activeImportManagerStep,
+      selectedLoomOutlets: selectedLoomOutlets ?? this.selectedLoomOutlets,
+      loomsDraggingState: loomsDraggingState ?? this.loomsDraggingState,
     );
   }
 }

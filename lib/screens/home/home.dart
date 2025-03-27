@@ -7,6 +7,7 @@ import 'package:sidekick/containers/fixture_table_container.dart';
 import 'package:sidekick/containers/fixture_types_container.dart';
 import 'package:sidekick/containers/locations_container.dart';
 import 'package:sidekick/containers/looms_container.dart';
+import 'package:sidekick/containers/looms_v2_container.dart';
 import 'package:sidekick/containers/power_patch_container.dart';
 import 'package:sidekick/global_keys.dart';
 import 'package:sidekick/view_models/home_view_model.dart';
@@ -33,7 +34,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return DefaultTabController(
       animationDuration: Duration.zero,
-      length: 9,
+      length: 10,
       initialIndex: 0,
       child: Scaffold(
         key: homeScaffoldKey,
@@ -79,6 +80,10 @@ class _HomeState extends State<Home> {
                 Tab(
                   icon: Icon(Icons.difference),
                   child: Text('Diff'),
+                ),
+                Tab(
+                  icon: Icon(Icons.cable),
+                  child: Text('Looms v2'),
                 )
               ]),
         ),
@@ -94,6 +99,7 @@ class _HomeState extends State<Home> {
             FixtureTypesContainer(),
             ExportContainer(),
             DiffingContainer(),
+            LoomsV2Container(),
           ],
         ),
         floatingActionButton: Column(

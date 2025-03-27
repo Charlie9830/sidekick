@@ -10,6 +10,17 @@ abstract class LoomItemViewModel with DiffComparable {
   LoomItemViewModel(this.uid);
 }
 
+class DividerViewModel extends LoomItemViewModel {
+  final int index;
+
+  DividerViewModel({required this.index}) : super(index.toString());
+
+  @override
+  Map<DiffPropertyName, Object> getDiffValues() {
+    return {};
+  }
+}
+
 class CableViewModel extends LoomItemViewModel {
   final CableModel cable;
   final String locationId;

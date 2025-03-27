@@ -39,7 +39,8 @@ class _LoomRowItemState extends State<LoomRowItem> {
       children: [
         // Header
         HoverRegion(
-          onHoverChanged: (hovering) => setState(() => _isHovering = hovering),
+          onHoverChanged: (hovering, _) =>
+              setState(() => _isHovering = hovering),
           child: Container(
               padding: const EdgeInsets.only(left: 8, right: 8),
               decoration: BoxDecoration(

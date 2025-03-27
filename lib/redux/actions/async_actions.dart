@@ -62,6 +62,49 @@ import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+ThunkAction<AppState> createNewCustomLoomV2(
+    BuildContext context, List<String> outletIds) {
+  return (Store<AppState> store) async {
+    final newLoomId = getUid();
+
+    // Create corresponding Cables for Each outlet.
+    final dataOutlets = outletIds
+        .map((id) => store.state.fixtureState.dataPatches[id])
+        .nonNulls;
+    final powerMultiOutlets = outletIds
+        .map((id) => store.state.fixtureState.powerMultiOutlets[id])
+        .nonNulls;
+
+    final newCables = [
+      ...powerMultiOutlets.map((outlet) => CableModel(
+            uid: getUid(),
+            outletId: outlet.uid,
+            type: store.state.fixtureState.defaultPowerMulti,
+            locationId: outlet.locationId,
+            loomId: newLoomId,
+          )),
+      ...dataOutlets.map((outlet) => CableModel(
+          uid: getUid(),
+          outletId: outlet.uid,
+          type: CableType.dmx,
+          locationId: outlet.locationId,
+          loomId: newLoomId)),
+    ];
+
+    final newLoom = LoomModel(
+      uid: newLoomId,
+      loomClass: LoomClass.feeder,
+      type: LoomTypeModel(length: 0, type: LoomType.custom),
+    );
+
+    store.dispatch(SetCablesAndLooms(
+        Map<String, CableModel>.from(store.state.fixtureState.cables)
+          ..addAll(convertToModelMap(newCables)),
+        Map<String, LoomModel>.from(store.state.fixtureState.looms)
+          ..addAll(convertToModelMap([newLoom]))));
+  };
+}
+
 ThunkAction<AppState> openImportManager(BuildContext context) {
   return (Store<AppState> store) async {
     store.dispatch(readInitialRawPatchData());
@@ -1443,8 +1486,7 @@ ThunkAction<AppState> updateLocationMultiDelimiter(
       return;
     }
 
-    final updatedLocation =
-        existingLocation.copyWith(delimiter: newValue);
+    final updatedLocation = existingLocation.copyWith(delimiter: newValue);
 
     store.dispatch(SetLocations(
         Map<String, LocationModel>.from(store.state.fixtureState.locations)

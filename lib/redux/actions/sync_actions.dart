@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:excel/excel.dart';
 import 'package:sidekick/diffing/union_proxy.dart';
+import 'package:sidekick/enums.dart';
 import 'package:sidekick/excel/new/raw_row_data.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
@@ -15,6 +16,18 @@ import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
+
+class SetLoomsDraggingState {
+  final LoomsDraggingState value;
+
+  SetLoomsDraggingState(this.value);
+}
+
+class SetSelectedLoomOutlets {
+  final Set<String> value;
+
+  SetSelectedLoomOutlets(this.value);
+}
 
 class SetActiveImportManagerStep {
   final int value;
