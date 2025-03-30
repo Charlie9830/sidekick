@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:sidekick/builders/build_cable_row_item.dart';
 import 'package:sidekick/enums.dart';
+import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
 import 'package:sidekick/screens/looms/loom_row_item.dart';
@@ -86,10 +87,8 @@ class _LoomsV2State extends State<LoomsV2> {
               ),
               Expanded(
                   child: ItemSelectionContainer<String>(
-                selectedItems: {},
-            
-                onSelectionUpdated: (type, value) {
-                },
+                selectedItems: widget.vm.selectedCableIds,
+                onSelectionUpdated: _handleCableSelectionUpdate,
                 itemIndicies: _buildCableIndices(),
                 child: widget.vm.loomVms.isNotEmpty
                     ? ListView.builder(
@@ -106,6 +105,16 @@ class _LoomsV2State extends State<LoomsV2> {
         )
       ],
     );
+  }
+
+  void _handleCableSelectionUpdate(UpdateType type, Set<String> ids) {
+    final selectedIds = switch (type) {
+      UpdateType.addIfAbsentElseRemove => widget.vm.selectedCableIds.toSet()
+        ..addAllIfAbsentElseRemove(ids.cast<String>()),
+      UpdateType.overwrite => ids.cast<String>(),
+    };
+
+    widget.vm.onSelectCables(selectedIds);
   }
 
   Map<String, int> _buildCableIndices() {
@@ -141,7 +150,7 @@ class _LoomsV2State extends State<LoomsV2> {
                       child: buildCableRowItem(
                         vm: cableVm,
                         index: index,
-                        selectedCableIds: {},
+                        selectedCableIds: widget.vm.selectedCableIds,
                         rowVms: widget.vm.loomVms,
                         parentLoomType: viewModel.loom.type.type,
                         requestSelectionFocusCallback: _requestSelectionFocus,
@@ -154,7 +163,7 @@ class _LoomsV2State extends State<LoomsV2> {
           child: buildCableRowItem(
             vm: viewModel,
             index: index,
-            selectedCableIds: {},
+            selectedCableIds: widget.vm.selectedCableIds,
             rowVms: widget.vm.loomVms,
             requestSelectionFocusCallback: _requestSelectionFocus,
           )),

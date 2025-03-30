@@ -44,6 +44,8 @@ class LoomsV2Container extends StatelessWidget {
               .where((outlet) =>
                   store.state.navstate.selectedLoomOutlets.contains(outlet.uid))
               .toList(),
+          selectedCableIds: store.state.navstate.selectedCableIds,
+          onSelectCables: (ids) => store.dispatch(setSelectedCableIds(ids)),
           onSelectedLoomOutletsChanged: (updateType, values) {
             switch (updateType) {
               case UpdateType.overwrite:

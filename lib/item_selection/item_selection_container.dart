@@ -44,7 +44,14 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
     _keyboardFocusNode = widget.focusNode ?? FocusNode();
     _keyboardFocusNode.requestFocus();
 
+    ServicesBinding.instance.keyboard.addHandler(_servicesEventHandler);
+
     super.initState();
+  }
+
+  bool _servicesEventHandler(event) {
+    _dispatchKeyEvent(event);
+    return false;
   }
 
   @override
@@ -171,5 +178,11 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
       e.logicalKey == LogicalKeyboardKey.shiftLeft ||
           e.logicalKey == LogicalKeyboardKey.shiftRight,
     );
+  }
+
+  @override
+  void dispose() {
+    ServicesBinding.instance.keyboard.removeHandler(_servicesEventHandler);
+    super.dispose();
   }
 }

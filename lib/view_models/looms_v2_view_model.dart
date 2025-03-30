@@ -16,6 +16,8 @@ class LoomsV2ViewModel {
   final void Function(List<String> outletIds) onCreateNewCustomLoom;
   final void Function(List<String> outletIds) onCreateNewPermanentLoom;
   final List<LoomItemViewModel> loomVms;
+  final Set<String> selectedCableIds;
+  final void Function(Set<String> ids) onSelectCables;
 
   LoomsV2ViewModel({
     required this.outlets,
@@ -27,6 +29,8 @@ class LoomsV2ViewModel {
     required this.onCreateNewCustomLoom,
     required this.onCreateNewPermanentLoom,
     required this.loomVms,
+    required this.selectedCableIds,
+    required this.onSelectCables,
   });
 }
 
