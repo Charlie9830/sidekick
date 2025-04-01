@@ -1,17 +1,10 @@
-import 'package:flutter/foundation.dart';
-import 'package:sidekick/loom_and_cable_cleanup/cable_cleanup.dart';
-import 'package:sidekick/loom_and_cable_cleanup/cleanup_cables_and_looms.dart';
 import 'package:sidekick/model_collection/convert_to_model_map.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
-import 'package:sidekick/redux/models/data_multi_model.dart';
-import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
-import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
-import 'package:sidekick/utils/get_uid.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   if (a is SetDefaultPowerMulti) {
@@ -42,15 +35,8 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is UpdateCablesAndDataMultis) {
-    final cleanCables = performCableCleanup(
-        cables: a.cables,
-        powerMultis: state.powerMultiOutlets,
-        dataMultis: a.dataMultis,
-        dataPatches: state.dataPatches,
-        defaultPowerMultiType: state.defaultPowerMulti);
-
     return state.copyWith(
-      cables: cleanCables,
+      cables: a.cables,
       dataMultis: a.dataMultis,
     );
   }
@@ -60,15 +46,8 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetCablesAndLooms) {
-    final cleanCables = performCableCleanup(
-        cables: a.cables,
-        powerMultis: state.powerMultiOutlets,
-        dataMultis: state.dataMultis,
-        dataPatches: state.dataPatches,
-        defaultPowerMultiType: state.defaultPowerMulti);
-
     return state.copyWith(
-      cables: cleanCables,
+      cables: a.cables,
       looms: a.looms,
     );
   }
@@ -164,36 +143,14 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetDataMultis) {
-    final (updatedCables, updatedLooms) = assertCableAndLoomsExistence(
-      powerMultiOutlets: state.powerMultiOutlets,
-      dataMultis: a.multis,
-      dataPatches: state.dataPatches,
-      existingCables: state.cables,
-      existingLooms: state.looms,
-      defaultPowerMultiType: state.defaultPowerMulti,
-    );
-
     return state.copyWith(
       dataMultis: a.multis,
-      cables: updatedCables,
-      looms: updatedLooms,
     );
   }
 
   if (a is SetDataPatches) {
-    final (updatedCables, updatedLooms) = assertCableAndLoomsExistence(
-      powerMultiOutlets: state.powerMultiOutlets,
-      dataMultis: state.dataMultis,
-      dataPatches: a.patches,
-      existingCables: state.cables,
-      existingLooms: state.looms,
-      defaultPowerMultiType: state.defaultPowerMulti,
-    );
-
     return state.copyWith(
       dataPatches: a.patches,
-      cables: updatedCables,
-      looms: updatedLooms,
     );
   }
 
@@ -216,19 +173,8 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetPowerMultiOutlets) {
-    final (updatedCables, updatedLooms) = assertCableAndLoomsExistence(
-      powerMultiOutlets: a.multiOutlets,
-      dataMultis: state.dataMultis,
-      dataPatches: state.dataPatches,
-      existingCables: state.cables,
-      existingLooms: state.looms,
-      defaultPowerMultiType: state.defaultPowerMulti,
-    );
-
     return state.copyWith(
       powerMultiOutlets: a.multiOutlets,
-      cables: updatedCables,
-      looms: updatedLooms,
     );
   }
 
@@ -297,66 +243,4 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
       ),
     cables: updatedCables,
   );
-}
-
-(Map<String, CableModel> cables, Map<String, LoomModel> looms)
-    assertCableAndLoomsExistence({
-  required Map<String, PowerMultiOutletModel> powerMultiOutlets,
-  required Map<String, DataMultiModel> dataMultis,
-  required Map<String, DataPatchModel> dataPatches,
-  required Map<String, CableModel> existingCables,
-  required Map<String, LoomModel> existingLooms,
-  required CableType defaultPowerMultiType,
-}) {
-  final headCablesByOutletId = Map<String, CableModel>.fromEntries(
-      existingCables.values
-          .where((cable) => cable.upstreamId.isEmpty)
-          .map((cable) => MapEntry(cable.outletId, cable)));
-
-  final updatedPowerCables = powerMultiOutlets.values
-      .map((outlet) => headCablesByOutletId.containsKey(outlet.uid)
-          ? headCablesByOutletId[outlet.uid]!
-          : CableModel(
-              uid: getUid(),
-              type: defaultPowerMultiType,
-              outletId: outlet.uid,
-              locationId: outlet.locationId,
-            ));
-
-  final updatedDataMultis = dataMultis.values
-      .map((outlet) => headCablesByOutletId.containsKey(outlet.uid)
-          ? headCablesByOutletId[outlet.uid]!
-          : CableModel(
-              uid: getUid(),
-              type: CableType.sneak,
-              outletId: outlet.uid,
-              locationId: outlet.locationId,
-            ));
-
-  final updatedDataPatches = dataPatches.values
-      .map((outlet) => headCablesByOutletId.containsKey(outlet.uid)
-          ? headCablesByOutletId[outlet.uid]!
-          : CableModel(
-              uid: getUid(),
-              type: CableType.dmx,
-              outletId: outlet.uid,
-              locationId: outlet.locationId,
-            ));
-
-  final dirtyCables = convertToModelMap([
-    ...existingCables.values,
-    ...updatedPowerCables,
-    ...updatedDataMultis,
-    ...updatedDataPatches,
-  ]);
-  final dirtyLooms = existingLooms;
-
-  return cleanupCablesAndLooms(
-      dirtyCables: performCableCleanup(
-          cables: dirtyCables,
-          powerMultis: powerMultiOutlets,
-          dataMultis: dataMultis,
-          dataPatches: dataPatches,
-          defaultPowerMultiType: defaultPowerMultiType),
-      dirtyLooms: dirtyLooms);
 }

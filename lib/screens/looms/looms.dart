@@ -4,7 +4,6 @@ import 'package:sidekick/builders/build_cable_row_item.dart';
 import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
-import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/screens/looms/loom_row_item.dart';
 import 'package:sidekick/screens/looms/looms_toolbar.dart';
 import 'package:sidekick/view_models/loom_item_view_model.dart';

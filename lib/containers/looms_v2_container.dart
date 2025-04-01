@@ -34,6 +34,7 @@ class LoomsV2Container extends StatelessWidget {
       );
     }, converter: (Store<AppState> store) {
       final outlets = _selectOutlets(store);
+
       return LoomsV2ViewModel(
           outlets: outlets,
           loomsDraggingState: store.state.navstate.loomsDraggingState,
@@ -103,9 +104,9 @@ class LoomsV2Container extends StatelessWidget {
 
   Set<String> _selectAssignedOutletIds(Store<AppState> store) {
     return store.state.fixtureState.cables.values
-        .where((cable) => cable.outletId.isNotEmpty)
-        .map((cable) => cable.uid)
-        .toSet();
+        .map((cable) => cable.outletId)
+        .toSet()
+      ..remove('');
   }
 }
 

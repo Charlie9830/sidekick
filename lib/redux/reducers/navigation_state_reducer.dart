@@ -3,7 +3,10 @@ import 'package:sidekick/redux/state/navigation_state.dart';
 
 NavigationState navStateReducer(NavigationState state, dynamic a) {
   if (a is SetSelectedLoomOutlets) {
-    return state.copyWith(selectedLoomOutlets: a.value);
+    return state.copyWith(
+      selectedLoomOutlets: a.value,
+      selectedCableIds: const {},
+    );
   }
 
   if (a is SetLoomsDraggingState) {
@@ -31,7 +34,8 @@ NavigationState navStateReducer(NavigationState state, dynamic a) {
   }
 
   if (a is SetSelectedCableIds) {
-    return state.copyWith(selectedCableIds: a.ids);
+    return state
+        .copyWith(selectedCableIds: a.ids, selectedLoomOutlets: const {});
   }
 
   if (a is SetSelectedFixtureIds) {

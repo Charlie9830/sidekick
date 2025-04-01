@@ -1416,41 +1416,6 @@ String getTestDataPath() {
   return testDataPath;
 }
 
-ThunkAction<AppState> generateCables() {
-  return (Store<AppState> store) async {
-    final powerCables = store.state.fixtureState.powerMultiOutlets.values
-        .map((outlet) => CableModel(
-              uid: getUid(),
-              type: store.state.fixtureState.defaultPowerMulti,
-              locationId: outlet.locationId,
-              outletId: outlet.uid,
-            ));
-
-    final singleDataCables =
-        store.state.fixtureState.dataPatches.values.map((patch) => CableModel(
-              type: CableType.dmx,
-              uid: getUid(),
-              locationId: patch.locationId,
-              outletId: patch.uid,
-            ));
-
-    final sortedByLocation = store.state.fixtureState.locations.keys
-        .map((locationId) => [
-              ...powerCables.where((cable) => cable.locationId == locationId),
-              ...singleDataCables
-                  .where((cable) => cable.locationId == locationId),
-            ])
-        .flattened
-        .toList();
-
-    store.dispatch(
-      SetCables(
-        convertToModelMap(sortedByLocation),
-      ),
-    );
-  };
-}
-
 ThunkAction<AppState> updateLocationMultiPrefix(
     String locationId, String newValue) {
   return (Store<AppState> store) async {

@@ -10,13 +10,13 @@ class OutletListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      enabled: !vm.assigned,
-      selected: isSelected,
-      title: Text(_getTitle(vm)),
-      leading: _getLeading(vm),
-      trailing: Text(_getTrailing(vm)),
-      selectedTileColor: Theme.of(context).focusColor.withAlpha(60),
-    );
+        enabled: !vm.assigned,
+        selected: isSelected,
+        title: Text(_getTitle(vm)),
+        leading: _getLeading(vm),
+        trailing: Text(_getTrailing(vm)),
+        selectedTileColor: Theme.of(context).focusColor.withAlpha(60),
+        selectedColor: Theme.of(context).textTheme.labelLarge!.color);
   }
 
   String _getTrailing(OutletViewModel vm) {

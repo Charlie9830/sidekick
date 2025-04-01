@@ -63,6 +63,7 @@ class _LoomsV2State extends State<LoomsV2> {
                             vm: outletVm);
 
                         return Draggable<DragData>(
+                          maxSimultaneousDrags: outletVm.assigned ? 0 : null,
                           data: OutletDragData(outletVms: {
                             outletVm,
                             ...widget.vm.selectedOutletVms,
@@ -79,6 +80,7 @@ class _LoomsV2State extends State<LoomsV2> {
                           ),
                           child: ItemSelectionListener(
                             value: outletVm.uid,
+                            enabled: !outletVm.assigned,
                             child: listTile,
                           ),
                         );

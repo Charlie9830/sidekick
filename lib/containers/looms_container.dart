@@ -29,7 +29,7 @@ class LoomsContainer extends StatelessWidget {
       return LoomsViewModel(
           selectedCableIds: store.state.navstate.selectedCableIds,
           selectCables: (ids) => store.dispatch(setSelectedCableIds(ids)),
-          onGenerateLoomsButtonPressed: () => store.dispatch(generateCables()),
+          onGenerateLoomsButtonPressed: () => {},
           rowVms: selectCableAndLoomRows(
             context: context,
             fixtureState: store.state.fixtureState,
