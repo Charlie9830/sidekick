@@ -1,6 +1,7 @@
 import 'package:sidekick/data_selectors/select_show_cable_top_border.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/screens/looms/cable_row_item.dart';
+import 'package:sidekick/view_models/cable_view_model.dart';
 import 'package:sidekick/view_models/loom_item_view_model.dart';
 
 CableRowItem buildCableRowItem({

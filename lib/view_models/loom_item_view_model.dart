@@ -3,6 +3,7 @@ import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
+import 'package:sidekick/view_models/cable_view_model.dart';
 
 abstract class LoomItemViewModel with DiffComparable {
   final String uid;
@@ -21,36 +22,6 @@ class DividerViewModel extends LoomItemViewModel {
   }
 }
 
-class CableViewModel extends LoomItemViewModel {
-  final CableModel cable;
-  final String locationId;
-  final String labelColor;
-  final bool isExtension;
-  final int universe;
-  final String label;
-  final void Function(String newValue) onLengthChanged;
-
-  CableViewModel({
-    required this.cable,
-    required this.locationId,
-    required this.labelColor,
-    required this.isExtension,
-    required this.universe,
-    required this.label,
-    required this.onLengthChanged,
-  }) : super(cable.uid);
-
-  @override
-  Map<DiffPropertyName, Object> getDiffValues() {
-    return Map<DiffPropertyName, Object>.from(cable.getDiffValues())
-      ..addAll({
-        DiffPropertyName.isExtension: isExtension,
-        DiffPropertyName.locationId: locationId,
-        DiffPropertyName.label: label,
-      });
-  }
-}
-
 class LoomViewModel extends LoomItemViewModel {
   final LoomModel loom;
   final bool hasVariedLengthChildren;
@@ -64,6 +35,7 @@ class LoomViewModel extends LoomItemViewModel {
   final bool isValidComposition;
   final void Function() addSpareCablesToLoom;
   final void Function() onRepairCompositionButtonPressed;
+  final void Function(String uid, Set<String> ids) addOutletsToLoom;
 
   LoomViewModel({
     required this.loom,
@@ -78,6 +50,7 @@ class LoomViewModel extends LoomItemViewModel {
     required this.name,
     required this.addSpareCablesToLoom,
     required this.onRepairCompositionButtonPressed,
+    required this.addOutletsToLoom,
   }) : super(loom.uid);
 
   @override
@@ -87,19 +60,5 @@ class LoomViewModel extends LoomItemViewModel {
         DiffPropertyName.name: name,
         DiffPropertyName.hasVariedLengthChildren: hasVariedLengthChildren,
       });
-  }
-}
-
-class LocationDividerViewModel extends LoomItemViewModel {
-  final LocationModel location;
-
-  LocationDividerViewModel({
-    required this.location,
-  }) : super(location.uid);
-
-  @override
-  Map<DiffPropertyName, Object> getDiffValues() {
-    return Map<DiffPropertyName, Object>.from(location.getDiffValues())
-      ..addAll({});
   }
 }

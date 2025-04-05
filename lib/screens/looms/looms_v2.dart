@@ -5,15 +5,14 @@ import 'package:sidekick/enums.dart';
 import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
+import 'package:sidekick/screens/looms/drag_data.dart';
+import 'package:sidekick/screens/looms/loom_item_divider.dart';
 import 'package:sidekick/screens/looms/loom_row_item.dart';
-import 'package:sidekick/screens/looms_v2/drag_data.dart';
-import 'package:sidekick/screens/looms_v2/loom_item_divider.dart';
-import 'package:sidekick/screens/looms_v2/new_loom_drop_target_overlay.dart';
-import 'package:sidekick/screens/looms_v2/no_looms_hover_fallback.dart';
-import 'package:sidekick/screens/looms_v2/outlet_list_tile.dart';
+import 'package:sidekick/screens/looms/no_looms_hover_fallback.dart';
+import 'package:sidekick/screens/looms/outlet_list_tile.dart';
+import 'package:sidekick/view_models/cable_view_model.dart';
 import 'package:sidekick/view_models/loom_item_view_model.dart';
 import 'package:sidekick/view_models/looms_v2_view_model.dart';
-import 'package:sidekick/widgets/location_header_row.dart';
 import 'package:sidekick/widgets/toolbar.dart';
 
 class LoomsV2 extends StatefulWidget {
@@ -36,7 +35,10 @@ class _LoomsV2State extends State<LoomsV2> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // Toolbar
         const Toolbar(child: Text('Tools')),
+
+        // Body
         Expanded(
           child: Row(
             children: [
@@ -68,9 +70,9 @@ class _LoomsV2State extends State<LoomsV2> {
                             outletVm,
                             ...widget.vm.selectedOutletVms,
                           }),
-                          onDragStarted: _handleDragStart,
-                          onDragCompleted: _handleDragEnd,
-                          onDraggableCanceled: _handleDragCancelled,
+                          onDragStarted: _handleOutletDragStart,
+                          onDragCompleted: _handleOutletDragEnd,
+                          onDraggableCanceled: _handleOutletDragCancelled,
                           feedback: Opacity(
                             opacity: 0.5,
                             child: Material(
@@ -121,31 +123,23 @@ class _LoomsV2State extends State<LoomsV2> {
 
   Map<String, int> _buildCableIndices() {
     return Map<String, int>.fromEntries(widget.vm.loomVms
-        .map((rowVm) {
-          if (rowVm is CableViewModel) {
-            return [rowVm.cable.uid];
-          }
-
-          if (rowVm is LoomViewModel) {
-            return rowVm.children.map((child) => child.cable.uid).toList();
-          }
-
-          return null;
-        })
-        .expand((i) => i ?? <String>[])
+        .whereType<LoomViewModel>()
+        .map((loomVm) => loomVm.children)
+        .flattened
+        .map((cableVm) => cableVm.cable.uid)
         .mapIndexed((index, id) => MapEntry(id, index)));
   }
 
   Widget _buildRow(LoomItemViewModel rowVm, int index) {
     return switch (rowVm) {
-      LocationDividerViewModel viewModel => LocationHeaderRow(
-          key: Key(viewModel.location.uid), location: viewModel.location),
       LoomViewModel viewModel => Padding(
           key: Key(rowVm.loom.uid),
           padding: EdgeInsets.only(top: index != 0 ? 16 : 0),
           child: LoomRowItem(
               loomVm: viewModel,
               onFocusDone: _requestSelectionFocus,
+              onOutletsAddedToLoom: (outletVms) => viewModel.addOutletsToLoom(
+                  rowVm.uid, outletVms.map((outlet) => outlet.uid).toSet()),
               children: viewModel.children
                   .mapIndexed((index, cableVm) => _wrapSelectionListener(
                       vm: cableVm,
@@ -159,16 +153,6 @@ class _LoomsV2State extends State<LoomsV2> {
                       )))
                   .toList()),
         ),
-      CableViewModel viewModel => _wrapSelectionListener(
-          key: Key(viewModel.cable.uid),
-          vm: viewModel,
-          child: buildCableRowItem(
-            vm: viewModel,
-            index: index,
-            selectedCableIds: widget.vm.selectedCableIds,
-            rowVms: widget.vm.loomVms,
-            requestSelectionFocusCallback: _requestSelectionFocus,
-          )),
       DividerViewModel divider => LoomItemDivider(
           onCustomDrop: _handleCreateNewCustomLoomDrop,
           onPermanentDrop: _handleCreateNewPermanentLoomDrop),
@@ -199,15 +183,15 @@ class _LoomsV2State extends State<LoomsV2> {
     );
   }
 
-  void _handleDragStart() {
+  void _handleOutletDragStart() {
     widget.vm.onLoomsDraggingStateChanged(LoomsDraggingState.outletDragging);
   }
 
-  void _handleDragEnd() {
+  void _handleOutletDragEnd() {
     widget.vm.onLoomsDraggingStateChanged(LoomsDraggingState.idle);
   }
 
-  void _handleDragCancelled(Velocity velocity, Offset offset) {
-    _handleDragEnd();
+  void _handleOutletDragCancelled(Velocity velocity, Offset offset) {
+    _handleOutletDragEnd();
   }
 }

@@ -2,12 +2,10 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
-import 'package:sidekick/data_selectors/select_cable_and_loom_rows.dart';
 import 'package:sidekick/data_selectors/select_cable_label.dart';
 import 'package:sidekick/data_selectors/select_cable_specific_location_color_label.dart';
 import 'package:sidekick/data_selectors/select_child_cables.dart';
 import 'package:sidekick/data_selectors/select_dmx_universe.dart';
-import 'package:sidekick/data_selectors/select_loom_name.dart';
 import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
@@ -18,7 +16,8 @@ import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
-import 'package:sidekick/screens/looms_v2/looms_v2.dart';
+import 'package:sidekick/screens/looms/looms_v2.dart';
+import 'package:sidekick/view_models/cable_view_model.dart';
 import 'package:sidekick/view_models/loom_item_view_model.dart';
 import 'package:sidekick/view_models/looms_v2_view_model.dart';
 
@@ -159,6 +158,8 @@ List<LoomItemViewModel> _selectLoomRows(
           hasVariedLengthChildren:
               childCables.map((cable) => cable.length).toSet().length > 1,
           name: 'V2 Not Implemented Yet...',
+          addOutletsToLoom: (loomId, outletIds) => store
+              .dispatch(addOutletsToLoom(context, loomId, outletIds)),
           isValidComposition: loom.type.type == LoomType.permanent
               ? loom.type.checkIsValid(childCables)
               : true,
@@ -182,7 +183,7 @@ List<LoomItemViewModel> _selectLoomRows(
           addSelectedCablesToLoom:
               store.state.navstate.selectedCableIds.isNotEmpty
                   ? () => store.dispatch(
-                        addSelectedCablesToLoom(
+                        addOutletsToLoom(
                           context,
                           loom.uid,
                           store.state.navstate.selectedCableIds,

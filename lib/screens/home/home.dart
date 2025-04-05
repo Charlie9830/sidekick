@@ -6,10 +6,10 @@ import 'package:sidekick/containers/file_container.dart';
 import 'package:sidekick/containers/fixture_table_container.dart';
 import 'package:sidekick/containers/fixture_types_container.dart';
 import 'package:sidekick/containers/locations_container.dart';
-import 'package:sidekick/containers/looms_container.dart';
 import 'package:sidekick/containers/looms_v2_container.dart';
 import 'package:sidekick/containers/power_patch_container.dart';
 import 'package:sidekick/global_keys.dart';
+import 'package:sidekick/screens/the_lab.dart';
 import 'package:sidekick/view_models/home_view_model.dart';
 
 class Home extends StatefulWidget {
@@ -82,8 +82,8 @@ class _HomeState extends State<Home> {
                   child: Text('Diff'),
                 ),
                 Tab(
-                  icon: Icon(Icons.cable),
-                  child: Text('Looms v2'),
+                  icon: Icon(Icons.build),
+                  child: Text('Lab'),
                 )
               ]),
         ),
@@ -94,12 +94,12 @@ class _HomeState extends State<Home> {
             FixtureTableContainer(),
             PowerPatchContainer(),
             DataPatchContainer(),
-            LoomsContainer(),
+            LoomsV2Container(),
             LocationsContainer(),
             FixtureTypesContainer(),
             ExportContainer(),
             DiffingContainer(),
-            LoomsV2Container(),
+            TheLab(),
           ],
         ),
         floatingActionButton: Column(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:sidekick/editable_text_field.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/screens/looms/cable_flag.dart';
-import 'package:sidekick/screens/looms/editable_text_field.dart';
 
 class CableRowItem extends StatelessWidget {
   final CableModel cable;
@@ -158,7 +158,7 @@ class CableRowItem extends StatelessWidget {
                 const VerticalDivider(
                   color: Colors.grey,
                 ),
-                
+
                 Expanded(
                     child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

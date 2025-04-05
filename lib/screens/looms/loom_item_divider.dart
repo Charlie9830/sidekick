@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sidekick/screens/looms_v2/new_loom_drop_target_overlay.dart';
+import 'package:sidekick/screens/looms/drop_target_overlays/new_loom_drop_target_overlay.dart';
 import 'package:sidekick/view_models/looms_v2_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';
 

@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:sidekick/screens/looms_v2/drag_data.dart';
+import 'package:sidekick/screens/looms/drag_data.dart';
 
-class LoomDropTarget extends StatefulWidget {
+class LandingPad extends StatefulWidget {
   final Widget icon;
   final String title;
+  
   final void Function(DragData data) onAccept;
-  const LoomDropTarget(
-      {super.key,
-      required this.icon,
-      required this.title,
-      required this.onAccept});
+  final bool Function(DragData onWillAccept) onWillAccept;
+
+  const LandingPad({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.onAccept,
+    required this.onWillAccept,
+  });
 
   @override
-  State<LoomDropTarget> createState() => _LoomDropTargetState();
+  State<LandingPad> createState() => _LandingPadState();
 }
 
-class _LoomDropTargetState extends State<LoomDropTarget> {
+class _LandingPadState extends State<LandingPad> {
   bool _isHoveringOver = false;
 
   @override
@@ -29,7 +34,8 @@ class _LoomDropTargetState extends State<LoomDropTarget> {
           border: Border.all(color: Theme.of(context).hoverColor, width: 5),
         ),
         child: DragTarget<DragData>(
-          builder: (BuildContext context, List<DragData?> _, List<dynamic> __) {
+          builder: (BuildContext context, List<DragData?> candidateData,
+              List<dynamic> rejectedData) {
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -46,7 +52,7 @@ class _LoomDropTargetState extends State<LoomDropTarget> {
             setState(() {
               _isHoveringOver = true;
             });
-            return true;
+            return widget.onWillAccept(details.data);
           },
           onLeave: (details) => setState(() => _isHoveringOver = false),
         ));

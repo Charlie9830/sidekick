@@ -7,3 +7,8 @@ class OutletDragData extends DragData {
 
   OutletDragData({required this.outletVms});
 }
+
+class CableDragData extends DragData {
+
+}
+

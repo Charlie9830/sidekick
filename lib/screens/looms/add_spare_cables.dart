@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
-import 'package:sidekick/screens/looms/editable_text_field.dart';
 import 'package:sidekick/widgets/property_field.dart';
 
 class AddSpareCables extends StatefulWidget {

@@ -16,6 +16,7 @@ import 'package:sidekick/classes/cable_family.dart';
 import 'package:sidekick/classes/export_file_paths.dart';
 import 'package:sidekick/classes/universe_span.dart';
 import 'package:sidekick/containers/import_manager_container.dart';
+import 'package:sidekick/data_selectors/select_outlets.dart';
 import 'package:sidekick/diffing/union_proxy.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/excel/create_color_lookup_sheet.dart';
@@ -577,7 +578,7 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
       outletId: newMultiOutlet.uid,
     );
 
-    final updatedCables = [
+    final newCables = [
       ...validCables.map((cable) =>
           cable.copyWith(parentMultiId: newSneak.uid, loomId: loomId)),
 
@@ -618,20 +619,19 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
 
     store.dispatch(UpdateCablesAndDataMultis(
         Map<String, CableModel>.from(store.state.fixtureState.cables)
-          ..addAll(convertToModelMap(updatedCables)),
+          ..addAll(convertToModelMap(newCables)),
         updatedDataMultis));
+
+    store.dispatch(SetSelectedCableIds(
+      newCables.map((cable) => cable.uid).toSet(),
+    ));
   };
 }
 
-ThunkAction<AppState> addSelectedCablesToLoom(
-    BuildContext context, String loomId, Set<String> cableIds) {
+ThunkAction<AppState> addOutletsToLoom(
+    BuildContext context, String loomId, Set<String> outletIds) {
   return (Store<AppState> store) async {
-    final cables = cableIds
-        .map((id) => store.state.fixtureState.cables[id])
-        .nonNulls
-        .toList();
-
-    if (cables.isEmpty) {
+    if (outletIds.isEmpty) {
       return;
     }
 
@@ -641,15 +641,31 @@ ThunkAction<AppState> addSelectedCablesToLoom(
       return;
     }
 
-    final validCables = cables
-        .where((cable) => cable.loomId != loomId && cable.isSpare == false);
+    final outlets = selectOutlets(outletIds, store);
 
-    if (validCables.isEmpty) {
-      return;
-    }
+    final newCables = [
+      ...outlets.powerOutlets.map((outlet) => CableModel(
+            uid: getUid(),
+            outletId: outlet.uid,
+            locationId: outlet.locationId,
+            type: store.state.fixtureState.defaultPowerMulti,
+            length: loom.type.length,
+            loomId: loom.uid,
+          )),
+      ...outlets.dataOutlets.map((outlet) => CableModel(
+            uid: getUid(),
+            outletId: outlet.uid,
+            locationId: outlet.locationId,
+            type: CableType.dmx,
+            length: loom.type.length,
+            loomId: loom.uid,
+          )),
+    ];
 
-    // Just add the Cables to the Loom, if it screws up the composition of a permanent loom, it will be indicated to the user anyway.
-    _addCablesToLoom(validCables, loom, store);
+    store.dispatch(SetCables(
+        Map<String, CableModel>.from(store.state.fixtureState.cables)
+          ..addAll(convertToModelMap(newCables))));
+
     return;
   };
 }
@@ -2124,18 +2140,4 @@ int _findNextAvailableSequenceNumber(List<int> sequenceNumbers) {
   }
 
   return sortedSequenceNumbers.last + 1;
-}
-
-void _addCablesToLoom(Iterable<CableModel> incomingCables, LoomModel loom,
-    Store<AppState> store) {
-  final rehomedCables =
-      incomingCables.map((cable) => cable.copyWith(loomId: loom.uid));
-
-  final updatedCables =
-      Map<String, CableModel>.from(store.state.fixtureState.cables)
-        ..addAll(
-          convertToModelMap(rehomedCables),
-        );
-
-  store.dispatch(SetCables(updatedCables));
 }
