@@ -106,6 +106,31 @@ ThunkAction<AppState> createNewCustomLoomV2(
   };
 }
 
+ThunkAction<AppState> createNewExtensionLoomV2(
+    BuildContext context, List<String> cableIds) {
+  return (Store<AppState> store) async {
+    final cables = cableIds
+        .map((id) => store.state.fixtureState.cables[id])
+        .nonNulls
+        .toList();
+
+    final newLoom = LoomModel(
+      uid: getUid(),
+      loomClass: LoomClass.extension,
+      type: LoomTypeModel(length: 0, type: LoomType.custom),
+    );
+
+    final clonedCables = cables.map((cable) => cable.copyWith(
+        uid: getUid(), loomId: newLoom.uid, upstreamId: cable.uid));
+
+    store.dispatch(SetCablesAndLooms(
+        Map<String, CableModel>.from(store.state.fixtureState.cables)
+          ..addAll(convertToModelMap(clonedCables)),
+        Map<String, LoomModel>.from(store.state.fixtureState.looms)
+          ..addAll(convertToModelMap([newLoom]))));
+  };
+}
+
 ThunkAction<AppState> openImportManager(BuildContext context) {
   return (Store<AppState> store) async {
     store.dispatch(readInitialRawPatchData());

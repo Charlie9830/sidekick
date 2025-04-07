@@ -6,11 +6,12 @@ import 'package:sidekick/widgets/hover_region.dart';
 class LoomItemDivider extends StatefulWidget {
   const LoomItemDivider({
     super.key,
-    required this.onCustomDrop,
-    required this.onPermanentDrop,
+    required this.onDropAsFeeder,
+    required this.onDropAsExtension,
   });
-  final void Function(List<OutletViewModel> outlets) onCustomDrop;
-  final void Function(List<OutletViewModel> outlets) onPermanentDrop;
+
+  final void Function(List<OutletViewModel> outlets) onDropAsFeeder;
+  final void Function(List<String> cableIds) onDropAsExtension;
 
   @override
   State<LoomItemDivider> createState() => _LoomItemDividerState();
@@ -72,8 +73,9 @@ class _LoomItemDividerState extends State<LoomItemDivider>
                   opacity: _opacity.value,
                   child: _draggingOver
                       ? NewLoomDropTargetOverlay(
-                          onCustomDrop: widget.onCustomDrop,
-                          onPermanentDrop: widget.onPermanentDrop)
+                          onDropAsFeeder: widget.onDropAsFeeder,
+                          onDropAsExtension: widget.onDropAsExtension,
+                        )
                       : const SizedBox.shrink())),
         ));
   }

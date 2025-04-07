@@ -109,8 +109,8 @@ class _LoomsV2State extends State<LoomsV2> {
                             return _buildRow(widget.vm.loomVms[index], index);
                           })
                       : NoLoomsHoverFallback(
-                          onCustomDrop: _handleCreateNewCustomLoomDrop,
-                          onPermanentDrop: _handleCreateNewPermanentLoomDrop),
+                          onCreateNewLoom: _handleCreateNewFeederLoom,
+                        ),
                 )),
               ],
             ),
@@ -184,20 +184,20 @@ class _LoomsV2State extends State<LoomsV2> {
           ),
         ),
       DividerViewModel divider => LoomItemDivider(
-          onCustomDrop: _handleCreateNewCustomLoomDrop,
-          onPermanentDrop: _handleCreateNewPermanentLoomDrop),
+          onDropAsFeeder: _handleCreateNewFeederLoom,
+          onDropAsExtension: _handleCreateNewExtensionLoom,
+        ),
       _ => const Text('WOOOOPS'),
     };
   }
 
-  void _handleCreateNewCustomLoomDrop(List<OutletViewModel> droppedVms) {
+  void _handleCreateNewFeederLoom(List<OutletViewModel> droppedVms) {
     widget.vm
-        .onCreateNewCustomLoom(droppedVms.map((item) => item.uid).toList());
+        .onCreateNewFeederLoom(droppedVms.map((item) => item.uid).toList());
   }
 
-  void _handleCreateNewPermanentLoomDrop(List<OutletViewModel> droppedVms) {
-    widget.vm
-        .onCreateNewPermanentLoom(droppedVms.map((item) => item.uid).toList());
+  void _handleCreateNewExtensionLoom(List<String> cableIds) {
+    widget.vm.onCreateNewExtensionLoom(cableIds);
   }
 
   void _requestSelectionFocus() {

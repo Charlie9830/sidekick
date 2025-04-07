@@ -4,14 +4,13 @@ import 'package:sidekick/screens/looms/landing_pad.dart';
 import 'package:sidekick/view_models/looms_v2_view_model.dart';
 
 class NewLoomDropTargetOverlay extends StatelessWidget {
-  final void Function(List<OutletViewModel> droppedVms) onPermanentDrop;
-  final void Function(List<OutletViewModel> droppedVms) onCustomDrop;
+  final void Function(List<OutletViewModel> droppedVms) onDropAsFeeder;
+  final void Function(List<String> cableIds) onDropAsExtension;
 
-  const NewLoomDropTargetOverlay({
-    super.key,
-    required this.onCustomDrop,
-    required this.onPermanentDrop,
-  });
+  const NewLoomDropTargetOverlay(
+      {super.key,
+      required this.onDropAsFeeder,
+      required this.onDropAsExtension});
 
   @override
   Widget build(BuildContext context) {
@@ -23,17 +22,17 @@ class NewLoomDropTargetOverlay extends StatelessWidget {
           title: 'Feeder',
           onAccept: (data) {
             if (data is OutletDragData) {
-              onPermanentDrop(data.outletVms.toList());
+              onDropAsFeeder(data.outletVms.toList());
             }
           },
-          onWillAccept: (data) => true,
+          onWillAccept: (data) => data is OutletDragData,
         ),
         LandingPad(
           icon: const Icon(Icons.add),
           title: 'Extension',
           onAccept: (data) {
-            if (data is OutletDragData) {
-              onCustomDrop(data.outletVms.toList());
+            if (data is CableDragData) {
+              onDropAsExtension(data.cableIds.toList());
             }
           },
           onWillAccept: (data) => data is CableDragData,

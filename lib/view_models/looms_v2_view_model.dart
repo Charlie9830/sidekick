@@ -14,11 +14,11 @@ class LoomsV2ViewModel {
   final LoomsDraggingState loomsDraggingState;
   final void Function(LoomsDraggingState draggingState)
       onLoomsDraggingStateChanged;
-  final void Function(List<String> outletIds) onCreateNewCustomLoom;
-  final void Function(List<String> outletIds) onCreateNewPermanentLoom;
+  final void Function(List<String> outletIds) onCreateNewFeederLoom;
   final List<LoomItemViewModel> loomVms;
   final Set<String> selectedCableIds;
   final void Function(Set<String> ids) onSelectCables;
+  final void Function(List<String> cableIds) onCreateNewExtensionLoom;
 
   LoomsV2ViewModel({
     required this.outlets,
@@ -27,11 +27,11 @@ class LoomsV2ViewModel {
     required this.selectedOutletVms,
     required this.loomsDraggingState,
     required this.onLoomsDraggingStateChanged,
-    required this.onCreateNewCustomLoom,
-    required this.onCreateNewPermanentLoom,
+    required this.onCreateNewFeederLoom,
     required this.loomVms,
     required this.selectedCableIds,
     required this.onSelectCables,
+    required this.onCreateNewExtensionLoom,
   });
 }
 

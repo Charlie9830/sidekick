@@ -57,9 +57,9 @@ class LoomsV2Container extends StatelessWidget {
                       ..addAllIfAbsentElseRemove(values)));
             }
           },
-          onCreateNewCustomLoom: (outletIds) =>
+          onCreateNewFeederLoom: (outletIds) =>
               store.dispatch(createNewCustomLoomV2(context, outletIds)),
-          onCreateNewPermanentLoom: (outletIds) => print("TODO: Build me"),
+          onCreateNewExtensionLoom: (cableIds) => store.dispatch(createNewExtensionLoomV2(context, cableIds)),
           loomVms: _selectLoomRows(
             context,
             store,
