@@ -84,18 +84,21 @@ class LoomsV2Container extends StatelessWidget {
             ...dataPatchOutletsByLocation[location.uid] ?? [],
           ];
 
-          return allOutletsInLocation.map((outlet) => switch (outlet) {
-                PowerMultiOutletModel outlet => PowerMultiOutletViewModel(
-                    uid: outlet.uid,
-                    outlet: outlet,
-                    assigned: assignedOutletIds.contains(outlet.uid)),
-                DataPatchModel outlet => DataOutletViewModel(
-                    uid: outlet.uid,
-                    outlet: outlet,
-                    assigned: assignedOutletIds.contains(outlet.uid)),
-                _ => throw UnimplementedError(
-                    'Unable to convert unknown ModelCollectionMember to Outlet ViewModel'),
-              });
+          return [
+            OutletDividerViewModel(title: location.name, uid: location.uid),
+            ...allOutletsInLocation.map((outlet) => switch (outlet) {
+                  PowerMultiOutletModel outlet => PowerMultiOutletViewModel(
+                      uid: outlet.uid,
+                      outlet: outlet,
+                      assigned: assignedOutletIds.contains(outlet.uid)),
+                  DataPatchModel outlet => DataOutletViewModel(
+                      uid: outlet.uid,
+                      outlet: outlet,
+                      assigned: assignedOutletIds.contains(outlet.uid)),
+                  _ => throw UnimplementedError(
+                      'Unable to convert unknown ModelCollectionMember to Outlet ViewModel'),
+                })
+          ];
         })
         .flattened
         .toList();

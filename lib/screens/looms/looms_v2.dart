@@ -62,6 +62,10 @@ class _LoomsV2State extends State<LoomsV2> {
                         itemBuilder: (context, index) {
                           final outletVm = widget.vm.outlets[index];
 
+                          if (outletVm is OutletDividerViewModel) {
+                            return _buildOutletDivider(outletVm);
+                          }
+
                           final listTile = OutletListTile(
                               isSelected: widget.vm.selectedLoomOutlets
                                   .contains(outletVm.uid),
@@ -113,6 +117,15 @@ class _LoomsV2State extends State<LoomsV2> {
           )
         ],
       ),
+    );
+  }
+
+  Widget _buildOutletDivider(OutletDividerViewModel viewModel) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(viewModel.title,
+          key: Key(viewModel.uid),
+          style: Theme.of(context).textTheme.labelMedium),
     );
   }
 

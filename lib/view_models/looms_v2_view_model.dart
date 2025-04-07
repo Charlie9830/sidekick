@@ -60,3 +60,12 @@ class DataOutletViewModel extends OutletViewModel {
       {required String uid, required this.outlet, required bool assigned})
       : super(uid: uid, assigned: assigned);
 }
+
+class OutletDividerViewModel extends OutletViewModel {
+  final String title;
+
+  OutletDividerViewModel({
+    required this.title,
+    required String uid,
+  }) : super(uid: uid, assigned: false);
+}
