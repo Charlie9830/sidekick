@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sidekick/drag_proxy/drag_proxy.dart';
 import 'package:sidekick/screens/looms/drop_target_overlays/new_loom_drop_target_overlay.dart';
 import 'package:sidekick/view_models/looms_v2_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';
@@ -50,7 +51,8 @@ class _LoomItemDividerState extends State<LoomItemDivider>
   Widget build(BuildContext context) {
     return HoverRegion(
         onHoverChanged: (hovering, mouseDown) {
-          final incomingState = hovering && mouseDown;
+          final incomingState =
+              hovering && DragProxyMessenger.of(context)!.isDragging;
           final existingState = _draggingOver;
 
           if (incomingState == true && existingState == false) {

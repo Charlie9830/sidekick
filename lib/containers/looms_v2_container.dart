@@ -173,7 +173,7 @@ List<LoomItemViewModel> _selectLoomRows(
           onLengthChanged: (newValue) =>
               store.dispatch(UpdateLoomLength(loom.uid, newValue)),
           onDelete: () => store.dispatch(
-                deleteLoom(context, loom.uid),
+                deleteLoomV2(context, loom.uid),
               ),
           onDropperToggleButtonPressed: () => store.dispatch(
                 ToggleLoomDropperState(

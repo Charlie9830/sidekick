@@ -764,7 +764,7 @@ ThunkAction<AppState> switchLoomType(
   };
 }
 
-ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
+ThunkAction<AppState> deleteLoomV2(BuildContext context, String uid) {
   return (Store<AppState> store) async {
     if (uid.isEmpty) {
       return;
@@ -780,12 +780,6 @@ ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
         .where((cable) => cable.loomId == loom.uid)
         .toList();
 
-    final cablesToBeDeleted =
-        allChildCables.where((cable) => cable.upstreamId.isNotEmpty);
-
-    final cablesToBeFreed =
-        allChildCables.where((cable) => cable.upstreamId.isEmpty).toList();
-
     // Delete only the loom and break the cables free if the cables are not extensions, otherwise. Delete the cables as well.
     final updatedLooms =
         Map<String, LoomModel>.from(store.state.fixtureState.looms)
@@ -795,38 +789,8 @@ ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
         Map<String, CableModel>.from(store.state.fixtureState.cables);
 
     // Delete the cables that need to be deleted.
-    final deleteIds = cablesToBeDeleted.map((cable) => cable.uid).toSet();
+    final deleteIds = allChildCables.map((cable) => cable.uid).toSet();
     updatedCables.removeWhere((key, value) => deleteIds.contains(key));
-
-    // If any of the cables we are deleting have downstream affiliated cables. We should repair the references on those downstream cables,
-    // Essentially we are bring those cables up the line.
-    updatedCables.updateAll((key, cable) {
-      if (deleteIds.contains(cable.upstreamId)) {
-        final deletedCable = cablesToBeDeleted
-            .firstWhereOrNull((item) => item.uid == cable.upstreamId);
-
-        if (deletedCable == null) {
-          return cable;
-        }
-
-        return cable.copyWith(
-          upstreamId: deletedCable.upstreamId,
-        );
-      }
-
-      return cable;
-    });
-
-    // Now remove any references to the Loom we just deleted.
-    for (final cable in cablesToBeFreed) {
-      final targetCable = updatedCables[cable.uid];
-
-      if (targetCable == null) {
-        continue;
-      }
-
-      updatedCables[cable.uid] = targetCable.copyWith(loomId: '');
-    }
 
     store.dispatch(SetSelectedCableIds({}));
     store.dispatch(SetCablesAndLooms(updatedCables, updatedLooms));
