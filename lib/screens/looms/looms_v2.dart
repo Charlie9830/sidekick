@@ -109,7 +109,9 @@ class _LoomsV2State extends State<LoomsV2> {
                             return _buildRow(widget.vm.loomVms[index], index);
                           })
                       : NoLoomsHoverFallback(
-                          onCreateNewLoom: _handleCreateNewFeederLoom,
+                          onCreateNewLoom: (outletVms) =>
+                              _handleCreateNewFeederLoom(outletVms,
+                                  0), // No Looms exist already so we can insert this at index 0.
                         ),
                 )),
               ],
@@ -184,20 +186,23 @@ class _LoomsV2State extends State<LoomsV2> {
           ),
         ),
       DividerViewModel divider => LoomItemDivider(
-          onDropAsFeeder: _handleCreateNewFeederLoom,
-          onDropAsExtension: _handleCreateNewExtensionLoom,
+          onDropAsFeeder: (outletVms) =>
+              _handleCreateNewFeederLoom(outletVms, divider.index),
+          onDropAsExtension: (cableIds) =>
+              _handleCreateNewExtensionLoom(cableIds, divider.index),
         ),
       _ => const Text('WOOOOPS'),
     };
   }
 
-  void _handleCreateNewFeederLoom(List<OutletViewModel> droppedVms) {
-    widget.vm
-        .onCreateNewFeederLoom(droppedVms.map((item) => item.uid).toList());
+  void _handleCreateNewFeederLoom(
+      List<OutletViewModel> droppedVms, int dividerIndex) {
+    widget.vm.onCreateNewFeederLoom(
+        droppedVms.map((item) => item.uid).toList(), dividerIndex);
   }
 
-  void _handleCreateNewExtensionLoom(List<String> cableIds) {
-    widget.vm.onCreateNewExtensionLoom(cableIds);
+  void _handleCreateNewExtensionLoom(List<String> cableIds, int dividerIndex) {
+    widget.vm.onCreateNewExtensionLoom(cableIds, dividerIndex);
   }
 
   void _requestSelectionFocus() {

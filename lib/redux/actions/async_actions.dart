@@ -29,6 +29,7 @@ import 'package:sidekick/excel/create_power_patch_sheet.dart';
 import 'package:sidekick/excel/new/read_raw_patch_data.dart';
 import 'package:sidekick/excel/read_fixture_type_database.dart';
 import 'package:sidekick/excel/read_fixtures_patch_data.dart';
+import 'package:sidekick/extension_methods/copy_with_inserted_entry.dart';
 import 'package:sidekick/extension_methods/queue_pop.dart';
 import 'package:sidekick/file_type_groups.dart';
 import 'package:sidekick/generic_dialog/show_generic_dialog.dart';
@@ -63,8 +64,8 @@ import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-ThunkAction<AppState> createNewCustomLoomV2(
-    BuildContext context, List<String> outletIds) {
+ThunkAction<AppState> createNewFeederLoomV2(
+    BuildContext context, List<String> outletIds, int insertIndex) {
   return (Store<AppState> store) async {
     final newLoomId = getUid();
 
@@ -99,15 +100,16 @@ ThunkAction<AppState> createNewCustomLoomV2(
     );
 
     store.dispatch(SetCablesAndLooms(
-        Map<String, CableModel>.from(store.state.fixtureState.cables)
-          ..addAll(convertToModelMap(newCables)),
-        Map<String, LoomModel>.from(store.state.fixtureState.looms)
-          ..addAll(convertToModelMap([newLoom]))));
+      Map<String, CableModel>.from(store.state.fixtureState.cables)
+        ..addAll(convertToModelMap(newCables)),
+      store.state.fixtureState.looms
+          .copyWithInsertedEntry(insertIndex, convertToMapEntry(newLoom)),
+    ));
   };
 }
 
 ThunkAction<AppState> createNewExtensionLoomV2(
-    BuildContext context, List<String> cableIds) {
+    BuildContext context, List<String> cableIds, int insertIndex) {
   return (Store<AppState> store) async {
     final cables = cableIds
         .map((id) => store.state.fixtureState.cables[id])
@@ -126,8 +128,8 @@ ThunkAction<AppState> createNewExtensionLoomV2(
     store.dispatch(SetCablesAndLooms(
         Map<String, CableModel>.from(store.state.fixtureState.cables)
           ..addAll(convertToModelMap(clonedCables)),
-        Map<String, LoomModel>.from(store.state.fixtureState.looms)
-          ..addAll(convertToModelMap([newLoom]))));
+        store.state.fixtureState.looms
+            .copyWithInsertedEntry(insertIndex, convertToMapEntry(newLoom))));
   };
 }
 

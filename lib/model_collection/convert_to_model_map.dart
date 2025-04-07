@@ -5,3 +5,8 @@ Map<String, T> convertToModelMap<T extends ModelCollectionMember>(
   return Map<String, T>.fromEntries(
       members.map((member) => MapEntry(member.uid, member)));
 }
+
+MapEntry<String, T> convertToMapEntry<T extends ModelCollectionMember>(
+    T member) {
+  return MapEntry<String, T>(member.uid, member);
+}
