@@ -17,3 +17,31 @@ class HoverRegion extends StatelessWidget {
     );
   }
 }
+
+typedef HoverRegionWidgetBuilder = Widget Function(
+    BuildContext context, bool isHovering);
+
+class HoverRegionBuilder extends StatefulWidget {
+  final HoverRegionWidgetBuilder builder;
+
+  const HoverRegionBuilder({
+    super.key,
+    required this.builder,
+  });
+
+  @override
+  State<HoverRegionBuilder> createState() => _HoverRegionBuilderState();
+}
+
+class _HoverRegionBuilderState extends State<HoverRegionBuilder> {
+  bool _isHovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return HoverRegion(
+      onHoverChanged: (hovering, mousedown) =>
+          setState(() => _isHovering = hovering),
+      child: widget.builder(context, _isHovering),
+    );
+  }
+}

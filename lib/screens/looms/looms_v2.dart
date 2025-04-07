@@ -1,11 +1,14 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:sidekick/builders/build_cable_row_item.dart';
+import 'package:sidekick/drag_overlay_region/drag_overlay_region.dart';
+import 'package:sidekick/drag_proxy/drag_proxy.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
 import 'package:sidekick/screens/looms/drag_data.dart';
+import 'package:sidekick/screens/looms/drop_target_overlays/modify_existing_loom_drop_targets.dart';
 import 'package:sidekick/screens/looms/loom_item_divider.dart';
 import 'package:sidekick/screens/looms/loom_row_item.dart';
 import 'package:sidekick/screens/looms/no_looms_hover_fallback.dart';
@@ -32,82 +35,84 @@ class _LoomsV2State extends State<LoomsV2> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Toolbar
-        const Toolbar(child: Text('Tools')),
+    return DragProxyController(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Toolbar
+          const Toolbar(child: Text('Tools')),
 
-        // Body
-        Expanded(
-          child: Row(
-            children: [
-              SizedBox(
-                width: 360,
-                child: Card(
-                    child: ItemSelectionContainer<String>(
-                  focusNode: _outletsFocusNode,
-                  itemIndicies: Map<String, int>.fromEntries(widget.vm.outlets
-                      .mapIndexed(
-                          (index, outlet) => MapEntry(outlet.uid, index))),
-                  selectedItems: widget.vm.selectedLoomOutlets,
-                  onSelectionUpdated: widget.vm.onSelectedLoomOutletsChanged,
-                  mode: SelectionMode.multi,
-                  child: ListView.builder(
-                      itemCount: widget.vm.outlets.length,
-                      itemBuilder: (context, index) {
-                        final outletVm = widget.vm.outlets[index];
+          // Body
+          Expanded(
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 360,
+                  child: Card(
+                      child: ItemSelectionContainer<String>(
+                    focusNode: _outletsFocusNode,
+                    itemIndicies: Map<String, int>.fromEntries(widget.vm.outlets
+                        .mapIndexed(
+                            (index, outlet) => MapEntry(outlet.uid, index))),
+                    selectedItems: widget.vm.selectedLoomOutlets,
+                    onSelectionUpdated: widget.vm.onSelectedLoomOutletsChanged,
+                    mode: SelectionMode.multi,
+                    child: ListView.builder(
+                        itemCount: widget.vm.outlets.length,
+                        itemBuilder: (context, index) {
+                          final outletVm = widget.vm.outlets[index];
 
-                        final listTile = OutletListTile(
-                            isSelected: widget.vm.selectedLoomOutlets
-                                .contains(outletVm.uid),
-                            key: Key(outletVm.uid),
-                            vm: outletVm);
+                          final listTile = OutletListTile(
+                              isSelected: widget.vm.selectedLoomOutlets
+                                  .contains(outletVm.uid),
+                              key: Key(outletVm.uid),
+                              vm: outletVm);
 
-                        return Draggable<DragData>(
-                          maxSimultaneousDrags: outletVm.assigned ? 0 : null,
-                          data: OutletDragData(outletVms: {
-                            outletVm,
-                            ...widget.vm.selectedOutletVms,
-                          }),
-                          onDragStarted: _handleOutletDragStart,
-                          onDragCompleted: _handleOutletDragEnd,
-                          onDraggableCanceled: _handleOutletDragCancelled,
-                          feedback: Opacity(
-                            opacity: 0.5,
-                            child: Material(
-                              child: SizedBox(
-                                  width: 360, height: 56, child: listTile),
+                          return LongPressDraggableProxy<DragData>(
+                            maxSimultaneousDrags: outletVm.assigned ? 0 : null,
+                            data: OutletDragData(outletVms: {
+                              outletVm,
+                              ...widget.vm.selectedOutletVms,
+                            }),
+                            onDragStarted: _handleOutletDragStart,
+                            onDragCompleted: _handleOutletDragEnd,
+                            onDraggableCanceled: _handleOutletDragCancelled,
+                            feedback: Opacity(
+                              opacity: 0.5,
+                              child: Material(
+                                child: SizedBox(
+                                    width: 360, height: 56, child: listTile),
+                              ),
                             ),
-                          ),
-                          child: ItemSelectionListener(
-                            value: outletVm.uid,
-                            enabled: !outletVm.assigned,
-                            child: listTile,
-                          ),
-                        );
-                      }),
+                            child: ItemSelectionListener(
+                              value: outletVm.uid,
+                              enabled: !outletVm.assigned,
+                              child: listTile,
+                            ),
+                          );
+                        }),
+                  )),
+                ),
+                Expanded(
+                    child: ItemSelectionContainer<String>(
+                  selectedItems: widget.vm.selectedCableIds,
+                  onSelectionUpdated: _handleCableSelectionUpdate,
+                  itemIndicies: _buildCableIndices(),
+                  child: widget.vm.loomVms.isNotEmpty
+                      ? ListView.builder(
+                          itemCount: widget.vm.loomVms.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return _buildRow(widget.vm.loomVms[index], index);
+                          })
+                      : NoLoomsHoverFallback(
+                          onCustomDrop: _handleCreateNewCustomLoomDrop,
+                          onPermanentDrop: _handleCreateNewPermanentLoomDrop),
                 )),
-              ),
-              Expanded(
-                  child: ItemSelectionContainer<String>(
-                selectedItems: widget.vm.selectedCableIds,
-                onSelectionUpdated: _handleCableSelectionUpdate,
-                itemIndicies: _buildCableIndices(),
-                child: widget.vm.loomVms.isNotEmpty
-                    ? ListView.builder(
-                        itemCount: widget.vm.loomVms.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          return _buildRow(widget.vm.loomVms[index], index);
-                        })
-                    : NoLoomsHoverFallback(
-                        onCustomDrop: _handleCreateNewCustomLoomDrop,
-                        onPermanentDrop: _handleCreateNewPermanentLoomDrop),
-              )),
-            ],
-          ),
-        )
-      ],
+              ],
+            ),
+          )
+        ],
+      ),
     );
   }
 
@@ -135,23 +140,35 @@ class _LoomsV2State extends State<LoomsV2> {
       LoomViewModel viewModel => Padding(
           key: Key(rowVm.loom.uid),
           padding: EdgeInsets.only(top: index != 0 ? 16 : 0),
-          child: LoomRowItem(
-              loomVm: viewModel,
-              onFocusDone: _requestSelectionFocus,
-              onOutletsAddedToLoom: (outletVms) => viewModel.addOutletsToLoom(
-                  rowVm.uid, outletVms.map((outlet) => outlet.uid).toSet()),
-              children: viewModel.children
-                  .mapIndexed((index, cableVm) => _wrapSelectionListener(
-                      vm: cableVm,
-                      child: buildCableRowItem(
-                        vm: cableVm,
-                        index: index,
-                        selectedCableIds: widget.vm.selectedCableIds,
-                        rowVms: widget.vm.loomVms,
-                        parentLoomType: viewModel.loom.type.type,
-                        requestSelectionFocusCallback: _requestSelectionFocus,
-                      )))
-                  .toList()),
+          child: DragOverlayRegion(
+            childWhenDraggingOver: ModifyExistingLoomDropTargets(
+              onOutletsAdded: (outletVms) => rowVm.addOutletsToLoom(
+                  rowVm.uid, outletVms.map((item) => item.uid).toSet()),
+            ),
+            child: LoomRowItem(
+                loomVm: viewModel,
+                onFocusDone: _requestSelectionFocus,
+                children: viewModel.children.mapIndexed((index, cableVm) {
+                  final cableWidget = buildCableRowItem(
+                    vm: cableVm,
+                    index: index,
+                    selectedCableIds: widget.vm.selectedCableIds,
+                    rowVms: widget.vm.loomVms,
+                    parentLoomType: viewModel.loom.type.type,
+                    requestSelectionFocusCallback: _requestSelectionFocus,
+                  );
+                  return LongPressDraggableProxy<CableDragData>(
+                    data: CableDragData(
+                      cableIds: widget.vm.selectedCableIds,
+                    ),
+                    feedback: Material(
+                        child: Container(
+                            child: SizedBox(width: 600, child: cableWidget))),
+                    child:
+                        _wrapSelectionListener(vm: cableVm, child: cableWidget),
+                  );
+                }).toList()),
+          ),
         ),
       DividerViewModel divider => LoomItemDivider(
           onCustomDrop: _handleCreateNewCustomLoomDrop,

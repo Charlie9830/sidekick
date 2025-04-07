@@ -20,7 +20,7 @@ class NewLoomDropTargetOverlay extends StatelessWidget {
       children: [
         LandingPad(
           icon: const Icon(Icons.add),
-          title: 'Permanent',
+          title: 'Feeder',
           onAccept: (data) {
             if (data is OutletDragData) {
               onPermanentDrop(data.outletVms.toList());
@@ -30,13 +30,13 @@ class NewLoomDropTargetOverlay extends StatelessWidget {
         ),
         LandingPad(
           icon: const Icon(Icons.add),
-          title: 'Custom',
+          title: 'Extension',
           onAccept: (data) {
             if (data is OutletDragData) {
               onCustomDrop(data.outletVms.toList());
             }
           },
-          onWillAccept: (data) => true,
+          onWillAccept: (data) => data is CableDragData,
         ),
       ],
     );

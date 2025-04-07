@@ -158,8 +158,8 @@ List<LoomItemViewModel> _selectLoomRows(
           hasVariedLengthChildren:
               childCables.map((cable) => cable.length).toSet().length > 1,
           name: 'V2 Not Implemented Yet...',
-          addOutletsToLoom: (loomId, outletIds) => store
-              .dispatch(addOutletsToLoom(context, loomId, outletIds)),
+          addOutletsToLoom: (loomId, outletIds) =>
+              store.dispatch(addOutletsToLoom(context, loomId, outletIds)),
           isValidComposition: loom.type.type == LoomType.permanent
               ? loom.type.checkIsValid(childCables)
               : true,

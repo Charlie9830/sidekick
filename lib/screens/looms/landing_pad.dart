@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:sidekick/drag_proxy/drag_proxy.dart';
 import 'package:sidekick/screens/looms/drag_data.dart';
 
 class LandingPad extends StatefulWidget {
   final Widget icon;
   final String title;
-  
+  final bool enabled;
+
   final void Function(DragData data) onAccept;
   final bool Function(DragData onWillAccept) onWillAccept;
 
@@ -14,6 +16,7 @@ class LandingPad extends StatefulWidget {
     required this.title,
     required this.onAccept,
     required this.onWillAccept,
+    this.enabled = true,
   });
 
   @override
@@ -22,6 +25,7 @@ class LandingPad extends StatefulWidget {
 
 class _LandingPadState extends State<LandingPad> {
   bool _isHoveringOver = false;
+  bool _isAccepting = true;
 
   @override
   Widget build(BuildContext context) {
@@ -29,32 +33,51 @@ class _LandingPadState extends State<LandingPad> {
         width: 128,
         height: 128,
         margin: const EdgeInsets.all(8),
-        color: _isHoveringOver ? Theme.of(context).focusColor : null,
-        foregroundDecoration: BoxDecoration(
-          border: Border.all(color: Theme.of(context).hoverColor, width: 5),
-        ),
-        child: DragTarget<DragData>(
+        child: DragTargetProxy<DragData>(
           builder: (BuildContext context, List<DragData?> candidateData,
               List<dynamic> rejectedData) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                widget.icon,
-                Text(widget.title),
-              ],
+            return Card(
+              elevation: 10,
+              color: _resolveColor(),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  widget.icon,
+                  Text(
+                    widget.title,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             );
           },
           onAcceptWithDetails: (details) {
-            setState(() => _isHoveringOver = false);
+            setState(() {
+              _isHoveringOver = false;
+              _isAccepting = true;
+            });
             widget.onAccept(details.data);
           },
           onWillAcceptWithDetails: (details) {
+            final resolvedWillAccept = widget.onWillAccept(details.data);
+
             setState(() {
               _isHoveringOver = true;
+              _isAccepting = resolvedWillAccept;
             });
-            return widget.onWillAccept(details.data);
+
+            return widget.enabled && _isAccepting;
           },
-          onLeave: (details) => setState(() => _isHoveringOver = false),
+          onLeave: (details) => setState(() {
+            _isHoveringOver = false;
+            _isAccepting = true;
+          }),
         ));
+  }
+
+  Color? _resolveColor() {
+    return _isHoveringOver && widget.enabled && _isAccepting
+        ? Theme.of(context).buttonTheme.colorScheme!.inversePrimary
+        : Theme.of(context).cardColor;
   }
 }
