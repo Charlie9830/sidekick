@@ -82,14 +82,12 @@ ThunkAction<AppState> createNewFeederLoomV2(
             uid: getUid(),
             outletId: outlet.uid,
             type: store.state.fixtureState.defaultPowerMulti,
-            locationId: outlet.locationId,
             loomId: newLoomId,
           )),
       ...dataOutlets.map((outlet) => CableModel(
           uid: getUid(),
           outletId: outlet.uid,
           type: CableType.dmx,
-          locationId: outlet.locationId,
           loomId: newLoomId)),
     ];
 
@@ -351,7 +349,6 @@ List<CableModel> _generateSpareCablesToMeetComposition(
           qty,
           (index) => CableModel(
                 uid: getUid(),
-                locationId: existingLoom.locationId,
                 loomId: existingLoom.uid,
                 type: type,
                 length: existingLoom.type.length,
@@ -464,7 +461,6 @@ ThunkAction<AppState> addSpareCablesToLoom(
       final newSpareCables = List<CableModel>.generate(qty, (index) {
         return CableModel(
           uid: getUid(),
-          locationId: loom.locationId,
           type: type,
           isSpare: true,
           length: existingSpareCablesOfType.isNotEmpty
@@ -497,17 +493,6 @@ ThunkAction<AppState> splitSneakIntoDmx(
       return;
     }
 
-    final locationIds = validCables.map((cable) => cable.locationId).toSet();
-
-    if (locationIds.length > 1) {
-      await showGenericDialog(
-          context: context,
-          title: "Woops",
-          message: "Can't split cables from different locations.. yet",
-          affirmativeText: "Okay");
-      return;
-    }
-
     final loomIds = validCables.map((cable) => cable.loomId).toSet();
 
     if (loomIds.length > 1) {
@@ -516,13 +501,6 @@ ThunkAction<AppState> splitSneakIntoDmx(
           title: "Woops",
           message: "Can't Split cables from different Looms.. yet",
           affirmativeText: "Okay");
-      return;
-    }
-
-    final locationId = locationIds.first;
-    final location = store.state.fixtureState.locations[locationId];
-
-    if (location == null) {
       return;
     }
 
@@ -576,8 +554,6 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
       return;
     }
 
-    final locationIds = validCables.map((cable) => cable.locationId).toSet();
-
     if (validCables.length > 4) {
       await showGenericDialog(
           context: context,
@@ -587,24 +563,16 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
       return;
     }
 
-    final locationId = locationIds.first;
-    final location = store.state.fixtureState.locations[locationId];
     final loomId = validCables.first.loomId;
-
-    if (location == null) {
-      return;
-    }
 
     final newMultiOutlet = DataMultiModel(
       uid: getUid(),
-      locationId: locationId,
       // Name and Number properties will be asserted later.
     );
 
     final newSneak = CableModel(
       uid: getUid(),
       type: CableType.sneak,
-      locationId: locationId,
       loomId: loomId,
       length: validCables
           .map((cable) => cable.length)
@@ -622,7 +590,6 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
         4 - validCables.length,
         (index) => CableModel(
           uid: getUid(),
-          locationId: locationId,
           isSpare: true,
           spareIndex: index + 1,
           loomId: loomId,
@@ -637,25 +604,10 @@ ThunkAction<AppState> combineDmxCablesIntoSneak(
         Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
           ..addAll(convertToModelMap([newMultiOutlet]));
 
-    // Assert correct Labeling of all Data Multis in this location, now that we have updated them.
-    final dataMultisInLocation = dataMultisWithNewEntry.values
-        .where((multi) => multi.locationId == locationId)
-        .toList();
-
-    final updatedDataMultis = Map<String, DataMultiModel>.from(
-        dataMultisWithNewEntry)
-      ..addEntries(dataMultisInLocation.mapIndexed((index, multi) => MapEntry(
-          multi.uid,
-          multi.copyWith(
-            name: location.getPrefixedDataMultiPatch(
-                dataMultisInLocation.length > 1 ? index + 1 : null),
-            number: index + 1,
-          ))));
-
     store.dispatch(UpdateCablesAndDataMultis(
         Map<String, CableModel>.from(store.state.fixtureState.cables)
           ..addAll(convertToModelMap(newCables)),
-        updatedDataMultis));
+        dataMultisWithNewEntry));
 
     store.dispatch(SetSelectedCableIds(
       newCables.map((cable) => cable.uid).toSet(),
@@ -682,7 +634,6 @@ ThunkAction<AppState> addOutletsToLoom(
       ...outlets.powerOutlets.map((outlet) => CableModel(
             uid: getUid(),
             outletId: outlet.uid,
-            locationId: outlet.locationId,
             type: store.state.fixtureState.defaultPowerMulti,
             length: loom.type.length,
             loomId: loom.uid,
@@ -690,7 +641,6 @@ ThunkAction<AppState> addOutletsToLoom(
       ...outlets.dataOutlets.map((outlet) => CableModel(
             uid: getUid(),
             outletId: outlet.uid,
-            locationId: outlet.locationId,
             type: CableType.dmx,
             length: loom.type.length,
             loomId: loom.uid,
@@ -846,8 +796,6 @@ ThunkAction<AppState> createExtensionFromSelection(
       return;
     }
 
-    final locationId = selectedCables.first.locationId;
-
     // If we have any Multi Cables selected. We assume that the user is trying to create an extension of the Multi cable (and by extension it's children),
     // therefore we have to ensure that it's children get cloned and applied to the new Extension. However, if the user has only selected one or more of the
     // children of a Multi cable, we must assume that they are only extending that particular child.
@@ -900,7 +848,6 @@ ThunkAction<AppState> createExtensionFromSelection(
 
     final extensionLoom = LoomModel(
         uid: getUid(),
-        locationId: locationId,
         loomClass: LoomClass.extension,
         type: LoomTypeModel(
           length: 0,
@@ -960,11 +907,9 @@ ThunkAction<AppState> combineCablesIntoNewLoom(
       return;
     }
 
-    final primaryLocationId = selectedCables.first.locationId;
-
     if (type == LoomType.custom) {
-      final (updatedCables, updatedLooms) = buildNewCustomLooms(
-          store: store, locationId: primaryLocationId, cableIds: cableIds);
+      final (updatedCables, updatedLooms) =
+          buildNewCustomLooms(store: store, cableIds: cableIds);
       store.dispatch(SetCablesAndLooms(updatedCables, updatedLooms));
 
       return;
@@ -1101,10 +1046,6 @@ List<
         .map((cable) => cable.copyWith(loomId: newLoomId))
         .toList();
 
-    final String locationId = parentCables.first.locationId;
-
-    final newLoomLength = LoomModel.matchLength(allLocations[locationId]);
-
     final newPowerCableType =
         comp.socaWays > 0 ? CableType.socapex : CableType.wieland6way;
 
@@ -1115,9 +1056,8 @@ List<
                   ? spareCableIdsQueue.removeFirst()
                   : getUid(),
               type: newPowerCableType,
-              length: newLoomLength,
+              length: 0,
               isSpare: true,
-              locationId: locationId,
               spareIndex: index + 1,
               loomId: newLoomId,
             ));
@@ -1129,9 +1069,8 @@ List<
                   ? spareCableIdsQueue.removeFirst()
                   : getUid(),
               isSpare: true,
-              length: newLoomLength,
+              length: 0,
               type: CableType.dmx,
-              locationId: locationId,
               spareIndex: index + 1,
               loomId: newLoomId,
             ));
@@ -1143,9 +1082,8 @@ List<
                   ? spareCableIdsQueue.removeFirst()
                   : getUid(),
               isSpare: true,
-              length: newLoomLength,
+              length: 0,
               type: CableType.sneak,
-              locationId: locationId,
               spareIndex: index + 1,
               loomId: newLoomId,
             ));
@@ -1180,9 +1118,8 @@ List<
     return (
       LoomModel(
         uid: newLoomId,
-        locationId: locationId,
         type: LoomTypeModel(
-          length: newLoomLength,
+          length: 0,
           type: LoomType.permanent,
           permanentComposition: comp.name,
         ),
@@ -1195,7 +1132,6 @@ List<
 (Map<String, CableModel> updatedCables, Map<String, LoomModel> updatedLooms)
     buildNewCustomLooms({
   required Store<AppState> store,
-  required String locationId,
   required Set<String> cableIds,
 }) {
   final cableIdsWithSneakChildren = cableIds
@@ -1221,7 +1157,6 @@ List<
 
   final newLoom = LoomModel(
     uid: getUid(),
-    locationId: locationId,
     type: LoomTypeModel(length: 0, type: LoomType.custom),
   );
 
@@ -1449,9 +1384,6 @@ ThunkAction<AppState> updateLocationMultiPrefix(
     // If PowerMulti's associated to this location have already been created, update them as well.
     updateAssociatedPowerMultis(store, locationId, updatedLocation);
 
-    // If DataMulti's assocated to this location have been created, update them as well.
-    updateAssociatedDataMultis(store, locationId, updatedLocation);
-
     // If DataPatches associated to this location have been created, update them as well.
     updateAssociatedDataPatches(store, locationId, updatedLocation);
   };
@@ -1474,9 +1406,6 @@ ThunkAction<AppState> updateLocationMultiDelimiter(
 
     // If PowerMulti's associated to this location have already been created, update them as well.
     updateAssociatedPowerMultis(store, locationId, updatedLocation);
-
-    // If DataMulti's assocated to this location have been created, update them as well.
-    updateAssociatedDataMultis(store, locationId, updatedLocation);
 
     // If DataPatches associated to this location have been created, update them as well.
     updateAssociatedDataPatches(store, locationId, updatedLocation);
@@ -1771,9 +1700,9 @@ ThunkAction<AppState> export(BuildContext context) {
     createDataMultiSheet(
       excel: referenceDataExcel,
       dataOutlets: store.state.fixtureState.dataPatches,
-      dataMultis: store.state.fixtureState.dataMultis,
       locations: store.state.fixtureState.locations,
       cables: store.state.fixtureState.cables,
+      dataMultis: store.state.fixtureState.dataMultis,
     );
 
     referenceDataExcel.delete('Sheet1');
@@ -1795,9 +1724,9 @@ ThunkAction<AppState> export(BuildContext context) {
       cables: store.state.fixtureState.cables,
       looms: store.state.fixtureState.looms,
       locations: store.state.fixtureState.locations,
-      dataMultis: store.state.fixtureState.dataMultis,
       dataPatches: store.state.fixtureState.dataPatches,
       powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
+      dataMultis: store.state.fixtureState.dataMultis,
     );
 
     loomsExcel.delete('Sheet1');
@@ -2071,27 +2000,6 @@ void updateAssociatedPowerMultis(
       store.state.fixtureState.powerMultiOutlets)
     ..addEntries(
         updatedPowerMultis.map((multi) => MapEntry(multi.uid, multi)))));
-}
-
-void updateAssociatedDataMultis(
-    Store<AppState> store, String locationId, LocationModel updatedLocation) {
-  final associatedDataMultis = store.state.fixtureState.dataMultis.values
-      .where((multi) => multi.locationId == locationId)
-      .toList();
-
-  if (associatedDataMultis.isEmpty) {
-    return;
-  }
-
-  final updatedDataMultis = associatedDataMultis.map((existing) =>
-      existing.copyWith(
-          name: updatedLocation.getPrefixedDataMultiPatch(
-              associatedDataMultis.length == 1 ? null : existing.number)));
-
-  store.dispatch(SetDataMultis(
-      Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
-        ..addEntries(
-            updatedDataMultis.map((multi) => MapEntry(multi.uid, multi)))));
 }
 
 void updateAssociatedDataPatches(

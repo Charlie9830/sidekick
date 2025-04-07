@@ -18,9 +18,9 @@ void writeCableLine(
   int index,
   CellStyle cableRowStyle,
   Map<String, PowerMultiOutletModel> powerMultiOutlets,
-  Map<String, DataMultiModel> dataMultis,
   Map<String, DataPatchModel> dataPatches,
   Map<String, LocationModel> locations,
+  Map<String, DataMultiModel> dataMultis,
   bool customRow,
 ) {
   if (customRow) {
@@ -46,7 +46,7 @@ void writeCableLine(
     CellIndex.indexByColumnRow(
         columnIndex: getColumnIndex(), rowIndex: rowIndex),
     TextCellValue(
-        '${selectCableTypeLabel(cable: cable, dataMultis: dataMultis, dataPatches: dataPatches, powerMultiOutlets: powerMultiOutlets)} ${index + 1}'),
+        '${selectCableTypeLabel(cable: cable, dataPatches: dataPatches, powerMultiOutlets: powerMultiOutlets)} ${index + 1}'),
     cellStyle: cableRowStyle,
   );
 
@@ -56,8 +56,8 @@ void writeCableLine(
         columnIndex: getColumnIndex(), rowIndex: rowIndex),
     TextCellValue(selectCableLabel(
       powerMultiOutlets: powerMultiOutlets,
-      dataMultis: dataMultis,
       dataPatches: dataPatches,
+      dataMultis: dataMultis,
       cable: cable,
       includeUniverse: true,
     )),
@@ -65,7 +65,7 @@ void writeCableLine(
   );
 
   // Color
-  final location = locations[cable.locationId];
+  final location = null;
   final color = location == null ? '' : NamedColors.names[location.color];
 
   sheet.updateCell(

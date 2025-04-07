@@ -25,7 +25,6 @@ class CableModel extends ModelCollectionMember with DiffComparable {
   final double length;
   final String loomId;
   final String outletId;
-  final String locationId;
   final String upstreamId;
   final String notes;
   final CableType type;
@@ -40,7 +39,6 @@ class CableModel extends ModelCollectionMember with DiffComparable {
     required this.type,
     this.outletId = '',
     this.upstreamId = '',
-    required this.locationId,
     this.notes = '',
     this.isSpare = false,
     this.spareIndex = 0,
@@ -65,7 +63,6 @@ class CableModel extends ModelCollectionMember with DiffComparable {
       length: length ?? this.length,
       loomId: loomId ?? this.loomId,
       outletId: outletId ?? this.outletId,
-      locationId: locationId ?? this.locationId,
       upstreamId: upstreamId ?? this.upstreamId,
       notes: notes ?? this.notes,
       type: type ?? this.type,
@@ -84,7 +81,6 @@ class CableModel extends ModelCollectionMember with DiffComparable {
       'upstreamId': upstreamId,
       'type': type.name,
       'notes': notes,
-      'locationId': locationId,
       'isSpare': isSpare,
       'spareIndex': spareIndex,
       'parentMultiId': parentMultiId,
@@ -98,7 +94,6 @@ class CableModel extends ModelCollectionMember with DiffComparable {
       loomId: map['loomId'] ?? '',
       outletId: map['outletId'] ?? '',
       upstreamId: map['upstreamId'] ?? '',
-      locationId: map['locationId'] ?? '',
       notes: map['notes'] ?? '',
       type: CableType.values.byName(map['type']),
       isSpare: map['isSpare'],

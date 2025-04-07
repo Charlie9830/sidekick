@@ -18,7 +18,6 @@ enum LoomClass {
 class LoomModel extends ModelCollectionMember with DiffComparable {
   @override
   final String uid;
-  final String locationId;
   final LoomTypeModel type;
   final String name;
 
@@ -28,7 +27,6 @@ class LoomModel extends ModelCollectionMember with DiffComparable {
 
   LoomModel({
     this.uid = '',
-    this.locationId = '',
     this.type = const LoomTypeModel.blank(),
     this.loomClass = LoomClass.feeder,
     this.isDrop = false,
@@ -46,7 +44,6 @@ class LoomModel extends ModelCollectionMember with DiffComparable {
   }) {
     return LoomModel(
       uid: uid ?? this.uid,
-      locationId: locationId ?? this.locationId,
       type: type ?? this.type,
       loomClass: loomClass ?? this.loomClass,
       isDrop: isDrop ?? this.isDrop,
@@ -57,7 +54,6 @@ class LoomModel extends ModelCollectionMember with DiffComparable {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'uid': uid,
-      'locationId': locationId,
       'type': type.toMap(),
       'loomClass': loomClass.index,
       'isDrop': isDrop,
@@ -68,7 +64,6 @@ class LoomModel extends ModelCollectionMember with DiffComparable {
   factory LoomModel.fromMap(Map<String, dynamic> map) {
     return LoomModel(
       uid: (map['uid'] ?? '') as String,
-      locationId: map['locationId'] ?? '',
       type: LoomTypeModel.fromMap(map['type'] as Map<String, dynamic>),
       loomClass: LoomClass.values[(map['loomClass'] ?? 0) as int],
       isDrop: (map['isDrop'] ?? false) as bool,
@@ -83,7 +78,7 @@ class LoomModel extends ModelCollectionMember with DiffComparable {
 
   @override
   String toString() {
-    return 'LoomModel(uid: $uid, locationId: $locationId)';
+    return 'LoomModel(uid: $uid)';
   }
 
   static double matchLength(LocationModel? location) {

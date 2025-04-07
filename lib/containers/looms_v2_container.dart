@@ -2,11 +2,11 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
+import 'package:sidekick/classes/named_colors.dart';
 import 'package:sidekick/data_selectors/select_cable_label.dart';
-import 'package:sidekick/data_selectors/select_cable_specific_location_color_label.dart';
+import 'package:sidekick/data_selectors/select_cable_location.dart';
 import 'package:sidekick/data_selectors/select_child_cables.dart';
 import 'package:sidekick/data_selectors/select_dmx_universe.dart';
-import 'package:sidekick/data_selectors/select_generated_loom_name.dart';
 import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
@@ -117,23 +117,26 @@ class LoomsV2Container extends StatelessWidget {
 List<LoomItemViewModel> _selectLoomRows(
     BuildContext context, Store<AppState> store) {
   // Wrapper Function to wrap multiple similiar calls to Cable VM creation.
-  CableViewModel wrapCableVm(CableModel cable) => CableViewModel(
+  CableViewModel wrapCableVm(CableModel cable) {
+    final associatedLocation = selectCableLocation(cable, store);
+
+    return CableViewModel(
+      cable: cable,
+      locationId: associatedLocation?.uid ?? '',
+      labelColor: NamedColors.names[associatedLocation?.color] ?? '',
+      isExtension: cable.upstreamId.isNotEmpty,
+      universe: selectDmxUniverse(store.state.fixtureState, cable),
+      label: selectCableLabel(
+        powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
+        dataPatches: store.state.fixtureState.dataPatches,
+        dataMultis: store.state.fixtureState.dataMultis,
         cable: cable,
-        locationId: cable.locationId,
-        labelColor: selectCableSpecificLocationColorLabel(
-            cable, store.state.fixtureState.locations),
-        isExtension: cable.upstreamId.isNotEmpty,
-        universe: selectDmxUniverse(store.state.fixtureState, cable),
-        label: selectCableLabel(
-          powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
-          dataMultis: store.state.fixtureState.dataMultis,
-          dataPatches: store.state.fixtureState.dataPatches,
-          cable: cable,
-          includeUniverse: false,
-        ),
-        onLengthChanged: (newValue) =>
-            store.dispatch(UpdateCableLength(cable.uid, newValue)),
-      );
+        includeUniverse: false,
+      ),
+      onLengthChanged: (newValue) =>
+          store.dispatch(UpdateCableLength(cable.uid, newValue)),
+    );
+  }
 
   final List<LoomModel> orderedLooms =
       store.state.fixtureState.looms.values.toList();
@@ -218,19 +221,19 @@ List<LoomItemViewModel> _selectLoomRows(
 String _getLoomName(LoomModel loom, Store<AppState> store) {
   String loomName = loom.name;
 
-  // If no custom loom name has been provided. Auto generate one.
-  if (loomName.isEmpty) {
-    final location = store.state.fixtureState.locations[loom.locationId];
-    print(location);
-    if (location != null) {
-      loomName = selectGeneratedLoomName(
-          store.state.fixtureState.looms.values
-              .where((loom) => loom.locationId == location.uid)
-              .toList(),
-          location,
-          loom);
-    }
-  }
+  // // If no custom loom name has been provided. Auto generate one.
+  // if (loomName.isEmpty) {
+  //   final location = store.state.fixtureState.locations[loom.locationId];
+  //   print(location);
+  //   if (location != null) {
+  //     loomName = selectGeneratedLoomName(
+  //         store.state.fixtureState.looms.values
+  //             .where((loom) => loom.locationId == location.uid)
+  //             .toList(),
+  //         location,
+  //         loom);
+  //   }
+  // }
 
   return loomName;
 }

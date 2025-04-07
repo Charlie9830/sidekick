@@ -17,8 +17,8 @@ void writeCableRows({
   required Map<String, CableModel> cables,
   required Map<String, LocationModel> locations,
   required Map<String, PowerMultiOutletModel> powerMultiOutlets,
-  required Map<String, DataMultiModel> dataMultis,
   required Map<String, DataPatchModel> dataPatches,
+  required Map<String, DataMultiModel> dataMultis,
   required SheetIndexer pointer,
   required Sheet sheet,
   bool customRow = false,
@@ -46,9 +46,9 @@ void writeCableRows({
         index,
         cable.parent.isMultiCable ? parentRowStyle : cableRowStyle,
         powerMultiOutlets,
-        dataMultis,
         dataPatches,
         locations,
+        dataMultis,
         customRow,
       );
 
@@ -63,9 +63,9 @@ void writeCableRows({
           childIndex,
           cableRowStyle,
           powerMultiOutlets,
-          dataMultis,
           dataPatches,
           locations,
+          dataMultis,
           customRow,
         );
       }

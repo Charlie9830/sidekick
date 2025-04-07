@@ -1,5 +1,4 @@
 import 'package:excel/excel.dart';
-import 'package:sidekick/data_selectors/select_generated_loom_name.dart';
 import 'package:sidekick/excel/sheet_indexer.dart';
 import 'package:sidekick/excel/styles.dart';
 import 'package:sidekick/excel/write_cable_rows.dart';
@@ -17,101 +16,89 @@ void createCustomLoomsSheet({
   required Map<String, LoomModel> looms,
   required Map<String, LocationModel> locations,
   required Map<String, PowerMultiOutletModel> powerMultiOutlets,
-  required Map<String, DataMultiModel> dataMultis,
   required Map<String, DataPatchModel> dataPatches,
+  required Map<String, DataMultiModel> dataMultis,
 }) {
   final sheet = excel['Customs'];
 
-  final loomsByLocation = locations.values.map((location) => (
-        location,
-        looms.values.where((loom) => loom.locationId == location.uid).toList()
-      ));
-
   final pointer = SheetIndexer();
 
-  for (final (location, loomsInLocation) in loomsByLocation) {
-    final customLooms =
-        loomsInLocation.where((loom) => loom.type.type == LoomType.custom);
-    for (final loom in customLooms) {
-      ///
-      ///  Header Row.
-      ///
+  for (final loom
+      in looms.values.where((loom) => loom.type.type == LoomType.custom)) {
+    ///
+    ///  Header Row.
+    ///
 
-      // Metadata Leading Row
-      sheet.setColumnWidth(pointer.columnIndex, 2.5);
-      sheet.updateCell(
-        CellIndex.indexByColumnRow(
-            columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
-        TextCellValue(">"),
-        cellStyle: leadingCellStyle,
-      );
+    // Metadata Leading Row
+    sheet.setColumnWidth(pointer.columnIndex, 2.5);
+    sheet.updateCell(
+      CellIndex.indexByColumnRow(
+          columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
+      TextCellValue(">"),
+      cellStyle: leadingCellStyle,
+    );
 
-      // Loom Name
-      sheet.setColumnWidth(pointer.columnIndex, 8);
-      sheet.updateCell(
-        CellIndex.indexByColumnRow(
-            columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
-        TextCellValue(selectGeneratedLoomName(
-          loomsInLocation,
-          location,
-          loom,
-        )),
-        cellStyle: loomHeaderStyle,
-      );
+    // Loom Name
+    sheet.setColumnWidth(pointer.columnIndex, 8);
+    sheet.updateCell(
+      CellIndex.indexByColumnRow(
+          columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
+      TextCellValue(loom.name),
+      cellStyle: loomHeaderStyle,
+    );
 
-      // 3rd Column
-      sheet.setColumnWidth(pointer.columnIndex, 20);
-      sheet.updateCell(
-        CellIndex.indexByColumnRow(
-            columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
-        null,
-        cellStyle: loomHeaderStyle,
-      );
+    // 3rd Column
+    sheet.setColumnWidth(pointer.columnIndex, 20);
+    sheet.updateCell(
+      CellIndex.indexByColumnRow(
+          columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
+      null,
+      cellStyle: loomHeaderStyle,
+    );
 
-      // 4th Column
-      sheet.setColumnWidth(pointer.columnIndex, 20);
-      sheet.updateCell(
-        CellIndex.indexByColumnRow(
-            columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
-        null,
-        cellStyle: loomHeaderStyle,
-      );
+    // 4th Column
+    sheet.setColumnWidth(pointer.columnIndex, 20);
+    sheet.updateCell(
+      CellIndex.indexByColumnRow(
+          columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
+      null,
+      cellStyle: loomHeaderStyle,
+    );
 
-      // 5th Column
-      sheet.setColumnWidth(pointer.columnIndex, 20);
-      sheet.updateCell(
-        CellIndex.indexByColumnRow(
-            columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
-        null,
-        cellStyle: loomHeaderStyle,
-      );
+    // 5th Column
+    sheet.setColumnWidth(pointer.columnIndex, 20);
+    sheet.updateCell(
+      CellIndex.indexByColumnRow(
+          columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
+      null,
+      cellStyle: loomHeaderStyle,
+    );
 
-      // Location
-      sheet.setColumnWidth(pointer.columnIndex, 20);
-      sheet.updateCell(
-        CellIndex.indexByColumnRow(
-            columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
-        TextCellValue(location.name),
-        cellStyle: loomHeaderStyle.copyWith(boldVal: false),
-      );
+    // Location
+    sheet.setColumnWidth(pointer.columnIndex, 20);
+    sheet.updateCell(
+      CellIndex.indexByColumnRow(
+          columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
+      TextCellValue('V2 Not Implemented'),
+      cellStyle: loomHeaderStyle.copyWith(boldVal: false),
+    );
 
-      ///
-      /// Cable Data Rows
-      ///
-      writeCableRows(
-          loom: loom,
-          cables: cables,
-          dataMultis: dataMultis,
-          dataPatches: dataPatches,
-          locations: locations,
-          pointer: pointer,
-          powerMultiOutlets: powerMultiOutlets,
-          sheet: sheet,
-          customRow: true);
+    ///
+    /// Cable Data Rows
+    ///
+    writeCableRows(
+        loom: loom,
+        cables: cables,
+        dataPatches: dataPatches,
+        locations: locations,
+        pointer: pointer,
+        powerMultiOutlets: powerMultiOutlets,
+        dataMultis: dataMultis,
+        sheet: sheet,
+        customRow: true);
 
-      // Gap Between Looms.
-      pointer.carriageReturn();
-      pointer.carriageReturn();
-    }
+    // Gap Between Looms.
+    pointer.carriageReturn();
+    pointer.carriageReturn();
   }
 }
