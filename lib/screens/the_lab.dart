@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/drag_overlay_region/drag_overlay_region.dart';
 import 'package:sidekick/drag_proxy/drag_proxy.dart';
+import 'package:sidekick/extension_methods/copy_with_inserted_entry.dart';
 import 'package:sidekick/extension_methods/queue_pop.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
