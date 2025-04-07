@@ -36,6 +36,7 @@ class LoomViewModel extends LoomItemViewModel {
   final void Function() addSpareCablesToLoom;
   final void Function() onRepairCompositionButtonPressed;
   final void Function(String uid, Set<String> ids) addOutletsToLoom;
+  final void Function(String newValue) onNameChanged;
 
   LoomViewModel({
     required this.loom,
@@ -51,6 +52,7 @@ class LoomViewModel extends LoomItemViewModel {
     required this.addSpareCablesToLoom,
     required this.onRepairCompositionButtonPressed,
     required this.addOutletsToLoom,
+    required this.onNameChanged,
   }) : super(loom.uid);
 
   @override

@@ -20,6 +20,7 @@ class LoomModel extends ModelCollectionMember with DiffComparable {
   final String uid;
   final String locationId;
   final LoomTypeModel type;
+  final String name;
 
   // enum
   final LoomClass loomClass;
@@ -31,6 +32,7 @@ class LoomModel extends ModelCollectionMember with DiffComparable {
     this.type = const LoomTypeModel.blank(),
     this.loomClass = LoomClass.feeder,
     this.isDrop = false,
+    this.name = '',
   });
 
   LoomModel copyWith({
@@ -40,6 +42,7 @@ class LoomModel extends ModelCollectionMember with DiffComparable {
     LoomTypeModel? type,
     LoomClass? loomClass,
     bool? isDrop,
+    String? name,
   }) {
     return LoomModel(
       uid: uid ?? this.uid,
@@ -47,6 +50,7 @@ class LoomModel extends ModelCollectionMember with DiffComparable {
       type: type ?? this.type,
       loomClass: loomClass ?? this.loomClass,
       isDrop: isDrop ?? this.isDrop,
+      name: name ?? this.name,
     );
   }
 
@@ -57,6 +61,7 @@ class LoomModel extends ModelCollectionMember with DiffComparable {
       'type': type.toMap(),
       'loomClass': loomClass.index,
       'isDrop': isDrop,
+      'name': name,
     };
   }
 
@@ -67,6 +72,7 @@ class LoomModel extends ModelCollectionMember with DiffComparable {
       type: LoomTypeModel.fromMap(map['type'] as Map<String, dynamic>),
       loomClass: LoomClass.values[(map['loomClass'] ?? 0) as int],
       isDrop: (map['isDrop'] ?? false) as bool,
+      name: map['name'] ?? '',
     );
   }
 

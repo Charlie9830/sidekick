@@ -1,5 +1,5 @@
 import 'package:excel/excel.dart';
-import 'package:sidekick/data_selectors/select_loom_name.dart';
+import 'package:sidekick/data_selectors/select_generated_loom_name.dart';
 import 'package:sidekick/excel/sheet_indexer.dart';
 import 'package:sidekick/excel/styles.dart';
 import 'package:sidekick/excel/write_cable_rows.dart';
@@ -51,7 +51,7 @@ void createCustomLoomsSheet({
       sheet.updateCell(
         CellIndex.indexByColumnRow(
             columnIndex: pointer.getColumnIndex(), rowIndex: pointer.rowIndex),
-        TextCellValue(selectLoomName(
+        TextCellValue(selectGeneratedLoomName(
           loomsInLocation,
           location,
           loom,

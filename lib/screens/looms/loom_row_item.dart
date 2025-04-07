@@ -55,8 +55,8 @@ class _LoomRowItemState extends State<LoomRowItem> {
                     children: [
                       SizedBox(
                         width: 400,
-                        child: Text(widget.loomVm.name,
-                            style: Theme.of(context).textTheme.titleMedium),
+                        child: EditableTextField(value: widget.loomVm.name, style: Theme.of(context).textTheme.titleMedium,
+                        onChanged: (newValue) => widget.loomVm.onNameChanged(newValue),),
                       ),
                       const Spacer(),
                       if (widget.loomVm.loom.type.type == LoomType.permanent &&

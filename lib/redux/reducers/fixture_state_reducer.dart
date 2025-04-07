@@ -7,6 +7,14 @@ import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
+  if (a is UpdateLoomName) {
+    return state.copyWith(
+      looms: Map<String, LoomModel>.from(state.looms)..update(a.uid, (existing) => existing.copyWith(
+        name: a.value.trim(),
+      ))
+    );
+  }
+
   if (a is SetDefaultPowerMulti) {
     return state.copyWith(
       defaultPowerMulti: a.value,

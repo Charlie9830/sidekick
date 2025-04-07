@@ -17,6 +17,13 @@ import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
 
+class UpdateLoomName {
+  final String uid;
+  final String value;
+
+  UpdateLoomName(this.uid, this.value);
+}
+
 class SetLoomsDraggingState {
   final LoomsDraggingState value;
 

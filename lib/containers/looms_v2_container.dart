@@ -6,6 +6,7 @@ import 'package:sidekick/data_selectors/select_cable_label.dart';
 import 'package:sidekick/data_selectors/select_cable_specific_location_color_label.dart';
 import 'package:sidekick/data_selectors/select_child_cables.dart';
 import 'package:sidekick/data_selectors/select_dmx_universe.dart';
+import 'package:sidekick/data_selectors/select_generated_loom_name.dart';
 import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
@@ -57,10 +58,10 @@ class LoomsV2Container extends StatelessWidget {
                       ..addAllIfAbsentElseRemove(values)));
             }
           },
-          onCreateNewFeederLoom: (outletIds, insertIndex) =>
-              store.dispatch(createNewFeederLoomV2(context, outletIds, insertIndex)),
-          onCreateNewExtensionLoom: (cableIds, insertIndex) =>
-              store.dispatch(createNewExtensionLoomV2(context, cableIds, insertIndex)),
+          onCreateNewFeederLoom: (outletIds, insertIndex) => store
+              .dispatch(createNewFeederLoomV2(context, outletIds, insertIndex)),
+          onCreateNewExtensionLoom: (cableIds, insertIndex) => store.dispatch(
+              createNewExtensionLoomV2(context, cableIds, insertIndex)),
           loomVms: _selectLoomRows(
             context,
             store,
@@ -161,7 +162,7 @@ List<LoomItemViewModel> _selectLoomRows(
           loom: loom,
           hasVariedLengthChildren:
               childCables.map((cable) => cable.length).toSet().length > 1,
-          name: 'V2 Not Implemented Yet...',
+          name: _getLoomName(loom, store),
           addOutletsToLoom: (loomId, outletIds) =>
               store.dispatch(addOutletsToLoom(context, loomId, outletIds)),
           isValidComposition: loom.type.type == LoomType.permanent
@@ -195,7 +196,9 @@ List<LoomItemViewModel> _selectLoomRows(
                       )
                   : null,
           addSpareCablesToLoom: () =>
-              store.dispatch(addSpareCablesToLoom(context, loom.uid)));
+              store.dispatch(addSpareCablesToLoom(context, loom.uid)),
+          onNameChanged: (newValue) =>
+              store.dispatch(UpdateLoomName(loom.uid, newValue)));
     },
   ).toList();
 
@@ -210,4 +213,24 @@ List<LoomItemViewModel> _selectLoomRows(
             (index, element) => [element, DividerViewModel(index: index + 2)])
         .flattened
   ];
+}
+
+String _getLoomName(LoomModel loom, Store<AppState> store) {
+  String loomName = loom.name;
+
+  // If no custom loom name has been provided. Auto generate one.
+  if (loomName.isEmpty) {
+    final location = store.state.fixtureState.locations[loom.locationId];
+    print(location);
+    if (location != null) {
+      loomName = selectGeneratedLoomName(
+          store.state.fixtureState.looms.values
+              .where((loom) => loom.locationId == location.uid)
+              .toList(),
+          location,
+          loom);
+    }
+  }
+
+  return loomName;
 }

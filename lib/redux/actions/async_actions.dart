@@ -102,14 +102,18 @@ ThunkAction<AppState> createNewFeederLoomV2(
     store.dispatch(SetCablesAndLooms(
       Map<String, CableModel>.from(store.state.fixtureState.cables)
         ..addAll(convertToModelMap(newCables)),
-      store.state.fixtureState.looms
-          .copyWithInsertedEntry(insertIndex, convertToMapEntry(newLoom)),
+      store.state.fixtureState.looms.copyWithInsertedEntry(
+          (insertIndex - 1).clamp(0, 99999), convertToMapEntry(newLoom)),
+    ));
+
+    store.dispatch(SetSelectedCableIds(
+      newCables.map((cable) => cable.uid).toSet(),
     ));
   };
 }
 
 ThunkAction<AppState> createNewExtensionLoomV2(
-    BuildContext context, List<String> cableIds, int insertIndex) {
+    BuildContext context, List<String> cableIds, int index) {
   return (Store<AppState> store) async {
     final cables = cableIds
         .map((id) => store.state.fixtureState.cables[id])
@@ -128,8 +132,12 @@ ThunkAction<AppState> createNewExtensionLoomV2(
     store.dispatch(SetCablesAndLooms(
         Map<String, CableModel>.from(store.state.fixtureState.cables)
           ..addAll(convertToModelMap(clonedCables)),
-        store.state.fixtureState.looms
-            .copyWithInsertedEntry(insertIndex, convertToMapEntry(newLoom))));
+        store.state.fixtureState.looms.copyWithInsertedEntry(
+            (index - 1).clamp(0, 99999), convertToMapEntry(newLoom))));
+
+    store.dispatch(SetSelectedCableIds(
+      clonedCables.map((cable) => cable.uid).toSet(),
+    ));
   };
 }
 
