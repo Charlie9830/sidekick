@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/drag_overlay_region/drag_overlay_region.dart';
 import 'package:sidekick/drag_proxy/drag_proxy.dart';
+import 'package:sidekick/extension_methods/queue_pop.dart';
+import 'package:sidekick/utils/get_uid.dart';
 
 class TheLab extends StatefulWidget {
   const TheLab({super.key});
@@ -17,32 +19,47 @@ class _TheLabState extends State<TheLab> {
           title: const Text('The Lab'),
           backgroundColor: Colors.red,
         ),
-        body: DragProxyController(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              DraggableProxy<String>(
-                  feedback: const Material(child: Text('Dragging')),
-                  data: 'Hello',
-                  child:
-                      Container(width: 200, height: 200, color: Colors.purple)),
-              Expanded(
-                child: DragOverlayRegion(
-                  childWhenDraggingOver: Container(
-                    color: Colors.purple.withAlpha(60),
-                    alignment: Alignment.center,
-                    child: const _LandingPad(
-                      color: Colors.orange,
-                      size: 300,
-                      name: 'Orange',
-                    ),
-                  ),
-                  child: const _TestChild(),
-                ),
-              ),
-            ],
-          ),
-        ));
+        body: Center(
+            child: ElevatedButton(
+          child: Text('Test'),
+          onPressed: _doTest,
+        )));
+  }
+
+  void _doTest() {
+    final items = List<Item>.generate(
+        10, (index) => Item(uid: getUid(), value: index + 1));
+
+    final mapOfItems = Map<String, Item>.fromEntries(
+        items.map((item) => MapEntry(item.uid, item)));
+
+    printItemValues(mapOfItems);
+
+    final withItemInserted = mapOfItems.copyWithInsertedEntry(
+        2, MapEntry('Inserted', Item(uid: getUid(), value: 69)));
+
+    printItemValues(withItemInserted);
+  }
+
+  void printItemValues(Map<String, Item> items) {
+    for (var item in items.values) {
+      print(item.toString());
+    }
+  }
+}
+
+class Item {
+  final String uid;
+  final int value;
+
+  Item({
+    required this.uid,
+    required this.value,
+  });
+
+  @override
+  String toString() {
+    return value.toString();
   }
 }
 
@@ -56,8 +73,6 @@ class _TestChild extends StatelessWidget {
             5, (index) => ListTile(title: Text("Item ${index + 1}"))));
   }
 }
-
-
 
 class _LandingPad extends StatelessWidget {
   final Color color;

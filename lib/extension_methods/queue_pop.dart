@@ -9,3 +9,13 @@ extension QueuePop<T> on Queue<T> {
     }
   }
 }
+
+extension OrderedMapOperations<K, V> on Map<K, V> {
+  Map<K, V> copyWithInsertedEntry(int index, MapEntry<K, V> item) {
+    final entryList = entries.toList();
+
+    entryList.insert(index, item);
+
+    return Map<K, V>.fromEntries(entryList);
+  }
+}
