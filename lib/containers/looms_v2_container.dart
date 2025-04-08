@@ -58,6 +58,7 @@ class LoomsV2Container extends StatelessWidget {
                       ..addAllIfAbsentElseRemove(values)));
             }
           },
+          onCombineSelectedDataCablesIntoSneak: () => store.dispatch(combineSelectedDataCablesIntoSneak(context)),
           onCreateNewFeederLoom: (outletIds, insertIndex) => store
               .dispatch(createNewFeederLoomV2(context, outletIds, insertIndex)),
           onCreateNewExtensionLoom: (cableIds, insertIndex) => store.dispatch(
@@ -135,6 +136,7 @@ List<LoomItemViewModel> _selectLoomRows(
       ),
       onLengthChanged: (newValue) =>
           store.dispatch(UpdateCableLength(cable.uid, newValue)),
+      
     );
   }
 

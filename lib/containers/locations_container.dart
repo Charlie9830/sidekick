@@ -41,7 +41,7 @@ class LocationsContainer extends StatelessWidget {
             .where((outlet) => outlet.locationId == location.uid)
             .length,
         dataMultiCount: store.state.fixtureState.dataMultis.values
-            .where((multi) => multi.locationId == location.uid)
+            .where((multi) => multi.locationIds.contains(location.uid))
             .length,
         dataPatchCount: store.state.fixtureState.dataPatches.values
             .where((patch) =>

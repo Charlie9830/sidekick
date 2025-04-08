@@ -6,26 +6,26 @@ class DataMultiModel extends ModelCollectionMember {
   @override
   final String uid;
   final String name;
-  final String locationId;
+  final Set<String> locationIds;
   final int number;
 
   DataMultiModel({
     this.uid = '',
     this.name = '',
-    this.locationId = '',
+    this.locationIds = const {},
     this.number = 0,
   });
 
   DataMultiModel copyWith({
     String? uid,
     String? name,
-    String? locationId,
+    Set<String>? locationIds,
     int? number,
   }) {
     return DataMultiModel(
       uid: uid ?? this.uid,
       name: name ?? this.name,
-      locationId: locationId ?? this.locationId,
+      locationIds: locationIds ?? this.locationIds,
       number: number ?? this.number,
     );
   }
@@ -34,7 +34,7 @@ class DataMultiModel extends ModelCollectionMember {
     return {
       'uid': uid,
       'name': name,
-      'locationId': locationId,
+      'locationIds': locationIds.toList(),
       'number': number,
     };
   }
@@ -43,7 +43,9 @@ class DataMultiModel extends ModelCollectionMember {
     return DataMultiModel(
       uid: map['uid'] ?? '',
       name: map['name'] ?? '',
-      locationId: map['locationId'] ?? '',
+      locationIds: map['locationIds'] is List<dynamic>
+          ? map['locationIds'].map((x) => x.toString()).toSet()
+          : const {},
       number: map['number']?.toInt() ?? 0,
     );
   }
@@ -55,7 +57,7 @@ class DataMultiModel extends ModelCollectionMember {
 
   @override
   String toString() {
-    return 'DataMultiModel(uid: $uid, name: $name, locationId: $locationId, number: $number)';
+    return 'DataMultiModel(uid: $uid, name: $name, number: $number)';
   }
 
   @override
@@ -65,12 +67,11 @@ class DataMultiModel extends ModelCollectionMember {
     return other is DataMultiModel &&
         other.uid == uid &&
         other.name == name &&
-        other.locationId == locationId &&
         other.number == number;
   }
 
   @override
   int get hashCode {
-    return uid.hashCode ^ name.hashCode ^ locationId.hashCode ^ number.hashCode;
+    return uid.hashCode ^ name.hashCode ^ number.hashCode;
   }
 }

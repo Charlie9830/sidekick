@@ -11,6 +11,7 @@ import 'package:sidekick/screens/looms/drag_data.dart';
 import 'package:sidekick/screens/looms/drop_target_overlays/modify_existing_loom_drop_targets.dart';
 import 'package:sidekick/screens/looms/loom_item_divider.dart';
 import 'package:sidekick/screens/looms/loom_row_item.dart';
+import 'package:sidekick/screens/looms/looms_toolbar_contents.dart';
 import 'package:sidekick/screens/looms/no_looms_hover_fallback.dart';
 import 'package:sidekick/screens/looms/outlet_list_tile.dart';
 import 'package:sidekick/view_models/cable_view_model.dart';
@@ -40,7 +41,10 @@ class _LoomsV2State extends State<LoomsV2> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Toolbar
-          const Toolbar(child: Text('Tools')),
+          Toolbar(
+              child: LoomsToolbarContents(
+                  onCombineIntoSneakPressed:
+                      widget.vm.onCombineSelectedDataCablesIntoSneak)),
 
           // Body
           Expanded(

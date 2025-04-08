@@ -35,8 +35,6 @@ class LoomModel extends ModelCollectionMember with DiffComparable {
 
   LoomModel copyWith({
     String? uid,
-    String? locationId,
-    Set<String>? secondaryLocationIds,
     LoomTypeModel? type,
     LoomClass? loomClass,
     bool? isDrop,

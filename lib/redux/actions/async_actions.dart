@@ -64,6 +64,96 @@ import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+ThunkAction<AppState> combineSelectedDataCablesIntoSneak(BuildContext context) {
+  return (Store<AppState> store) async {
+    final validCables = store.state.navstate.selectedCableIds
+        .map((id) => store.state.fixtureState.cables[id])
+        .nonNulls
+        .where((cable) => cable.type == CableType.dmx);
+
+    final cablesByLoomId = validCables.groupListsBy((cable) => cable.loomId);
+
+    final List<
+            (CableModel sneak, DataMultiModel outlet, List<CableModel> children)>
+        newSneaksWithOutletsAndChildren = cablesByLoomId.entries
+            .map((entry) {
+              final loomId = entry.key;
+              final cablesInLoom = entry.value;
+              final inheritedLength =
+                  store.state.fixtureState.looms[loomId]?.type.length ?? 0;
+
+              final childSlices = cablesInLoom.slices(4);
+              return childSlices.map((slice) {
+                final newMultiOutlet = DataMultiModel(
+                  uid: getUid(),
+                  locationIds: slice
+                      .map((child) =>
+                          store.state.fixtureState.dataPatches[child.outletId])
+                      .nonNulls
+                      .map((outlet) => outlet.locationId)
+                      .toSet(),
+                );
+
+                final newSneak = CableModel(
+                  uid: getUid(),
+                  type: CableType.sneak,
+                  length: inheritedLength,
+                  loomId: loomId,
+                  outletId: newMultiOutlet.uid,
+                );
+
+                final updatedChildren = slice
+                    .map((child) => child.copyWith(parentMultiId: newSneak.uid))
+                    .toList();
+
+                return (newSneak, newMultiOutlet, updatedChildren);
+              });
+            })
+            .flattened
+            .toList();
+
+    final newSneaks = newSneaksWithOutletsAndChildren.map((item) => item.$1);
+    final newMultiOutlets =
+        newSneaksWithOutletsAndChildren.map((item) => item.$2);
+    final updatedChildren = newSneaksWithOutletsAndChildren
+        .map((item) => item.$3)
+        .flattened
+        .toList();
+
+    store.dispatch(SetDataMultis(
+        Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
+          ..addAll(convertToModelMap(newMultiOutlets))));
+
+    store.dispatch(
+      SetCables(
+        Map<String, CableModel>.from(store.state.fixtureState.cables)
+          ..addAll(
+            convertToModelMap([...newSneaks, ...updatedChildren]),
+          ),
+      ),
+    );
+
+    store.dispatch(SetSelectedCableIds(
+        [...newSneaks, ...updatedChildren].map((cable) => cable.uid).toSet()));
+  };
+}
+
+List<DataMultiModel> resolveDataMultiNameAndNumbers(
+    {required List<DataMultiModel> newMultis,
+    required Map<String, LocationModel> locations,
+    required Map<String, DataMultiModel> existingMultis}) {
+  return newMultis.map((multi) {
+    final associatedLocations =
+        multi.locationIds.map((id) => locations[id]).nonNulls.toList();
+    final nameAccumulator = associatedLocations
+        .mapIndexed(
+            (index, location) => location.getPrefixedDataMultiPatch(index + 1))
+        .toSet();
+
+    return multi;
+  }).toList();
+}
+
 ThunkAction<AppState> createNewFeederLoomV2(
     BuildContext context, List<String> outletIds, int insertIndex) {
   return (Store<AppState> store) async {
@@ -92,10 +182,10 @@ ThunkAction<AppState> createNewFeederLoomV2(
     ];
 
     final newLoom = LoomModel(
-      uid: newLoomId,
-      loomClass: LoomClass.feeder,
-      type: LoomTypeModel(length: 0, type: LoomType.custom),
-    );
+        uid: newLoomId,
+        loomClass: LoomClass.feeder,
+        type: LoomTypeModel(length: 0, type: LoomType.custom),
+        name: 'Unnamed Feeder');
 
     store.dispatch(SetCablesAndLooms(
       Map<String, CableModel>.from(store.state.fixtureState.cables)
@@ -537,81 +627,6 @@ ThunkAction<AppState> splitSneakIntoDmx(
 
     store.dispatch(SetCables(updatedCables));
     store.dispatch(SetDataMultis(updatedDataMultis));
-  };
-}
-
-ThunkAction<AppState> combineDmxCablesIntoSneak(
-    BuildContext context, Set<String> cableIds) {
-  return (Store<AppState> store) async {
-    final validCables = cableIds
-        .map((id) => store.state.fixtureState.cables[id])
-        .nonNulls
-        .where((cable) =>
-            cable.parentMultiId.isEmpty && cable.type == CableType.dmx)
-        .toList();
-
-    if (validCables.isEmpty) {
-      return;
-    }
-
-    if (validCables.length > 4) {
-      await showGenericDialog(
-          context: context,
-          title: "Woops",
-          message: "Can't combine more than 4 cables into Sneak.. yet",
-          affirmativeText: "Okay");
-      return;
-    }
-
-    final loomId = validCables.first.loomId;
-
-    final newMultiOutlet = DataMultiModel(
-      uid: getUid(),
-      // Name and Number properties will be asserted later.
-    );
-
-    final newSneak = CableModel(
-      uid: getUid(),
-      type: CableType.sneak,
-      loomId: loomId,
-      length: validCables
-          .map((cable) => cable.length)
-          .sorted((a, b) => a.round() - b.round())
-          .first,
-      outletId: newMultiOutlet.uid,
-    );
-
-    final newCables = [
-      ...validCables.map((cable) =>
-          cable.copyWith(parentMultiId: newSneak.uid, loomId: loomId)),
-
-      // Generate Spares if required.
-      ...List<CableModel>.generate(
-        4 - validCables.length,
-        (index) => CableModel(
-          uid: getUid(),
-          isSpare: true,
-          spareIndex: index + 1,
-          loomId: loomId,
-          parentMultiId: newSneak.uid,
-          type: CableType.dmx,
-        ),
-      ),
-      newSneak,
-    ];
-
-    final dataMultisWithNewEntry =
-        Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
-          ..addAll(convertToModelMap([newMultiOutlet]));
-
-    store.dispatch(UpdateCablesAndDataMultis(
-        Map<String, CableModel>.from(store.state.fixtureState.cables)
-          ..addAll(convertToModelMap(newCables)),
-        dataMultisWithNewEntry));
-
-    store.dispatch(SetSelectedCableIds(
-      newCables.map((cable) => cable.uid).toSet(),
-    ));
   };
 }
 

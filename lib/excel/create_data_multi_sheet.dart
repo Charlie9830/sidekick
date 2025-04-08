@@ -30,7 +30,7 @@ void createDataMultiSheet({
       cables.values.groupListsBy((cable) => cable.parentMultiId);
 
   for (final (index, multi) in dataMultis.values.indexed) {
-    final locationColor = locations[multi.locationId]?.color;
+    final locationColor = multi.locationIds.map((id) => locations[id]).first;
 
     final namedColor =
         locationColor != null ? NamedColors.names[locationColor] ?? '' : '';
@@ -49,12 +49,10 @@ void createDataMultiSheet({
     sheet.appendRow([
       IntCellValue(index + 1),
       TextCellValue(multi.name),
-      
       TextCellValue(childPatches.elementAtOrNull(0)?.nameWithUniverse ?? ''),
       TextCellValue(childPatches.elementAtOrNull(1)?.nameWithUniverse ?? ''),
       TextCellValue(childPatches.elementAtOrNull(2)?.nameWithUniverse ?? ''),
       TextCellValue(childPatches.elementAtOrNull(3)?.nameWithUniverse ?? ''),
-
       TextCellValue(namedColor),
     ]);
   }

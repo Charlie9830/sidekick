@@ -27,18 +27,17 @@ class _TheLabState extends State<TheLab> {
   }
 
   void _doTest() {
-    final items = List<Item>.generate(
-        10, (index) => Item(uid: getUid(), value: index + 1));
+    final set1 = {
+      'hello',
+      'world',
+    };
 
-    final mapOfItems = Map<String, Item>.fromEntries(
-        items.map((item) => MapEntry(item.uid, item)));
+    final set2 = {
+      'world',
+      'hello',
+    };
 
-    printItemValues(mapOfItems);
-
-    final withItemInserted = mapOfItems.copyWithInsertedEntry(
-        2, MapEntry('Inserted', Item(uid: getUid(), value: 69)));
-
-    printItemValues(withItemInserted);
+    print(set1.difference(set2).length);
   }
 
   void printItemValues(Map<String, Item> items) {

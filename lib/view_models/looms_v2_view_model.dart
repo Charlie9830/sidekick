@@ -21,6 +21,7 @@ class LoomsV2ViewModel {
   final void Function(Set<String> ids) onSelectCables;
   final void Function(List<String> cableIds, int insertIndex)
       onCreateNewExtensionLoom;
+  final void Function() onCombineSelectedDataCablesIntoSneak;
 
   LoomsV2ViewModel({
     required this.outlets,
@@ -34,6 +35,7 @@ class LoomsV2ViewModel {
     required this.selectedCableIds,
     required this.onSelectCables,
     required this.onCreateNewExtensionLoom,
+    required this.onCombineSelectedDataCablesIntoSneak,
   });
 }
 
