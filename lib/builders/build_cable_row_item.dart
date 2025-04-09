@@ -11,12 +11,14 @@ CableRowItem buildCableRowItem({
   required List<LoomItemViewModel> rowVms,
   LoomType? parentLoomType,
   required void Function() requestSelectionFocusCallback,
+  required bool missingUpstreamCable,
 }) {
   return CableRowItem(
     cable: vm.cable,
     labelColor: vm.labelColor,
     isSelected: selectedCableIds.contains(vm.cable.uid),
-    disableLength: vm.cable.parentMultiId.isNotEmpty,
+    disableLength: vm.cable.parentMultiId.isNotEmpty ||
+        parentLoomType == LoomType.permanent,
     showTopBorder: selectShowCableTopBorder(index, rowVms),
     dmxUniverse: vm.universe,
     label: vm.label,
@@ -24,7 +26,6 @@ CableRowItem buildCableRowItem({
       vm.onLengthChanged(newValue);
       requestSelectionFocusCallback();
     },
-    hideLength: vm.cable.parentMultiId.isNotEmpty ||
-        parentLoomType == LoomType.permanent,
+    missingUpstreamCable: missingUpstreamCable,
   );
 }

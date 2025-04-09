@@ -7,6 +7,7 @@ class CableViewModel {
   final bool isExtension;
   final int universe;
   final String label;
+  final bool missingUpstreamCable;
   final void Function(String newValue) onLengthChanged;
 
   CableViewModel({
@@ -17,5 +18,6 @@ class CableViewModel {
     required this.universe,
     required this.label,
     required this.onLengthChanged,
+    required this.missingUpstreamCable,
   });
 }

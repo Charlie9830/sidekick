@@ -169,20 +169,20 @@ class _LoomsV2State extends State<LoomsV2> {
                 onFocusDone: _requestSelectionFocus,
                 children: viewModel.children.mapIndexed((index, cableVm) {
                   final cableWidget = buildCableRowItem(
-                    vm: cableVm,
-                    index: index,
-                    selectedCableIds: widget.vm.selectedCableIds,
-                    rowVms: widget.vm.loomVms,
-                    parentLoomType: viewModel.loom.type.type,
-                    requestSelectionFocusCallback: _requestSelectionFocus,
-                  );
+                      vm: cableVm,
+                      index: index,
+                      selectedCableIds: widget.vm.selectedCableIds,
+                      rowVms: widget.vm.loomVms,
+                      parentLoomType: viewModel.loom.type.type,
+                      requestSelectionFocusCallback: _requestSelectionFocus,
+                      missingUpstreamCable: cableVm.missingUpstreamCable);
                   return LongPressDraggableProxy<CableDragData>(
                     data: CableDragData(
                       cableIds: widget.vm.selectedCableIds,
                     ),
                     feedback: Material(
                         child: Container(
-                            child: SizedBox(width: 600, child: cableWidget))),
+                            child: SizedBox(width: 700, child: cableWidget))),
                     child:
                         _wrapSelectionListener(vm: cableVm, child: cableWidget),
                   );

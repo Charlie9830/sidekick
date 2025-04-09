@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/screens/locations/color_chit.dart';
 import 'package:sidekick/screens/locations/color_select_dialog.dart';
+import 'package:sidekick/screens/locations/hybrid_tag.dart';
 import 'package:sidekick/view_models/locations_view_model.dart';
 import 'package:sidekick/widgets/icon_label.dart';
 import 'package:sidekick/widgets/property_field.dart';
@@ -36,7 +37,15 @@ class Locations extends StatelessWidget {
             return DataRow(key: ValueKey(item.location.uid), cells: [
               // Name
               DataCell(
-                Text(item.location.name, style: Theme.of(context).textTheme.bodyLarge),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(item.location.name,
+                        style: Theme.of(context).textTheme.bodyLarge),
+                    if (item.location.isHybrid)
+                      HybridTag(otherLocationNames: item.otherLocationNames),
+                  ],
+                ),
               ),
 
               // Colours

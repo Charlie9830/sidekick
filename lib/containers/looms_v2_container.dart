@@ -58,7 +58,8 @@ class LoomsV2Container extends StatelessWidget {
                       ..addAllIfAbsentElseRemove(values)));
             }
           },
-          onCombineSelectedDataCablesIntoSneak: () => store.dispatch(combineSelectedDataCablesIntoSneak(context)),
+          onCombineSelectedDataCablesIntoSneak: () =>
+              store.dispatch(combineSelectedDataCablesIntoSneak(context)),
           onCreateNewFeederLoom: (outletIds, insertIndex) => store
               .dispatch(createNewFeederLoomV2(context, outletIds, insertIndex)),
           onCreateNewExtensionLoom: (cableIds, insertIndex) => store.dispatch(
@@ -127,6 +128,10 @@ List<LoomItemViewModel> _selectLoomRows(
       labelColor: NamedColors.names[associatedLocation?.color] ?? '',
       isExtension: cable.upstreamId.isNotEmpty,
       universe: selectDmxUniverse(store.state.fixtureState, cable),
+      missingUpstreamCable: cable.upstreamId.isNotEmpty
+          ? store.state.fixtureState.cables.containsKey(cable.upstreamId) ==
+              false
+          : false,
       label: selectCableLabel(
         powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
         dataPatches: store.state.fixtureState.dataPatches,
@@ -136,7 +141,6 @@ List<LoomItemViewModel> _selectLoomRows(
       ),
       onLengthChanged: (newValue) =>
           store.dispatch(UpdateCableLength(cable.uid, newValue)),
-      
     );
   }
 

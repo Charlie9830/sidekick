@@ -11,7 +11,7 @@ LocationModel? selectCableLocation(CableModel cable, Store<AppState> store) {
     CableType.wieland6way =>
       store.state.fixtureState.powerMultiOutlets[cable.outletId]?.locationId,
     CableType.sneak =>
-      store.state.fixtureState.dataMultis[cable.outletId]?.locationIds.first,
+      store.state.fixtureState.dataMultis[cable.outletId]?.locationId,
     CableType.unknown => throw UnimplementedError(),
   };
 

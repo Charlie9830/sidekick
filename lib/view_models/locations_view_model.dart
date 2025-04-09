@@ -21,11 +21,13 @@ class LocationItemViewModel {
   final int powerMultiCount;
   final int dataMultiCount;
   final int dataPatchCount;
+  final List<String> otherLocationNames;
 
   LocationItemViewModel({
     required this.location,
     required this.powerMultiCount,
     required this.dataMultiCount,
     required this.dataPatchCount,
+    required this.otherLocationNames,
   });
 }

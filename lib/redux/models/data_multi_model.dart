@@ -6,26 +6,26 @@ class DataMultiModel extends ModelCollectionMember {
   @override
   final String uid;
   final String name;
-  final Set<String> locationIds;
+  final String locationId;
   final int number;
 
   DataMultiModel({
     this.uid = '',
     this.name = '',
-    this.locationIds = const {},
+    this.locationId = '',
     this.number = 0,
   });
 
   DataMultiModel copyWith({
     String? uid,
     String? name,
-    Set<String>? locationIds,
+    String? locationId,
     int? number,
   }) {
     return DataMultiModel(
       uid: uid ?? this.uid,
       name: name ?? this.name,
-      locationIds: locationIds ?? this.locationIds,
+      locationId: locationId ?? this.locationId,
       number: number ?? this.number,
     );
   }
@@ -34,7 +34,7 @@ class DataMultiModel extends ModelCollectionMember {
     return {
       'uid': uid,
       'name': name,
-      'locationIds': locationIds.toList(),
+      'locationId': locationId,
       'number': number,
     };
   }
@@ -43,9 +43,7 @@ class DataMultiModel extends ModelCollectionMember {
     return DataMultiModel(
       uid: map['uid'] ?? '',
       name: map['name'] ?? '',
-      locationIds: map['locationIds'] is List<dynamic>
-          ? map['locationIds'].map((x) => x.toString()).toSet()
-          : const {},
+      locationId: map['locationId'] ?? '',
       number: map['number']?.toInt() ?? 0,
     );
   }

@@ -17,18 +17,19 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
   final bool isPowerPatchLocked;
   final bool isDataPatchLocked;
   final String delimiter;
+  final Set<String> hybridIds;
 
   static const Color noColor = Color.fromARGB(0, 0, 0, 0);
 
-  LocationModel({
-    required this.uid,
-    this.name = '',
-    required this.color,
-    this.multiPrefix = '',
-    this.isDataPatchLocked = false,
-    this.isPowerPatchLocked = false,
-    this.delimiter = '.',
-  });
+  LocationModel(
+      {required this.uid,
+      this.name = '',
+      required this.color,
+      this.multiPrefix = '',
+      this.isDataPatchLocked = false,
+      this.isPowerPatchLocked = false,
+      this.delimiter = '.',
+      this.hybridIds = const {}});
 
   const LocationModel.none()
       : uid = 'none',
@@ -37,7 +38,14 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
         isDataPatchLocked = false,
         isPowerPatchLocked = false,
         color = LocationModel.noColor,
-        delimiter = '';
+        delimiter = '',
+        hybridIds = const {};
+
+  bool get isHybrid => hybridIds.isNotEmpty;
+
+  bool matchesHybridLocation(Set<String> locationIds) {
+    return hybridIds.difference(locationIds).isEmpty;
+  }
 
   LocationModel copyWith({
     String? uid,
@@ -47,6 +55,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
     bool? isPowerPatchLocked,
     bool? isDataPatchLocked,
     String? delimiter,
+    Set<String>? hybridIds,
   }) {
     return LocationModel(
       uid: uid ?? this.uid,
@@ -56,6 +65,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       isPowerPatchLocked: isPowerPatchLocked ?? this.isPowerPatchLocked,
       isDataPatchLocked: isDataPatchLocked ?? this.isDataPatchLocked,
       delimiter: delimiter ?? this.delimiter,
+      hybridIds: hybridIds ?? this.hybridIds,
     );
   }
 
@@ -107,6 +117,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       'isPowerPatchLocked': isPowerPatchLocked,
       'isDataPatchLocked': isDataPatchLocked,
       'delimiter': delimiter,
+      'hybridIds': hybridIds.toList(),
     };
   }
 
@@ -119,6 +130,9 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       isPowerPatchLocked: map['isPowerPatchLocked'] ?? false,
       isDataPatchLocked: map['isDataPatchLocked'] ?? false,
       delimiter: map['delimiter'] ?? '',
+      hybridIds: map['hybridIds'] == null
+          ? const {}
+          : map['hybridIds'].map((x) => x.toString()).toSet(),
     );
   }
 

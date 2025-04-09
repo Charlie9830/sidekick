@@ -14,6 +14,7 @@ import 'package:sidekick/balancer/naive_balancer.dart';
 import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/classes/cable_family.dart';
 import 'package:sidekick/classes/export_file_paths.dart';
+import 'package:sidekick/classes/named_colors.dart';
 import 'package:sidekick/classes/universe_span.dart';
 import 'package:sidekick/containers/import_manager_container.dart';
 import 'package:sidekick/data_selectors/select_outlets.dart';
@@ -71,8 +72,22 @@ ThunkAction<AppState> combineSelectedDataCablesIntoSneak(BuildContext context) {
         .nonNulls
         .where((cable) => cable.type == CableType.dmx);
 
+    // Find the Outlets associated with these cables.
+    final associatedOutlets = validCables
+        .map((cable) => store.state.fixtureState.dataPatches[cable.outletId])
+        .nonNulls
+        .toList();
+
+    // Group the cables by their Loom ID.
     final cablesByLoomId = validCables.groupListsBy((cable) => cable.loomId);
 
+    // Determine the Target Location for cables, this could be an existing location, or a newly created hybrid location representing two or more locations.
+    // Similiar in nature to an SQL Join table.
+    final targetLocationModel = resolveTargetLocation(
+        associatedOutlets.map((outlet) => outlet.locationId).toSet(),
+        store.state.fixtureState.locations);
+
+    // Map through the Cables by Loom collection, returning a conjunction of the Sneak, its new outlet and the children to be assigned to it.
     final List<
             (CableModel sneak, DataMultiModel outlet, List<CableModel> children)>
         newSneaksWithOutletsAndChildren = cablesByLoomId.entries
@@ -86,12 +101,7 @@ ThunkAction<AppState> combineSelectedDataCablesIntoSneak(BuildContext context) {
               return childSlices.map((slice) {
                 final newMultiOutlet = DataMultiModel(
                   uid: getUid(),
-                  locationIds: slice
-                      .map((child) =>
-                          store.state.fixtureState.dataPatches[child.outletId])
-                      .nonNulls
-                      .map((outlet) => outlet.locationId)
-                      .toSet(),
+                  locationId: targetLocationModel.uid,
                 );
 
                 final newSneak = CableModel(
@@ -112,6 +122,7 @@ ThunkAction<AppState> combineSelectedDataCablesIntoSneak(BuildContext context) {
             .flattened
             .toList();
 
+    // Destructure each Sneak, Outlet and children collections.
     final newSneaks = newSneaksWithOutletsAndChildren.map((item) => item.$1);
     final newMultiOutlets =
         newSneaksWithOutletsAndChildren.map((item) => item.$2);
@@ -120,9 +131,26 @@ ThunkAction<AppState> combineSelectedDataCablesIntoSneak(BuildContext context) {
         .flattened
         .toList();
 
+    // We need to assign the correct label and number to each Multi we have created, therefore we need to first query a collection of
+    // all Multis in this location to properly provide the correct Label and Number.
+    final allMultiOutletsInLocation = [
+      ...store.state.fixtureState.dataMultis.values
+          .where((multi) => multi.locationId == targetLocationModel.uid),
+      ...newMultiOutlets,
+    ];
+
+    final updatedMultiOutlets = allMultiOutletsInLocation.mapIndexed(
+        (index, element) => element.copyWith(
+            number: index + 1,
+            name: targetLocationModel.getPrefixedDataMultiPatch(index + 1)));
+
+    store.dispatch(SetLocations(
+        Map<String, LocationModel>.from(store.state.fixtureState.locations)
+          ..addAll(convertToModelMap([targetLocationModel]))));
+
     store.dispatch(SetDataMultis(
         Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
-          ..addAll(convertToModelMap(newMultiOutlets))));
+          ..addAll(convertToModelMap(updatedMultiOutlets))));
 
     store.dispatch(
       SetCables(
@@ -136,22 +164,6 @@ ThunkAction<AppState> combineSelectedDataCablesIntoSneak(BuildContext context) {
     store.dispatch(SetSelectedCableIds(
         [...newSneaks, ...updatedChildren].map((cable) => cable.uid).toSet()));
   };
-}
-
-List<DataMultiModel> resolveDataMultiNameAndNumbers(
-    {required List<DataMultiModel> newMultis,
-    required Map<String, LocationModel> locations,
-    required Map<String, DataMultiModel> existingMultis}) {
-  return newMultis.map((multi) {
-    final associatedLocations =
-        multi.locationIds.map((id) => locations[id]).nonNulls.toList();
-    final nameAccumulator = associatedLocations
-        .mapIndexed(
-            (index, location) => location.getPrefixedDataMultiPatch(index + 1))
-        .toSet();
-
-    return multi;
-  }).toList();
 }
 
 ThunkAction<AppState> createNewFeederLoomV2(
@@ -182,10 +194,11 @@ ThunkAction<AppState> createNewFeederLoomV2(
     ];
 
     final newLoom = LoomModel(
-        uid: newLoomId,
-        loomClass: LoomClass.feeder,
-        type: LoomTypeModel(length: 0, type: LoomType.custom),
-        name: 'Unnamed Feeder');
+      uid: newLoomId,
+      loomClass: LoomClass.feeder,
+      type: LoomTypeModel(length: 0, type: LoomType.custom),
+      name: 'Unnamed Feeder',
+    );
 
     store.dispatch(SetCablesAndLooms(
       Map<String, CableModel>.from(store.state.fixtureState.cables)
@@ -198,6 +211,26 @@ ThunkAction<AppState> createNewFeederLoomV2(
       newCables.map((cable) => cable.uid).toSet(),
     ));
   };
+}
+
+/// Will return the matching Location from [existingLocations], if one cannot be found a new one will be created.
+LocationModel resolveTargetLocation(
+    Set<String> locationIds, Map<String, LocationModel> existingLocations) {
+  if (locationIds.length == 1) {
+    return existingLocations[locationIds.first]!;
+  }
+
+  // Check if we already have a matching Hybrid Location, otherwise create a new one.
+  return existingLocations.values.firstWhere(
+      (location) =>
+          location.isHybrid && location.matchesHybridLocation(locationIds),
+      orElse: () => LocationModel(
+          uid: getUid(),
+          color: NamedColors.purple,
+          hybridIds: locationIds,
+          name: locationIds
+              .map((id) => existingLocations[id]?.name ?? '')
+              .join(', ')));
 }
 
 ThunkAction<AppState> createNewExtensionLoomV2(
@@ -214,8 +247,40 @@ ThunkAction<AppState> createNewExtensionLoomV2(
       type: LoomTypeModel(length: 0, type: LoomType.custom),
     );
 
-    final clonedCables = cables.map((cable) => cable.copyWith(
-        uid: getUid(), loomId: newLoom.uid, upstreamId: cable.uid));
+    final cableFamilies = CableFamily.createFamilies(cables);
+
+    final clonedFamilies = cableFamilies.map((family) {
+      if (family.children.isEmpty) {
+        // Standard Cable
+        return family.copyWith(
+            parent: family.parent.copyWith(
+          uid: getUid(),
+          upstreamId: family.parent.uid,
+          loomId: newLoom.uid,
+        ));
+      } else {
+        // Multi Cable with Children.
+        final clonedParent = family.parent.copyWith(
+          uid: getUid(),
+          upstreamId: family.parent.uid,
+          loomId: newLoom.uid,
+        );
+
+        return family.copyWith(
+          parent: clonedParent,
+          children: family.children
+              .map((child) => child.copyWith(
+                    uid: getUid(),
+                    parentMultiId: clonedParent.uid,
+                    upstreamId: child.uid,
+                    loomId: newLoom.uid,
+                  ))
+              .toList(),
+        );
+      }
+    });
+
+    final clonedCables = CableFamily.flattened(clonedFamilies);
 
     store.dispatch(SetCablesAndLooms(
         Map<String, CableModel>.from(store.state.fixtureState.cables)
@@ -753,20 +818,30 @@ ThunkAction<AppState> deleteLoomV2(BuildContext context, String uid) {
         .where((cable) => cable.loomId == loom.uid)
         .toList();
 
-    // Delete only the loom and break the cables free if the cables are not extensions, otherwise. Delete the cables as well.
-    final updatedLooms =
-        Map<String, LoomModel>.from(store.state.fixtureState.looms)
-          ..remove(uid);
+    // If we are deleting any Sneaks, we will also need to delete their corresponding DataMutliOutlet.
+    final dataMultiIdsToRemove = allChildCables
+        .where((cable) => cable.type == CableType.sneak)
+        .map((cable) => cable.outletId)
+        .toSet();
 
-    final updatedCables =
-        Map<String, CableModel>.from(store.state.fixtureState.cables);
+    final cableIdsToRemove = allChildCables.map((cable) => cable.uid).toSet();
 
-    // Delete the cables that need to be deleted.
-    final deleteIds = allChildCables.map((cable) => cable.uid).toSet();
-    updatedCables.removeWhere((key, value) => deleteIds.contains(key));
+    // Delete Cables and Loom
+    store.dispatch(SetCablesAndLooms(
+      Map<String, CableModel>.from(store.state.fixtureState.cables)
+        ..removeWhere((key, value) => cableIdsToRemove.contains(key)),
+      Map<String, LoomModel>.from(store.state.fixtureState.looms)
+        ..remove(loom.uid),
+    ));
+
+    // Optionally remove any corresponding DataMulti Outlets.
+    if (dataMultiIdsToRemove.isNotEmpty) {
+      store.dispatch(SetDataMultis(
+          Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
+            ..removeWhere((key, value) => dataMultiIdsToRemove.contains(key))));
+    }
 
     store.dispatch(SetSelectedCableIds({}));
-    store.dispatch(SetCablesAndLooms(updatedCables, updatedLooms));
   };
 }
 

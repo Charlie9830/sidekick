@@ -30,7 +30,7 @@ void createDataMultiSheet({
       cables.values.groupListsBy((cable) => cable.parentMultiId);
 
   for (final (index, multi) in dataMultis.values.indexed) {
-    final locationColor = multi.locationIds.map((id) => locations[id]).first;
+    final locationColor = locations[multi.locationId]?.color;
 
     final namedColor =
         locationColor != null ? NamedColors.names[locationColor] ?? '' : '';

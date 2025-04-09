@@ -41,12 +41,19 @@ class LocationsContainer extends StatelessWidget {
             .where((outlet) => outlet.locationId == location.uid)
             .length,
         dataMultiCount: store.state.fixtureState.dataMultis.values
-            .where((multi) => multi.locationIds.contains(location.uid))
+            .where((multi) => multi.locationId == location.uid)
             .length,
         dataPatchCount: store.state.fixtureState.dataPatches.values
             .where((patch) =>
                 patch.locationId == location.uid && patch.isSpare == false)
             .length,
+        otherLocationNames: location.isHybrid
+            ? location.hybridIds
+                .map((id) => store.state.fixtureState.locations[id])
+                .nonNulls
+                .map((location) => location.name)
+                .toList()
+            : const [],
       );
     }).toList();
   }

@@ -8,10 +8,10 @@ class CableRowItem extends StatelessWidget {
   final String labelColor;
   final bool showTopBorder;
   final bool isSelected;
-  final bool hideLength;
   final bool disableLength;
   final int dmxUniverse;
   final String label;
+  final bool missingUpstreamCable;
   final void Function(String newValue)? onLengthChanged;
 
   const CableRowItem({
@@ -20,25 +20,24 @@ class CableRowItem extends StatelessWidget {
     required this.labelColor,
     this.showTopBorder = false,
     this.isSelected = false,
-    this.hideLength = false,
     this.disableLength = false,
     this.dmxUniverse = 0,
     this.label = '',
     this.onLengthChanged,
+    this.missingUpstreamCable = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final String length = cable.length.floor().toString();
+    final Color borderColor = Colors.grey.shade800;
 
     return Container(
       decoration: BoxDecoration(
         color: _getBackgroundColor(context),
         border: Border(
-          bottom: const BorderSide(color: Colors.grey),
-          top: showTopBorder
-              ? const BorderSide(color: Colors.grey)
-              : BorderSide.none,
+          bottom: BorderSide(color: borderColor),
+          top: showTopBorder ? BorderSide(color: borderColor) : BorderSide.none,
         ),
       ),
       child: Padding(
@@ -51,39 +50,36 @@ class CableRowItem extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 // Length
-                if (hideLength == false) ...[
-                  SizedBox(
-                      width: 100,
-                      child: disableLength
-                          ? const SizedBox()
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                SizedBox(
-                                  width: length.length >= 3 ? 42 : 36,
-                                  child: EditableTextField(
-                                    onChanged: (newValue) =>
-                                        onLengthChanged?.call(newValue),
-                                    selectAllOnFocus: true,
-                                    style:
-                                        Theme.of(context).textTheme.bodyMedium,
-                                    value: cable.length.floor().toString(),
-                                    suffix: 'm',
-                                  ),
+                SizedBox(
+                    width: 100,
+                    child: disableLength
+                        ? const Center(child: Text('-'))
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              SizedBox(
+                                width: length.length >= 3 ? 42 : 36,
+                                child: EditableTextField(
+                                  onChanged: (newValue) =>
+                                      onLengthChanged?.call(newValue),
+                                  selectAllOnFocus: true,
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                  value: cable.length.floor().toString(),
+                                  suffix: 'm',
                                 ),
-                                if (cable.length == 0)
-                                  const Tooltip(
-                                    waitDuration: Duration(milliseconds: 500),
-                                    message: 'Invalid Length',
-                                    child: Icon(Icons.error,
-                                        color: Colors.orangeAccent),
-                                  )
-                              ],
-                            )),
-                  const VerticalDivider(
-                    color: Colors.grey,
-                  ),
-                ],
+                              ),
+                              if (cable.length == 0)
+                                const Tooltip(
+                                  waitDuration: Duration(milliseconds: 500),
+                                  message: 'Invalid Length',
+                                  child: Icon(Icons.error,
+                                      color: Colors.orangeAccent),
+                                )
+                            ],
+                          )),
+                VerticalDivider(
+                  color: borderColor,
+                ),
 
                 // Cable Type
                 SizedBox(
@@ -93,10 +89,6 @@ class CableRowItem extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            // Multi Cable Child Offset.
-                            if (cable.parentMultiId.isNotEmpty)
-                              const SizedBox(width: 16),
-
                             switch (cable.type) {
                               CableType.socapex => const Icon(
                                   Icons.electric_bolt,
@@ -123,13 +115,13 @@ class CableRowItem extends StatelessWidget {
                         ),
                       ],
                     )),
-                const VerticalDivider(
-                  color: Colors.grey,
+                VerticalDivider(
+                  color: borderColor,
                 ),
 
                 // Label
                 SizedBox(
-                    width: 120,
+                    width: 200,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -142,21 +134,28 @@ class CableRowItem extends StatelessWidget {
                                   .bodyMedium!
                                   .copyWith(color: Colors.grey)),
                         const Spacer(),
+                        if (cable.upstreamId.isNotEmpty)
+                          missingUpstreamCable
+                              ? const _MissingUpstreamCableIcon()
+                              : const CableFlag(
+                                  text: 'Ext',
+                                  color: Colors.blueAccent,
+                                ),
                         if (cable.isSpare)
                           const CableFlag(
                             text: 'Spare',
                             color: Colors.pink,
-                          )
+                          ),
                       ],
                     )),
-                const VerticalDivider(
-                  color: Colors.grey,
+                VerticalDivider(
+                  color: borderColor,
                 ),
 
                 // Color
                 SizedBox(width: 100, child: Text(labelColor)),
-                const VerticalDivider(
-                  color: Colors.grey,
+                VerticalDivider(
+                  color: borderColor,
                 ),
 
                 Expanded(
@@ -202,4 +201,16 @@ String _humanFriendlyType(CableType type, {bool isSneakChild = false}) {
     CableType.wieland6way => '6way',
     CableType.unknown => "Unknown",
   };
+}
+
+class _MissingUpstreamCableIcon extends StatelessWidget {
+  const _MissingUpstreamCableIcon({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Tooltip(
+        message:
+            "The upstream leg of this cable, eg: The feeder, has been deleted.",
+        child: Icon(Icons.link_off, color: Colors.redAccent));
+  }
 }
