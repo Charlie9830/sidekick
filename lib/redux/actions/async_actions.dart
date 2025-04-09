@@ -65,7 +65,44 @@ import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-ThunkAction<AppState> combineSelectedDataCablesIntoSneak(BuildContext context) {
+ThunkAction<AppState> splitSelectedSneakIntoDmxV2(BuildContext context) {
+  return (Store<AppState> store) async {
+    final sneakCables = store.state.navstate.selectedCableIds
+        .map((id) => store.state.fixtureState.cables[id])
+        .nonNulls
+        .where((cable) => cable.type == CableType.sneak);
+
+    if (sneakCables.isEmpty) {
+      return;
+    }
+
+    // Determine if we need to remove any Data Multis. This should only be the case where we are splitting a Feeder Sneak.
+    final dataMultisToRemove = sneakCables
+        .where((cable) => cable.upstreamId.isEmpty)
+        .map((cable) => cable.outletId)
+        .toSet();
+
+    final sneakIds = sneakCables.map((cable) => cable.uid).toSet();
+
+    final associatedChildren = store.state.fixtureState.cables.values
+        .where((cable) => sneakIds.contains(cable.parentMultiId));
+
+    store.dispatch(
+        SetCables(Map<String, CableModel>.from(store.state.fixtureState.cables)
+          ..addAll(convertToModelMap(associatedChildren
+              .map((child) => child.copyWith(parentMultiId: ''))))
+          ..removeWhere((key, value) => sneakIds.contains(key))));
+
+    if (dataMultisToRemove.isNotEmpty) {
+      SetDataMultis(
+          Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
+            ..removeWhere((key, value) => dataMultisToRemove.contains(key)));
+    }
+  };
+}
+
+ThunkAction<AppState> combineSelectedDataCablesIntoSneakV2(
+    BuildContext context) {
   return (Store<AppState> store) async {
     final validCables = store.state.navstate.selectedCableIds
         .map((id) => store.state.fixtureState.cables[id])
@@ -635,7 +672,7 @@ ThunkAction<AppState> addSpareCablesToLoom(
   };
 }
 
-ThunkAction<AppState> splitSneakIntoDmx(
+ThunkAction<AppState> splitSneakIntoDmxV2(
     BuildContext context, Set<String> cableIds) {
   return (Store<AppState> store) async {
     final validCables = cableIds
