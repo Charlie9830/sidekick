@@ -3,7 +3,7 @@ import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/view_models/cable_view_model.dart';
-import 'package:sidekick/view_models/loom_item_view_model.dart';
+import 'package:sidekick/view_models/loom_view_model.dart';
 
 class LoomsV2ViewModel {
   final List<OutletViewModel> outlets;

@@ -19,7 +19,7 @@ import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/looms/looms_v2.dart';
 import 'package:sidekick/view_models/cable_view_model.dart';
-import 'package:sidekick/view_models/loom_item_view_model.dart';
+import 'package:sidekick/view_models/loom_view_model.dart';
 import 'package:sidekick/view_models/looms_v2_view_model.dart';
 
 class LoomsV2Container extends StatelessWidget {
@@ -170,8 +170,6 @@ List<LoomViewModel> _selectLoomRows(
 
       return LoomViewModel(
           loom: loom,
-          upperDivider: index == 0 ? DividerViewModel(index: index) : null,
-          lowerDivider: DividerViewModel(index: index),
           loomsOnlyIndex: index,
           hasVariedLengthChildren:
               childCables.map((cable) => cable.length).toSet().length > 1,

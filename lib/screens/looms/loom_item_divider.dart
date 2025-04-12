@@ -4,11 +4,16 @@ import 'package:sidekick/screens/looms/drop_target_overlays/new_loom_drop_target
 import 'package:sidekick/view_models/looms_v2_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';
 
+const double _kDefaultClosedHeight = 24;
+const double _kExpandedClosedHeight = 124;
+
 class LoomItemDivider extends StatefulWidget {
+  final bool expand;
   const LoomItemDivider({
     super.key,
     required this.onDropAsFeeder,
     required this.onDropAsExtension,
+    this.expand = false,
   });
 
   final void Function(List<OutletViewModel> outlets) onDropAsFeeder;
@@ -24,7 +29,7 @@ class _LoomItemDividerState extends State<LoomItemDivider>
 
   late AnimationController _controller;
 
-  late final Animation<double> _height;
+  late Animation<double> _height;
 
   late final Animation<double> _opacity;
 
@@ -33,18 +38,22 @@ class _LoomItemDividerState extends State<LoomItemDivider>
     _controller = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 125));
 
-    _height = Tween<double>(
-      begin: 24,
-      end: 92,
-    ).animate(CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0, 0.75, curve: Curves.easeInOut)));
+    _initializeHeightAnimation();
 
     _opacity = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(
         parent: _controller,
         curve: const Interval(0.75, 1, curve: Curves.easeInOut)));
 
     super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant LoomItemDivider oldWidget) {
+    if (oldWidget.expand != widget.expand) {
+      _initializeHeightAnimation();
+    }
+
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -80,6 +89,18 @@ class _LoomItemDividerState extends State<LoomItemDivider>
                         )
                       : const SizedBox.shrink())),
         ));
+  }
+
+  void _initializeHeightAnimation() {
+    print('Initializing to status of ${widget.expand}');
+    _height = Tween<double>(
+      begin: widget.expand ? _kExpandedClosedHeight : _kDefaultClosedHeight,
+      end: 92,
+    ).animate(
+      CurvedAnimation(
+          parent: _controller,
+          curve: const Interval(0, 0.75, curve: Curves.easeInOut)),
+    );
   }
 
   Future<void> _playForward() async {

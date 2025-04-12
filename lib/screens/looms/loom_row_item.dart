@@ -5,7 +5,7 @@ import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/screens/diffing/change_overlay.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/screens/looms/cable_flag.dart';
-import 'package:sidekick/view_models/loom_item_view_model.dart';
+import 'package:sidekick/view_models/loom_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';
 
 class LoomRowItem extends StatefulWidget {

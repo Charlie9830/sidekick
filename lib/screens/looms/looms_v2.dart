@@ -15,7 +15,7 @@ import 'package:sidekick/screens/looms/looms_toolbar_contents.dart';
 import 'package:sidekick/screens/looms/no_looms_hover_fallback.dart';
 import 'package:sidekick/screens/looms/outlet_list_tile.dart';
 import 'package:sidekick/view_models/cable_view_model.dart';
-import 'package:sidekick/view_models/loom_item_view_model.dart';
+import 'package:sidekick/view_models/loom_view_model.dart';
 import 'package:sidekick/view_models/looms_v2_view_model.dart';
 import 'package:sidekick/widgets/toolbar.dart';
 
@@ -111,13 +111,15 @@ class _LoomsV2State extends State<LoomsV2> {
                   child: widget.vm.loomVms.isNotEmpty
                       ? ReorderableListView.builder(
                           buildDefaultDragHandles: false,
+                          footer: const SizedBox(height: 56),
                           proxyDecorator: _wrapReorderableItemProxyDecorations,
                           onReorder: widget.vm.onLoomReorder,
                           itemCount: widget.vm.loomVms.length,
                           itemBuilder: (BuildContext context, int index) {
                             return _buildRow(
-                              widget.vm.loomVms[index],
-                              index,
+                              loomVm: widget.vm.loomVms[index],
+                              index: index,
+                              isLastRow: index == widget.vm.loomVms.length - 1,
                             );
                           })
                       : NoLoomsHoverFallback(
@@ -176,28 +178,39 @@ class _LoomsV2State extends State<LoomsV2> {
         .mapIndexed((index, id) => MapEntry(id, index)));
   }
 
-  Widget _buildRow(LoomViewModel loomVm, int index) {
+  Widget _buildRow({
+    required LoomViewModel loomVm,
+    required int index,
+    required bool isLastRow,
+  }) {
+    // Helper Function to wrap multiple Divider build Calls.
+    buildDivider({
+      required int dividerIndex,
+      bool expand = false,
+    }) =>
+        LoomItemDivider(
+            expand: expand,
+            onDropAsFeeder: (outletVms) =>
+                _handleCreateNewFeederLoom(outletVms, dividerIndex),
+            onDropAsExtension: (cableIds) =>
+                _handleCreateNewExtensionLoom(cableIds, dividerIndex));
+
     return Column(
-      key: Key(loomVm.uid),
+      key: Key(loomVm.loom.uid),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
         // Upper Divider
-        if (loomVm.upperDivider != null)
-          LoomItemDivider(
-              onDropAsFeeder: (outletVms) =>
-                  _handleCreateNewFeederLoom(outletVms, index),
-              onDropAsExtension: (cableIds) =>
-                  _handleCreateNewExtensionLoom(cableIds, index)),
+        if (index == 0) buildDivider(dividerIndex: index),
 
         // Loom Item.
         DragOverlayRegion(
-          key: Key(loomVm.uid),
+          key: Key(loomVm.loom.uid),
           childWhenDraggingOver: ModifyExistingLoomDropTargets(
             onOutletsAdded: (outletVms) => loomVm.addOutletsToLoom(
-                loomVm.uid, outletVms.map((item) => item.uid).toSet()),
+                loomVm.loom.uid, outletVms.map((item) => item.uid).toSet()),
             onCablesPlaced: (ids) =>
-                loomVm.onMoveCablesIntoLoom(loomVm.uid, ids),
+                loomVm.onMoveCablesIntoLoom(loomVm.loom.uid, ids),
           ),
           child: LoomRowItem(
               loomVm: loomVm,
@@ -225,12 +238,7 @@ class _LoomsV2State extends State<LoomsV2> {
         ),
 
         // Lower Divider
-        if (loomVm.lowerDivider != null)
-          LoomItemDivider(
-              onDropAsFeeder: (outletVms) =>
-                  _handleCreateNewFeederLoom(outletVms, index + 1),
-              onDropAsExtension: (cableIds) =>
-                  _handleCreateNewExtensionLoom(cableIds, index + 1))
+        buildDivider(dividerIndex: index + 2, expand: isLastRow),
       ],
     );
   }

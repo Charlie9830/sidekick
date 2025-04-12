@@ -2,13 +2,13 @@ import 'package:sidekick/data_selectors/select_show_cable_top_border.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/screens/looms/cable_row_item.dart';
 import 'package:sidekick/view_models/cable_view_model.dart';
-import 'package:sidekick/view_models/loom_item_view_model.dart';
+import 'package:sidekick/view_models/loom_view_model.dart';
 
 CableRowItem buildCableRowItem({
   required CableViewModel vm,
   required int index,
   required Set<String> selectedCableIds,
-  required List<LoomItemViewModel> rowVms,
+  required List<LoomViewModel> rowVms,
   LoomType? parentLoomType,
   required void Function() requestSelectionFocusCallback,
   required bool missingUpstreamCable,

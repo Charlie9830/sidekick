@@ -1,31 +1,8 @@
-import 'package:sidekick/diffing/diff_comparable.dart';
-import 'package:sidekick/redux/models/cable_model.dart';
-import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
-import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/view_models/cable_view_model.dart';
 
-abstract class LoomItemViewModel with DiffComparable {
-  final String uid;
-
-  LoomItemViewModel(this.uid);
-}
-
-class DividerViewModel extends LoomItemViewModel {
-  final int index;
-
-  DividerViewModel({required this.index}) : super(index.toString());
-
-  @override
-  Map<DiffPropertyName, Object> getDiffValues() {
-    return {};
-  }
-}
-
-class LoomViewModel extends LoomItemViewModel {
+class LoomViewModel {
   final LoomModel loom;
-  final DividerViewModel? upperDivider;
-  final DividerViewModel? lowerDivider;
   final int loomsOnlyIndex;
   final bool hasVariedLengthChildren;
   final String name;
@@ -59,16 +36,5 @@ class LoomViewModel extends LoomItemViewModel {
     required this.addOutletsToLoom,
     required this.onNameChanged,
     required this.onMoveCablesIntoLoom,
-    required this.upperDivider,
-    required this.lowerDivider,
-  }) : super(loom.uid);
-
-  @override
-  Map<DiffPropertyName, Object> getDiffValues() {
-    return Map<DiffPropertyName, Object>.from(loom.getDiffValues())
-      ..addAll({
-        DiffPropertyName.name: name,
-        DiffPropertyName.hasVariedLengthChildren: hasVariedLengthChildren,
-      });
-  }
+  });
 }
