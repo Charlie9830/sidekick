@@ -92,7 +92,6 @@ class _LoomItemDividerState extends State<LoomItemDivider>
   }
 
   void _initializeHeightAnimation() {
-    print('Initializing to status of ${widget.expand}');
     _height = Tween<double>(
       begin: widget.expand ? _kExpandedClosedHeight : _kDefaultClosedHeight,
       end: 92,
