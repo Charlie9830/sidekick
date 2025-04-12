@@ -2,7 +2,8 @@ import 'dart:convert';
 
 import 'package:sidekick/model_collection/model_collection_member.dart';
 
-class DataMultiModel extends ModelCollectionMember {
+class DataMultiModel extends ModelCollectionMember
+    implements Comparable<DataMultiModel> {
   @override
   final String uid;
   final String name;
@@ -71,5 +72,10 @@ class DataMultiModel extends ModelCollectionMember {
   @override
   int get hashCode {
     return uid.hashCode ^ name.hashCode ^ number.hashCode;
+  }
+
+  @override
+  int compareTo(DataMultiModel other) {
+    return number - other.number;
   }
 }

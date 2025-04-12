@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 
-class DataPatchModel extends ModelCollectionMember {
+class DataPatchModel extends ModelCollectionMember
+    implements Comparable<DataPatchModel> {
   @override
   final String uid;
   final String name;
@@ -120,5 +121,10 @@ class DataPatchModel extends ModelCollectionMember {
         isSpare.hashCode ^
         startsAtFixtureId.hashCode ^
         endsAtFixtureId.hashCode;
+  }
+
+  @override
+  int compareTo(DataPatchModel other) {
+    return number - other.number;
   }
 }

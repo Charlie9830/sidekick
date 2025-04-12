@@ -1,18 +1,24 @@
+import 'package:collection/collection.dart';
 import 'package:sidekick/model_collection/convert_to_model_map.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
+import 'package:sidekick/redux/models/data_multi_model.dart';
+import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
+import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   if (a is UpdateLoomName) {
     return state.copyWith(
-      looms: Map<String, LoomModel>.from(state.looms)..update(a.uid, (existing) => existing.copyWith(
-        name: a.value.trim(),
-      ))
-    );
+        looms: Map<String, LoomModel>.from(state.looms)
+          ..update(
+              a.uid,
+              (existing) => existing.copyWith(
+                    name: a.value.trim(),
+                  )));
   }
 
   if (a is SetDefaultPowerMulti) {
@@ -22,13 +28,19 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is UpdateCableLength) {
+    final updatedCables = Map<String, CableModel>.from(state.cables)
+      ..update(
+          a.uid,
+          (existing) => existing.copyWith(
+              length: double.tryParse(a.newLength.trim()) ?? existing.length));
+
     return state.copyWith(
-        cables: Map<String, CableModel>.from(state.cables)
-          ..update(
-              a.uid,
-              (existing) => existing.copyWith(
-                  length:
-                      double.tryParse(a.newLength.trim()) ?? existing.length)));
+      cables: assertCableOrderings(
+          cables: updatedCables,
+          powerMultis: state.powerMultiOutlets,
+          dataMultis: state.dataMultis,
+          dataPatches: state.dataPatches),
+    );
   }
 
   if (a is ToggleLoomDropperState) {
@@ -39,14 +51,12 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetCables) {
-    return state.copyWith(cables: a.cables);
-  }
-
-  if (a is UpdateCablesAndDataMultis) {
     return state.copyWith(
-      cables: a.cables,
-      dataMultis: a.dataMultis,
-    );
+        cables: assertCableOrderings(
+            cables: a.cables,
+            powerMultis: state.powerMultiOutlets,
+            dataMultis: state.dataMultis,
+            dataPatches: state.dataPatches));
   }
 
   if (a is UpdateLoomLength) {
@@ -55,7 +65,11 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is SetCablesAndLooms) {
     return state.copyWith(
-      cables: a.cables,
+      cables: assertCableOrderings(
+          cables: a.cables,
+          powerMultis: state.powerMultiOutlets,
+          dataMultis: state.dataMultis,
+          dataPatches: state.dataPatches),
       looms: a.looms,
     );
   }
@@ -152,13 +166,13 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is SetDataMultis) {
     return state.copyWith(
-      dataMultis: a.multis,
+      dataMultis: _assertDataMultiOrdering(a.multis, state.locations),
     );
   }
 
   if (a is SetDataPatches) {
     return state.copyWith(
-      dataPatches: a.patches,
+      dataPatches: _assertDataPatchOrdering(a.patches, state.locations),
     );
   }
 
@@ -182,7 +196,8 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is SetPowerMultiOutlets) {
     return state.copyWith(
-      powerMultiOutlets: a.multiOutlets,
+      powerMultiOutlets:
+          _assertPowerMultiOrdering(a.multiOutlets, state.locations),
     );
   }
 
@@ -249,6 +264,69 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
         (existing) =>
             existing.copyWith(type: existing.type.copyWith(length: newLength)),
       ),
-    cables: updatedCables,
+    cables: assertCableOrderings(
+        cables: updatedCables,
+        powerMultis: state.powerMultiOutlets,
+        dataMultis: state.dataMultis,
+        dataPatches: state.dataPatches),
   );
+}
+
+Map<String, PowerMultiOutletModel> _assertPowerMultiOrdering(
+    Map<String, PowerMultiOutletModel> multiOutlets,
+    Map<String, LocationModel> locations) {
+  final outletsByLocationId =
+      multiOutlets.values.groupListsBy((item) => item.locationId);
+
+  final sortedOutlets = locations.values
+      .map((location) => (outletsByLocationId[location.uid] ?? []).sorted())
+      .flattened;
+
+  return convertToModelMap(sortedOutlets);
+}
+
+Map<String, DataMultiModel> _assertDataMultiOrdering(
+    Map<String, DataMultiModel> multiOutlets,
+    Map<String, LocationModel> locations) {
+  final outletsByLocationId =
+      multiOutlets.values.groupListsBy((item) => item.locationId);
+
+  final sortedOutlets = locations.values
+      .map((location) => (outletsByLocationId[location.uid] ?? []).sorted())
+      .flattened;
+
+  return convertToModelMap(sortedOutlets);
+}
+
+Map<String, DataPatchModel> _assertDataPatchOrdering(
+    Map<String, DataPatchModel> dataPatches,
+    Map<String, LocationModel> locations) {
+  final patchesByLocationId =
+      dataPatches.values.groupListsBy((item) => item.locationId);
+
+  final sortedPatches = locations.values
+      .map((location) => (patchesByLocationId[location.uid] ?? []).sorted())
+      .flattened;
+
+  return convertToModelMap(sortedPatches);
+}
+
+Map<String, CableModel> assertCableOrderings({
+  required Map<String, CableModel> cables,
+  required Map<String, PowerMultiOutletModel> powerMultis,
+  required Map<String, DataMultiModel> dataMultis,
+  required Map<String, DataPatchModel> dataPatches,
+}) {
+  final cablesByOutletId = cables.values.groupListsBy((item) => item.outletId);
+  final orderedOutletIds = [
+    ...powerMultis.keys,
+    ...dataMultis.keys,
+    ...dataPatches.keys,
+  ];
+
+  final orderedCables = orderedOutletIds
+      .map((outletId) => cablesByOutletId[outletId] ?? [])
+      .flattened;
+
+  return convertToModelMap(orderedCables);
 }

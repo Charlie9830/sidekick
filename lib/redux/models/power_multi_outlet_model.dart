@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 
-class PowerMultiOutletModel extends ModelCollectionMember {
+class PowerMultiOutletModel extends ModelCollectionMember
+    implements Comparable<PowerMultiOutletModel> {
   @override
   final String uid;
   final String locationId;
@@ -95,5 +96,10 @@ class PowerMultiOutletModel extends ModelCollectionMember {
         number.hashCode ^
         desiredSpareCircuits.hashCode ^
         name.hashCode;
+  }
+
+  @override
+  int compareTo(PowerMultiOutletModel other) {
+    return number - other.number;
   }
 }
