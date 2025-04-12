@@ -43,9 +43,10 @@ class _LoomsV2State extends State<LoomsV2> {
           // Toolbar
           Toolbar(
               child: LoomsToolbarContents(
-                  onCombineIntoSneakPressed:
-                      widget.vm.onCombineSelectedDataCablesIntoSneak,
-                  onSplitSneakIntoDmxPressed: widget.vm.onSplitSneakIntoDmxPressed,)),
+            onCombineIntoSneakPressed:
+                widget.vm.onCombineSelectedDataCablesIntoSneak,
+            onSplitSneakIntoDmxPressed: widget.vm.onSplitSneakIntoDmxPressed,
+          )),
 
           // Body
           Expanded(
@@ -164,6 +165,8 @@ class _LoomsV2State extends State<LoomsV2> {
             childWhenDraggingOver: ModifyExistingLoomDropTargets(
               onOutletsAdded: (outletVms) => rowVm.addOutletsToLoom(
                   rowVm.uid, outletVms.map((item) => item.uid).toSet()),
+              onCablesPlaced: (ids) =>
+                  rowVm.onMoveCablesIntoLoom(rowVm.uid, ids),
             ),
             child: LoomRowItem(
                 loomVm: viewModel,

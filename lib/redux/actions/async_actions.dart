@@ -65,6 +65,41 @@ import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+ThunkAction<AppState> moveCablesIntoLoom(
+    BuildContext context, String targetLoomId, Set<String> cableIds) {
+  return (Store<AppState> store) async {
+    final sourceCables = cableIds
+        .map((id) => store.state.fixtureState.cables[id])
+        .nonNulls
+        .where((cable) => cable.loomId != targetLoomId)
+        .toList();
+
+    if (sourceCables.isEmpty) {
+      return;
+    }
+
+    final sourceCableIds = sourceCables.map((cable) => cable.uid).toSet();
+
+    final updatedCables = sourceCables.map((cable) {
+      if (cable.parentMultiId.isEmpty) {
+        return cable.copyWith(loomId: targetLoomId);
+      } else if (sourceCableIds.contains(cable.parentMultiId)) {
+        // Cable is a child of a Multi parent. But we are moving the multi parent as well.
+        // Therefore no special handling is required.
+        return cable.copyWith(loomId: targetLoomId);
+      } else {
+        // Cable is a child of a multi parent.. However we are not moving the parent.
+        // Therefore we should emancipate the child from it's parent.
+        return cable.copyWith(loomId: targetLoomId, parentMultiId: '');
+      }
+    }).toList();
+
+    store.dispatch(SetCables(
+        Map<String, CableModel>.from(store.state.fixtureState.cables)
+          ..addAll(convertToModelMap(updatedCables))));
+  };
+}
+
 ThunkAction<AppState> splitSelectedSneakIntoDmxV2(BuildContext context) {
   return (Store<AppState> store) async {
     final sneakCables = store.state.navstate.selectedCableIds

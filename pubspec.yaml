@@ -39,6 +39,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_redux: ^0.10.0
+  flutter_svg: ^2.0.17
   path: ^1.9.0
   path_provider: ^2.1.4
   pluto_grid: ^8.0.0
@@ -94,3 +95,4 @@ flutter:
   assets:
     - assets/excel/prg_power_patch.xlsx
     - assets/excel/prg_data_patch.xlsx
+    - assets/icons/place_item.svg

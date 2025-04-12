@@ -78,6 +78,6 @@ class _LandingPadState extends State<LandingPad> {
   Color? _resolveColor() {
     return _isHoveringOver && widget.enabled && _isAccepting
         ? Theme.of(context).buttonTheme.colorScheme!.inversePrimary
-        : Theme.of(context).cardColor;
+        : Theme.of(context).colorScheme.surfaceContainerHighest;
   }
 }

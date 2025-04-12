@@ -208,7 +208,8 @@ List<LoomItemViewModel> _selectLoomRows(
           addSpareCablesToLoom: () =>
               store.dispatch(addSpareCablesToLoom(context, loom.uid)),
           onNameChanged: (newValue) =>
-              store.dispatch(UpdateLoomName(loom.uid, newValue)));
+              store.dispatch(UpdateLoomName(loom.uid, newValue)),
+          onMoveCablesIntoLoom: (loomId, cableIds) => store.dispatch(moveCablesIntoLoom(context, loomId, cableIds)));
     },
   ).toList();
 

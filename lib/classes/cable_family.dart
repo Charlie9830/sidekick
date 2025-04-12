@@ -18,6 +18,10 @@ class CableFamily {
     );
   }
 
+  CableFamily.singleParent(
+    this.parent,
+  ) : children = const [];
+
   /// Will return a list of [CableFamily] where relevant child cables are folded into their parent cables.
   /// Children that have been folded will not appear in the top level collection.
   static List<CableFamily> createFamilies(Iterable<CableModel> cables) {
