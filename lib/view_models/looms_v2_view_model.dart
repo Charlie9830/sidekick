@@ -16,7 +16,7 @@ class LoomsV2ViewModel {
       onLoomsDraggingStateChanged;
   final void Function(List<String> outletIds, int insertIndex)
       onCreateNewFeederLoom;
-  final List<LoomItemViewModel> loomVms;
+  final List<LoomViewModel> loomVms;
   final Set<String> selectedCableIds;
   final void Function(Set<String> ids) onSelectCables;
   final void Function(List<String> cableIds, int insertIndex)

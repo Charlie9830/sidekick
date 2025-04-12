@@ -35,44 +35,40 @@ class LoomsV2Container extends StatelessWidget {
     }, converter: (Store<AppState> store) {
       final outlets = _selectOutlets(store);
 
-      final (loomVms, loomIndexMap) = _selectLoomRows(context, store);
-
       return LoomsV2ViewModel(
-        outlets: outlets,
-        loomsDraggingState: store.state.navstate.loomsDraggingState,
-        onLoomsDraggingStateChanged: (draggingState) =>
-            store.dispatch(SetLoomsDraggingState(draggingState)),
-        selectedLoomOutlets: store.state.navstate.selectedLoomOutlets,
-        selectedOutletVms: outlets
-            .where((outlet) =>
-                store.state.navstate.selectedLoomOutlets.contains(outlet.uid))
-            .toList(),
-        selectedCableIds: store.state.navstate.selectedCableIds,
-        onSelectCables: (ids) => store.dispatch(setSelectedCableIds(ids)),
-        onSelectedLoomOutletsChanged: (updateType, values) {
-          switch (updateType) {
-            case UpdateType.overwrite:
-              store.dispatch(SetSelectedLoomOutlets(values));
-              break;
-            case UpdateType.addIfAbsentElseRemove:
-              store.dispatch(SetSelectedLoomOutlets(
-                  store.state.navstate.selectedLoomOutlets.toSet()
-                    ..addAllIfAbsentElseRemove(values)));
-          }
-        },
-        onCombineSelectedDataCablesIntoSneak: () =>
-            store.dispatch(combineSelectedDataCablesIntoSneakV2(context)),
-        onSplitSneakIntoDmxPressed: () =>
-            store.dispatch(splitSelectedSneakIntoDmxV2(context)),
-        onCreateNewFeederLoom: (outletIds, insertIndex) => store
-            .dispatch(createNewFeederLoomV2(context, outletIds, insertIndex)),
-        onCreateNewExtensionLoom: (cableIds, insertIndex) => store
-            .dispatch(createNewExtensionLoomV2(context, cableIds, insertIndex)),
-        loomVms: loomVms,
-        onLoomReorder: (oldRawIndex, newRawIndex) => store.dispatch(
-            reorderLooms(context, loomIndexMap[oldRawIndex]!,
-                loomIndexMap[newRawIndex]!)),
-      );
+          outlets: outlets,
+          loomsDraggingState: store.state.navstate.loomsDraggingState,
+          onLoomsDraggingStateChanged: (draggingState) =>
+              store.dispatch(SetLoomsDraggingState(draggingState)),
+          selectedLoomOutlets: store.state.navstate.selectedLoomOutlets,
+          selectedOutletVms: outlets
+              .where((outlet) =>
+                  store.state.navstate.selectedLoomOutlets.contains(outlet.uid))
+              .toList(),
+          selectedCableIds: store.state.navstate.selectedCableIds,
+          onSelectCables: (ids) => store.dispatch(setSelectedCableIds(ids)),
+          onSelectedLoomOutletsChanged: (updateType, values) {
+            switch (updateType) {
+              case UpdateType.overwrite:
+                store.dispatch(SetSelectedLoomOutlets(values));
+                break;
+              case UpdateType.addIfAbsentElseRemove:
+                store.dispatch(SetSelectedLoomOutlets(
+                    store.state.navstate.selectedLoomOutlets.toSet()
+                      ..addAllIfAbsentElseRemove(values)));
+            }
+          },
+          onCombineSelectedDataCablesIntoSneak: () =>
+              store.dispatch(combineSelectedDataCablesIntoSneakV2(context)),
+          onSplitSneakIntoDmxPressed: () =>
+              store.dispatch(splitSelectedSneakIntoDmxV2(context)),
+          onCreateNewFeederLoom: (outletIds, insertIndex) => store
+              .dispatch(createNewFeederLoomV2(context, outletIds, insertIndex)),
+          onCreateNewExtensionLoom: (cableIds, insertIndex) => store.dispatch(
+              createNewExtensionLoomV2(context, cableIds, insertIndex)),
+          loomVms: _selectLoomRows(context, store),
+          onLoomReorder: (oldIndex, newIndex) =>
+              store.dispatch(reorderLooms(context, oldIndex, newIndex)));
     });
   }
 
@@ -121,10 +117,7 @@ class LoomsV2Container extends StatelessWidget {
   }
 }
 
-// Returns a tuple, The first item being the list of LoomItemVms, this list will contain Divider Vms as well as actual Loom Vms
-// The second item is a map relating the total index (Looms + Dividers) to the Loom only index (Counts looms only).
-// We use these to adjust the values that come from the ReorderableListView onReorder callback.
-(List<LoomItemViewModel> loomVms, Map<int, int> indexMap) _selectLoomRows(
+List<LoomViewModel> _selectLoomRows(
     BuildContext context, Store<AppState> store) {
   // Wrapper Function to wrap multiple similiar calls to Cable VM creation.
   CableViewModel wrapCableVm(CableModel cable) {
@@ -177,6 +170,8 @@ class LoomsV2Container extends StatelessWidget {
 
       return LoomViewModel(
           loom: loom,
+          upperDivider: index == 0 ? DividerViewModel(index: index) : null,
+          lowerDivider: DividerViewModel(index: index),
           loomsOnlyIndex: index,
           hasVariedLengthChildren:
               childCables.map((cable) => cable.length).toSet().length > 1,
@@ -222,39 +217,7 @@ class LoomsV2Container extends StatelessWidget {
     },
   ).toList();
 
-  if (loomVms.isEmpty) {
-    return ([], {});
-  }
-
-  final allVms = [
-    DividerViewModel(index: 0),
-    ...loomVms
-        .mapIndexed(
-            (index, element) => [element, DividerViewModel(index: index + 2)])
-        .flattened
-  ];
-
-  return (allVms, _buildGlobalToLocalLoomIndexMap(allVms));
-}
-
-Map<int, int> _buildGlobalToLocalLoomIndexMap(List<LoomItemViewModel> allVms) {
-  int lastLoomIndex = 0;
-
-  final entries = allVms.mapIndexed((index, element) {
-    final entry = switch (element) {
-      DividerViewModel _ => MapEntry(index, lastLoomIndex),
-      LoomViewModel vm => MapEntry(index, vm.loomsOnlyIndex),
-      Object o => throw 'Type of ${o.runtimeType} is not implemented in switch',
-    };
-
-    if (element is LoomViewModel) {
-      lastLoomIndex = element.loomsOnlyIndex;
-    }
-
-    return entry;
-  });
-
-  return Map<int, int>.fromEntries(entries);
+  return loomVms;
 }
 
 String _getLoomName(LoomModel loom, Store<AppState> store) {

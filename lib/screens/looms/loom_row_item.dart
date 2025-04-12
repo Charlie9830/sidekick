@@ -219,9 +219,9 @@ class _LoomRowItemState extends State<LoomRowItem> {
                                   icon: const Icon(Icons.delete),
                                   onPressed: () => widget.loomVm.onDelete()),
                               ReorderableDragStartListener(
-                                  index: widget.reorderableListViewIndex,
-                                  child: const Icon(Icons.drag_handle),),
-
+                                index: widget.reorderableListViewIndex,
+                                child: const Icon(Icons.drag_handle),
+                              ),
                               const SizedBox(width: 16),
                             ],
                           ))

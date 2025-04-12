@@ -176,52 +176,63 @@ class _LoomsV2State extends State<LoomsV2> {
         .mapIndexed((index, id) => MapEntry(id, index)));
   }
 
-  Widget _buildRow(LoomItemViewModel rowVm, int index) {
-    return switch (rowVm) {
-      LoomViewModel viewModel => Padding(
-          key: Key(rowVm.loom.uid),
-          padding: EdgeInsets.only(top: index != 0 ? 16 : 0),
-          child: DragOverlayRegion(
-            childWhenDraggingOver: ModifyExistingLoomDropTargets(
-              onOutletsAdded: (outletVms) => rowVm.addOutletsToLoom(
-                  rowVm.uid, outletVms.map((item) => item.uid).toSet()),
-              onCablesPlaced: (ids) =>
-                  rowVm.onMoveCablesIntoLoom(rowVm.uid, ids),
-            ),
-            child: LoomRowItem(
-                loomVm: viewModel,
-                reorderableListViewIndex: index,
-                onFocusDone: _requestSelectionFocus,
-                children: viewModel.children.mapIndexed((index, cableVm) {
-                  final cableWidget = buildCableRowItem(
-                      vm: cableVm,
-                      index: index,
-                      selectedCableIds: widget.vm.selectedCableIds,
-                      rowVms: widget.vm.loomVms,
-                      parentLoomType: viewModel.loom.type.type,
-                      requestSelectionFocusCallback: _requestSelectionFocus,
-                      missingUpstreamCable: cableVm.missingUpstreamCable);
-                  return LongPressDraggableProxy<CableDragData>(
-                    data: CableDragData(
-                      cableIds: widget.vm.selectedCableIds,
-                    ),
-                    feedback: Material(
-                        child: SizedBox(width: 700, child: cableWidget)),
-                    child:
-                        _wrapSelectionListener(vm: cableVm, child: cableWidget),
-                  );
-                }).toList()),
+  Widget _buildRow(LoomViewModel loomVm, int index) {
+    return Column(
+      key: Key(loomVm.uid),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Upper Divider
+        if (loomVm.upperDivider != null)
+          LoomItemDivider(
+              onDropAsFeeder: (outletVms) =>
+                  _handleCreateNewFeederLoom(outletVms, index),
+              onDropAsExtension: (cableIds) =>
+                  _handleCreateNewExtensionLoom(cableIds, index)),
+
+        // Loom Item.
+        DragOverlayRegion(
+          key: Key(loomVm.uid),
+          childWhenDraggingOver: ModifyExistingLoomDropTargets(
+            onOutletsAdded: (outletVms) => loomVm.addOutletsToLoom(
+                loomVm.uid, outletVms.map((item) => item.uid).toSet()),
+            onCablesPlaced: (ids) =>
+                loomVm.onMoveCablesIntoLoom(loomVm.uid, ids),
           ),
+          child: LoomRowItem(
+              loomVm: loomVm,
+              reorderableListViewIndex: index,
+              onFocusDone: _requestSelectionFocus,
+              children: loomVm.children.mapIndexed((index, cableVm) {
+                final cableWidget = buildCableRowItem(
+                    vm: cableVm,
+                    index: index,
+                    selectedCableIds: widget.vm.selectedCableIds,
+                    rowVms: widget.vm.loomVms,
+                    parentLoomType: loomVm.loom.type.type,
+                    requestSelectionFocusCallback: _requestSelectionFocus,
+                    missingUpstreamCable: cableVm.missingUpstreamCable);
+                return LongPressDraggableProxy<CableDragData>(
+                  data: CableDragData(
+                    cableIds: widget.vm.selectedCableIds,
+                  ),
+                  feedback:
+                      Material(child: SizedBox(width: 700, child: cableWidget)),
+                  child:
+                      _wrapSelectionListener(vm: cableVm, child: cableWidget),
+                );
+              }).toList()),
         ),
-      DividerViewModel divider => LoomItemDivider(
-          key: Key(divider.uid),
-          onDropAsFeeder: (outletVms) =>
-              _handleCreateNewFeederLoom(outletVms, divider.index),
-          onDropAsExtension: (cableIds) =>
-              _handleCreateNewExtensionLoom(cableIds, divider.index),
-        ),
-      _ => const Text('WOOOOPS'),
-    };
+
+        // Lower Divider
+        if (loomVm.lowerDivider != null)
+          LoomItemDivider(
+              onDropAsFeeder: (outletVms) =>
+                  _handleCreateNewFeederLoom(outletVms, index + 1),
+              onDropAsExtension: (cableIds) =>
+                  _handleCreateNewExtensionLoom(cableIds, index + 1))
+      ],
+    );
   }
 
   void _handleCreateNewFeederLoom(
