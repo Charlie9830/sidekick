@@ -65,6 +65,26 @@ import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+ThunkAction<AppState> reorderLooms(
+    BuildContext context, int oldIndex, int newIndex) {
+  return (Store<AppState> store) async {
+    print('$newIndex   :   $oldIndex');
+
+    final newList = store.state.fixtureState.looms.values.toList();
+    final movingItem = newList.removeAt(oldIndex);
+
+    if (newIndex > oldIndex) {
+      newList.insert(newIndex - 1, movingItem);
+    } else {
+      newList.insert(newIndex, movingItem);
+    }
+
+    store.dispatch(SetLooms(
+      Map<String, LoomModel>.from(convertToModelMap(newList))
+    ));
+  };
+}
+
 ThunkAction<AppState> moveCablesIntoLoom(
     BuildContext context, String targetLoomId, Set<String> cableIds) {
   return (Store<AppState> store) async {

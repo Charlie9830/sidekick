@@ -24,6 +24,7 @@ class DividerViewModel extends LoomItemViewModel {
 
 class LoomViewModel extends LoomItemViewModel {
   final LoomModel loom;
+  final int loomsOnlyIndex;
   final bool hasVariedLengthChildren;
   final String name;
   final List<CableViewModel> children;
@@ -39,23 +40,24 @@ class LoomViewModel extends LoomItemViewModel {
   final void Function(String newValue) onNameChanged;
   final void Function(String uid, Set<String> ids) onMoveCablesIntoLoom;
 
-  LoomViewModel({
-    required this.loom,
-    required this.hasVariedLengthChildren,
-    required this.children,
-    required this.onLengthChanged,
-    required this.onDelete,
-    required this.onDropperToggleButtonPressed,
-    required this.onSwitchType,
-    required this.addSelectedCablesToLoom,
-    required this.isValidComposition,
-    required this.name,
-    required this.addSpareCablesToLoom,
-    required this.onRepairCompositionButtonPressed,
-    required this.addOutletsToLoom,
-    required this.onNameChanged,
-    required this.onMoveCablesIntoLoom
-  }) : super(loom.uid);
+  LoomViewModel(
+      {required this.loom,
+      required this.loomsOnlyIndex,
+      required this.hasVariedLengthChildren,
+      required this.children,
+      required this.onLengthChanged,
+      required this.onDelete,
+      required this.onDropperToggleButtonPressed,
+      required this.onSwitchType,
+      required this.addSelectedCablesToLoom,
+      required this.isValidComposition,
+      required this.name,
+      required this.addSpareCablesToLoom,
+      required this.onRepairCompositionButtonPressed,
+      required this.addOutletsToLoom,
+      required this.onNameChanged,
+      required this.onMoveCablesIntoLoom})
+      : super(loom.uid);
 
   @override
   Map<DiffPropertyName, Object> getDiffValues() {

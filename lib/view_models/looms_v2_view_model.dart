@@ -23,7 +23,7 @@ class LoomsV2ViewModel {
       onCreateNewExtensionLoom;
   final void Function() onCombineSelectedDataCablesIntoSneak;
   final void Function() onSplitSneakIntoDmxPressed;
-
+  final void Function(int oldRawIndex, int newRawIndex) onLoomReorder;
 
   LoomsV2ViewModel({
     required this.outlets,
@@ -39,6 +39,7 @@ class LoomsV2ViewModel {
     required this.onCreateNewExtensionLoom,
     required this.onCombineSelectedDataCablesIntoSneak,
     required this.onSplitSneakIntoDmxPressed,
+    required this.onLoomReorder,
   });
 }
 

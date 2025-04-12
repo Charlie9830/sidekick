@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:sidekick/custom_icons.dart';
 import 'package:sidekick/screens/looms/drag_data.dart';
 import 'package:sidekick/screens/looms/landing_pad.dart';
 import 'package:sidekick/view_models/looms_v2_view_model.dart';
@@ -31,7 +32,7 @@ class ModifyExistingLoomDropTargets extends StatelessWidget {
             onWillAccept: (data) => data is OutletDragData,
           ),
           LandingPad(
-            icon: SvgPicture.asset('assets/icons/place_item.svg', height: 24, width: 24,),
+            icon: const PlaceItemIcon(),
             title: 'Move',
             onAccept: (data) {
               onCablesPlaced((data as CableDragData).cableIds);

@@ -12,6 +12,7 @@ class LoomRowItem extends StatefulWidget {
   final LoomViewModel loomVm;
   final List<Widget> children;
   final Set<PropertyDelta> deltas;
+  final int reorderableListViewIndex;
   final void Function() onFocusDone;
 
   const LoomRowItem({
@@ -19,6 +20,7 @@ class LoomRowItem extends StatefulWidget {
     required this.loomVm,
     required this.children,
     required this.onFocusDone,
+    required this.reorderableListViewIndex,
     this.deltas = const {},
   });
 
@@ -55,8 +57,12 @@ class _LoomRowItemState extends State<LoomRowItem> {
                     children: [
                       SizedBox(
                         width: 400,
-                        child: EditableTextField(value: widget.loomVm.name, style: Theme.of(context).textTheme.titleMedium,
-                        onChanged: (newValue) => widget.loomVm.onNameChanged(newValue),),
+                        child: EditableTextField(
+                          value: widget.loomVm.name,
+                          style: Theme.of(context).textTheme.titleMedium,
+                          onChanged: (newValue) =>
+                              widget.loomVm.onNameChanged(newValue),
+                        ),
                       ),
                       const Spacer(),
                       if (widget.loomVm.loom.type.type == LoomType.permanent &&
@@ -212,6 +218,11 @@ class _LoomRowItemState extends State<LoomRowItem> {
                               IconButton(
                                   icon: const Icon(Icons.delete),
                                   onPressed: () => widget.loomVm.onDelete()),
+                              ReorderableDragStartListener(
+                                  index: widget.reorderableListViewIndex,
+                                  child: const Icon(Icons.drag_handle),),
+
+                              const SizedBox(width: 16),
                             ],
                           ))
                     ],

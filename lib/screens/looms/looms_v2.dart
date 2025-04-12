@@ -109,10 +109,16 @@ class _LoomsV2State extends State<LoomsV2> {
                   onSelectionUpdated: _handleCableSelectionUpdate,
                   itemIndicies: _buildCableIndices(),
                   child: widget.vm.loomVms.isNotEmpty
-                      ? ListView.builder(
+                      ? ReorderableListView.builder(
+                          buildDefaultDragHandles: false,
+                          proxyDecorator: _wrapReorderableItemProxyDecorations,
+                          onReorder: widget.vm.onLoomReorder,
                           itemCount: widget.vm.loomVms.length,
                           itemBuilder: (BuildContext context, int index) {
-                            return _buildRow(widget.vm.loomVms[index], index);
+                            return _buildRow(
+                              widget.vm.loomVms[index],
+                              index,
+                            );
                           })
                       : NoLoomsHoverFallback(
                           onCreateNewLoom: (outletVms) =>
@@ -125,6 +131,20 @@ class _LoomsV2State extends State<LoomsV2> {
           )
         ],
       ),
+    );
+  }
+
+  Widget _wrapReorderableItemProxyDecorations(
+      Widget child, int index, Animation<double> animation) {
+    // When the Reoderable list Promotes one of it's items to a Hero widget. That widget will loose all its controller ancestors.
+    // So here we are re inserting dummy versions of those widgets into the tree.
+    return Material(
+      child: DragProxyController(
+          child: ItemSelectionContainer<String>(
+              selectedItems: const {},
+              onSelectionUpdated: (_, __) {},
+              itemIndicies: const <String, int>{},
+              child: child)),
     );
   }
 
@@ -170,6 +190,7 @@ class _LoomsV2State extends State<LoomsV2> {
             ),
             child: LoomRowItem(
                 loomVm: viewModel,
+                reorderableListViewIndex: index,
                 onFocusDone: _requestSelectionFocus,
                 children: viewModel.children.mapIndexed((index, cableVm) {
                   final cableWidget = buildCableRowItem(
@@ -185,8 +206,7 @@ class _LoomsV2State extends State<LoomsV2> {
                       cableIds: widget.vm.selectedCableIds,
                     ),
                     feedback: Material(
-                        child: Container(
-                            child: SizedBox(width: 700, child: cableWidget))),
+                        child: SizedBox(width: 700, child: cableWidget)),
                     child:
                         _wrapSelectionListener(vm: cableVm, child: cableWidget),
                   );
@@ -194,6 +214,7 @@ class _LoomsV2State extends State<LoomsV2> {
           ),
         ),
       DividerViewModel divider => LoomItemDivider(
+          key: Key(divider.uid),
           onDropAsFeeder: (outletVms) =>
               _handleCreateNewFeederLoom(outletVms, divider.index),
           onDropAsExtension: (cableIds) =>

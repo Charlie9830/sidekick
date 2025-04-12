@@ -72,13 +72,13 @@ class _LoomItemDividerState extends State<LoomItemDivider>
           builder: (context, child) => SizedBox(
               height: _height.value,
               child: Opacity(
-                  opacity: _opacity.value,
+                  opacity: 1,//_opacity.value,
                   child: _draggingOver
                       ? NewLoomDropTargetOverlay(
                           onDropAsFeeder: widget.onDropAsFeeder,
                           onDropAsExtension: widget.onDropAsExtension,
                         )
-                      : const SizedBox.shrink())),
+                      :  Container(height: 16, color: Colors.purpleAccent))),
         ));
   }
 
