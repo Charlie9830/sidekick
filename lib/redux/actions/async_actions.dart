@@ -45,6 +45,7 @@ import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
@@ -79,9 +80,8 @@ ThunkAction<AppState> reorderLooms(
       newList.insert(newIndex, movingItem);
     }
 
-    store.dispatch(SetLooms(
-      Map<String, LoomModel>.from(convertToModelMap(newList))
-    ));
+    store.dispatch(
+        SetLooms(Map<String, LoomModel>.from(convertToModelMap(newList))));
   };
 }
 
@@ -318,7 +318,12 @@ LocationModel resolveTargetLocation(
           location.isHybrid && location.matchesHybridLocation(locationIds),
       orElse: () => LocationModel(
           uid: getUid(),
-          color: NamedColors.purple,
+          color: LabelColorModel.combine(
+            locationIds
+                .map((id) => existingLocations[id]?.color)
+                .nonNulls
+                .toList(),
+          ),
           hybridIds: locationIds,
           name: locationIds
               .map((id) => existingLocations[id]?.name ?? '')

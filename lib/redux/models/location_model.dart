@@ -6,13 +6,15 @@ import 'package:collection/collection.dart';
 import 'package:sidekick/classes/named_colors.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
+import 'package:sidekick/redux/models/label_color_model.dart';
+import 'package:sidekick/redux/models/named_color_model.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
 
 class LocationModel extends ModelCollectionMember with DiffComparable {
   @override
   final String uid;
   final String name;
-  final Color color;
+  final LabelColorModel color;
   final String multiPrefix;
   final bool isPowerPatchLocked;
   final bool isDataPatchLocked;
@@ -37,7 +39,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
         multiPrefix = '',
         isDataPatchLocked = false,
         isPowerPatchLocked = false,
-        color = LocationModel.noColor,
+        color = const LabelColorModel.none(),
         delimiter = '',
         hybridIds = const {};
 
@@ -50,7 +52,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
   LocationModel copyWith({
     String? uid,
     String? name,
-    Color? color,
+    LabelColorModel? color,
     String? multiPrefix,
     bool? isPowerPatchLocked,
     bool? isDataPatchLocked,
@@ -112,7 +114,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
     return {
       'uid': uid,
       'name': name,
-      'color': color.value,
+      'color': color.toMap(),
       'multiPrefix': multiPrefix,
       'isPowerPatchLocked': isPowerPatchLocked,
       'isDataPatchLocked': isDataPatchLocked,
@@ -125,7 +127,9 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
     return LocationModel(
       uid: map['uid'] ?? '',
       name: map['name'] ?? '',
-      color: Color(map['color']),
+      color: map['color'] is int
+          ? const LabelColorModel.none()
+          : LabelColorModel.fromMap(map['color']),
       multiPrefix: map['multiPrefix'] ?? '',
       isPowerPatchLocked: map['isPowerPatchLocked'] ?? false,
       isDataPatchLocked: map['isDataPatchLocked'] ?? false,
@@ -146,8 +150,8 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
     return 'LocationModel(uid: $uid, name: $name, color: $color, multiPrefix: $multiPrefix)';
   }
 
-  static Color matchColor(String locationName) {
-    final lookup = <RegExp, Color>{
+  static LabelColorModel matchColor(String locationName) {
+    final lookup = <RegExp, NamedColorModel>{
       // Red
       RegExp(r'red', caseSensitive: false): NamedColors.red,
       RegExp(r'LX1', caseSensitive: false): NamedColors.red,
@@ -204,10 +208,12 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
         lookup.keys.firstWhereOrNull((regex) => regex.hasMatch(locationName));
 
     if (key == null) {
-      return LocationModel.noColor;
+      return const LabelColorModel.none();
     }
 
-    return lookup[key]!;
+    return LabelColorModel(colors: [
+      lookup[key]!,
+    ]);
   }
 
   static String matchMultiPrefix(String locationName) {

@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 
 class LocationsViewModel {
   final List<LocationItemViewModel> itemVms;
   final void Function(String location, String newValue) onMultiPrefixChanged;
-  final void Function(String locationId, Color color) onLocationColorChanged;
+  final void Function(String locationId, LabelColorModel color)
+      onLocationColorChanged;
   final void Function(String locationId, String newValue)
       onLocationDelimiterChanged;
 

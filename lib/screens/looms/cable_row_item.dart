@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/editable_text_field.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
+import 'package:sidekick/redux/models/label_color_model.dart';
+import 'package:sidekick/screens/locations/color_chit.dart';
 import 'package:sidekick/screens/looms/cable_flag.dart';
 
 class CableRowItem extends StatelessWidget {
   final CableModel cable;
-  final String labelColor;
+  final LabelColorModel labelColor;
   final bool showTopBorder;
   final bool isSelected;
   final bool disableLength;
@@ -153,7 +155,19 @@ class CableRowItem extends StatelessWidget {
                 ),
 
                 // Color
-                SizedBox(width: 100, child: Text(labelColor)),
+                //SizedBox(width: 100, child: Text(labelColor.name)),
+
+                // Color
+                SizedBox(
+                    width: 128,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 8,
+                      children: labelColor.colors
+                          .map((namedColor) =>
+                              ColorChit(color: namedColor.color, brightness: Brightness.dark,))
+                          .toList(),
+                    )),
                 VerticalDivider(
                   color: borderColor,
                 ),

@@ -79,25 +79,6 @@ class LoomModel extends ModelCollectionMember with DiffComparable {
     return 'LoomModel(uid: $uid)';
   }
 
-  static double matchLength(LocationModel? location) {
-    if (location == null) {
-      return 0;
-    }
-
-    final colorToLengthLookup = <Color, double>{
-      NamedColors.yellow: 50,
-      NamedColors.red: 45,
-      NamedColors.white: 40,
-      NamedColors.blue: 35,
-      NamedColors.orange: 30,
-      NamedColors.brown: 25,
-      NamedColors.grey: 20,
-      NamedColors.purple: 0,
-    };
-
-    return colorToLengthLookup[location.color] ?? 0;
-  }
-
   @override
   Map<DiffPropertyName, Object> getDiffValues() => {
         DiffPropertyName.length: type,

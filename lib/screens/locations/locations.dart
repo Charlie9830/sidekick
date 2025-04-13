@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/screens/locations/color_chit.dart';
 import 'package:sidekick/screens/locations/color_select_dialog.dart';
 import 'package:sidekick/screens/locations/hybrid_tag.dart';
+import 'package:sidekick/screens/locations/multi_color_chit.dart';
 import 'package:sidekick/view_models/locations_view_model.dart';
 import 'package:sidekick/widgets/icon_label.dart';
 import 'package:sidekick/widgets/property_field.dart';
@@ -16,7 +18,7 @@ class Locations extends StatelessWidget {
       child: DataTable(
           columns: const [
             DataColumn(label: Text('Name')),
-            DataColumn(label: Text('Colours')),
+            DataColumn(label: Text('Colours'), ),
             DataColumn(label: Text('Loom Prefix')),
             DataColumn(label: Text('Delimiter')),
             DataColumn(
@@ -51,14 +53,14 @@ class Locations extends StatelessWidget {
               // Colours
               DataCell(SizedBox(
                 height: 48,
-                width: 48,
+                width: 84,
                 child: InkWell(
                   onTap: () => _showColorPickerDialog(
                       context, item.location.uid, item.location.color),
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: ColorChit(
-                      color: item.location.color,
+                    padding: const EdgeInsets.all(8.0),
+                    child: MultiColorChit(
+                      value: item.location.color,
                     ),
                   ),
                 ),
@@ -75,7 +77,7 @@ class Locations extends StatelessWidget {
                 ),
               ),
 
-              // Delimiterx
+              // Delimiter
               DataCell(
                 withConstraint(
                   PropertyField(
@@ -97,7 +99,7 @@ class Locations extends StatelessWidget {
   }
 
   void _showColorPickerDialog(
-      BuildContext context, String id, Color color) async {
+      BuildContext context, String id, LabelColorModel color) async {
     final result = await showDialog(
         context: context, builder: (_) => ColorSelectDialog(color: color));
 
@@ -105,7 +107,7 @@ class Locations extends StatelessWidget {
       return;
     }
 
-    if (result is Color) {
+    if (result is LabelColorModel) {
       vm.onLocationColorChanged(id, result);
     }
   }

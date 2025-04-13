@@ -9,6 +9,7 @@ import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/import_settings_model.dart';
+import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
@@ -366,7 +367,7 @@ class UpdateLocationDelimiter {
 
 class UpdateLocationColor {
   final String locationId;
-  final Color newValue;
+  final LabelColorModel newValue;
 
   UpdateLocationColor(this.locationId, this.newValue);
 }

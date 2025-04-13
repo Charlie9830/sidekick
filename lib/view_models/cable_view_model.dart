@@ -1,9 +1,10 @@
 import 'package:sidekick/redux/models/cable_model.dart';
+import 'package:sidekick/redux/models/label_color_model.dart';
 
 class CableViewModel {
   final CableModel cable;
   final String locationId;
-  final String labelColor;
+  final LabelColorModel labelColor;
   final bool isExtension;
   final int universe;
   final String label;

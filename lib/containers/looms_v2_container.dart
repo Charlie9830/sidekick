@@ -13,6 +13,7 @@ import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
+import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
@@ -126,7 +127,7 @@ List<LoomViewModel> _selectLoomRows(
     return CableViewModel(
       cable: cable,
       locationId: associatedLocation?.uid ?? '',
-      labelColor: NamedColors.names[associatedLocation?.color] ?? '',
+      labelColor: associatedLocation?.color ?? const LabelColorModel.none(),
       isExtension: cable.upstreamId.isNotEmpty,
       universe: selectDmxUniverse(store.state.fixtureState, cable),
       missingUpstreamCable: cable.upstreamId.isNotEmpty
