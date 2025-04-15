@@ -1,6 +1,5 @@
 import 'package:collection/collection.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
-import 'package:sidekick/model_collection/convert_to_model_map.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
@@ -187,12 +186,15 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   if (a is SetLocations) {
     return state.copyWith(
       locations: a.locations,
-      dataMultis: convertToModelMap(
-          _assertOutletNameAndNumbers(state.dataMultis.values, a.locations)),
-      powerMultiOutlets: convertToModelMap(_assertOutletNameAndNumbers(
-          state.powerMultiOutlets.values, a.locations)),
-      dataPatches: convertToModelMap(
-          _assertOutletNameAndNumbers(state.dataPatches.values, a.locations)),
+      dataMultis: _assertOutletNameAndNumbers<DataMultiModel>(
+              state.dataMultis.values, a.locations)
+          .toModelMap(),
+      powerMultiOutlets: _assertOutletNameAndNumbers<PowerMultiOutletModel>(
+              state.powerMultiOutlets.values, a.locations)
+          .toModelMap(),
+      dataPatches: _assertOutletNameAndNumbers<DataPatchModel>(
+              state.dataPatches.values, a.locations)
+          .toModelMap(),
     );
   }
 
@@ -293,8 +295,9 @@ Map<String, PowerMultiOutletModel> _assertPowerMultiState(
       .map((location) => (outletsByLocationId[location.uid] ?? []).sorted())
       .flattened;
 
-  return convertToModelMap(
-      _assertOutletNameAndNumbers(sortedOutlets, locations));
+  return _assertOutletNameAndNumbers<PowerMultiOutletModel>(
+          sortedOutlets, locations)
+      .toModelMap();
 }
 
 Map<String, DataMultiModel> _assertDataMultiState(
@@ -307,8 +310,8 @@ Map<String, DataMultiModel> _assertDataMultiState(
       .map((location) => (outletsByLocationId[location.uid] ?? []).sorted())
       .flattened;
 
-  return convertToModelMap(
-      _assertOutletNameAndNumbers(sortedOutlets, locations));
+  return _assertOutletNameAndNumbers<DataMultiModel>(sortedOutlets, locations)
+      .toModelMap();
 }
 
 Map<String, DataPatchModel> _assertDataPatchState(
@@ -321,8 +324,8 @@ Map<String, DataPatchModel> _assertDataPatchState(
       .map((location) => (patchesByLocationId[location.uid] ?? []).sorted())
       .flattened;
 
-  return convertToModelMap(
-      _assertOutletNameAndNumbers(sortedPatches, locations));
+  return _assertOutletNameAndNumbers<DataPatchModel>(sortedPatches, locations)
+      .toModelMap();
 }
 
 Map<String, CableModel> _assertCableOrderings({
@@ -346,7 +349,7 @@ Map<String, CableModel> _assertCableOrderings({
 }
 
 List<T> _assertOutletNameAndNumbers<T extends Outlet>(
-    Iterable<T> outlets, Map<String, LocationModel> locations) {
+    Iterable<Outlet> outlets, Map<String, LocationModel> locations) {
   final typedOutlets = outlets.whereType<T>();
 
   final outletsByLocationId =

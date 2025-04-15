@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
-import 'package:sidekick/model_collection/convert_to_model_map.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:excel/excel.dart';
 

@@ -37,7 +37,7 @@ import 'package:sidekick/generic_dialog/show_generic_dialog.dart';
 import 'package:sidekick/global_keys.dart';
 import 'package:sidekick/helpers/combine_dmx_into_sneak.dart';
 import 'package:sidekick/import_merging/merge_fixtures.dart';
-import 'package:sidekick/model_collection/convert_to_model_map.dart';
+import 'package:sidekick/model_collection/convert_to_map_entry.dart';
 import 'package:sidekick/persistent_settings/fetch_persistent_settings.dart';
 import 'package:sidekick/persistent_settings/init_persistent_settings_storage.dart';
 import 'package:sidekick/persistent_settings/updatePersistentSettings.dart';

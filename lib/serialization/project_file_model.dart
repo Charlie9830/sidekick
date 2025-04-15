@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-import 'package:sidekick/model_collection/convert_to_model_map.dart';
+import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
@@ -151,18 +151,18 @@ class ProjectFileModel {
     bool? honorDataSpans,
   }) {
     return FixtureState(
-        fixtures: convertToModelMap(fixtures),
+        fixtures: fixtures.toModelMap(),
         outlets: outlets,
-        powerMultiOutlets: convertToModelMap(powerMultiOutlets),
+        powerMultiOutlets: powerMultiOutlets.toModelMap(),
         balanceTolerance: balanceTolerance,
         maxSequenceBreak: maxSequenceBreak,
-        locations: convertToModelMap(locations),
-        dataMultis: convertToModelMap(dataMultis),
-        dataPatches: convertToModelMap(dataPatches),
-        looms: convertToModelMap(looms),
+        locations: locations.toModelMap(),
+        dataMultis: dataMultis.toModelMap(),
+        dataPatches: dataPatches.toModelMap(),
+        looms: looms.toModelMap(),
         fixtureTypes: fixtureTypes ?? FixtureState.initial().fixtureTypes,
         honorDataSpans: honorDataSpans ?? FixtureState.initial().honorDataSpans,
-        cables: convertToModelMap(cables),
+        cables: cables.toModelMap(),
         defaultPowerMulti: defaultPowerMulti);
   }
 }

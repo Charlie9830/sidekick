@@ -4,7 +4,6 @@ import 'package:collection/collection.dart';
 import 'package:excel/excel.dart';
 import 'package:sidekick/excel/excel_columns.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
-import 'package:sidekick/model_collection/convert_to_model_map.dart';
 import 'package:sidekick/redux/models/dmx_address_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';

@@ -1,5 +1,4 @@
 import 'package:sidekick/extension_methods/to_model_map.dart';
-import 'package:sidekick/model_collection/convert_to_model_map.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/import_settings_model.dart';
 
