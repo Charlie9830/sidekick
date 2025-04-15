@@ -6,6 +6,7 @@ class LandingPad extends StatefulWidget {
   final Widget icon;
   final String title;
   final bool enabled;
+  final Widget? infoTag;
 
   final void Function(DragData data) onAccept;
   final bool Function(DragData onWillAccept) onWillAccept;
@@ -16,6 +17,7 @@ class LandingPad extends StatefulWidget {
     required this.title,
     required this.onAccept,
     required this.onWillAccept,
+    this.infoTag,
     this.enabled = true,
   });
 
@@ -39,14 +41,25 @@ class _LandingPadState extends State<LandingPad> {
             return Card(
               elevation: 10,
               color: _resolveColor(),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  widget.icon,
-                  Text(
-                    widget.title,
-                    textAlign: TextAlign.center,
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      widget.icon,
+                      Text(
+                        widget.title,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
+                  if (widget.infoTag != null)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: widget.infoTag!,
+                    )
                 ],
               ),
             );

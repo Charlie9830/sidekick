@@ -7,6 +7,8 @@ import 'package:sidekick/enums.dart';
 import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
+import 'package:sidekick/modifier_key_listener.dart';
+import 'package:sidekick/modifier_key_provider.dart';
 import 'package:sidekick/screens/looms/drag_data.dart';
 import 'package:sidekick/screens/looms/drop_target_overlays/modify_existing_loom_drop_targets.dart';
 import 'package:sidekick/screens/looms/loom_item_divider.dart';
@@ -36,102 +38,108 @@ class _LoomsV2State extends State<LoomsV2> {
 
   @override
   Widget build(BuildContext context) {
-    return DragProxyController(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Toolbar
-          Toolbar(
-              child: LoomsToolbarContents(
-            onCombineIntoSneakPressed:
-                widget.vm.onCombineSelectedDataCablesIntoSneak,
-            onSplitSneakIntoDmxPressed: widget.vm.onSplitSneakIntoDmxPressed,
-          )),
+    return ModifierKeyProvider(
+      child: DragProxyController(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Toolbar
+            Toolbar(
+                child: LoomsToolbarContents(
+              onCombineIntoSneakPressed:
+                  widget.vm.onCombineSelectedDataCablesIntoSneak,
+              onSplitSneakIntoDmxPressed: widget.vm.onSplitSneakIntoDmxPressed,
+            )),
 
-          // Body
-          Expanded(
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 360,
-                  child: Card(
-                      child: ItemSelectionContainer<String>(
-                    focusNode: _outletsFocusNode,
-                    itemIndicies: Map<String, int>.fromEntries(widget.vm.outlets
-                        .mapIndexed(
-                            (index, outlet) => MapEntry(outlet.uid, index))),
-                    selectedItems: widget.vm.selectedLoomOutlets,
-                    onSelectionUpdated: widget.vm.onSelectedLoomOutletsChanged,
-                    mode: SelectionMode.multi,
-                    child: ListView.builder(
-                        itemCount: widget.vm.outlets.length,
-                        itemBuilder: (context, index) {
-                          final outletVm = widget.vm.outlets[index];
+            // Body
+            Expanded(
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 360,
+                    child: Card(
+                        child: ItemSelectionContainer<String>(
+                      focusNode: _outletsFocusNode,
+                      itemIndicies: Map<String, int>.fromEntries(
+                          widget.vm.outlets.mapIndexed(
+                              (index, outlet) => MapEntry(outlet.uid, index))),
+                      selectedItems: widget.vm.selectedLoomOutlets,
+                      onSelectionUpdated:
+                          widget.vm.onSelectedLoomOutletsChanged,
+                      mode: SelectionMode.multi,
+                      child: ListView.builder(
+                          itemCount: widget.vm.outlets.length,
+                          itemBuilder: (context, index) {
+                            final outletVm = widget.vm.outlets[index];
 
-                          if (outletVm is OutletDividerViewModel) {
-                            return _buildOutletDivider(outletVm);
-                          }
+                            if (outletVm is OutletDividerViewModel) {
+                              return _buildOutletDivider(outletVm);
+                            }
 
-                          final listTile = OutletListTile(
-                              isSelected: widget.vm.selectedLoomOutlets
-                                  .contains(outletVm.uid),
-                              key: Key(outletVm.uid),
-                              vm: outletVm);
+                            final listTile = OutletListTile(
+                                isSelected: widget.vm.selectedLoomOutlets
+                                    .contains(outletVm.uid),
+                                key: Key(outletVm.uid),
+                                vm: outletVm);
 
-                          return LongPressDraggableProxy<DragData>(
-                            maxSimultaneousDrags: outletVm.assigned ? 0 : null,
-                            data: OutletDragData(outletVms: {
-                              outletVm,
-                              ...widget.vm.selectedOutletVms,
-                            }),
-                            onDragStarted: _handleOutletDragStart,
-                            onDragCompleted: _handleOutletDragEnd,
-                            onDraggableCanceled: _handleOutletDragCancelled,
-                            feedback: Opacity(
-                              opacity: 0.5,
-                              child: Material(
-                                child: SizedBox(
-                                    width: 360, height: 56, child: listTile),
+                            return LongPressDraggableProxy<DragData>(
+                              maxSimultaneousDrags:
+                                  outletVm.assigned ? 0 : null,
+                              data: OutletDragData(outletVms: {
+                                outletVm,
+                                ...widget.vm.selectedOutletVms,
+                              }),
+                              onDragStarted: _handleOutletDragStart,
+                              onDragCompleted: _handleOutletDragEnd,
+                              onDraggableCanceled: _handleOutletDragCancelled,
+                              feedback: Opacity(
+                                opacity: 0.5,
+                                child: Material(
+                                  child: SizedBox(
+                                      width: 360, height: 56, child: listTile),
+                                ),
                               ),
-                            ),
-                            child: ItemSelectionListener(
-                              value: outletVm.uid,
-                              enabled: !outletVm.assigned,
-                              child: listTile,
-                            ),
-                          );
-                        }),
-                  )),
-                ),
-                Expanded(
-                    child: ItemSelectionContainer<String>(
-                  selectedItems: widget.vm.selectedCableIds,
-                  onSelectionUpdated: _handleCableSelectionUpdate,
-                  itemIndicies: _buildCableIndices(),
-                  child: widget.vm.loomVms.isNotEmpty
-                      ? ReorderableListView.builder(
-                          buildDefaultDragHandles: false,
-                          footer: const SizedBox(height: 56),
-                          proxyDecorator: _wrapReorderableItemProxyDecorations,
-                          onReorder: widget.vm.onLoomReorder,
-                          itemCount: widget.vm.loomVms.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            return _buildRow(
-                              loomVm: widget.vm.loomVms[index],
-                              index: index,
-                              isLastRow: index == widget.vm.loomVms.length - 1,
+                              child: ItemSelectionListener(
+                                value: outletVm.uid,
+                                enabled: !outletVm.assigned,
+                                child: listTile,
+                              ),
                             );
-                          })
-                      : NoLoomsHoverFallback(
-                          onCreateNewLoom: (outletVms) =>
-                              _handleCreateNewFeederLoom(outletVms,
-                                  0), // No Looms exist already so we can insert this at index 0.
-                        ),
-                )),
-              ],
-            ),
-          )
-        ],
+                          }),
+                    )),
+                  ),
+                  Expanded(
+                      child: ItemSelectionContainer<String>(
+                    selectedItems: widget.vm.selectedCableIds,
+                    onSelectionUpdated: _handleCableSelectionUpdate,
+                    itemIndicies: _buildCableIndices(),
+                    child: widget.vm.loomVms.isNotEmpty
+                        ? ReorderableListView.builder(
+                            buildDefaultDragHandles: false,
+                            footer: const SizedBox(height: 56),
+                            proxyDecorator:
+                                _wrapReorderableItemProxyDecorations,
+                            onReorder: widget.vm.onLoomReorder,
+                            itemCount: widget.vm.loomVms.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return _buildRow(
+                                loomVm: widget.vm.loomVms[index],
+                                index: index,
+                                isLastRow:
+                                    index == widget.vm.loomVms.length - 1,
+                              );
+                            })
+                        : NoLoomsHoverFallback(
+                            onCreateNewLoom: (outletVms) =>
+                                _handleCreateNewFeederLoom(outletVms,
+                                    0), // No Looms exist already so we can insert this at index 0.
+                          ),
+                  )),
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
