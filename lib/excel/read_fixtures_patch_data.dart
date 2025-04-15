@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:excel/excel.dart';
 import 'package:sidekick/excel/excel_columns.dart';
+import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/model_collection/convert_to_model_map.dart';
 import 'package:sidekick/redux/models/dmx_address_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
@@ -146,8 +147,8 @@ Future<FixturesDataReadResult> readFixturesPatchData({
     }
 
     return FixturesDataReadResult(
-      fixtures: convertToModelMap(fixtures),
-      locations: convertToModelMap(locationNameMap.values),
+      fixtures: fixtures.toModelMap(),
+      locations: locationNameMap.values.toModelMap(),
       inUseTypeIds: inUseTypeIds,
     );
   } on UnsupportedError catch (e) {
@@ -204,7 +205,6 @@ Future<FixturesDataReadResult> readFixturesPatchData({
     if (fid == null) {
       return (0, null);
 
-      
       return (0, "Invalid Fixture ID data at row $rowIndex");
     }
 

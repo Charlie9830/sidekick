@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/model_collection/convert_to_model_map.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
@@ -261,8 +262,11 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
       state.cables.values.where((cable) => cable.loomId == existingLoom.uid);
 
   final updatedCables = Map<String, CableModel>.from(state.cables)
-    ..addAll(convertToModelMap(
-        targetCables.map((cable) => cable.copyWith(length: newLength))));
+    ..addAll(targetCables
+        .map(
+          (cable) => cable.copyWith(length: newLength),
+        )
+        .toModelMap());
 
   return state.copyWith(
     looms: Map<String, LoomModel>.from(state.looms)
@@ -338,7 +342,7 @@ Map<String, CableModel> _assertCableOrderings({
       .map((outletId) => cablesByOutletId[outletId] ?? [])
       .flattened;
 
-  return convertToModelMap(orderedCables);
+  return orderedCables.toModelMap();
 }
 
 List<T> _assertOutletNameAndNumbers<T extends Outlet>(
