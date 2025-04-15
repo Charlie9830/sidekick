@@ -1,21 +1,13 @@
 import 'dart:convert';
+import 'package:sidekick/redux/models/outlet.dart';
 
-import 'package:sidekick/model_collection/model_collection_member.dart';
-
-class DataMultiModel extends ModelCollectionMember
-    implements Comparable<DataMultiModel> {
-  @override
-  final String uid;
-  final String name;
-  final String locationId;
-  final int number;
-
+class DataMultiModel extends Outlet implements Comparable<DataMultiModel> {
   DataMultiModel({
-    this.uid = '',
-    this.name = '',
-    this.locationId = '',
-    this.number = 0,
-  });
+    required String uid,
+    required String locationId,
+    String name = '',
+    int number = 0,
+  }) : super(uid: uid, locationId: locationId, number: number, name: name);
 
   DataMultiModel copyWith({
     String? uid,

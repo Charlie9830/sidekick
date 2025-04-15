@@ -4,3 +4,8 @@ enum LoomsDraggingState {
   idle,
   outletDragging,
 }
+
+enum CableActionModifier {
+  none,
+  combineIntoSneaks,
+}

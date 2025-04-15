@@ -14,7 +14,6 @@ import 'package:sidekick/balancer/naive_balancer.dart';
 import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/classes/cable_family.dart';
 import 'package:sidekick/classes/export_file_paths.dart';
-import 'package:sidekick/classes/named_colors.dart';
 import 'package:sidekick/classes/universe_span.dart';
 import 'package:sidekick/containers/import_manager_container.dart';
 import 'package:sidekick/data_selectors/select_outlets.dart';
@@ -35,6 +34,7 @@ import 'package:sidekick/extension_methods/queue_pop.dart';
 import 'package:sidekick/file_type_groups.dart';
 import 'package:sidekick/generic_dialog/show_generic_dialog.dart';
 import 'package:sidekick/global_keys.dart';
+import 'package:sidekick/helpers/combine_dmx_into_sneak.dart';
 import 'package:sidekick/import_merging/merge_fixtures.dart';
 import 'package:sidekick/model_collection/convert_to_model_map.dart';
 import 'package:sidekick/persistent_settings/fetch_persistent_settings.dart';
@@ -45,7 +45,6 @@ import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
-import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
@@ -162,104 +161,43 @@ ThunkAction<AppState> combineSelectedDataCablesIntoSneakV2(
     final validCables = store.state.navstate.selectedCableIds
         .map((id) => store.state.fixtureState.cables[id])
         .nonNulls
-        .where((cable) => cable.type == CableType.dmx);
-
-    // Find the Outlets associated with these cables.
-    final associatedOutlets = validCables
-        .map((cable) => store.state.fixtureState.dataPatches[cable.outletId])
-        .nonNulls
+        .where((cable) => cable.type == CableType.dmx)
         .toList();
 
-    // Group the cables by their Loom ID.
-    final cablesByLoomId = validCables.groupListsBy((cable) => cable.loomId);
-
-    // Determine the Target Location for cables, this could be an existing location, or a newly created hybrid location representing two or more locations.
-    // Similiar in nature to an SQL Join table.
-    final targetLocationModel = resolveTargetLocation(
-        associatedOutlets.map((outlet) => outlet.locationId).toSet(),
-        store.state.fixtureState.locations);
-
-    // Map through the Cables by Loom collection, returning a conjunction of the Sneak, its new outlet and the children to be assigned to it.
-    final List<
-            (CableModel sneak, DataMultiModel outlet, List<CableModel> children)>
-        newSneaksWithOutletsAndChildren = cablesByLoomId.entries
-            .map((entry) {
-              final loomId = entry.key;
-              final cablesInLoom = entry.value;
-              final inheritedLength =
-                  store.state.fixtureState.looms[loomId]?.type.length ?? 0;
-
-              final childSlices = cablesInLoom.slices(4);
-              return childSlices.map((slice) {
-                final newMultiOutlet = DataMultiModel(
-                  uid: getUid(),
-                  locationId: targetLocationModel.uid,
-                );
-
-                final newSneak = CableModel(
-                  uid: getUid(),
-                  type: CableType.sneak,
-                  length: inheritedLength,
-                  loomId: loomId,
-                  outletId: newMultiOutlet.uid,
-                );
-
-                final updatedChildren = slice
-                    .map((child) => child.copyWith(parentMultiId: newSneak.uid))
-                    .toList();
-
-                return (newSneak, newMultiOutlet, updatedChildren);
-              });
-            })
-            .flattened
-            .toList();
-
-    // Destructure each Sneak, Outlet and children collections.
-    final newSneaks = newSneaksWithOutletsAndChildren.map((item) => item.$1);
-    final newMultiOutlets =
-        newSneaksWithOutletsAndChildren.map((item) => item.$2);
-    final updatedChildren = newSneaksWithOutletsAndChildren
-        .map((item) => item.$3)
-        .flattened
-        .toList();
-
-    // We need to assign the correct label and number to each Multi we have created, therefore we need to first query a collection of
-    // all Multis in this location to properly provide the correct Label and Number.
-    final allMultiOutletsInLocation = [
-      ...store.state.fixtureState.dataMultis.values
-          .where((multi) => multi.locationId == targetLocationModel.uid),
-      ...newMultiOutlets,
-    ];
-
-    final updatedMultiOutlets = allMultiOutletsInLocation.mapIndexed(
-        (index, element) => element.copyWith(
-            number: index + 1,
-            name: targetLocationModel.getPrefixedDataMultiPatch(index + 1)));
+    final combinationResult = combineDmxIntoSneak(
+      validCables,
+      convertToModelMap([
+        ...store.state.fixtureState.dataMultis.values,
+        ...store.state.fixtureState.powerMultiOutlets.values,
+        ...store.state.fixtureState.dataPatches.values,
+      ]),
+      store.state.fixtureState.locations,
+    );
 
     store.dispatch(SetLocations(
         Map<String, LocationModel>.from(store.state.fixtureState.locations)
-          ..addAll(convertToModelMap([targetLocationModel]))));
+          ..addAll(convertToModelMap([combinationResult.location]))));
 
     store.dispatch(SetDataMultis(
         Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
-          ..addAll(convertToModelMap(updatedMultiOutlets))));
+          ..addAll(convertToModelMap(combinationResult.newDataMultis))));
 
     store.dispatch(
       SetCables(
         Map<String, CableModel>.from(store.state.fixtureState.cables)
           ..addAll(
-            convertToModelMap([...newSneaks, ...updatedChildren]),
+            convertToModelMap(combinationResult.cables),
           ),
       ),
     );
 
     store.dispatch(SetSelectedCableIds(
-        [...newSneaks, ...updatedChildren].map((cable) => cable.uid).toSet()));
+        combinationResult.cables.map((cable) => cable.uid).toSet()));
   };
 }
 
-ThunkAction<AppState> createNewFeederLoomV2(
-    BuildContext context, List<String> outletIds, int insertIndex) {
+ThunkAction<AppState> createNewFeederLoomV2(BuildContext context,
+    List<String> outletIds, int insertIndex, CableActionModifier modifier) {
   return (Store<AppState> store) async {
     final newLoomId = getUid();
 
@@ -271,7 +209,7 @@ ThunkAction<AppState> createNewFeederLoomV2(
         .map((id) => store.state.fixtureState.powerMultiOutlets[id])
         .nonNulls;
 
-    final newCables = [
+    final List<CableModel> newCables = [
       ...powerMultiOutlets.map((outlet) => CableModel(
             uid: getUid(),
             outletId: outlet.uid,
@@ -292,6 +230,28 @@ ThunkAction<AppState> createNewFeederLoomV2(
       name: 'Unnamed Feeder',
     );
 
+    if (modifier == CableActionModifier.combineIntoSneaks) {
+      final combinationResult = combineDmxIntoSneak(
+          newCables.where((cable) => cable.type == CableType.dmx).toList(),
+          convertToModelMap(dataOutlets),
+          store.state.fixtureState.locations);
+
+      newCables.removeWhere((cable) => cable.type == CableType.dmx);
+      newCables.addAll(combinationResult.cables);
+
+      if (store.state.fixtureState.locations
+              .containsKey(combinationResult.location.uid) ==
+          false) {
+        store.dispatch(SetLocations(
+            Map<String, LocationModel>.from(store.state.fixtureState.locations)
+              ..addAll(convertToModelMap([combinationResult.location]))));
+      }
+
+      store.dispatch(SetDataMultis(
+          Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
+            ..addAll(convertToModelMap(combinationResult.newDataMultis))));
+    }
+
     store.dispatch(SetCablesAndLooms(
       Map<String, CableModel>.from(store.state.fixtureState.cables)
         ..addAll(convertToModelMap(newCables)),
@@ -303,31 +263,6 @@ ThunkAction<AppState> createNewFeederLoomV2(
       newCables.map((cable) => cable.uid).toSet(),
     ));
   };
-}
-
-/// Will return the matching Location from [existingLocations], if one cannot be found a new one will be created.
-LocationModel resolveTargetLocation(
-    Set<String> locationIds, Map<String, LocationModel> existingLocations) {
-  if (locationIds.length == 1) {
-    return existingLocations[locationIds.first]!;
-  }
-
-  // Check if we already have a matching Hybrid Location, otherwise create a new one.
-  return existingLocations.values.firstWhere(
-      (location) =>
-          location.isHybrid && location.matchesHybridLocation(locationIds),
-      orElse: () => LocationModel(
-          uid: getUid(),
-          color: LabelColorModel.combine(
-            locationIds
-                .map((id) => existingLocations[id]?.color)
-                .nonNulls
-                .toList(),
-          ),
-          hybridIds: locationIds,
-          name: locationIds
-              .map((id) => existingLocations[id]?.name ?? '')
-              .join(', ')));
 }
 
 ThunkAction<AppState> createNewExtensionLoomV2(
@@ -1740,9 +1675,11 @@ ThunkAction<AppState> generateDataPatch() {
       final locationId = entry.key;
       final spans = entry.value;
 
-      final Queue<DataPatchModel> existingPatches = Queue<DataPatchModel>.from(
-          store.state.fixtureState.dataPatches.values
-              .where((patch) => patch.locationId == locationId));
+      final patchesInLocation = store.state.fixtureState.dataPatches.values
+          .where((patch) => patch.locationId == locationId);
+
+      final Queue<DataPatchModel> existingPatches =
+          Queue<DataPatchModel>.from(patchesInLocation);
 
       final location = store.state.fixtureState.locations[locationId]!;
 
