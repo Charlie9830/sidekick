@@ -6,8 +6,12 @@ import 'package:collection/collection.dart';
 import 'package:sidekick/classes/named_colors.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
+import 'package:sidekick/redux/models/data_multi_model.dart';
+import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/named_color_model.dart';
+import 'package:sidekick/redux/models/outlet.dart';
+import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
 
 class LocationModel extends ModelCollectionMember with DiffComparable {
@@ -69,6 +73,16 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       delimiter: delimiter ?? this.delimiter,
       hybridIds: hybridIds ?? this.hybridIds,
     );
+  }
+
+  String getPrefixedNameByType(Outlet outlet, int number) {
+    return switch (outlet) {
+      PowerMultiOutletModel _ => getPrefixedPowerMulti(number),
+      DataPatchModel _ => getPrefixedDataPatch(number),
+      DataMultiModel _ => getPrefixedDataMultiPatch(number),
+      _ => throw UnimplementedError(
+          'No handling for outlet Type ${outlet.runtimeType}'),
+    };
   }
 
   String getPrefixedDataPatch(int? patchNumber, {String? parentMultiName}) {

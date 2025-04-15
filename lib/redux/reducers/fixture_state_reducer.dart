@@ -7,6 +7,7 @@ import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
+import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
@@ -35,7 +36,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
               length: double.tryParse(a.newLength.trim()) ?? existing.length));
 
     return state.copyWith(
-      cables: assertCableOrderings(
+      cables: _assertCableOrderings(
           cables: updatedCables,
           powerMultis: state.powerMultiOutlets,
           dataMultis: state.dataMultis,
@@ -52,7 +53,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is SetCables) {
     return state.copyWith(
-        cables: assertCableOrderings(
+        cables: _assertCableOrderings(
             cables: a.cables,
             powerMultis: state.powerMultiOutlets,
             dataMultis: state.dataMultis,
@@ -65,7 +66,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is SetCablesAndLooms) {
     return state.copyWith(
-      cables: assertCableOrderings(
+      cables: _assertCableOrderings(
           cables: a.cables,
           powerMultis: state.powerMultiOutlets,
           dataMultis: state.dataMultis,
@@ -166,13 +167,13 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is SetDataMultis) {
     return state.copyWith(
-      dataMultis: _assertDataMultiOrdering(a.multis, state.locations),
+      dataMultis: _assertDataMultiState(a.multis, state.locations),
     );
   }
 
   if (a is SetDataPatches) {
     return state.copyWith(
-      dataPatches: _assertDataPatchOrdering(a.patches, state.locations),
+      dataPatches: _assertDataPatchState(a.patches, state.locations),
     );
   }
 
@@ -185,6 +186,12 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   if (a is SetLocations) {
     return state.copyWith(
       locations: a.locations,
+      dataMultis: convertToModelMap(
+          _assertOutletNameAndNumbers(state.dataMultis.values, a.locations)),
+      powerMultiOutlets: convertToModelMap(_assertOutletNameAndNumbers(
+          state.powerMultiOutlets.values, a.locations)),
+      dataPatches: convertToModelMap(
+          _assertOutletNameAndNumbers(state.dataPatches.values, a.locations)),
     );
   }
 
@@ -197,7 +204,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   if (a is SetPowerMultiOutlets) {
     return state.copyWith(
       powerMultiOutlets:
-          _assertPowerMultiOrdering(a.multiOutlets, state.locations),
+          _assertPowerMultiState(a.multiOutlets, state.locations),
     );
   }
 
@@ -264,7 +271,7 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
         (existing) =>
             existing.copyWith(type: existing.type.copyWith(length: newLength)),
       ),
-    cables: assertCableOrderings(
+    cables: _assertCableOrderings(
         cables: updatedCables,
         powerMultis: state.powerMultiOutlets,
         dataMultis: state.dataMultis,
@@ -272,7 +279,7 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
   );
 }
 
-Map<String, PowerMultiOutletModel> _assertPowerMultiOrdering(
+Map<String, PowerMultiOutletModel> _assertPowerMultiState(
     Map<String, PowerMultiOutletModel> multiOutlets,
     Map<String, LocationModel> locations) {
   final outletsByLocationId =
@@ -282,10 +289,11 @@ Map<String, PowerMultiOutletModel> _assertPowerMultiOrdering(
       .map((location) => (outletsByLocationId[location.uid] ?? []).sorted())
       .flattened;
 
-  return convertToModelMap(sortedOutlets);
+  return convertToModelMap(
+      _assertOutletNameAndNumbers(sortedOutlets, locations));
 }
 
-Map<String, DataMultiModel> _assertDataMultiOrdering(
+Map<String, DataMultiModel> _assertDataMultiState(
     Map<String, DataMultiModel> multiOutlets,
     Map<String, LocationModel> locations) {
   final outletsByLocationId =
@@ -295,10 +303,11 @@ Map<String, DataMultiModel> _assertDataMultiOrdering(
       .map((location) => (outletsByLocationId[location.uid] ?? []).sorted())
       .flattened;
 
-  return convertToModelMap(sortedOutlets);
+  return convertToModelMap(
+      _assertOutletNameAndNumbers(sortedOutlets, locations));
 }
 
-Map<String, DataPatchModel> _assertDataPatchOrdering(
+Map<String, DataPatchModel> _assertDataPatchState(
     Map<String, DataPatchModel> dataPatches,
     Map<String, LocationModel> locations) {
   final patchesByLocationId =
@@ -308,10 +317,11 @@ Map<String, DataPatchModel> _assertDataPatchOrdering(
       .map((location) => (patchesByLocationId[location.uid] ?? []).sorted())
       .flattened;
 
-  return convertToModelMap(sortedPatches);
+  return convertToModelMap(
+      _assertOutletNameAndNumbers(sortedPatches, locations));
 }
 
-Map<String, CableModel> assertCableOrderings({
+Map<String, CableModel> _assertCableOrderings({
   required Map<String, CableModel> cables,
   required Map<String, PowerMultiOutletModel> powerMultis,
   required Map<String, DataMultiModel> dataMultis,
@@ -329,4 +339,36 @@ Map<String, CableModel> assertCableOrderings({
       .flattened;
 
   return convertToModelMap(orderedCables);
+}
+
+List<T> _assertOutletNameAndNumbers<T extends Outlet>(
+    Iterable<T> outlets, Map<String, LocationModel> locations) {
+  final typedOutlets = outlets.whereType<T>();
+
+  final outletsByLocationId =
+      typedOutlets.groupListsBy((outlet) => outlet.locationId);
+
+  return outletsByLocationId.entries
+      .map((entry) {
+        final locationId = entry.key;
+
+        final location = locations[locationId]!;
+        final outletsInLocation = entry.value;
+
+        return outletsInLocation.mapIndexed((index, outlet) =>
+            _updateOutletNameAndNumber(outlet,
+                location.getPrefixedNameByType(outlet, index + 1), index + 1));
+      })
+      .flattened
+      .toList()
+      .cast<T>();
+}
+
+Outlet _updateOutletNameAndNumber(Outlet outlet, String name, int number) {
+  return switch (outlet) {
+    PowerMultiOutletModel o => o.copyWith(name: name, number: number),
+    DataPatchModel o => o.copyWith(name: name, number: number),
+    DataMultiModel o => o.copyWith(name: name, number: number),
+    _ => throw UnimplementedError('No handling for Type ${outlet.runtimeType}')
+  };
 }

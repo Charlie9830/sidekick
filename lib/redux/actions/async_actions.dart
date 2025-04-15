@@ -148,9 +148,9 @@ ThunkAction<AppState> splitSelectedSneakIntoDmxV2(BuildContext context) {
           ..removeWhere((key, value) => sneakIds.contains(key))));
 
     if (dataMultisToRemove.isNotEmpty) {
-      SetDataMultis(
+      store.dispatch(SetDataMultis(
           Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
-            ..removeWhere((key, value) => dataMultisToRemove.contains(key)));
+            ..removeWhere((key, _) => dataMultisToRemove.contains(key))));
     }
   };
 }
@@ -664,66 +664,6 @@ ThunkAction<AppState> addSpareCablesToLoom(
           Map<String, CableModel>.from(store.state.fixtureState.cables)
             ..addAll(convertToModelMap(newSpareCables))));
     }
-  };
-}
-
-ThunkAction<AppState> splitSneakIntoDmxV2(
-    BuildContext context, Set<String> cableIds) {
-  return (Store<AppState> store) async {
-    final validCables = cableIds
-        .map((id) => store.state.fixtureState.cables[id])
-        .nonNulls
-        .where((cable) => cable.type == CableType.sneak)
-        .toList();
-
-    if (validCables.isEmpty) {
-      return;
-    }
-
-    final loomIds = validCables.map((cable) => cable.loomId).toSet();
-
-    if (loomIds.length > 1) {
-      await showGenericDialog(
-          context: context,
-          title: "Woops",
-          message: "Can't Split cables from different Looms.. yet",
-          affirmativeText: "Okay");
-      return;
-    }
-
-    final dataMultiIdsToRemove = validCables
-        .map(
-            (cable) => store.state.fixtureState.dataMultis[cable.outletId]?.uid)
-        .nonNulls
-        .toSet();
-
-    final associatedCables = validCables
-        .map((cable) => store.state.fixtureState.cables.values
-            .where((item) => item.parentMultiId == cable.uid))
-        .flattened
-        .toList();
-
-    final spareCableIdsToRemove = associatedCables
-        .where((cable) => cable.isSpare)
-        .map((cable) => cable.uid)
-        .toSet();
-
-    final sneakCableIdsToRemove = validCables.map((cable) => cable.uid).toSet();
-
-    final updatedDataMultis =
-        Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
-          ..removeWhere((key, value) => dataMultiIdsToRemove.contains(key));
-
-    final updatedCables = Map<String, CableModel>.from(
-        store.state.fixtureState.cables)
-      ..addAll(convertToModelMap(
-          associatedCables.map((cable) => cable.copyWith(parentMultiId: ''))))
-      ..removeWhere((key, value) =>
-          spareCableIdsToRemove.contains(key) ||
-          sneakCableIdsToRemove.contains(key));
-
-    store.dispatch(SetCables(updatedCables));
-    store.dispatch(SetDataMultis(updatedDataMultis));
   };
 }
 
@@ -1502,12 +1442,6 @@ ThunkAction<AppState> updateLocationMultiPrefix(
     store.dispatch(SetLocations(
         Map<String, LocationModel>.from(store.state.fixtureState.locations)
           ..update(locationId, (_) => updatedLocation)));
-
-    // If PowerMulti's associated to this location have already been created, update them as well.
-    updateAssociatedPowerMultis(store, locationId, updatedLocation);
-
-    // If DataPatches associated to this location have been created, update them as well.
-    updateAssociatedDataPatches(store, locationId, updatedLocation);
   };
 }
 
@@ -1525,12 +1459,6 @@ ThunkAction<AppState> updateLocationMultiDelimiter(
     store.dispatch(SetLocations(
         Map<String, LocationModel>.from(store.state.fixtureState.locations)
           ..update(locationId, (_) => updatedLocation)));
-
-    // If PowerMulti's associated to this location have already been created, update them as well.
-    updateAssociatedPowerMultis(store, locationId, updatedLocation);
-
-    // If DataPatches associated to this location have been created, update them as well.
-    updateAssociatedDataPatches(store, locationId, updatedLocation);
   };
 }
 
@@ -1705,25 +1633,6 @@ ThunkAction<AppState> generateDataPatch() {
 
     store.dispatch(SetDataPatches(Map<String, DataPatchModel>.fromEntries(
         patches.map((patch) => MapEntry(patch.uid, patch)))));
-  };
-}
-
-ThunkAction<AppState> updateMultiPrefix(String locationId, String newValue) {
-  return (Store<AppState> store) async {
-    final location = store.state.fixtureState.locations[locationId];
-
-    if (location == null) {
-      return;
-    }
-
-    // Update the Location.
-    final updatedLocation = location.copyWith(multiPrefix: newValue);
-    store.dispatch(
-      SetLocations(
-        Map<String, LocationModel>.from(store.state.fixtureState.locations)
-          ..update(locationId, (_) => updatedLocation),
-      ),
-    );
   };
 }
 
@@ -2102,51 +2011,6 @@ void _updatePowerMultiSpareCircuitCount(
   );
 
   _updatePowerMultisAndOutlets(store, balancedMultiOutlets);
-}
-
-void updateAssociatedPowerMultis(
-    Store<AppState> store, String locationId, LocationModel updatedLocation) {
-  final associatedPowerMultis = store
-      .state.fixtureState.powerMultiOutlets.values
-      .where((multi) => multi.locationId == locationId)
-      .toList();
-
-  if (associatedPowerMultis.isEmpty) {
-    return;
-  }
-
-  final updatedPowerMultis = associatedPowerMultis.map((existing) =>
-      existing.copyWith(
-          name: updatedLocation.getPrefixedPowerMulti(
-              associatedPowerMultis.length == 1 ? null : existing.number)));
-
-  store.dispatch(SetPowerMultiOutlets(Map<String, PowerMultiOutletModel>.from(
-      store.state.fixtureState.powerMultiOutlets)
-    ..addEntries(
-        updatedPowerMultis.map((multi) => MapEntry(multi.uid, multi)))));
-}
-
-void updateAssociatedDataPatches(
-    Store<AppState> store, String locationId, LocationModel updatedLocation) {
-  final associatedDataPatches = store.state.fixtureState.dataPatches.values
-      .where((multi) => multi.locationId == locationId)
-      .toList();
-
-  if (associatedDataPatches.isEmpty) {
-    return;
-  }
-
-  final updatedDataPatches = associatedDataPatches.map((existing) {
-    return existing.copyWith(
-        name: updatedLocation.getPrefixedDataPatch(
-      associatedDataPatches.length == 1 ? null : existing.number,
-    ));
-  });
-
-  store.dispatch(SetDataPatches(
-      Map<String, DataPatchModel>.from(store.state.fixtureState.dataPatches)
-        ..addEntries(
-            updatedDataPatches.map((multi) => MapEntry(multi.uid, multi)))));
 }
 
 int _findNextAvailableSequenceNumber(List<int> sequenceNumbers) {
