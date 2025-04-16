@@ -9,8 +9,10 @@ import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
 import 'package:sidekick/modifier_key_listener.dart';
 import 'package:sidekick/modifier_key_provider.dart';
+import 'package:sidekick/screens/looms/cable_row_item.dart';
 import 'package:sidekick/screens/looms/drag_data.dart';
 import 'package:sidekick/screens/looms/drop_target_overlays/modify_existing_loom_drop_targets.dart';
+import 'package:sidekick/screens/looms/loom_header.dart';
 import 'package:sidekick/screens/looms/loom_item_divider.dart';
 import 'package:sidekick/screens/looms/loom_row_item.dart';
 import 'package:sidekick/screens/looms/looms_toolbar_contents.dart';
@@ -117,8 +119,8 @@ class _LoomsV2State extends State<LoomsV2> {
                         ? ReorderableListView.builder(
                             buildDefaultDragHandles: false,
                             footer: const SizedBox(height: 56),
-                            proxyDecorator:
-                                _wrapReorderableItemProxyDecorations,
+                            // Use the proxy Decorator to return a simplified version of a Loom Row Item.
+                            proxyDecorator: _buildProxyLoomItem,
                             onReorder: widget.vm.onLoomReorder,
                             itemCount: widget.vm.loomVms.length,
                             itemBuilder: (BuildContext context, int index) {
@@ -144,17 +146,24 @@ class _LoomsV2State extends State<LoomsV2> {
     );
   }
 
-  Widget _wrapReorderableItemProxyDecorations(
-      Widget child, int index, Animation<double> animation) {
-    // When the Reoderable list Promotes one of it's items to a Hero widget. That widget will loose all its controller ancestors.
-    // So here we are re inserting dummy versions of those widgets into the tree.
+  /// Builds a simplified Loom Row Item intended to stand in for a loom being drag reordered.
+  Widget _buildProxyLoomItem(_, index, animation) {
     return Material(
-      child: DragProxyController(
-          child: ItemSelectionContainer<String>(
-              selectedItems: const {},
-              onSelectionUpdated: (_, __) {},
-              itemIndicies: const <String, int>{},
-              child: child)),
+      child: Opacity(
+        opacity: 0.5,
+        child: Column(
+          children: [
+            LoomHeader(
+                loomVm: widget.vm.loomVms[index],
+                reorderableListViewIndex: index),
+            ...widget.vm.loomVms[index].children.map((cableVm) => CableRowItem(
+                  cable: cableVm.cable,
+                  labelColor: cableVm.labelColor,
+                  label: cableVm.label,
+                )),
+          ],
+        ),
+      ),
     );
   }
 

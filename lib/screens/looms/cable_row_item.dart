@@ -5,6 +5,8 @@ import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/screens/locations/color_chit.dart';
 import 'package:sidekick/screens/looms/cable_flag.dart';
 
+const double kCableRowHeight = 28.0;
+
 class CableRowItem extends StatelessWidget {
   final CableModel cable;
   final LabelColorModel labelColor;
@@ -46,7 +48,7 @@ class CableRowItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: IntrinsicHeight(
           child: SizedBox(
-            height: 28,
+            height: kCableRowHeight,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.start,
