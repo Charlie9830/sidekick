@@ -9,6 +9,7 @@ class CableViewModel {
   final int universe;
   final String label;
   final bool missingUpstreamCable;
+  final int localNumber;
   final void Function(String newValue) onLengthChanged;
 
   CableViewModel({
@@ -20,5 +21,6 @@ class CableViewModel {
     required this.label,
     required this.onLengthChanged,
     required this.missingUpstreamCable,
+    required this.localNumber,
   });
 }

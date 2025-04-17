@@ -160,6 +160,7 @@ class _LoomsV2State extends State<LoomsV2> {
                   cable: cableVm.cable,
                   labelColor: cableVm.labelColor,
                   label: cableVm.label,
+                  localNumber: cableVm.localNumber,
                 )),
           ],
         ),

@@ -123,7 +123,7 @@ class LoomsV2Container extends StatelessWidget {
 List<LoomViewModel> _selectLoomRows(
     BuildContext context, Store<AppState> store) {
   // Wrapper Function to wrap multiple similiar calls to Cable VM creation.
-  CableViewModel wrapCableVm(CableModel cable) {
+  CableViewModel wrapCableVm(CableModel cable, int localNumber) {
     final associatedLocation = selectCableLocation(cable, store);
 
     return CableViewModel(
@@ -136,6 +136,7 @@ List<LoomViewModel> _selectLoomRows(
           ? store.state.fixtureState.cables.containsKey(cable.upstreamId) ==
               false
           : false,
+      localNumber: localNumber,
       label: selectCableLabel(
         powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
         dataPatches: store.state.fixtureState.dataPatches,
@@ -151,6 +152,22 @@ List<LoomViewModel> _selectLoomRows(
   final List<LoomModel> orderedLooms =
       store.state.fixtureState.looms.values.toList();
 
+  // Getting a bit stupidly smarty pants here. Create a local closure to track the current 'localNumber' of a cable.
+  // The local number pertains to the current count of a type of cable within a loom, for example Soca 1, Soca 2, Soca 3, Sneak 1 etc.
+  int Function(CableType) localNumberCounterClosure() {
+    Map<CableType, int> buffer = {
+      CableType.socapex: 0,
+      CableType.wieland6way: 0,
+      CableType.sneak: 0,
+      CableType.dmx: 0,
+    };
+
+    return (CableType type) {
+      buffer[type] = buffer[type]! + 1;
+      return buffer[type]!;
+    };
+  }
+
   final loomVms = orderedLooms.mapIndexed(
     (index, loom) {
       final childCables = store.state.fixtureState.cables.values
@@ -158,16 +175,21 @@ List<LoomViewModel> _selectLoomRows(
               cable.loomId == loom.uid && cable.parentMultiId.isEmpty)
           .toList();
 
+      final getCount = localNumberCounterClosure();
+
       final loomedCableVms = childCables
           .sorted((a, b) => CableModel.compareByType(a, b))
-          .map((cable) => [
-                // Top Level Cable
-                if (cable.parentMultiId.isEmpty) wrapCableVm(cable),
+          .map((cable) {
+            return [
+              // Top Level Cable
+              if (cable.parentMultiId.isEmpty)
+                wrapCableVm(cable, getCount(cable.type)),
 
-                // Optional Children of Multi Cables.
-                ...selectChildCables(cable, store.state.fixtureState)
-                    .map((child) => wrapCableVm(child))
-              ])
+              // Optional Children of Multi Cables.
+              ...selectChildCables(cable, store.state.fixtureState)
+                  .mapIndexed((index, child) => wrapCableVm(child, index + 1))
+            ];
+          })
           .flattened
           .toList();
 

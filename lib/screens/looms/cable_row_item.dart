@@ -16,12 +16,14 @@ class CableRowItem extends StatelessWidget {
   final int dmxUniverse;
   final String label;
   final bool missingUpstreamCable;
+  final int localNumber;
   final void Function(String newValue)? onLengthChanged;
 
   const CableRowItem({
     super.key,
     required this.cable,
     required this.labelColor,
+    required this.localNumber,
     this.showTopBorder = false,
     this.isSelected = false,
     this.disableLength = false,
@@ -93,7 +95,7 @@ class CableRowItem extends StatelessWidget {
                       Row(
                         children: [
                           switch (cable.type) {
-                            CableType.socapex => const Icon(Icons.electric_bolt,
+                            CableType.socapex => const Icon(Icons.bolt,
                                 size: 16, color: Colors.grey),
                             CableType.wieland6way => const Icon(Icons.power,
                                 size: 16, color: Colors.grey),
@@ -110,7 +112,7 @@ class CableRowItem extends StatelessWidget {
                             CableType.unknown => const SizedBox(),
                           },
                           const SizedBox(width: 8),
-                          Text(_humanFriendlyType(cable.type,
+                          Text(_humanFriendlyType(cable.type, localNumber,
                               isSneakChild: cable.parentMultiId.isNotEmpty)),
                         ],
                       ),
@@ -203,16 +205,17 @@ class CableRowItem extends StatelessWidget {
   }
 }
 
-String _humanFriendlyType(CableType type, {bool isSneakChild = false}) {
+String _humanFriendlyType(CableType type, int localNumber,
+    {bool isSneakChild = false}) {
   if (isSneakChild) {
-    return 'Data';
+    return 'Data $localNumber';
   }
 
   return switch (type) {
-    CableType.dmx => 'DMX',
-    CableType.socapex => 'Soca',
-    CableType.sneak => 'Sneak',
-    CableType.wieland6way => '6way',
+    CableType.dmx => 'DMX $localNumber',
+    CableType.socapex => 'Soca $localNumber',
+    CableType.sneak => 'Sneak $localNumber',
+    CableType.wieland6way => '6way $localNumber',
     CableType.unknown => "Unknown",
   };
 }
