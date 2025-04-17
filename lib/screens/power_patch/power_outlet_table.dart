@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/screens/power_patch/phase_icon.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';
 

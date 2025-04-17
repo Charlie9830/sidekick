@@ -65,7 +65,7 @@ void writeCableLine(
   );
 
   // Color
-  final location = null;
+  const location = null;
   final color = location == null ? '' : NamedColors.names[location.color];
 
   sheet.updateCell(

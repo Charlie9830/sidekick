@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:collection/collection.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/permanent_loom_composition.dart';

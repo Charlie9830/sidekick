@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:sidekick/balancer/balancer_base.dart';
 import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
 
 class BalancerPowerPatchModel {

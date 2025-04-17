@@ -45,10 +45,8 @@ import 'package:sidekick/persistent_settings/init_persistent_settings_storage.da
 import 'package:sidekick/persistent_settings/updatePersistentSettings.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
-import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
-import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/redux/models/permanent_loom_composition.dart';

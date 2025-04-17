@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:sidekick/custom_icons.dart';
 import 'package:sidekick/screens/looms/drag_data.dart';
 import 'package:sidekick/screens/looms/landing_pad.dart';

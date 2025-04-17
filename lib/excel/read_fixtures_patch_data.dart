@@ -150,7 +150,7 @@ Future<FixturesDataReadResult> readFixturesPatchData({
       locations: locationNameMap.values.toModelMap(),
       inUseTypeIds: inUseTypeIds,
     );
-  } on UnsupportedError catch (e) {
+  } on UnsupportedError {
     return FixturesDataReadResult(
         errorMessage: 'Unsupported file type. Only .xlsx files are supported.');
   }

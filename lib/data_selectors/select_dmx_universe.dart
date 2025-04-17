@@ -1,6 +1,4 @@
-import 'package:redux/redux.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
-import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
 int selectDmxUniverse(FixtureState fixtureState, CableModel cable) {

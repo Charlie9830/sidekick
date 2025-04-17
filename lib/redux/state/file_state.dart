@@ -1,4 +1,3 @@
-import 'package:sidekick/persistent_settings/persistent_settings_model.dart';
 import 'package:sidekick/redux/models/import_settings_model.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 

@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:sidekick/balancer/models/balancer_power_patch_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';

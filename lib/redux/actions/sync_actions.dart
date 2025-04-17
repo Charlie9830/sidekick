@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:excel/excel.dart';
 import 'package:sidekick/diffing/union_proxy.dart';
 import 'package:sidekick/enums.dart';

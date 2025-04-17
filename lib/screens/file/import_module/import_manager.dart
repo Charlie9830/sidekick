@@ -7,7 +7,6 @@ import 'package:sidekick/screens/file/import_module/cell_geometry.dart';
 import 'package:sidekick/screens/file/import_module/row_error_item.dart';
 import 'package:sidekick/screens/file/import_module/row_side.dart';
 import 'package:sidekick/screens/file/import_module/table_header.dart';
-import 'package:sidekick/screens/file/import_module/table_header_card.dart';
 import 'package:sidekick/view_models/import_manager_view_model.dart';
 import 'package:path/path.dart' as p;
 

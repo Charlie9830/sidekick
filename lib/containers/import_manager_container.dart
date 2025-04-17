@@ -6,7 +6,6 @@ import 'package:sidekick/excel/new/raw_row_data.dart';
 import 'package:sidekick/excel/patch_data_item_error.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
-import 'package:sidekick/redux/models/dmx_address_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/file/import_module/import_manager.dart';

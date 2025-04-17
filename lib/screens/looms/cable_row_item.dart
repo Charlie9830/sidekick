@@ -221,7 +221,7 @@ String _humanFriendlyType(CableType type, int localNumber,
 }
 
 class _MissingUpstreamCableIcon extends StatelessWidget {
-  const _MissingUpstreamCableIcon({super.key});
+  const _MissingUpstreamCableIcon();
 
   @override
   Widget build(BuildContext context) {

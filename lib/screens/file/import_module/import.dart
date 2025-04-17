@@ -5,8 +5,6 @@ import 'package:sidekick/file_type_groups.dart';
 import 'package:sidekick/redux/models/import_settings_model.dart';
 import 'package:sidekick/screens/file/file_selector_button.dart';
 import 'package:sidekick/view_models/import_view_model.dart';
-import 'package:path/path.dart' as path;
-import 'package:sidekick/widgets/property_field.dart';
 
 class Import extends StatelessWidget {
   final ImportViewModel vm;

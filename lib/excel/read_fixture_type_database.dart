@@ -186,7 +186,7 @@ Future<FixtureTypeDatabaseReadResult> readFixtureTypeDatabase(
     return FixtureTypeDatabaseReadResult(
       fixtureTypes: fixtureTypes.toModelMap(),
     );
-  } on UnsupportedError catch (e) {
+  } on UnsupportedError {
     return FixtureTypeDatabaseReadResult(
         errorMessage: "Unable to decode Excel file");
   }

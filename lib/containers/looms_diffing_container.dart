@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
-import 'package:sidekick/diffing/diff_pair.dart';
-import 'package:sidekick/redux/app_store.dart';
 import 'package:sidekick/redux/state/app_state.dart';
-import 'package:sidekick/view_models/loom_diffing_item_view_model.dart';
 import 'package:sidekick/view_models/loom_diffing_view_model.dart';
-import 'package:sidekick/view_models/loom_view_model.dart';
 
 class LoomsDiffingContainer extends StatelessWidget {
   const LoomsDiffingContainer({Key? key}) : super(key: key);

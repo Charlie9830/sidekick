@@ -30,7 +30,8 @@ class _TheLabState extends State<TheLab> {
                   key: Key(item),
                   title: Text(item),
                   trailing: ReorderableDragStartListener(
-                      child: Icon(Icons.place), index: index),
+                      index: index,
+                      child: Icon(Icons.place)),
                 ),
               )
               .toList(),

@@ -112,7 +112,6 @@ class _SelectableColorRow extends StatelessWidget {
   final void Function(NamedColorModel value) onChanged;
 
   const _SelectableColorRow({
-    super.key,
     required this.value,
     required this.number,
     required this.onChanged,

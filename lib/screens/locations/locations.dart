@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
-import 'package:sidekick/screens/locations/color_chit.dart';
 import 'package:sidekick/screens/locations/color_select_dialog.dart';
 import 'package:sidekick/screens/locations/hybrid_tag.dart';
 import 'package:sidekick/screens/locations/multi_color_chit.dart';
