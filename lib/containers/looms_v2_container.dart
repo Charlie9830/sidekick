@@ -66,8 +66,9 @@ class LoomsV2Container extends StatelessWidget {
           onCreateNewFeederLoom: (outletIds, insertIndex, modifiers) =>
               store.dispatch(createNewFeederLoomV2(
                   context, outletIds, insertIndex, modifiers)),
-          onCreateNewExtensionLoom: (cableIds, insertIndex) => store.dispatch(
-              createNewExtensionLoomV2(context, cableIds, insertIndex)),
+          onCreateNewExtensionLoom: (cableIds, insertIndex, modifiers) =>
+              store.dispatch(createNewExtensionLoomV2(
+                  context, cableIds, insertIndex, modifiers)),
           loomVms: _selectLoomRows(context, store),
           onLoomReorder: (oldIndex, newIndex) =>
               store.dispatch(reorderLooms(context, oldIndex, newIndex)));
@@ -169,8 +170,6 @@ List<LoomViewModel> _selectLoomRows(
               ])
           .flattened
           .toList();
-
-      
 
       return LoomViewModel(
           loom: loom,

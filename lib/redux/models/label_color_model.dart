@@ -41,7 +41,7 @@ class LabelColorModel {
   factory LabelColorModel.fromMap(Map<String, dynamic> map) {
     return LabelColorModel(
       colors: List<NamedColorModel>.from(
-        (map['colors'] as List<int>).map<NamedColorModel>(
+        (map['colors'] as List<dynamic>).map<NamedColorModel>(
           (x) => NamedColorModel.fromMap(x as Map<String, dynamic>),
         ),
       ),

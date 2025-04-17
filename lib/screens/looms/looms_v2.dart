@@ -209,8 +209,9 @@ class _LoomsV2State extends State<LoomsV2> {
             expand: expand,
             onDropAsFeeder: (outletVms, modifier) =>
                 _handleCreateNewFeederLoom(outletVms, dividerIndex, modifier),
-            onDropAsExtension: (cableIds) =>
-                _handleCreateNewExtensionLoom(cableIds, dividerIndex));
+            onDropAsExtension: (cableIds, modifier) =>
+                _handleCreateNewExtensionLoom(
+                    cableIds, dividerIndex, modifier));
 
     return Column(
       key: Key(loomVm.loom.uid),
@@ -261,13 +262,14 @@ class _LoomsV2State extends State<LoomsV2> {
   }
 
   void _handleCreateNewFeederLoom(List<OutletViewModel> droppedVms,
-      int dividerIndex, CableActionModifier modifier) {
+      int dividerIndex, Set<CableActionModifier> modifiers) {
     widget.vm.onCreateNewFeederLoom(
-        droppedVms.map((item) => item.uid).toList(), dividerIndex, modifier);
+        droppedVms.map((item) => item.uid).toList(), dividerIndex, modifiers);
   }
 
-  void _handleCreateNewExtensionLoom(List<String> cableIds, int dividerIndex) {
-    widget.vm.onCreateNewExtensionLoom(cableIds, dividerIndex);
+  void _handleCreateNewExtensionLoom(List<String> cableIds, int dividerIndex,
+      Set<CableActionModifier> modifiers) {
+    widget.vm.onCreateNewExtensionLoom(cableIds, dividerIndex, modifiers);
   }
 
   void _requestSelectionFocus() {

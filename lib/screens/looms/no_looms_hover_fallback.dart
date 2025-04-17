@@ -10,7 +10,9 @@ class NoLoomsHoverFallback extends StatefulWidget {
     required this.onCreateNewLoom,
   });
 
-  final void Function(List<OutletViewModel> outlets, CableActionModifier modifier) onCreateNewLoom;
+  final void Function(
+          List<OutletViewModel> outlets, Set<CableActionModifier> modifiers)
+      onCreateNewLoom;
 
   @override
   State<NoLoomsHoverFallback> createState() => _NoLoomsHoverFallbackState();
@@ -27,8 +29,8 @@ class _NoLoomsHoverFallbackState extends State<NoLoomsHoverFallback> {
         if (DragProxyMessenger.of(context)!.isDragging)
           NewLoomDropTargetOverlay(
             onDropAsFeeder: widget.onCreateNewLoom,
-            onDropAsExtension:
-                (_) {}, // Stubbed because the user shouldn't be able to create an extension loom when no looms exist.
+            onDropAsExtension: (_,
+                __) {}, // Stubbed because the user shouldn't be able to create an extension loom when no looms exist.
           )
       ],
     );

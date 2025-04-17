@@ -18,9 +18,10 @@ class LoomItemDivider extends StatefulWidget {
   });
 
   final void Function(
-          List<OutletViewModel> outlets, CableActionModifier modifier)
+          List<OutletViewModel> outlets, Set<CableActionModifier> modifiers)
       onDropAsFeeder;
-  final void Function(List<String> cableIds) onDropAsExtension;
+  final void Function(List<String> cableIds, Set<CableActionModifier> modifiers)
+      onDropAsExtension;
 
   @override
   State<LoomItemDivider> createState() => _LoomItemDividerState();

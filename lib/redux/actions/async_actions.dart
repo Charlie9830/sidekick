@@ -34,7 +34,9 @@ import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/file_type_groups.dart';
 import 'package:sidekick/generic_dialog/show_generic_dialog.dart';
 import 'package:sidekick/global_keys.dart';
+import 'package:sidekick/helpers/apply_cable_action_modifiers.dart';
 import 'package:sidekick/helpers/combine_dmx_into_sneak.dart';
+import 'package:sidekick/helpers/convert_to_permanent_loom.dart';
 import 'package:sidekick/import_merging/merge_fixtures.dart';
 import 'package:sidekick/model_collection/convert_to_map_entry.dart';
 import 'package:sidekick/persistent_settings/fetch_persistent_settings.dart';
@@ -97,19 +99,12 @@ ThunkAction<AppState> switchLoomTypeV2(BuildContext context, String loomId) {
 
     // Existing Loom is a Custom so we (attempting) to toggle it to a Permanent.
     final (updatedCables, updatedLoom, error) =
-        _convertToPermanentLoom(children, loom);
+        convertToPermanentLoom(children, loom);
 
     if (error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        genericErrorSnackBar(
-          context: context,
-          message: 'Unable to match suitable Permanent loom.',
-          extendedMessage: error,
-        ),
-      );
+      _showFailedPermanentLoomErrorMessage(context, error);
       return;
     }
-
 
     store.dispatch(SetCablesAndLooms(
       Map<String, CableModel>.from(store.state.fixtureState.cables)
@@ -120,105 +115,14 @@ ThunkAction<AppState> switchLoomTypeV2(BuildContext context, String loomId) {
   };
 }
 
-List<CableModel> _fillCablesToSatisfyPermanentLoom(
-    LoomModel loom, List<CableModel> children) {
-  if (loom.type.type != LoomType.permanent) {
-    return [];
-  }
-
-  final topLevelChildren =
-      children.where((child) => child.parentMultiId.isEmpty).toList();
-  final composition =
-      PermanentLoomComposition.byName[loom.type.permanentComposition];
-
-  if (composition == null) {
-    return [];
-  }
-
-  final socaShortages = composition.socaWays -
-      topLevelChildren.where((cable) => cable.type == CableType.socapex).length;
-  final wieland6wayShortages = composition.wieland6Ways -
-      topLevelChildren
-          .where((cable) => cable.type == CableType.wieland6way)
-          .length;
-  final dmxShortages = composition.dmxWays -
-      topLevelChildren.where((cable) => cable.type == CableType.dmx).length;
-  final sneakShortages = composition.sneakWays -
-      topLevelChildren.where((cable) => cable.type == CableType.sneak).length;
-
-  // Builder function to handle multiple simliar calls.
-  spareCableBuilder(int index, CableType type) => CableModel(
-        uid: getUid(),
-        type: type,
-        isSpare: true,
-        spareIndex: children
-                .where((cable) => cable.type == type && cable.isSpare)
-                .length +
-            index,
-        length: loom.type.length,
-        loomId: loom.uid,
-      );
-
-  return [
-    // Socapex
-    ...List<CableModel>.generate(
-      socaShortages.abs(),
-      (index) => spareCableBuilder(index, CableType.socapex),
+void _showFailedPermanentLoomErrorMessage(BuildContext context, String error) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    genericErrorSnackBar(
+      context: context,
+      message: 'Unable to match suitable Permanent loom.',
+      extendedMessage: error,
     ),
-
-    // Wieland 6way.
-    ...List<CableModel>.generate(
-      wieland6wayShortages.abs(),
-      (index) => spareCableBuilder(index, CableType.wieland6way),
-    ),
-
-    // DMX
-    ...List<CableModel>.generate(
-      dmxShortages.abs(),
-      (index) => spareCableBuilder(index, CableType.dmx),
-    ),
-
-    // Sneak
-    ...List<CableModel>.generate(
-      sneakShortages.abs(),
-      (index) => spareCableBuilder(index, CableType.sneak),
-    ),
-  ];
-}
-
-(List<CableModel> updatedCables, LoomModel updatedLoom, String? error)
-    _convertToPermanentLoom(List<CableModel> children, LoomModel loom) {
-  // Filter down to top level children only (ie we don't need to match to sneak children).
-  final topLevelChildren =
-      children.where((child) => child.parentMultiId.isEmpty).toList();
-
-  final targetCompositionResult =
-      PermanentLoomComposition.matchSuitablePermanent(topLevelChildren);
-
-  if (targetCompositionResult.error != null) {
-    return ([], loom, targetCompositionResult.error);
-  }
-
-  final updatedLoom = loom.copyWith(
-      type: LoomTypeModel(
-    type: LoomType.permanent,
-    permanentComposition: targetCompositionResult.composition.name,
-    length: targetCompositionResult.length,
-  ));
-
-  // Update all the children to reflect the new permanent Loom length.
-  final updatedChildren = children
-      .map((child) => child.copyWith(
-            length: updatedLoom.type.length,
-          ))
-      .toList();
-
-  final withAddedSpares = [
-    ...updatedChildren,
-    ..._fillCablesToSatisfyPermanentLoom(updatedLoom, updatedChildren),
-  ];
-
-  return (withAddedSpares, updatedLoom, null);
+  );
 }
 
 (List<CableModel> updatedCables, LoomModel updatedLoom) _convertToCustomLoom(
@@ -369,8 +273,11 @@ ThunkAction<AppState> combineSelectedDataCablesIntoSneakV2(
   };
 }
 
-ThunkAction<AppState> createNewFeederLoomV2(BuildContext context,
-    List<String> outletIds, int insertIndex, CableActionModifier modifier) {
+ThunkAction<AppState> createNewFeederLoomV2(
+    BuildContext context,
+    List<String> outletIds,
+    int insertIndex,
+    Set<CableActionModifier> modifiers) {
   return (Store<AppState> store) async {
     final newLoomId = getUid();
 
@@ -403,33 +310,28 @@ ThunkAction<AppState> createNewFeederLoomV2(BuildContext context,
       name: 'Unnamed Feeder',
     );
 
-    if (modifier == CableActionModifier.combineIntoSneaks) {
-      final combinationResult = combineDmxIntoSneak(
-          newCables.where((cable) => cable.type == CableType.dmx).toList(),
-          dataOutlets.toModelMap(),
-          store.state.fixtureState.locations);
+    final actionModifierResult = applyCableActionModifiers(
+      modifiers: modifiers,
+      cables: newCables.toModelMap(),
+      dataMultis: store.state.fixtureState.dataMultis,
+      locations: store.state.fixtureState.locations,
+      loom: newLoom,
+      outlets: [
+        ...store.state.fixtureState.powerMultiOutlets.values,
+        ...store.state.fixtureState.dataMultis.values,
+        ...store.state.fixtureState.dataPatches.values
+      ].toModelMap(),
+    );
 
-      newCables.removeWhere((cable) => cable.type == CableType.dmx);
-      newCables.addAll(combinationResult.cables);
-
-      if (store.state.fixtureState.locations
-              .containsKey(combinationResult.location.uid) ==
-          false) {
-        store.dispatch(SetLocations(
-            Map<String, LocationModel>.from(store.state.fixtureState.locations)
-              ..addAll([combinationResult.location].toModelMap())));
-      }
-
-      store.dispatch(SetDataMultis(
-          Map<String, DataMultiModel>.from(store.state.fixtureState.dataMultis)
-            ..addAll(combinationResult.newDataMultis.toModelMap())));
-    }
+    _performPostCableActionModifierDispatches(
+        context, store, actionModifierResult);
 
     store.dispatch(SetCablesAndLooms(
       Map<String, CableModel>.from(store.state.fixtureState.cables)
-        ..addAll(newCables.toModelMap()),
+        ..addAll(actionModifierResult.cables),
       store.state.fixtureState.looms.copyWithInsertedEntry(
-          (insertIndex - 1).clamp(0, 99999), convertToMapEntry(newLoom)),
+          (insertIndex - 1).clamp(0, 99999),
+          convertToMapEntry(actionModifierResult.loom)),
     ));
 
     store.dispatch(SetSelectedCableIds(
@@ -438,8 +340,24 @@ ThunkAction<AppState> createNewFeederLoomV2(BuildContext context,
   };
 }
 
-ThunkAction<AppState> createNewExtensionLoomV2(
-    BuildContext context, List<String> cableIds, int index) {
+void _performPostCableActionModifierDispatches(BuildContext context,
+    Store<AppState> store, CableActionModifierResult actionModifierResult) {
+  if (actionModifierResult.permanentLoomConversionError != null) {
+    _showFailedPermanentLoomErrorMessage(
+        context, actionModifierResult.permanentLoomConversionError!);
+  }
+
+  if (store.state.fixtureState.locations != actionModifierResult.locations) {
+    store.dispatch(SetLocations(actionModifierResult.locations));
+  }
+
+  if (store.state.fixtureState.dataMultis != actionModifierResult.dataMultis) {
+    store.dispatch(SetDataMultis(actionModifierResult.dataMultis));
+  }
+}
+
+ThunkAction<AppState> createNewExtensionLoomV2(BuildContext context,
+    List<String> cableIds, int index, Set<CableActionModifier> modifiers) {
   return (Store<AppState> store) async {
     final cables = cableIds
         .map((id) => store.state.fixtureState.cables[id])
@@ -487,14 +405,35 @@ ThunkAction<AppState> createNewExtensionLoomV2(
 
     final clonedCables = CableFamily.flattened(clonedFamilies);
 
+    final actionModifierResult = applyCableActionModifiers(
+      modifiers: modifiers,
+      cables: Map<String, CableModel>.from(store.state.fixtureState.cables)
+        ..addAll(clonedCables.toModelMap()),
+      dataMultis: store.state.fixtureState.dataMultis,
+      locations: store.state.fixtureState.locations,
+      loom: newLoom,
+      outlets: [
+        ...store.state.fixtureState.powerMultiOutlets.values,
+        ...store.state.fixtureState.dataMultis.values,
+        ...store.state.fixtureState.dataPatches.values
+      ].toModelMap(),
+    );
+
+    _performPostCableActionModifierDispatches(
+        context, store, actionModifierResult);
+
     store.dispatch(SetCablesAndLooms(
         Map<String, CableModel>.from(store.state.fixtureState.cables)
-          ..addAll(clonedCables.toModelMap()),
+          ..addAll(actionModifierResult.cables),
         store.state.fixtureState.looms.copyWithInsertedEntry(
-            (index - 1).clamp(0, 99999), convertToMapEntry(newLoom))));
+            (index - 1).clamp(0, 99999),
+            convertToMapEntry(actionModifierResult.loom))));
 
     store.dispatch(SetSelectedCableIds(
-      clonedCables.map((cable) => cable.uid).toSet(),
+      actionModifierResult.cables.values
+          .where((cable) => cable.loomId == newLoom.uid)
+          .map((cable) => cable.uid)
+          .toSet(),
     ));
   };
 }

@@ -6,7 +6,8 @@ class LandingPad extends StatefulWidget {
   final Widget icon;
   final String title;
   final bool enabled;
-  final Widget? infoTag;
+  final Widget? trailingInfoTag;
+  final Widget? leadingInfoTag;
 
   final void Function(DragData data) onAccept;
   final bool Function(DragData onWillAccept) onWillAccept;
@@ -17,7 +18,8 @@ class LandingPad extends StatefulWidget {
     required this.title,
     required this.onAccept,
     required this.onWillAccept,
-    this.infoTag,
+    this.trailingInfoTag,
+    this.leadingInfoTag,
     this.enabled = true,
   });
 
@@ -54,11 +56,16 @@ class _LandingPadState extends State<LandingPad> {
                       ),
                     ],
                   ),
-                  if (widget.infoTag != null)
+                  // Leading Info Tag
+                  if (widget.leadingInfoTag != null)
+                    Positioned(top: 8, left: 8, child: widget.leadingInfoTag!),
+
+                  // Trailing Info Tag
+                  if (widget.trailingInfoTag != null)
                     Positioned(
                       top: 8,
                       right: 8,
-                      child: widget.infoTag!,
+                      child: widget.trailingInfoTag!,
                     )
                 ],
               ),

@@ -149,8 +149,10 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       isDataPatchLocked: map['isDataPatchLocked'] ?? false,
       delimiter: map['delimiter'] ?? '',
       hybridIds: map['hybridIds'] == null
-          ? const {}
-          : map['hybridIds'].map((x) => x.toString()).toSet(),
+          ? const <String>{}
+          : (map['hybridIds'] as List<dynamic>)
+              .map((x) => x.toString())
+              .toSet(),
     );
   }
 

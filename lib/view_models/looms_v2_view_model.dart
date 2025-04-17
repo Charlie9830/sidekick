@@ -14,14 +14,13 @@ class LoomsV2ViewModel {
   final LoomsDraggingState loomsDraggingState;
   final void Function(LoomsDraggingState draggingState)
       onLoomsDraggingStateChanged;
-  final void Function(
-          List<String> outletIds, int insertIndex, CableActionModifier modifiers)
-      onCreateNewFeederLoom;
+  final void Function(List<String> outletIds, int insertIndex,
+      Set<CableActionModifier> modifiers) onCreateNewFeederLoom;
   final List<LoomViewModel> loomVms;
   final Set<String> selectedCableIds;
   final void Function(Set<String> ids) onSelectCables;
-  final void Function(List<String> cableIds, int insertIndex)
-      onCreateNewExtensionLoom;
+  final void Function(List<String> cableIds, int insertIndex,
+      Set<CableActionModifier> modifiers) onCreateNewExtensionLoom;
   final void Function() onCombineSelectedDataCablesIntoSneak;
   final void Function() onSplitSneakIntoDmxPressed;
   final void Function(int oldRawIndex, int newRawIndex) onLoomReorder;
