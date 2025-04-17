@@ -27,8 +27,7 @@ final Set<LogicalKeyboardKey> _modifierKeys = {
   LogicalKeyboardKey.shiftRight,
 };
 
-class _ModifierKeyChangeBuilderState
-    extends State<ModifierKeyChangeBuilder> {
+class _ModifierKeyChangeBuilderState extends State<ModifierKeyChangeBuilder> {
   Set<LogicalKeyboardKey> _downModifierKeys = {};
 
   @override
@@ -46,13 +45,13 @@ class _ModifierKeyChangeBuilderState
   bool _handleKeyEvent(KeyEvent e) {
     if (e is KeyDownEvent && _modifierKeys.contains(e.logicalKey)) {
       setState(() {
-        _downModifierKeys = _modifierKeys.toSet()..add(e.logicalKey);
+        _downModifierKeys = _downModifierKeys.toSet()..add(e.logicalKey);
       });
     }
 
     if (e is KeyUpEvent && _modifierKeys.contains(e.logicalKey)) {
       setState(() {
-        _downModifierKeys = _modifierKeys.toSet()..remove(e.logicalKey);
+        _downModifierKeys = _downModifierKeys.toSet()..remove(e.logicalKey);
       });
     }
 
