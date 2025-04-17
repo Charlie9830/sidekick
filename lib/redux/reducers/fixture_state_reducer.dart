@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:sidekick/extension_methods/clone_map.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
@@ -14,7 +15,7 @@ import 'package:sidekick/redux/state/fixture_state.dart';
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   if (a is UpdateLoomName) {
     return state.copyWith(
-        looms: Map<String, LoomModel>.from(state.looms)
+        looms: state.looms.clone()
           ..update(
               a.uid,
               (existing) => existing.copyWith(
@@ -29,7 +30,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is UpdateCableLength) {
-    final updatedCables = Map<String, CableModel>.from(state.cables)
+    final updatedCables = state.cables.clone()
       ..update(
           a.uid,
           (existing) => existing.copyWith(
@@ -46,7 +47,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is ToggleLoomDropperState) {
     return state.copyWith(
-        looms: Map<String, LoomModel>.from(state.looms)
+        looms: state.looms.clone()
           ..update(
               a.loomId, (existing) => existing.copyWith(isDrop: a.isDropper)));
   }
@@ -78,14 +79,14 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is SetLocationPowerLock) {
     return state.copyWith(
-        locations: Map<String, LocationModel>.from(state.locations)
+        locations: state.locations.clone()
           ..update(a.locationId,
               (existing) => existing.copyWith(isPowerPatchLocked: a.value)));
   }
 
   if (a is SetLocationDataLock) {
     return state.copyWith(
-        locations: Map<String, LocationModel>.from(state.locations)
+        locations: state.locations.clone()
           ..update(a.locationId,
               (existing) => existing.copyWith(isDataPatchLocked: a.value)));
   }
@@ -128,7 +129,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is UpdateFixtureTypeShortName) {
     return state.copyWith(
-      fixtureTypes: Map<String, FixtureTypeModel>.from(state.fixtureTypes)
+      fixtureTypes: state.fixtureTypes.clone()
         ..update(
           a.id,
           (type) => type.copyWith(
@@ -140,7 +141,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is UpdateFixtureTypeMaxPiggybacks) {
     return state.copyWith(
-      fixtureTypes: Map<String, FixtureTypeModel>.from(state.fixtureTypes)
+      fixtureTypes: state.fixtureTypes.clone()
         ..update(
           a.id,
           (type) => type.copyWith(
@@ -152,7 +153,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is UpdateLocationDelimiter) {
     return state.copyWith(
-      locations: Map<String, LocationModel>.from(state.locations)
+      locations: state.locations.clone()
         ..update(a.locationId,
             (existing) => existing.copyWith(delimiter: a.newValue)),
     );
@@ -160,7 +161,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is UpdateLocationColor) {
     return state.copyWith(
-      locations: Map<String, LocationModel>.from(state.locations)
+      locations: state.locations.clone()
         ..update(
             a.locationId, (existing) => existing.copyWith(color: a.newValue)),
     );
@@ -264,7 +265,7 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
   final targetCables =
       state.cables.values.where((cable) => cable.loomId == existingLoom.uid);
 
-  final updatedCables = Map<String, CableModel>.from(state.cables)
+  final updatedCables = state.cables.clone()
     ..addAll(targetCables
         .map(
           (cable) => cable.copyWith(length: newLength),
@@ -272,7 +273,7 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
         .toModelMap());
 
   return state.copyWith(
-    looms: Map<String, LoomModel>.from(state.looms)
+    looms: state.looms.clone()
       ..update(
         a.id,
         (existing) =>

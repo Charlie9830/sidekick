@@ -2,6 +2,7 @@
 import 'package:collection/collection.dart';
 
 import 'package:sidekick/enums.dart';
+import 'package:sidekick/extension_methods/clone_map.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/helpers/combine_dmx_into_sneak.dart';
 import 'package:sidekick/helpers/convert_to_permanent_loom.dart';
@@ -92,8 +93,7 @@ CableActionModifierResult _applyConvertToPermanentLoomAction(
   }
 
   return incoming.copyWith(
-    cables: Map<String, CableModel>.from(incoming.cables)
-      ..addAll(updatedCables.toModelMap()),
+    cables: incoming.cables.clone()..addAll(updatedCables.toModelMap()),
     loom: updatedLoom,
   );
 }
@@ -104,11 +104,11 @@ CableActionModifierResult _applyCombineIntoSneaksAction(
       incoming.cables.values.toList(), incoming.outlets, incoming.locations);
 
   return incoming.copyWith(
-    cables: Map<String, CableModel>.from(incoming.cables)
+    cables: incoming.cables.clone()
       ..addAll(combinationResult.cables.toModelMap()),
-    dataMultis: Map<String, DataMultiModel>.from(incoming.dataMultis)
+    dataMultis: incoming.dataMultis.clone()
       ..addAll(combinationResult.newDataMultis.toModelMap()),
-    locations: Map<String, LocationModel>.from(incoming.locations)
+    locations: incoming.locations.clone()
       ..addAll([combinationResult.location].toModelMap()),
   );
 }
