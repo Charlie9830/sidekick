@@ -110,6 +110,7 @@ ThunkAction<AppState> switchLoomTypeV2(BuildContext context, String loomId) {
       return;
     }
 
+
     store.dispatch(SetCablesAndLooms(
       Map<String, CableModel>.from(store.state.fixtureState.cables)
         ..addAll(updatedCables.toModelMap()),
@@ -117,6 +118,72 @@ ThunkAction<AppState> switchLoomTypeV2(BuildContext context, String loomId) {
         ..addAll([updatedLoom].toModelMap()),
     ));
   };
+}
+
+List<CableModel> _fillCablesToSatisfyPermanentLoom(
+    LoomModel loom, List<CableModel> children) {
+  if (loom.type.type != LoomType.permanent) {
+    return [];
+  }
+
+  final topLevelChildren =
+      children.where((child) => child.parentMultiId.isEmpty).toList();
+  final composition =
+      PermanentLoomComposition.byName[loom.type.permanentComposition];
+
+  if (composition == null) {
+    return [];
+  }
+
+  final socaShortages = composition.socaWays -
+      topLevelChildren.where((cable) => cable.type == CableType.socapex).length;
+  final wieland6wayShortages = composition.wieland6Ways -
+      topLevelChildren
+          .where((cable) => cable.type == CableType.wieland6way)
+          .length;
+  final dmxShortages = composition.dmxWays -
+      topLevelChildren.where((cable) => cable.type == CableType.dmx).length;
+  final sneakShortages = composition.sneakWays -
+      topLevelChildren.where((cable) => cable.type == CableType.sneak).length;
+
+  // Builder function to handle multiple simliar calls.
+  spareCableBuilder(int index, CableType type) => CableModel(
+        uid: getUid(),
+        type: type,
+        isSpare: true,
+        spareIndex: children
+                .where((cable) => cable.type == type && cable.isSpare)
+                .length +
+            index,
+        length: loom.type.length,
+        loomId: loom.uid,
+      );
+
+  return [
+    // Socapex
+    ...List<CableModel>.generate(
+      socaShortages.abs(),
+      (index) => spareCableBuilder(index, CableType.socapex),
+    ),
+
+    // Wieland 6way.
+    ...List<CableModel>.generate(
+      wieland6wayShortages.abs(),
+      (index) => spareCableBuilder(index, CableType.wieland6way),
+    ),
+
+    // DMX
+    ...List<CableModel>.generate(
+      dmxShortages.abs(),
+      (index) => spareCableBuilder(index, CableType.dmx),
+    ),
+
+    // Sneak
+    ...List<CableModel>.generate(
+      sneakShortages.abs(),
+      (index) => spareCableBuilder(index, CableType.sneak),
+    ),
+  ];
 }
 
 (List<CableModel> updatedCables, LoomModel updatedLoom, String? error)
@@ -146,7 +213,12 @@ ThunkAction<AppState> switchLoomTypeV2(BuildContext context, String loomId) {
           ))
       .toList();
 
-  return (updatedChildren, updatedLoom, null);
+  final withAddedSpares = [
+    ...updatedChildren,
+    ..._fillCablesToSatisfyPermanentLoom(updatedLoom, updatedChildren),
+  ];
+
+  return (withAddedSpares, updatedLoom, null);
 }
 
 (List<CableModel> updatedCables, LoomModel updatedLoom) _convertToCustomLoom(

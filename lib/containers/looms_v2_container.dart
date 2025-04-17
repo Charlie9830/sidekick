@@ -170,6 +170,8 @@ List<LoomViewModel> _selectLoomRows(
           .flattened
           .toList();
 
+      
+
       return LoomViewModel(
           loom: loom,
           loomsOnlyIndex: index,

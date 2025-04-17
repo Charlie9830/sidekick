@@ -11,7 +11,7 @@ String selectCableLabel({
   required bool includeUniverse,
 }) {
   if (cable.isSpare) {
-    return 'SP ${cable.spareIndex}';
+    return 'SP ${cable.spareIndex + 1}';
   }
 
   if (cable.outletId.isEmpty) {

@@ -150,7 +150,7 @@ class LoomHeader extends StatelessWidget {
                         Tooltip(
                             message: 'Auto repair composition',
                             child: IconButton(
-                              icon: const Icon(Icons.build_circle),
+                              icon: const Icon(Icons.healing),
                               onPressed: loomVm.isValidComposition == false
                                   ? loomVm.onRepairCompositionButtonPressed
                                   : null,
@@ -160,7 +160,9 @@ class LoomHeader extends StatelessWidget {
                                 ? 'Switch to Custom'
                                 : 'Switch to Permanent',
                             child: IconButton(
-                              icon: const Icon(Icons.switch_access_shortcut),
+                              icon: loomVm.loom.type.type == LoomType.permanent
+                                  ? const Icon(Icons.build_circle)
+                                  : const Icon(Icons.all_inclusive),
                               onPressed: loomVm.onSwitchType,
                             )),
                         Tooltip(

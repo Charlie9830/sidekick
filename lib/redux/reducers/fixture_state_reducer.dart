@@ -67,10 +67,11 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   if (a is SetCablesAndLooms) {
     return state.copyWith(
       cables: _assertCableOrderings(
-          cables: a.cables,
-          powerMultis: state.powerMultiOutlets,
-          dataMultis: state.dataMultis,
-          dataPatches: state.dataPatches),
+        cables: a.cables,
+        powerMultis: state.powerMultiOutlets,
+        dataMultis: state.dataMultis,
+        dataPatches: state.dataPatches,
+      ),
       looms: a.looms,
     );
   }
@@ -339,6 +340,8 @@ Map<String, CableModel> _assertCableOrderings({
     ...powerMultis.keys,
     ...dataMultis.keys,
     ...dataPatches.keys,
+    '', // Spare cables will have an empty outletId field. Therefore we need to include an empty string here, otherwise
+        // the spares will get inadvertantly filltered out.
   ];
 
   final orderedCables = orderedOutletIds
