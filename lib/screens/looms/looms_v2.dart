@@ -35,8 +35,6 @@ class LoomsV2 extends StatefulWidget {
 }
 
 class _LoomsV2State extends State<LoomsV2> {
-  final FocusNode _outletsFocusNode = FocusNode();
-
   @override
   Widget build(BuildContext context) {
     return ModifierKeyProvider(
@@ -60,7 +58,6 @@ class _LoomsV2State extends State<LoomsV2> {
                     width: 360,
                     child: Card(
                         child: ItemSelectionContainer<String>(
-                      focusNode: _outletsFocusNode,
                       itemIndicies: Map<String, int>.fromEntries(
                           widget.vm.outlets.mapIndexed(
                               (index, outlet) => MapEntry(outlet.uid, index))),
@@ -233,7 +230,6 @@ class _LoomsV2State extends State<LoomsV2> {
           child: LoomRowItem(
               loomVm: loomVm,
               reorderableListViewIndex: index,
-              onFocusDone: _requestSelectionFocus,
               children: loomVm.children.mapIndexed((index, cableVm) {
                 final cableWidget = buildCableRowItem(
                     vm: cableVm,
@@ -241,7 +237,6 @@ class _LoomsV2State extends State<LoomsV2> {
                     selectedCableIds: widget.vm.selectedCableIds,
                     rowVms: widget.vm.loomVms,
                     parentLoomType: loomVm.loom.type.type,
-                    requestSelectionFocusCallback: _requestSelectionFocus,
                     missingUpstreamCable: cableVm.missingUpstreamCable);
                 return LongPressDraggableProxy<CableDragData>(
                   data: CableDragData(
@@ -270,10 +265,6 @@ class _LoomsV2State extends State<LoomsV2> {
   void _handleCreateNewExtensionLoom(List<String> cableIds, int dividerIndex,
       Set<CableActionModifier> modifiers) {
     widget.vm.onCreateNewExtensionLoom(cableIds, dividerIndex, modifiers);
-  }
-
-  void _requestSelectionFocus() {
-    // TODO: Tie this to a FocusNode.
   }
 
   Widget _wrapSelectionListener(

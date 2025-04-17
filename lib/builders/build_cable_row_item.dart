@@ -10,7 +10,6 @@ CableRowItem buildCableRowItem({
   required Set<String> selectedCableIds,
   required List<LoomViewModel> rowVms,
   LoomType? parentLoomType,
-  required void Function() requestSelectionFocusCallback,
   required bool missingUpstreamCable,
 }) {
   return CableRowItem(
@@ -25,7 +24,6 @@ CableRowItem buildCableRowItem({
     label: vm.label,
     onLengthChanged: (newValue) {
       vm.onLengthChanged(newValue);
-      requestSelectionFocusCallback();
     },
     missingUpstreamCable: missingUpstreamCable,
   );

@@ -8,13 +8,11 @@ class LoomRowItem extends StatelessWidget {
   final List<Widget> children;
   final Set<PropertyDelta> deltas;
   final int reorderableListViewIndex;
-  final void Function() onFocusDone;
 
   const LoomRowItem({
     super.key,
     required this.loomVm,
     required this.children,
-    required this.onFocusDone,
     required this.reorderableListViewIndex,
     this.deltas = const {},
   });
