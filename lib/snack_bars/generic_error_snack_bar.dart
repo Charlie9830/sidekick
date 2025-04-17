@@ -8,10 +8,11 @@ SnackBar genericErrorSnackBar({
   Object? error,
 }) {
   return SnackBar(
-    duration: const Duration(seconds: 4),
-    backgroundColor: Colors.red.shade900,
+    duration: const Duration(seconds: 8),
+    backgroundColor: Theme.of(context).colorScheme.errorContainer,
     action: extendedMessage.isNotEmpty || error != null
         ? SnackBarAction(
+            textColor: Theme.of(context).colorScheme.onErrorContainer,
             label: 'Show more',
             onPressed: () => showGenericDialog(
                 context: context,

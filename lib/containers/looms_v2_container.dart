@@ -196,8 +196,10 @@ List<LoomViewModel> _selectLoomRows(
                   loomedCableVms.map((child) => child.cable).toList(),
                 ),
               ),
-          onSwitchType: () => store.dispatch(switchLoomType(context, loom.uid,
-              loomedCableVms.map((child) => child.cable).toList())),
+          onSwitchType: () => store.dispatch(switchLoomTypeV2(
+                context,
+                loom.uid,
+              )),
           addSelectedCablesToLoom:
               store.state.navstate.selectedCableIds.isNotEmpty
                   ? () => store.dispatch(
