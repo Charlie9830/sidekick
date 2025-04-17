@@ -194,8 +194,6 @@ Future<FixturesDataReadResult> readFixturesPatchData({
 
   if (cell == null) {
     return (0, null);
-
-    return (0, 'No Fixture Id data at row $rowIndex');
   }
 
   if (cell is TextCellValue) {
@@ -203,8 +201,6 @@ Future<FixturesDataReadResult> readFixturesPatchData({
 
     if (fid == null) {
       return (0, null);
-
-      return (0, "Invalid Fixture ID data at row $rowIndex");
     }
 
     return (fid, null);

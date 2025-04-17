@@ -28,9 +28,9 @@ class OutletListTile extends StatelessWidget {
 
   Widget _getLeading(OutletViewModel vm) {
     return switch (vm) {
-      PowerMultiOutletViewModel vm =>
+      PowerMultiOutletViewModel _ =>
         const Icon(Icons.bolt, color: Colors.yellowAccent),
-      DataOutletViewModel vm => const Icon(Icons.settings_input_svideo),
+      DataOutletViewModel _ => const Icon(Icons.settings_input_svideo),
       _ => const SizedBox.shrink(),
     };
   }

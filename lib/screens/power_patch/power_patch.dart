@@ -16,10 +16,6 @@ class PowerPatch extends StatefulWidget {
 }
 
 class _PowerPatchState extends State<PowerPatch> {
-  final double _phaseALoad = 0;
-  final double _phaseBLoad = 0;
-  final double _phaseCLoad = 0;
-
   @override
   void initState() {
     super.initState();

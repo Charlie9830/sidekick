@@ -1438,7 +1438,7 @@ ThunkAction<AppState> export(BuildContext context) {
     ];
 
     try {
-      final writeResults = await Future.wait(fileWrites);
+      await Future.wait(fileWrites);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(fileErrorSnackBar(
