@@ -307,7 +307,7 @@ Map<String, DataMultiModel> _assertDataMultiState(
       multiOutlets.values.groupListsBy((item) => item.locationId);
 
   final sortedOutlets = locations.values
-      .map((location) => (outletsByLocationId[location.uid] ?? []).sorted())
+      .map((location) => (outletsByLocationId[location.uid] ?? []).sorted((a, b) => b.number - a.number))
       .flattened;
 
   return _assertOutletNameAndNumbers<DataMultiModel>(sortedOutlets, locations)
