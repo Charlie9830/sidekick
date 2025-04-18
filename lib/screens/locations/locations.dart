@@ -17,7 +17,9 @@ class Locations extends StatelessWidget {
       child: DataTable(
           columns: const [
             DataColumn(label: Text('Name')),
-            DataColumn(label: Text('Colours'), ),
+            DataColumn(
+              label: Text('Colours'),
+            ),
             DataColumn(label: Text('Loom Prefix')),
             DataColumn(label: Text('Delimiter')),
             DataColumn(
@@ -58,8 +60,11 @@ class Locations extends StatelessWidget {
                       context, item.location.uid, item.location.color),
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: MultiColorChit(
-                      value: item.location.color,
+                    child: Center(
+                      child: MultiColorChit(
+                        height: 18,
+                        value: item.location.color,
+                      ),
                     ),
                   ),
                 ),

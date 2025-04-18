@@ -3,6 +3,7 @@ import 'package:sidekick/editable_text_field.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/screens/locations/color_chit.dart';
+import 'package:sidekick/screens/locations/multi_color_chit.dart';
 import 'package:sidekick/screens/looms/cable_flag.dart';
 
 const double kCableRowHeight = 26.0;
@@ -168,17 +169,12 @@ class CableRowItem extends StatelessWidget {
 
               // Color
               SizedBox(
-                  width: 128,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: 8,
-                    children: labelColor.colors
-                        .map((namedColor) => ColorChit(
-                              color: namedColor.color,
-                              brightness: Brightness.dark,
-                            ))
-                        .toList(),
-                  )),
+                  width: 100,
+                  child: Center(
+                      child: MultiColorChit(
+                    value: labelColor,
+                    showPickerIcon: false,
+                  ))),
               VerticalDivider(
                 color: borderColor,
               ),

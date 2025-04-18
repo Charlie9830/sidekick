@@ -4,10 +4,12 @@ import 'package:sidekick/redux/models/named_color_model.dart';
 class ColorChit extends StatelessWidget {
   final Color color;
   final Brightness brightness;
+  final double size;
 
   const ColorChit({
     Key? key,
     required this.color,
+    this.size = 16,
     this.brightness = Brightness.light,
   }) : super(key: key);
 
@@ -18,8 +20,8 @@ class ColorChit extends StatelessWidget {
     }
 
     return Container(
-      width: 16,
-      height: 16,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: brightness == Brightness.dark

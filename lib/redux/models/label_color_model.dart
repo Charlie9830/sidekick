@@ -24,6 +24,8 @@ class LabelColorModel {
 
   String get name => colors.map((color) => color.name).join('/');
 
+  bool get isNone => this == const LabelColorModel.none() || colors.isEmpty;
+
   LabelColorModel copyWith({
     List<NamedColorModel>? colors,
   }) {
