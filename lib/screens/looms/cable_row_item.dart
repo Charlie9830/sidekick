@@ -58,7 +58,12 @@ class CableRowItem extends StatelessWidget {
               SizedBox(
                   width: 100,
                   child: disableLength
-                      ? const Center(child: Text('-'))
+                      ? Center(
+                          child: Text('-',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall!
+                                  .copyWith(color: Colors.grey)))
                       : Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [

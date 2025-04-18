@@ -11,7 +11,6 @@ class LoomViewModel {
   final void Function() onDelete;
   final void Function() onDropperToggleButtonPressed;
   final void Function() onSwitchType;
-  final void Function()? addSelectedCablesToLoom;
   final bool isValidComposition;
   final void Function() addSpareCablesToLoom;
   final void Function() onRepairCompositionButtonPressed;
@@ -28,7 +27,6 @@ class LoomViewModel {
     required this.onDelete,
     required this.onDropperToggleButtonPressed,
     required this.onSwitchType,
-    required this.addSelectedCablesToLoom,
     required this.isValidComposition,
     required this.name,
     required this.addSpareCablesToLoom,

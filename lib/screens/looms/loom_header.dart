@@ -65,7 +65,7 @@ class LoomHeader extends StatelessWidget {
                   ),
                 if (loomVm.loom.type.type == LoomType.permanent)
                   const SizedBox(
-                    height: 36,
+                    height: 28,
                     child: CableFlag(
                       text: 'Permanent',
                       color: Colors.blueGrey,
@@ -75,7 +75,7 @@ class LoomHeader extends StatelessWidget {
                   const Padding(
                     padding: EdgeInsets.only(left: 8.0),
                     child: SizedBox(
-                      height: 36,
+                      height: 28,
                       child: CableFlag(
                         text: 'Custom',
                         color: Colors.blueAccent,
@@ -119,12 +119,6 @@ class LoomHeader extends StatelessWidget {
                               onPressed: loomVm.addSpareCablesToLoom,
                             )),
                         Tooltip(
-                            message: 'Add selected cables',
-                            child: IconButton(
-                              icon: const Icon(Icons.move_down),
-                              onPressed: loomVm.addSelectedCablesToLoom,
-                            )),
-                        Tooltip(
                             message: 'Auto repair composition',
                             child: IconButton(
                               icon: const Icon(Icons.healing),
@@ -156,7 +150,6 @@ class LoomHeader extends StatelessWidget {
                           index: reorderableListViewIndex,
                           child: const Icon(Icons.drag_handle),
                         ),
-                        const SizedBox(width: 16),
                       ],
                     ))
               ],

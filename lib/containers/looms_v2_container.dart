@@ -220,16 +220,6 @@ List<LoomViewModel> _selectLoomRows(
                 context,
                 loom.uid,
               )),
-          addSelectedCablesToLoom:
-              store.state.navstate.selectedCableIds.isNotEmpty
-                  ? () => store.dispatch(
-                        addOutletsToLoom(
-                          context,
-                          loom.uid,
-                          store.state.navstate.selectedCableIds,
-                        ),
-                      )
-                  : null,
           addSpareCablesToLoom: () =>
               store.dispatch(addSpareCablesToLoom(context, loom.uid)),
           onNameChanged: (newValue) =>
