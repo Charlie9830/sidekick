@@ -212,10 +212,8 @@ List<LoomViewModel> _selectLoomRows(
                 deleteLoomV2(context, loom.uid),
               ),
           onDropperToggleButtonPressed: () => store.dispatch(
-                ToggleLoomDropperState(
+                ToggleCableDropperStateByLoom(
                   loom.uid,
-                  !loom.isDrop,
-                  loomedCableVms.map((child) => child.cable).toList(),
                 ),
               ),
           onSwitchType: () => store.dispatch(switchLoomTypeV2(

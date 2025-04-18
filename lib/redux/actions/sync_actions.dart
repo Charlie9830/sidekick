@@ -142,12 +142,10 @@ class UpdateCablesAndDataMultis {
   );
 }
 
-class ToggleLoomDropperState {
+class ToggleCableDropperStateByLoom {
   final String loomId;
-  final List<CableModel> childCables;
-  final bool isDropper;
 
-  ToggleLoomDropperState(this.loomId, this.isDropper, this.childCables);
+  ToggleCableDropperStateByLoom(this.loomId);
 }
 
 class SetCablesAndLooms {

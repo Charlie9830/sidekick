@@ -314,7 +314,6 @@ ThunkAction<AppState> createNewFeederLoomV2(
 
     final newLoom = LoomModel(
       uid: newLoomId,
-      loomClass: LoomClass.feeder,
       type: LoomTypeModel(length: targetLength, type: LoomType.custom),
       name: determineDefaultLoomName(
           associatedPrimaryLocation: associatedLocations.first,
@@ -396,7 +395,6 @@ ThunkAction<AppState> createNewExtensionLoomV2(BuildContext context,
 
     LoomModel newLoom = LoomModel(
       uid: getUid(),
-      loomClass: LoomClass.extension,
       type: LoomTypeModel(length: longestCable, type: LoomType.custom),
     );
 

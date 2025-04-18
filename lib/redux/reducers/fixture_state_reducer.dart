@@ -37,24 +37,26 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     return state.copyWith(
       cables: _assertCableOrderings(
           cables: updatedCables,
-          powerMultis: state.powerMultiOutlets,
+          powerMultiOutlets: state.powerMultiOutlets,
           dataMultis: state.dataMultis,
           dataPatches: state.dataPatches),
     );
   }
 
-  if (a is ToggleLoomDropperState) {
+  if (a is ToggleCableDropperStateByLoom) {
     return state.copyWith(
-        looms: state.looms.clone()
-          ..update(
-              a.loomId, (existing) => existing.copyWith(isDrop: a.isDropper)));
+        cables: _assertCableOrderings(
+            cables: _toggleCableDropperState(a.loomId, state.cables),
+            powerMultiOutlets: state.powerMultiOutlets,
+            dataMultis: state.dataMultis,
+            dataPatches: state.dataPatches));
   }
 
   if (a is SetCables) {
     return state.copyWith(
         cables: _assertCableOrderings(
             cables: a.cables,
-            powerMultis: state.powerMultiOutlets,
+            powerMultiOutlets: state.powerMultiOutlets,
             dataMultis: state.dataMultis,
             dataPatches: state.dataPatches));
   }
@@ -67,7 +69,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     return state.copyWith(
       cables: _assertCableOrderings(
         cables: a.cables,
-        powerMultis: state.powerMultiOutlets,
+        powerMultiOutlets: state.powerMultiOutlets,
         dataMultis: state.dataMultis,
         dataPatches: state.dataPatches,
       ),
@@ -279,7 +281,7 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
       ),
     cables: _assertCableOrderings(
         cables: updatedCables,
-        powerMultis: state.powerMultiOutlets,
+        powerMultiOutlets: state.powerMultiOutlets,
         dataMultis: state.dataMultis,
         dataPatches: state.dataPatches),
   );
@@ -307,7 +309,8 @@ Map<String, DataMultiModel> _assertDataMultiState(
       multiOutlets.values.groupListsBy((item) => item.locationId);
 
   final sortedOutlets = locations.values
-      .map((location) => (outletsByLocationId[location.uid] ?? []).sorted((a, b) => b.number - a.number))
+      .map((location) => (outletsByLocationId[location.uid] ?? [])
+          .sorted((a, b) => b.number - a.number))
       .flattened;
 
   return _assertOutletNameAndNumbers<DataMultiModel>(sortedOutlets, locations)
@@ -330,17 +333,17 @@ Map<String, DataPatchModel> _assertDataPatchState(
 
 Map<String, CableModel> _assertCableOrderings({
   required Map<String, CableModel> cables,
-  required Map<String, PowerMultiOutletModel> powerMultis,
+  required Map<String, PowerMultiOutletModel> powerMultiOutlets,
   required Map<String, DataMultiModel> dataMultis,
   required Map<String, DataPatchModel> dataPatches,
 }) {
   final cablesByOutletId = cables.values.groupListsBy((item) => item.outletId);
   final orderedOutletIds = [
-    ...powerMultis.keys,
+    ...powerMultiOutlets.keys,
     ...dataMultis.keys,
     ...dataPatches.keys,
     '', // Spare cables will have an empty outletId field. Therefore we need to include an empty string here, otherwise
-        // the spares will get inadvertantly filltered out.
+    // the spares will get inadvertantly filltered out.
   ];
 
   final orderedCables = orderedOutletIds
@@ -380,4 +383,23 @@ Outlet _updateOutletNameAndNumber(Outlet outlet, String name, int number) {
     DataMultiModel o => o.copyWith(name: name, number: number),
     _ => throw UnimplementedError('No handling for Type ${outlet.runtimeType}')
   };
+}
+
+Map<String, CableModel> _toggleCableDropperState(
+    String loomId, Map<String, CableModel> existingCables) {
+  final cables = existingCables.values.where((cable) => cable.loomId == loomId);
+
+  if (cables.isEmpty) {
+    return existingCables;
+  }
+
+  final valueSet = cables.map((cable) => cable.isDropper).toSet();
+  final derivedCurrentState = valueSet.length == 1 ? valueSet.first : false;
+
+  return existingCables.clone()
+    ..addAll(
+      cables
+          .map((cable) => cable.copyWith(isDropper: !derivedCurrentState))
+          .toModelMap(),
+    );
 }

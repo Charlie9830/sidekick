@@ -140,13 +140,16 @@ class CableRowItem extends StatelessWidget {
                       if (cable.upstreamId.isNotEmpty)
                         missingUpstreamCable
                             ? const _MissingUpstreamCableIcon()
-                            : const CableFlag(
-                                text: 'Ext',
-                                color: Colors.blueAccent,
-                              ),
+                            : cable.isDropper
+                                ? const CableFlag(
+                                    text: 'Drop', color: Colors.green)
+                                : const CableFlag(
+                                    text: 'Ext',
+                                    color: Colors.blueAccent,
+                                  ),
                       if (cable.isSpare)
                         const CableFlag(
-                          text: 'Spare',
+                          text: 'SP',
                           color: Colors.pink,
                         ),
                     ],

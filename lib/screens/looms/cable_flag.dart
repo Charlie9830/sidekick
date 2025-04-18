@@ -12,10 +12,17 @@ class CableFlag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Chip(
-        backgroundColor: color ?? Colors.teal.shade700,
-        labelStyle: Theme.of(context).textTheme.labelSmall,
-        padding: const EdgeInsets.only(bottom: 4),
-        label: Text(text));
+    return Container(
+      constraints: const BoxConstraints(minWidth: 36),
+      margin: const EdgeInsets.all(4),
+      padding: const EdgeInsets.only(left: 8, right: 8),
+      decoration: BoxDecoration(
+          color: color ?? Colors.teal.shade700,
+          borderRadius: BorderRadius.circular(8)),
+      alignment: Alignment.center,
+      child: Text(text,
+          style:
+              Theme.of(context).textTheme.labelSmall!.copyWith(fontSize: 10)),
+    );
   }
 }

@@ -82,29 +82,6 @@ class LoomHeader extends StatelessWidget {
                       ),
                     ),
                   ),
-                if (loomVm.loom.loomClass == LoomClass.extension &&
-                    loomVm.loom.isDrop == false)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: SizedBox(
-                      height: 36,
-                      child: CableFlag(
-                        text: 'Extension',
-                        color: Colors.blue.shade900,
-                      ),
-                    ),
-                  ),
-                if (loomVm.loom.isDrop == true)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: SizedBox(
-                      height: 36,
-                      child: CableFlag(
-                        text: 'Drop',
-                        color: Colors.green.shade700,
-                      ),
-                    ),
-                  ),
               ],
             ),
             Row(
@@ -169,8 +146,6 @@ class LoomHeader extends StatelessWidget {
                           message: "Dropdown Loom",
                           child: IconButton(
                             icon: const Icon(Icons.arrow_circle_down_sharp),
-                            color:
-                                loomVm.loom.isDrop ? Colors.greenAccent : null,
                             onPressed: loomVm.onDropperToggleButtonPressed,
                           ),
                         ),
