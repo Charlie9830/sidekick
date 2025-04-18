@@ -16,6 +16,7 @@ import 'package:sidekick/classes/cable_family.dart';
 import 'package:sidekick/classes/export_file_paths.dart';
 import 'package:sidekick/classes/universe_span.dart';
 import 'package:sidekick/containers/import_manager_container.dart';
+import 'package:sidekick/data_selectors/select_all_outlets.dart';
 import 'package:sidekick/data_selectors/select_outlets.dart';
 import 'package:sidekick/diffing/union_proxy.dart';
 import 'package:sidekick/enums.dart';
@@ -38,6 +39,8 @@ import 'package:sidekick/global_keys.dart';
 import 'package:sidekick/helpers/apply_cable_action_modifiers.dart';
 import 'package:sidekick/helpers/combine_dmx_into_sneak.dart';
 import 'package:sidekick/helpers/convert_to_permanent_loom.dart';
+import 'package:sidekick/helpers/determine_default_loom_name.dart';
+import 'package:sidekick/helpers/extract_locations_from_outlets.dart';
 import 'package:sidekick/import_merging/merge_fixtures.dart';
 import 'package:sidekick/model_collection/convert_to_map_entry.dart';
 import 'package:sidekick/persistent_settings/fetch_persistent_settings.dart';
@@ -222,9 +225,8 @@ ThunkAction<AppState> splitSelectedSneakIntoDmxV2(BuildContext context) {
       ..removeWhere((key, value) => sneakIds.contains(key))));
 
     if (dataMultisToRemove.isNotEmpty) {
-      store.dispatch(SetDataMultis(
-          store.state.fixtureState.dataMultis.clone()
-            ..removeWhere((key, _) => dataMultisToRemove.contains(key))));
+      store.dispatch(SetDataMultis(store.state.fixtureState.dataMultis.clone()
+        ..removeWhere((key, _) => dataMultisToRemove.contains(key))));
     }
   };
 }
@@ -251,9 +253,8 @@ ThunkAction<AppState> combineSelectedDataCablesIntoSneakV2(
     store.dispatch(SetLocations(store.state.fixtureState.locations.clone()
       ..addAll([combinationResult.location].toModelMap())));
 
-    store.dispatch(SetDataMultis(
-        store.state.fixtureState.dataMultis.clone()
-          ..addAll(combinationResult.newDataMultis.toModelMap())));
+    store.dispatch(SetDataMultis(store.state.fixtureState.dataMultis.clone()
+      ..addAll(combinationResult.newDataMultis.toModelMap())));
 
     store.dispatch(
       SetCables(
@@ -285,25 +286,42 @@ ThunkAction<AppState> createNewFeederLoomV2(
         .map((id) => store.state.fixtureState.powerMultiOutlets[id])
         .nonNulls;
 
+    final associatedLocations = extractLocationsFromOutlets(
+        [...dataOutlets, ...powerMultiOutlets],
+        store.state.fixtureState.locations);
+
+    final targetLength = associatedLocations
+        .map(
+            (location) => location.color.colors.firstOrNull?.defaultLength ?? 0)
+        .sorted((a, b) => a.floor() - b.floor())
+        .last;
+
     final List<CableModel> newCables = [
       ...powerMultiOutlets.map((outlet) => CableModel(
             uid: getUid(),
             outletId: outlet.uid,
             type: store.state.fixtureState.defaultPowerMulti,
             loomId: newLoomId,
+            length: targetLength,
           )),
       ...dataOutlets.map((outlet) => CableModel(
           uid: getUid(),
           outletId: outlet.uid,
           type: CableType.dmx,
+          length: targetLength,
           loomId: newLoomId)),
     ];
 
     final newLoom = LoomModel(
       uid: newLoomId,
       loomClass: LoomClass.feeder,
-      type: LoomTypeModel(length: 0, type: LoomType.custom),
-      name: 'Unnamed Feeder',
+      type: LoomTypeModel(length: targetLength, type: LoomType.custom),
+      name: determineDefaultLoomName(
+          associatedPrimaryLocation: associatedLocations.first,
+          children: newCables,
+          existingLooms: store.state.fixtureState.looms,
+          existingOutlets: selectAllOutlets(store),
+          existingCables: store.state.fixtureState.cables),
     );
 
     final actionModifierResult = applyCableActionModifiers(
@@ -360,10 +378,26 @@ ThunkAction<AppState> createNewExtensionLoomV2(BuildContext context,
         .nonNulls
         .toList();
 
-    final newLoom = LoomModel(
+    if (cables.isEmpty) {
+      return;
+    }
+
+    final longestCable = cables
+        .map((cable) => cable.length)
+        .sorted((a, b) => a.floor() - b.floor())
+        .last;
+
+    final outlets = selectAllOutlets(store);
+
+    final associatedLocations = extractLocationsFromOutlets(
+      cables.map((cable) => outlets[cable.outletId]).nonNulls.toList(),
+      store.state.fixtureState.locations,
+    );
+
+    LoomModel newLoom = LoomModel(
       uid: getUid(),
       loomClass: LoomClass.extension,
-      type: LoomTypeModel(length: 0, type: LoomType.custom),
+      type: LoomTypeModel(length: longestCable, type: LoomType.custom),
     );
 
     final cableFamilies = CableFamily.createFamilies(cables);
@@ -400,6 +434,16 @@ ThunkAction<AppState> createNewExtensionLoomV2(BuildContext context,
     });
 
     final clonedCables = CableFamily.flattened(clonedFamilies);
+
+    newLoom = newLoom.copyWith(
+      name: determineDefaultLoomName(
+        associatedPrimaryLocation: associatedLocations.first,
+        children: clonedCables,
+        existingLooms: store.state.fixtureState.looms,
+        existingOutlets: selectAllOutlets(store),
+        existingCables: store.state.fixtureState.cables,
+      ),
+    );
 
     final actionModifierResult = applyCableActionModifiers(
       modifiers: modifiers,
@@ -829,7 +873,8 @@ ThunkAction<AppState> deleteLoomV2(BuildContext context, String uid) {
 
     // If we are deleting any Sneaks, we will also need to delete their corresponding DataMutliOutlet.
     final dataMultiIdsToRemove = allChildCables
-        .where((cable) => cable.type == CableType.sneak)
+        .where((cable) =>
+            cable.type == CableType.sneak && cable.upstreamId.isEmpty)
         .map((cable) => cable.outletId)
         .toSet();
 
@@ -844,9 +889,8 @@ ThunkAction<AppState> deleteLoomV2(BuildContext context, String uid) {
 
     // Optionally remove any corresponding DataMulti Outlets.
     if (dataMultiIdsToRemove.isNotEmpty) {
-      store.dispatch(SetDataMultis(
-          store.state.fixtureState.dataMultis.clone()
-            ..removeWhere((key, value) => dataMultiIdsToRemove.contains(key))));
+      store.dispatch(SetDataMultis(store.state.fixtureState.dataMultis.clone()
+        ..removeWhere((key, value) => dataMultiIdsToRemove.contains(key))));
     }
 
     store.dispatch(SetSelectedCableIds({}));

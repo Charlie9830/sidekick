@@ -5,19 +5,23 @@ import 'dart:ui';
 class NamedColorModel {
   final String name;
   final Color color;
+  final double defaultLength;
 
   const NamedColorModel({
     required this.name,
     required this.color,
+    required this.defaultLength,
   });
 
   NamedColorModel copyWith({
     String? name,
     Color? color,
+    double? defaultLength,
   }) {
     return NamedColorModel(
       name: name ?? this.name,
       color: color ?? this.color,
+      defaultLength: defaultLength ?? this.defaultLength,
     );
   }
 
@@ -25,6 +29,7 @@ class NamedColorModel {
     return <String, dynamic>{
       'name': name,
       'color': color.toARGB32(),
+      'defaultLength': defaultLength,
     };
   }
 
@@ -32,6 +37,7 @@ class NamedColorModel {
     return NamedColorModel(
       name: (map['name'] ?? '') as String,
       color: Color(map['color'] as int),
+      defaultLength: map['defaultLength'] ?? 0,
     );
   }
 

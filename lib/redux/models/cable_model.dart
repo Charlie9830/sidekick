@@ -1,4 +1,6 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
+
 import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
@@ -9,6 +11,13 @@ enum CableType {
   wieland6way,
   sneak,
   dmx,
+}
+
+enum CableClass {
+  feeder,
+  extension,
+  dropper,
+  none, // Used as Sentinel value.
 }
 
 const _ranking = {
@@ -26,6 +35,7 @@ class CableModel extends ModelCollectionMember with DiffComparable {
   final String loomId;
   final String outletId;
   final String upstreamId;
+  final bool isDropper;
   final String notes;
   final CableType type;
   final bool isSpare;
@@ -43,6 +53,7 @@ class CableModel extends ModelCollectionMember with DiffComparable {
     this.isSpare = false,
     this.spareIndex = 0,
     this.parentMultiId = '',
+    this.isDropper = false,
   });
 
   CableModel copyWith({
@@ -50,8 +61,8 @@ class CableModel extends ModelCollectionMember with DiffComparable {
     double? length,
     String? loomId,
     String? outletId,
-    String? locationId,
     String? upstreamId,
+    bool? isDropper,
     String? notes,
     CableType? type,
     bool? isSpare,
@@ -64,6 +75,7 @@ class CableModel extends ModelCollectionMember with DiffComparable {
       loomId: loomId ?? this.loomId,
       outletId: outletId ?? this.outletId,
       upstreamId: upstreamId ?? this.upstreamId,
+      isDropper: isDropper ?? this.isDropper,
       notes: notes ?? this.notes,
       type: type ?? this.type,
       isSpare: isSpare ?? this.isSpare,
@@ -84,6 +96,7 @@ class CableModel extends ModelCollectionMember with DiffComparable {
       'isSpare': isSpare,
       'spareIndex': spareIndex,
       'parentMultiId': parentMultiId,
+      'isDropper': isDropper,
     };
   }
 
@@ -99,11 +112,20 @@ class CableModel extends ModelCollectionMember with DiffComparable {
       isSpare: map['isSpare'],
       spareIndex: map['spareIndex'],
       parentMultiId: map['parentMultiId'] ?? '',
+      isDropper: map['isDropper'] ?? false,
     );
   }
 
   bool get isMultiCable =>
       switch (type) { CableType.sneak => true, _ => false };
+
+  CableClass get cableClass {
+    if (isDropper) {
+      return CableClass.dropper;
+    }
+
+    return upstreamId.isEmpty ? CableClass.feeder : CableClass.extension;
+  }
 
   @override
   String toString() {
