@@ -76,7 +76,22 @@ CombineDmxIntoSneakResult combineDmxIntoSneak(
                   .map((child) => child.copyWith(parentMultiId: newSneak.uid))
                   .toList();
 
-              return (newSneak, newMultiOutlet, updatedChildren);
+              final withSparesFilled = [
+                ...updatedChildren,
+                ...List<CableModel>.generate(
+                    4 - updatedChildren.length,
+                    (index) => CableModel(
+                          uid: getUid(),
+                          type: CableType.dmx,
+                          isSpare: true,
+                          spareIndex: index,
+                          parentMultiId: newSneak.uid,
+                          loomId: loomId,
+                          length: inheritedLength,
+                        ))
+              ];
+
+              return (newSneak, newMultiOutlet, withSparesFilled);
             });
           })
           .flattened
