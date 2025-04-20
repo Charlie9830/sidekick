@@ -777,41 +777,99 @@ ThunkAction<AppState> addSpareCablesToLoom(
     }
 
     final result = await showModalBottomSheet(
-        context: context, builder: (context) => const AddSpareCables());
+        barrierColor: Colors.black.withAlpha(64),
+        elevation: 20,
+        context: context,
+        builder: (context) => AddSpareCables(
+              defaultPowerMultiType: store.state.fixtureState.defaultPowerMulti,
+            ));
 
     if (result == null) {
       return;
     }
 
     if (result is AddSpareCablesResult) {
-      final qty = result.qty;
-      final type = result.type;
+      final values = result.values;
 
-      final existingCablesOfType = store.state.fixtureState.cables.values
-          .where((cable) => cable.loomId == loomId && cable.type == type)
-          .toList();
-      final existingSpareCablesOfType =
-          existingCablesOfType.where((cable) => cable.isSpare == true).toList();
+      // Expand the values from the Dialog into a List of CableTypes. This makes it easier to reduce
+      // these values later on.
+      final expandedTypes = values.expand((value) =>
+          List<CableType>.generate(value.qty, (index) => value.type));
 
-      final newSpareCables = List<CableModel>.generate(qty, (index) {
-        return CableModel(
+      final existingCablesInLoom = store.state.fixtureState.cables.values
+          .where((cable) => cable.loomId == loomId);
+
+      final updatedCables = expandedTypes.fold<List<CableModel>>(
+          existingCablesInLoom.toList(), (cablesInLoom, type) {
+        final existingCablesOfType =
+            cablesInLoom.where((cable) => cable.type == type);
+
+        final existingParentSparesOfType = existingCablesOfType
+            .where(
+                (cable) => cable.isSpare == true && cable.parentMultiId.isEmpty)
+            .toList();
+
+        final newParentCable = CableModel(
           uid: getUid(),
           type: type,
           isSpare: true,
-          length: existingSpareCablesOfType.isNotEmpty
-              ? existingSpareCablesOfType.first.length
-              : existingCablesOfType.isNotEmpty
-                  ? existingCablesOfType.first.length
-                  : 0,
           loomId: loomId,
-          spareIndex: existingSpareCablesOfType.length + index + 1,
+          length: existingParentSparesOfType.firstOrNull?.length ??
+              existingCablesOfType.firstOrNull?.length ??
+              cablesInLoom.firstOrNull?.length ??
+              0,
+          spareIndex: _selectNextSpareIndex(existingParentSparesOfType),
         );
+
+        return [
+          ...cablesInLoom,
+          newParentCable,
+
+          // Optionally create 4 children if current cable is a Sneak.
+          if (type == CableType.sneak)
+            ...List<CableModel>.generate(
+                4,
+                (index) => CableModel(
+                    uid: getUid(),
+                    type: CableType.dmx,
+                    loomId: loomId,
+                    isSpare: true,
+                    parentMultiId: newParentCable.uid,
+                    length: newParentCable.length,
+                    spareIndex: index)),
+        ];
       });
 
-      store.dispatch(SetCables(store.state.fixtureState.cables.clone()
-        ..addAll(newSpareCables.toModelMap())));
+      store.dispatch(
+        SetCables(
+          store.state.fixtureState.cables.clone()
+            ..addAll(updatedCables.toModelMap()),
+        ),
+      );
+
+      store.dispatch(SetSelectedCableIds(
+        updatedCables
+            .where((cable) => cable.isSpare)
+            .map((cable) => cable.uid)
+            .toSet(),
+      ));
     }
   };
+}
+
+int _selectNextSpareIndex(List<CableModel> spareCables) {
+  if (spareCables.isEmpty) {
+    return 0;
+  }
+
+  int highestSpareIndex = 1;
+  for (final cable in spareCables) {
+    highestSpareIndex = highestSpareIndex < cable.spareIndex
+        ? cable.spareIndex
+        : highestSpareIndex;
+  }
+
+  return highestSpareIndex;
 }
 
 ThunkAction<AppState> addOutletsToLoom(

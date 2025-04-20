@@ -14,6 +14,19 @@ class HomeScaffold extends StatelessWidget {
               seedColor: Colors.indigoAccent, brightness: Brightness.dark),
           useMaterial3: true,
           visualDensity: VisualDensity.compact,
+          dropdownMenuTheme: const DropdownMenuThemeData(
+            textStyle: TextStyle(
+              fontSize: 14,
+            ),
+            inputDecorationTheme: InputDecorationTheme(
+              constraints: BoxConstraints(maxHeight: 36),
+              contentPadding: EdgeInsets.only(left: 8),
+              isDense: true,
+              filled: true,
+              
+              
+            ),
+          ),
         ),
         initialRoute: Routes.home,
         routes: {Routes.home: (context) => const HomeContainer()});
