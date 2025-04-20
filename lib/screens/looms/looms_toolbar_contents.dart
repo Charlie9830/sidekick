@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 class LoomsToolbarContents extends StatelessWidget {
   final void Function() onCombineIntoSneakPressed;
   final void Function() onSplitSneakIntoDmxPressed;
+  final void Function()? onDeleteSelectedCables;
   final Widget? infoTrailer;
 
   const LoomsToolbarContents({
     super.key,
     required this.onCombineIntoSneakPressed,
     required this.onSplitSneakIntoDmxPressed,
+    required this.onDeleteSelectedCables,
     this.infoTrailer,
   });
 
@@ -17,6 +19,14 @@ class LoomsToolbarContents extends StatelessWidget {
     const Widget spacer = SizedBox(width: 8);
     return Row(
       children: [
+        Tooltip(
+            message: 'Delete selected Cables',
+            child: IconButton.outlined(
+                onPressed: onDeleteSelectedCables,
+                icon: const Icon(Icons.delete))),
+        spacer,
+        const VerticalDivider(),
+        spacer,
         Tooltip(
           message: 'Combine DMX into Sneak',
           child: IconButton.filled(

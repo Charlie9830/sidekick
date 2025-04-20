@@ -70,7 +70,8 @@ class LoomsV2Container extends StatelessWidget {
                   context, cableIds, insertIndex, modifiers)),
           loomVms: _selectLoomRows(context, store),
           onLoomReorder: (oldIndex, newIndex) =>
-              store.dispatch(reorderLooms(context, oldIndex, newIndex)));
+              store.dispatch(reorderLooms(context, oldIndex, newIndex)),
+          onDeleteSelectedCables: store.state.navstate.selectedCableIds.isNotEmpty ? () => store.dispatch(deleteSelectedCablesV2(context)) : null);
     });
   }
 

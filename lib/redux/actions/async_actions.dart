@@ -741,29 +741,45 @@ ThunkAction<AppState> setSelectedCableIds(Set<String> ids) {
   };
 }
 
-ThunkAction<AppState> deleteSelectedCables(BuildContext context) {
+ThunkAction<AppState> deleteSelectedCablesV2(BuildContext context) {
   return (Store<AppState> store) async {
     final selectedCables = store.state.navstate.selectedCableIds
         .map((id) => store.state.fixtureState.cables[id])
         .nonNulls
         .toList();
 
-    final cablesEligibleForDelete = selectedCables
-        .where((cable) => cable.isSpare || cable.upstreamId.isNotEmpty);
+    final sneaks =
+        selectedCables.where((cable) => cable.type == CableType.sneak);
 
-    final withSneakChildren =
-        cablesEligibleForDelete.expand((cable) => cable.type == CableType.sneak
-            ? [
-                cable,
-                ...store.state.fixtureState.cables.values
-                    .where((child) => child.parentMultiId == cable.uid)
-              ]
-            : [cable]);
+    final selectedCablesWithChildren = [
+      ...selectedCables,
+      ...sneaks.expand((sneak) => store.state.fixtureState.cables.values
+          .where((cable) => cable.parentMultiId == sneak.uid)),
+    ];
 
-    final idsToRemove = withSneakChildren.map((cable) => cable.uid).toSet();
+    final cableIdsToRemove =
+        selectedCablesWithChildren.map((cable) => cable.uid).toSet();
+
+    // Select DataMultiOutlet Ids to remove. We predicate this on if their are no other cables (ie extensions) that are
+    // dependenent on that outlet.
+    final dataMultiIdsToRemove = sneaks
+        .map((sneak) {
+          final otherSneakCablesWithSameOutlet =
+              store.state.fixtureState.cables.values.where((cable) =>
+                  cable.outletId == sneak.outletId && cable.uid != sneak.uid);
+
+          return otherSneakCablesWithSameOutlet.isEmpty ? sneak.outletId : null;
+        })
+        .nonNulls
+        .toSet();
 
     store.dispatch(SetCables(store.state.fixtureState.cables.clone()
-      ..removeWhere((key, value) => idsToRemove.contains(key))));
+      ..removeWhere((key, value) => cableIdsToRemove.contains(key))));
+
+    if (dataMultiIdsToRemove.isNotEmpty) {
+      store.dispatch(SetDataMultis(store.state.fixtureState.dataMultis.clone()
+        ..removeWhere((key, __) => dataMultiIdsToRemove.contains(key))));
+    }
   };
 }
 
@@ -927,10 +943,15 @@ ThunkAction<AppState> deleteLoomV2(BuildContext context, String uid) {
         .where((cable) => cable.loomId == loom.uid)
         .toList();
 
-    // If we are deleting any Sneaks, we will also need to delete their corresponding DataMutliOutlet.
+    // If we are deleting any Sneaks, we will also need to delete their corresponding DataMutliOutlet, predicated on if there
+    // are no other sneaks which are dependent on that outlet.
     final dataMultiIdsToRemove = allChildCables
         .where((cable) =>
-            cable.type == CableType.sneak && cable.upstreamId.isEmpty)
+            cable.type == CableType.sneak &&
+            store.state.fixtureState.cables.values
+                .where((other) =>
+                    other.outletId == cable.outletId && other.uid != cable.uid)
+                .isEmpty)
         .map((cable) => cable.outletId)
         .toSet();
 
