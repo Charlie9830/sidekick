@@ -91,7 +91,6 @@ class _Footer extends StatelessWidget {
   final void Function() onSubmit;
 
   const _Footer({
-    super.key,
     required this.onAddRow,
     required this.onSubmit,
   });
@@ -107,7 +106,7 @@ class _Footer extends StatelessWidget {
           children: [
             ElevatedButton.icon(
               icon: const Icon(Icons.check_circle, color: Colors.green),
-              label: Text('Create'),
+              label: const Text('Create'),
               onPressed: onSubmit,
             ),
           ],
@@ -125,7 +124,6 @@ class _OptionRow extends StatelessWidget {
   final void Function()? onClearButtonPressed;
 
   const _OptionRow({
-    super.key,
     required this.typeValue,
     required this.qty,
     required this.onQtyChanged,
