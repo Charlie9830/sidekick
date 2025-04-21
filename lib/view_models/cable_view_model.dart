@@ -11,6 +11,7 @@ class CableViewModel {
   final bool missingUpstreamCable;
   final int localNumber;
   final void Function(String newValue) onLengthChanged;
+  final void Function(String newValue) onNotesChanged;
 
   CableViewModel({
     required this.cable,
@@ -22,5 +23,6 @@ class CableViewModel {
     required this.onLengthChanged,
     required this.missingUpstreamCable,
     required this.localNumber,
+    required this.onNotesChanged,
   });
 }

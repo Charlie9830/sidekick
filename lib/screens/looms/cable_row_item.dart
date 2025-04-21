@@ -18,6 +18,7 @@ class CableRowItem extends StatelessWidget {
   final bool missingUpstreamCable;
   final int localNumber;
   final void Function(String newValue)? onLengthChanged;
+  final void Function(String newValue) onNotesChanged;
 
   const CableRowItem({
     super.key,
@@ -31,6 +32,7 @@ class CableRowItem extends StatelessWidget {
     this.label = '',
     this.onLengthChanged,
     this.missingUpstreamCable = false,
+    required this.onNotesChanged,
   });
 
   @override
@@ -129,7 +131,7 @@ class CableRowItem extends StatelessWidget {
 
               // Label
               SizedBox(
-                  width: 200,
+                  width: 164,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -164,11 +166,8 @@ class CableRowItem extends StatelessWidget {
               ),
 
               // Color
-              //SizedBox(width: 100, child: Text(labelColor.name)),
-
-              // Color
               SizedBox(
-                  width: 100,
+                  width: 64,
                   child: Center(
                       child: MultiColorChit(
                     value: labelColor,
@@ -182,14 +181,12 @@ class CableRowItem extends StatelessWidget {
                   child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(cable.notes),
-                  if (cable.loomId.isEmpty)
-                    const Tooltip(
-                        message: 'Unloomed Cable',
-                        child: Icon(
-                          Icons.error,
-                          color: Colors.orangeAccent,
-                        ))
+                  Expanded(
+                      child: EditableTextField(
+                    value: cable.notes,
+                    style: Theme.of(context).textTheme.bodySmall,
+                    onChanged: (newValue) => onNotesChanged(newValue),
+                  )),
                 ],
               )),
             ],

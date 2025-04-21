@@ -146,6 +146,7 @@ List<LoomViewModel> _selectLoomRows(
       ),
       onLengthChanged: (newValue) =>
           store.dispatch(UpdateCableLength(cable.uid, newValue)),
+      onNotesChanged: (newValue) => store.dispatch(UpdateCableNote(cable.uid, newValue))
     );
   }
 

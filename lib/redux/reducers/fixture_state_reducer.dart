@@ -11,6 +11,16 @@ import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
+  if (a is UpdateCableNote) {
+    return state.copyWith(
+        cables: state.cables.clone()
+          ..update(
+              a.id,
+              (existing) => existing.copyWith(
+                    notes: a.value.trim(),
+                  )));
+  }
+
   if (a is UpdateLoomName) {
     return state.copyWith(
         looms: state.looms.clone()

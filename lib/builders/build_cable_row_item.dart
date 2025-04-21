@@ -26,5 +26,6 @@ CableRowItem buildCableRowItem({
       vm.onLengthChanged(newValue);
     },
     missingUpstreamCable: missingUpstreamCable,
+    onNotesChanged: (newValue) => vm.onNotesChanged(newValue),
   );
 }

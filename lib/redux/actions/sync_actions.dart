@@ -155,6 +155,13 @@ class SetCablesAndLooms {
   SetCablesAndLooms(this.cables, this.looms);
 }
 
+class UpdateCableNote {
+  final String id;
+  final String value;
+
+  UpdateCableNote(this.id, this.value);
+}
+
 class UpdateLoomLength {
   final String id;
   final String newValue;
