@@ -629,7 +629,7 @@ ThunkAction<AppState> repairLoomComposition(
     final firstRunCompositionResult =
         PermanentLoomComposition.matchSuitablePermanent(parentCables);
 
-    if (firstRunCompositionResult.error != null) {
+    if (firstRunCompositionResult.error == null) {
       store.dispatch(
         SetCablesAndLooms(
           // Cables
