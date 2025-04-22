@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
+import 'package:sidekick/classes/permanent_composition_selection.dart';
 import 'package:sidekick/data_selectors/select_cable_label.dart';
 import 'package:sidekick/data_selectors/select_cable_location.dart';
 import 'package:sidekick/data_selectors/select_child_cables.dart';
@@ -11,6 +12,7 @@ import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
+import 'package:sidekick/redux/models/permanent_loom_composition.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/view_models/cable_view_model.dart';
 import 'package:sidekick/view_models/loom_view_model.dart';
@@ -129,11 +131,70 @@ List<LoomViewModel> selectLoomViewModels(
           onNameChanged: (newValue) =>
               store.dispatch(UpdateLoomName(loom.uid, newValue)),
           onMoveCablesIntoLoom: (loomId, cableIds) =>
-              store.dispatch(moveCablesIntoLoom(context!, loomId, cableIds)));
+              store.dispatch(moveCablesIntoLoom(context!, loomId, cableIds)),
+          permCompEntries: _getPermCompEntries(
+              context,
+              loom,
+              childCables
+                  .where((cable) => cable.parentMultiId.isEmpty)
+                  .toList()),
+          onChangeToSpecificComposition: (newComposition) => store.dispatch(
+              changeToSpecificComposition(context!, loom.uid, newComposition)));
     },
   ).toList();
 
   return loomVms;
+}
+
+List<DropdownMenuEntry<PermanentCompositionSelection>> _getPermCompEntries(
+    BuildContext? context, LoomModel loom, List<CableModel> topLevelChildren) {
+  DropdownMenuEntry<PermanentCompositionSelection> mapComp(
+      PermanentLoomComposition comp) {
+    final satisfiedOnAllCables = comp.satisfied(topLevelChildren).satisfied;
+    final satisfiedOnActiveCablesOnly = comp
+        .satisfied(
+            topLevelChildren.where((cable) => cable.isSpare == false).toList())
+        .satisfied;
+    final cutSpares =
+        satisfiedOnAllCables == false && satisfiedOnActiveCablesOnly == true;
+
+    return DropdownMenuEntry<PermanentCompositionSelection>(
+      label: comp.name,
+      value:
+          PermanentCompositionSelection(name: comp.name, cutSpares: cutSpares),
+      enabled: satisfiedOnAllCables || satisfiedOnActiveCablesOnly,
+      leadingIcon: comp.socaWays > 0
+          ? const Icon(Icons.electric_bolt, size: 16)
+          : const Icon(Icons.power, size: 16),
+      trailingIcon: cutSpares
+          ? const Tooltip(
+              message: 'Spares will get deleted',
+              child: Icon(Icons.cut, size: 16, color: Colors.pink))
+          : null,
+    );
+  }
+
+  DropdownMenuEntry<PermanentCompositionSelection> buildSubtitle(
+          String subtitle) =>
+      DropdownMenuEntry<PermanentCompositionSelection>(
+        value: PermanentCompositionSelection(name: subtitle, cutSpares: false),
+        label: subtitle,
+        enabled: false,
+        labelWidget: context == null
+            ? null
+            : Text(subtitle, style: Theme.of(context).textTheme.labelSmall),
+      );
+
+  return [
+    buildSubtitle('Socapex'),
+    ...PermanentLoomComposition.validCompositions
+        .where((comp) => comp.socaWays > 0)
+        .map(mapComp),
+    buildSubtitle('6 way'),
+    ...PermanentLoomComposition.validCompositions
+        .where((comp) => comp.wieland6Ways > 0)
+        .map(mapComp)
+  ];
 }
 
 String _getTypeLabel(CableType type, int localNumber,

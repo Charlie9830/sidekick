@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:sidekick/classes/permanent_composition_selection.dart';
 import 'package:sidekick/editable_text_field.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
+import 'package:sidekick/redux/models/permanent_loom_composition.dart';
 import 'package:sidekick/screens/looms/cable_flag.dart';
 import 'package:sidekick/view_models/loom_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';
@@ -98,11 +100,27 @@ class LoomHeader extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 16),
-                Text(
-                    loomVm.loom.type.permanentComposition.isEmpty
-                        ? '${loomVm.hasVariedLengthChildren ? 'Staggered ' : ''}Custom'
-                        : loomVm.loom.type.permanentComposition,
-                    style: Theme.of(context).textTheme.titleSmall),
+
+                switch (loomVm.loom.type.type) {
+                  LoomType.custom => Text(
+                      loomVm.hasVariedLengthChildren
+                          ? 'Staggered Custom'
+                          : 'Custom',
+                      style: Theme.of(context).textTheme.titleSmall),
+                  LoomType.permanent =>
+                    DropdownMenu<PermanentCompositionSelection>(
+                      onSelected: (newValue) =>
+                          loomVm.onChangeToSpecificComposition(newValue!),
+                      enableFilter: false,
+                      enableSearch: false,
+                      textStyle: Theme.of(context).textTheme.titleSmall,
+                      initialSelection:
+                          PermanentCompositionSelection.asValueSentinel(
+                              loomVm.loom.type.permanentComposition),
+                      dropdownMenuEntries: loomVm.permCompEntries,
+                    )
+                },
+
                 const Spacer(),
 
                 // Hover Actions.

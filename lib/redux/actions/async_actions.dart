@@ -14,6 +14,7 @@ import 'package:sidekick/balancer/naive_balancer.dart';
 import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/classes/cable_family.dart';
 import 'package:sidekick/classes/export_file_paths.dart';
+import 'package:sidekick/classes/permanent_composition_selection.dart';
 import 'package:sidekick/classes/universe_span.dart';
 import 'package:sidekick/containers/import_manager_container.dart';
 import 'package:sidekick/data_selectors/select_all_outlets.dart';
@@ -40,6 +41,7 @@ import 'package:sidekick/helpers/combine_dmx_into_sneak.dart';
 import 'package:sidekick/helpers/convert_to_permanent_loom.dart';
 import 'package:sidekick/helpers/determine_default_loom_name.dart';
 import 'package:sidekick/helpers/extract_locations_from_outlets.dart';
+import 'package:sidekick/helpers/fill_cables_to_satisfy_permanent_loom.dart';
 import 'package:sidekick/import_merging/merge_fixtures.dart';
 import 'package:sidekick/model_collection/convert_to_map_entry.dart';
 import 'package:sidekick/persistent_settings/fetch_persistent_settings.dart';
@@ -67,6 +69,56 @@ import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+ThunkAction<AppState> changeToSpecificComposition(BuildContext context,
+    String loomId, PermanentCompositionSelection newSelection) {
+  return (Store<AppState> store) async {
+    final loom = store.state.fixtureState.looms[loomId];
+    if (loom == null || newSelection.name.isEmpty) {
+      return;
+    }
+
+    final concreteComposition = PermanentLoomComposition.byName[newSelection.name];
+
+    if (concreteComposition == null) {
+      return;
+    }
+
+    final existingChildren = store.state.fixtureState.cables.values
+        .where((cable) => cable.loomId == loom.uid)
+        .where((cable) => newSelection.cutSpares
+            ? cable.isSpare == false
+            : true) // If user wants to obliterate spares, Filter them out.
+        .toList();
+
+    final updatedLoom = loom.copyWith(
+        type: loom.type.copyWith(
+      permanentComposition: newSelection.name,
+      length: concreteComposition.validLengths.contains(loom.type.length)
+          ? loom.type.length
+          : loom.type.length + 5,
+    ));
+
+    final updatedChildren =
+        fillCablesToSatisfyPermanentLoom(updatedLoom, existingChildren);
+
+    // If the user has opted to select a Compostion which will involve anihilating the spares, capture those Ids here to be removed.
+    final originalSparesToMaybeRemove = newSelection.cutSpares
+        ? store.state.fixtureState.cables.values
+            .where((cable) => cable.loomId == loom.uid && cable.isSpare == true)
+            .map((cable) => cable.uid)
+            .toSet()
+        : <String>{};
+
+    store.dispatch(SetCablesAndLooms(
+      store.state.fixtureState.cables.clone()
+        ..addAll(updatedChildren.toModelMap())
+        ..removeWhere((key, _) => originalSparesToMaybeRemove.contains(key)),
+      store.state.fixtureState.looms.clone()
+        ..addAll([updatedLoom].toModelMap()),
+    ));
+  };
+}
 
 ThunkAction<AppState> changeSelectedCablesToDefaultPowerMultiType() {
   return (Store<AppState> store) async {

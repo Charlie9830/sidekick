@@ -56,7 +56,7 @@ class PermanentLoomComposition {
         incomingDmx == dmxWays;
   }
 
-  _LoomSatisfactionResult _satisfied(List<CableModel> cables) {
+  LoomSatisfactionResult satisfied(List<CableModel> cables) {
     final incomingSoca =
         cables.where((cable) => cable.type == CableType.socapex).length;
     final incomingWieland6way =
@@ -77,7 +77,7 @@ class PermanentLoomComposition {
         (sneakSatisfied || dmxSatisfied);
 
     if (compositionSatisfied == false) {
-      return _LoomSatisfactionResult(
+      return LoomSatisfactionResult(
           satisfied: false,
           satisfiedAtLength: 0,
           error: _UnsatisfiedError.noSuitableComposition);
@@ -86,14 +86,14 @@ class PermanentLoomComposition {
     final suitableLength = _matchSuitableLength(cables);
 
     if (suitableLength == null) {
-      return _LoomSatisfactionResult(
+      return LoomSatisfactionResult(
         satisfied: false,
         satisfiedAtLength: 0,
         error: _UnsatisfiedError.noSuitableLength,
       );
     }
 
-    return _LoomSatisfactionResult(
+    return LoomSatisfactionResult(
         satisfied: true, satisfiedAtLength: suitableLength, error: null);
   }
 
@@ -216,7 +216,7 @@ class PermanentLoomComposition {
     }
 
     final compositionResults =
-        validCompositions.map((comp) => (comp._satisfied(cables), comp));
+        validCompositions.map((comp) => (comp.satisfied(cables), comp));
 
     final firstValidResult =
         compositionResults.firstWhereOrNull((result) => result.$1.satisfied);
@@ -323,12 +323,12 @@ enum _UnsatisfiedError {
   noSuitableLength,
 }
 
-class _LoomSatisfactionResult {
+class LoomSatisfactionResult {
   final bool satisfied;
   final double satisfiedAtLength;
   final _UnsatisfiedError? error;
 
-  _LoomSatisfactionResult({
+  LoomSatisfactionResult({
     required this.satisfied,
     required this.satisfiedAtLength,
     required this.error,
