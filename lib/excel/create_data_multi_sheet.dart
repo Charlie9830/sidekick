@@ -1,6 +1,9 @@
+import 'dart:collection';
+
 import 'package:collection/collection.dart';
 import 'package:excel/excel.dart';
 import 'package:sidekick/classes/named_colors.dart';
+import 'package:sidekick/extension_methods/queue_pop.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
@@ -28,6 +31,43 @@ void createDataMultiSheet({
 
   final cablesByParentMultiId =
       cables.values.groupListsBy((cable) => cable.parentMultiId);
+
+  const Set<String> kSneakPanelPrimaryColorOrder = {
+    'Red',
+    'White',
+    'Blue',
+    'Orange',
+    'Yellow',
+    'Green',
+    'Purple',
+    'Brown',
+  };
+
+  final dataMultiQueuesByColor = dataMultis.values.groupListsBy((multi) {
+    final colorName = locations[multi.locationId]?.color.name;
+    if (colorName == null ||
+        kSneakPanelPrimaryColorOrder.contains(colorName) == false) {
+      return '';
+    }
+
+    return colorName;
+  }).map((key, value) => MapEntry(key, Queue<DataMultiModel>.from(value)));
+
+  final multisOrderedBySneakPanelColour = [
+    ...kSneakPanelPrimaryColorOrder.map((colorName) {
+      final queue = dataMultiQueuesByColor[colorName];
+
+      if (queue != null && queue.isNotEmpty) {
+        return queue.removeFirst();
+      }
+    }).nonNulls,
+    ...dataMultiQueuesByColor.entries
+        .map((entry) => entry.value.toList())
+        .flattened,
+  ];
+
+  assert(multisOrderedBySneakPanelColour.length == dataMultis.values.length,
+      'Ordering of Data Multis resulted in a different quantity');
 
   for (final (index, multi) in dataMultis.values.indexed) {
     final locationColor = locations[multi.locationId]?.color;
