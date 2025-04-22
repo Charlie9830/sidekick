@@ -138,6 +138,10 @@ class _OptionRow extends StatelessWidget {
         SizedBox(
           width: 128,
           child: DropdownMenu<CableType>(
+              inputDecorationTheme: Theme.of(context)
+                  .dropdownMenuTheme
+                  .inputDecorationTheme!
+                  .copyWith(filled: true),
               initialSelection: typeValue,
               onSelected: (type) => type == null ? null : onTypeChanged(type),
               dropdownMenuEntries: const [

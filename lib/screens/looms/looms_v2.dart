@@ -49,6 +49,9 @@ class _LoomsV2State extends State<LoomsV2> {
               onCombineIntoSneakPressed:
                   widget.vm.onCombineSelectedDataCablesIntoSneak,
               onSplitSneakIntoDmxPressed: widget.vm.onSplitSneakIntoDmxPressed,
+              defaultPowerMultiType: widget.vm.defaultPowerMultiType,
+              onDefaultPowerMultiTypeChanged: widget.vm.onDefaultPowerMultiTypeChanged,
+              onChangePowerMultiTypeOfSelectedCables: widget.vm.onChangePowerMultiTypeOfSelectedCables,
             )),
 
             // Body

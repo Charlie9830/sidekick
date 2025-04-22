@@ -68,6 +68,28 @@ import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+ThunkAction<AppState> changeSelectedCablesToDefaultPowerMultiType() {
+  return (Store<AppState> store) async {
+    final cables = store.state.navstate.selectedCableIds
+        .map((id) => store.state.fixtureState.cables[id])
+        .nonNulls
+        .toList()
+        .where((cable) =>
+            cable.type == CableType.socapex ||
+            cable.type == CableType.wieland6way);
+
+    if (cables.isEmpty) {
+      return;
+    }
+
+    store.dispatch(SetCables(store.state.fixtureState.cables.clone()
+      ..addAll(cables
+          .map((cable) =>
+              cable.copyWith(type: store.state.fixtureState.defaultPowerMulti))
+          .toModelMap())));
+  };
+}
+
 ThunkAction<AppState> switchLoomTypeV2(BuildContext context, String loomId) {
   return (Store<AppState> store) async {
     // Queries and Guard Clauses

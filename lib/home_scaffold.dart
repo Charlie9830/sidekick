@@ -22,7 +22,7 @@ class HomeScaffold extends StatelessWidget {
               constraints: BoxConstraints(maxHeight: 36),
               contentPadding: EdgeInsets.only(left: 8),
               isDense: true,
-              filled: true,
+              filled: false,
               
               
             ),

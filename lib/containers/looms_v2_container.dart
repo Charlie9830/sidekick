@@ -49,20 +49,23 @@ class LoomsV2Container extends StatelessWidget {
                       ..addAllIfAbsentElseRemove(values)));
             }
           },
+          onChangePowerMultiTypeOfSelectedCables: store.state.navstate.selectedCableIds.isNotEmpty ? () => store.dispatch(changeSelectedCablesToDefaultPowerMultiType()) : null,
+          defaultPowerMultiType: store.state.fixtureState.defaultPowerMulti,
+          onDefaultPowerMultiTypeChanged: (newValue) =>
+              store.dispatch(SetDefaultPowerMulti(newValue)),
           onCombineSelectedDataCablesIntoSneak: () =>
               store.dispatch(combineSelectedDataCablesIntoSneakV2(context)),
           onSplitSneakIntoDmxPressed: () =>
               store.dispatch(splitSelectedSneakIntoDmxV2(context)),
-          onCreateNewFeederLoom: (outletIds, insertIndex, modifiers) => store.dispatch(createNewFeederLoomV2(
-              context, outletIds, insertIndex, modifiers)),
-          onCreateNewExtensionLoom: (cableIds, insertIndex, modifiers) => store.dispatch(createNewExtensionLoomV2(
-              context, cableIds, insertIndex, modifiers)),
+          onCreateNewFeederLoom: (outletIds, insertIndex, modifiers) =>
+              store.dispatch(createNewFeederLoomV2(
+                  context, outletIds, insertIndex, modifiers)),
+          onCreateNewExtensionLoom: (cableIds, insertIndex, modifiers) =>
+              store.dispatch(createNewExtensionLoomV2(
+                  context, cableIds, insertIndex, modifiers)),
           loomVms: selectLoomViewModels(store, context: context),
-          onLoomReorder: (oldIndex, newIndex) =>
-              store.dispatch(reorderLooms(context, oldIndex, newIndex)),
-          onDeleteSelectedCables: store.state.navstate.selectedCableIds.isNotEmpty
-              ? () => store.dispatch(deleteSelectedCablesV2(context))
-              : null);
+          onLoomReorder: (oldIndex, newIndex) => store.dispatch(reorderLooms(context, oldIndex, newIndex)),
+          onDeleteSelectedCables: store.state.navstate.selectedCableIds.isNotEmpty ? () => store.dispatch(deleteSelectedCablesV2(context)) : null);
     });
   }
 

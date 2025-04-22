@@ -1,5 +1,6 @@
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
+import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/view_models/loom_view_model.dart';
@@ -24,6 +25,9 @@ class LoomsV2ViewModel {
   final void Function() onSplitSneakIntoDmxPressed;
   final void Function(int oldRawIndex, int newRawIndex) onLoomReorder;
   final void Function()? onDeleteSelectedCables;
+  final CableType defaultPowerMultiType;
+  final void Function(CableType type) onDefaultPowerMultiTypeChanged;
+  final void Function()? onChangePowerMultiTypeOfSelectedCables;
 
   LoomsV2ViewModel({
     required this.outlets,
@@ -41,6 +45,9 @@ class LoomsV2ViewModel {
     required this.onSplitSneakIntoDmxPressed,
     required this.onLoomReorder,
     required this.onDeleteSelectedCables,
+    required this.onDefaultPowerMultiTypeChanged,
+    required this.defaultPowerMultiType,
+    required this.onChangePowerMultiTypeOfSelectedCables,
   });
 }
 
