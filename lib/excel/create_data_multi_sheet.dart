@@ -7,6 +7,7 @@ import 'package:sidekick/extension_methods/queue_pop.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
+import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 
 void createDataMultiSheet({
@@ -32,48 +33,87 @@ void createDataMultiSheet({
   final cablesByParentMultiId =
       cables.values.groupListsBy((cable) => cable.parentMultiId);
 
-  const Set<String> kSneakPanelPrimaryColorOrder = {
-    'Red',
-    'White',
-    'Blue',
-    'Orange',
-    'Yellow',
-    'Green',
-    'Purple',
-    'Brown',
+  final Map<String, DataMultiModel?> assignedSneakPanelSlots = {
+    'Red': null,
+    'White': null,
+    'Blue': null,
+    'Orange': null,
+    'Yellow': null,
+    'Green': null,
+    'Purple': null,
+    'Brown': null,
+    'Red/Grey': null,
+    'White/Grey': null,
+    'Blue/Grey': null,
+    'Orange/Grey': null,
+    'Yellow/Grey': null,
+    'Green/Grey': null,
+    'Purple/Grey': null,
+    'Brown/Grey': null,
   };
 
-  final dataMultiQueuesByColor = dataMultis.values.groupListsBy((multi) {
+  // Try to Assign Multis to their slots on the Sneak panel by Color in a first pass best effort manner. We will iterate once more
+  // after this to ensure all remaining multis get assigned somewhere.
+  final List<DataMultiModel> rejects = [];
+  for (final multi in dataMultis.values) {
     final colorName = locations[multi.locationId]?.color.name;
-    if (colorName == null ||
-        kSneakPanelPrimaryColorOrder.contains(colorName) == false) {
-      return '';
+
+    // Could'nt get a Suitable color. Send to the Reject Pile.
+    if (colorName == null || colorName == const LabelColorModel.none().name) {
+      rejects.add(multi);
+      continue;
     }
 
-    return colorName;
-  }).map((key, value) => MapEntry(key, Queue<DataMultiModel>.from(value)));
+    // Assign based on exact color if available.
+    if (assignedSneakPanelSlots.containsKey(colorName) &&
+        assignedSneakPanelSlots[colorName] == null) {
+      assignedSneakPanelSlots[colorName] = multi;
+      continue;
+    }
 
-  final multisOrderedBySneakPanelColour = [
-    ...kSneakPanelPrimaryColorOrder.map((colorName) {
-      final queue = dataMultiQueuesByColor[colorName];
+    // Assign based on Secondary (Greyed) color if available.
+    if (assignedSneakPanelSlots.containsKey('$colorName/Grey') &&
+        assignedSneakPanelSlots[colorName] == null) {
+      assignedSneakPanelSlots['$colorName/Grey'] = multi;
+      continue;
+    }
 
-      if (queue != null && queue.isNotEmpty) {
-        return queue.removeFirst();
-      }
-    }).nonNulls,
-    ...dataMultiQueuesByColor.entries
-        .map((entry) => entry.value.toList())
-        .flattened,
-  ];
+    // Nothing available. Send to the Reject Pile for now.
+    rejects.add(multi);
+  }
 
-  assert(multisOrderedBySneakPanelColour.length == dataMultis.values.length,
-      'Ordering of Data Multis resulted in a different quantity');
+  // Now assign the rejects to any leftover slots. Only creating more once we have completly filled all available slots.
+  for (final rejectedMulti in rejects) {
+    final nextAvailableSlotKey = assignedSneakPanelSlots.entries
+        .firstWhereOrNull((entry) => entry.value == null)
+        ?.key;
 
-  for (final (index, multi) in dataMultis.values.indexed) {
+    if (nextAvailableSlotKey != null) {
+      assignedSneakPanelSlots[nextAvailableSlotKey] = rejectedMulti;
+      continue;
+    }
+
+    assignedSneakPanelSlots[rejectedMulti.uid] = rejectedMulti;
+  }
+
+  for (final (index, multi) in assignedSneakPanelSlots.values.indexed) {
+    if (multi == null) {
+      // Append an Empty Row.
+      sheet.appendRow([
+        IntCellValue(index + 1),
+        TextCellValue(''),
+        TextCellValue(''),
+        TextCellValue(''),
+        TextCellValue(''),
+        TextCellValue(''),
+        TextCellValue(''),
+      ]);
+      continue;
+    }
+
     final locationColor = locations[multi.locationId]?.color;
 
-    final namedColor =
-        locationColor != null ? NamedColors.names[locationColor] ?? '' : '';
+    final namedColor = locationColor != null ? locationColor.name : '';
 
     final associatedSneak =
         cables.values.firstWhereOrNull((cable) => cable.outletId == multi.uid);
@@ -96,4 +136,14 @@ void createDataMultiSheet({
       TextCellValue(namedColor),
     ]);
   }
+}
+
+class SneakPanelSlot {
+  final String colorName;
+  final DataMultiModel multi;
+
+  SneakPanelSlot({
+    required this.colorName,
+    required this.multi,
+  });
 }

@@ -1,6 +1,7 @@
 import 'package:excel/excel.dart';
 import 'package:sidekick/excel/sheet_indexer.dart';
 import 'package:sidekick/excel/styles.dart';
+import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/view_models/cable_view_model.dart';
@@ -70,7 +71,9 @@ SheetIndexer writeCableRow({
   sheet.updateCell(
     pointer.current,
     TextCellValue(
-      viewModel.labelColor.name,
+      viewModel.labelColor == const LabelColorModel.none()
+          ? ''
+          : viewModel.labelColor.name,
     ),
     cellStyle: cableRowStyle,
   );
