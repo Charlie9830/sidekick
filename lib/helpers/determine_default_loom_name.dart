@@ -21,6 +21,9 @@ String determineDefaultLoomName({
           existingOutlets: existingOutlets,
           otherCables: existingCables);
 
+  final hasOtherSimiliarLoomsInLocation =
+      (otherLoomsInLocationByCableClass[currentLoomCableClass]?.length ?? 0) > 0;
+
   final loomNumber =
       (otherLoomsInLocationByCableClass[currentLoomCableClass]?.length ?? 0) +
           1;
@@ -32,7 +35,7 @@ String determineDefaultLoomName({
     return 'Untitled Loom';
   }
 
-  return '$locationSlug $loomCableClassSlug $loomNumber';
+  return '$locationSlug $loomCableClassSlug ${hasOtherSimiliarLoomsInLocation ? loomNumber : ''}'.trim();
 }
 
 String _convertCableClassToString(CableClass cableClass) {

@@ -1,15 +1,26 @@
+import 'package:excel/excel.dart';
+
 class SheetIndexer {
-  int rowIndex = 0;
-  int columnIndex = 0;
+  CellIndex current;
 
-  SheetIndexer();
+  SheetIndexer({CellIndex? initial})
+      : current =
+            initial ?? CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0);
 
-  int getColumnIndex() {
-    return columnIndex++;
+  void stepRight() {
+    current = CellIndex.indexByColumnRow(
+        columnIndex: current.columnIndex + 1, rowIndex: current.rowIndex);
+  }
+
+  void stepDown() {
+    current = CellIndex.indexByColumnRow(
+      columnIndex: current.columnIndex,
+      rowIndex: current.rowIndex + 1,
+    );
   }
 
   void carriageReturn() {
-    columnIndex = 0;
-    rowIndex++;
+    current = CellIndex.indexByColumnRow(
+        columnIndex: 0, rowIndex: current.rowIndex + 1);
   }
 }

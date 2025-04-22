@@ -9,6 +9,7 @@ const double kCableRowHeight = 26.0;
 
 class CableRowItem extends StatelessWidget {
   final CableModel cable;
+  final String typeLabel;
   final LabelColorModel labelColor;
   final bool showTopBorder;
   final bool isSelected;
@@ -16,7 +17,6 @@ class CableRowItem extends StatelessWidget {
   final int dmxUniverse;
   final String label;
   final bool missingUpstreamCable;
-  final int localNumber;
   final void Function(String newValue)? onLengthChanged;
   final void Function(String newValue) onNotesChanged;
 
@@ -24,7 +24,7 @@ class CableRowItem extends StatelessWidget {
     super.key,
     required this.cable,
     required this.labelColor,
-    required this.localNumber,
+    this.typeLabel = '',
     this.showTopBorder = false,
     this.isSelected = false,
     this.disableLength = false,
@@ -119,8 +119,7 @@ class CableRowItem extends StatelessWidget {
                             CableType.unknown => const SizedBox(),
                           },
                           const SizedBox(width: 8),
-                          Text(_humanFriendlyType(cable.type, localNumber,
-                              isSneakChild: cable.parentMultiId.isNotEmpty)),
+                          Text(typeLabel),
                         ],
                       ),
                     ],
@@ -203,21 +202,6 @@ class CableRowItem extends StatelessWidget {
 
     return null;
   }
-}
-
-String _humanFriendlyType(CableType type, int localNumber,
-    {bool isSneakChild = false}) {
-  if (isSneakChild) {
-    return 'Data $localNumber';
-  }
-
-  return switch (type) {
-    CableType.dmx => 'DMX $localNumber',
-    CableType.socapex => 'Soca $localNumber',
-    CableType.sneak => 'Sneak $localNumber',
-    CableType.wieland6way => '6way $localNumber',
-    CableType.unknown => "Unknown",
-  };
 }
 
 class _MissingUpstreamCableIcon extends StatelessWidget {

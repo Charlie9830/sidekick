@@ -21,11 +21,10 @@ import 'package:sidekick/data_selectors/select_outlets.dart';
 import 'package:sidekick/diffing/union_proxy.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/excel/create_color_lookup_sheet.dart';
-import 'package:sidekick/excel/create_custom_looms_sheet.dart';
 import 'package:sidekick/excel/create_data_multi_sheet.dart';
 import 'package:sidekick/excel/create_data_patch_sheet.dart';
 import 'package:sidekick/excel/create_fixture_type_validation_sheet.dart';
-import 'package:sidekick/excel/create_permanent_looms_sheet.dart';
+import 'package:sidekick/excel/create_lighting_looms_sheet.dart';
 import 'package:sidekick/excel/create_power_patch_sheet.dart';
 import 'package:sidekick/excel/new/read_raw_patch_data.dart';
 import 'package:sidekick/excel/read_fixture_type_database.dart';
@@ -1502,24 +1501,9 @@ ThunkAction<AppState> export(BuildContext context) {
 
     final loomsExcel = Excel.createExcel();
 
-    createPermanentLoomsSheet(
+    createLightingLoomsSheet(
       excel: loomsExcel,
-      cables: store.state.fixtureState.cables,
-      looms: store.state.fixtureState.looms,
-      locations: store.state.fixtureState.locations,
-      dataMultis: store.state.fixtureState.dataMultis,
-      dataPatches: store.state.fixtureState.dataPatches,
-      powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
-    );
-
-    createCustomLoomsSheet(
-      excel: loomsExcel,
-      cables: store.state.fixtureState.cables,
-      looms: store.state.fixtureState.looms,
-      locations: store.state.fixtureState.locations,
-      dataPatches: store.state.fixtureState.dataPatches,
-      powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
-      dataMultis: store.state.fixtureState.dataMultis,
+      store: store,
     );
 
     loomsExcel.delete('Sheet1');

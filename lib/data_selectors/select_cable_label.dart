@@ -8,7 +8,7 @@ String selectCableLabel({
   required Map<String, DataMultiModel> dataMultis,
   required Map<String, DataPatchModel> dataPatches,
   required CableModel cable,
-  required bool includeUniverse,
+  required bool preferUniverseOnly,
 }) {
   if (cable.isSpare) {
     return 'SP ${cable.spareIndex + 1}';
@@ -28,7 +28,7 @@ String selectCableLabel({
       powerMultiOutlets[cable.outletId]?.name ?? '',
     CableType.sneak => _selectSneakLabel(dataMultis[cable.outletId]),
     CableType.dmx =>
-      _selectDMXLabel(dataPatches[cable.outletId], includeUniverse),
+      _selectDMXLabel(dataPatches[cable.outletId], preferUniverseOnly),
     CableType.unknown => throw UnimplementedError(),
   };
 }
@@ -49,10 +49,10 @@ String _selectSneakChildLabel(DataPatchModel? patch) {
   return patch.name;
 }
 
-String _selectDMXLabel(DataPatchModel? patch, bool includeUniverse) {
+String _selectDMXLabel(DataPatchModel? patch, bool preferUniverseOnly) {
   if (patch == null) {
     return '';
   }
 
-  return includeUniverse ? patch.nameWithUniverse : patch.name;
+  return preferUniverseOnly ? patch.universeLabel : patch.name;
 }

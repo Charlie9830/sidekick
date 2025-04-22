@@ -14,7 +14,7 @@ CableRowItem buildCableRowItem({
 }) {
   return CableRowItem(
     cable: vm.cable,
-    localNumber: vm.localNumber,
+    typeLabel: vm.typeLabel,
     labelColor: vm.labelColor,
     isSelected: selectedCableIds.contains(vm.cable.uid),
     disableLength: vm.cable.parentMultiId.isNotEmpty ||
