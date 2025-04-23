@@ -8,6 +8,8 @@ import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
+import 'package:sidekick/redux/models/loom_stock_model.dart';
+import 'package:sidekick/redux/models/permanent_loom_composition.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/looms/looms_v2.dart';
@@ -49,7 +51,11 @@ class LoomsV2Container extends StatelessWidget {
                       ..addAllIfAbsentElseRemove(values)));
             }
           },
-          onChangePowerMultiTypeOfSelectedCables: store.state.navstate.selectedCableIds.isNotEmpty ? () => store.dispatch(changeSelectedCablesToDefaultPowerMultiType()) : null,
+          onChangePowerMultiTypeOfSelectedCables: store
+                  .state.navstate.selectedCableIds.isNotEmpty
+              ? () =>
+                  store.dispatch(changeSelectedCablesToDefaultPowerMultiType())
+              : null,
           defaultPowerMultiType: store.state.fixtureState.defaultPowerMulti,
           onDefaultPowerMultiTypeChanged: (newValue) =>
               store.dispatch(SetDefaultPowerMulti(newValue)),
@@ -61,12 +67,30 @@ class LoomsV2Container extends StatelessWidget {
               store.dispatch(createNewFeederLoomV2(
                   context, outletIds, insertIndex, modifiers)),
           onCreateNewExtensionLoom: (cableIds, insertIndex, modifiers) =>
-              store.dispatch(createNewExtensionLoomV2(
-                  context, cableIds, insertIndex, modifiers)),
+              store.dispatch(createNewExtensionLoomV2(context, cableIds, insertIndex, modifiers)),
           loomVms: selectLoomViewModels(store, context: context),
           onLoomReorder: (oldIndex, newIndex) => store.dispatch(reorderLooms(context, oldIndex, newIndex)),
-          onDeleteSelectedCables: store.state.navstate.selectedCableIds.isNotEmpty ? () => store.dispatch(deleteSelectedCablesV2(context)) : null);
+          onDeleteSelectedCables: store.state.navstate.selectedCableIds.isNotEmpty ? () => store.dispatch(deleteSelectedCablesV2(context)) : null,
+          availabilityDrawOpen: store.state.navstate.isAvailabilityDrawerOpen,
+          onShowAvailabilityDrawPressed: () => store.dispatch(SetIsAvailabilityDrawerOpen(!store.state.navstate.isAvailabilityDrawerOpen)),
+          stockVms: _selectLoomStockViewModels(store),
+          onSetupQuantiesDrawerButtonPressed: () => store.dispatch(showSetupQuantitiesDialog(context)));
     });
+  }
+
+  List<LoomStockQuantityViewModel> _selectLoomStockViewModels(
+      Store<AppState> store) {
+    final loomStock = store.state.fixtureState.loomStock;
+
+    final loomsByType = store.state.fixtureState.looms.values
+        .where((loom) => loom.type.permanentComposition.isNotEmpty)
+        .groupListsBy((loom) => LoomStockModel.resolveFullName(
+            loom.type.permanentComposition, loom.type.length));
+
+    return loomStock.values
+        .map((stock) => LoomStockQuantityViewModel(
+            stock: stock, inUse: loomsByType[stock.fullName]?.length ?? 0))
+        .toList();
   }
 
   List<OutletViewModel> _selectOutlets(Store<AppState> store) {

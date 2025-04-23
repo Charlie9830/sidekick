@@ -11,6 +11,7 @@ import 'package:sidekick/redux/models/import_settings_model.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
+import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
@@ -22,6 +23,12 @@ class UpdateLoomName {
   final String value;
 
   UpdateLoomName(this.uid, this.value);
+}
+
+class SetLoomStock {
+  final Map<String, LoomStockModel> value;
+
+  SetLoomStock(this.value);
 }
 
 class SetLoomsDraggingState {
@@ -153,6 +160,12 @@ class SetCablesAndLooms {
   final Map<String, LoomModel> looms;
 
   SetCablesAndLooms(this.cables, this.looms);
+}
+
+class SetIsAvailabilityDrawerOpen {
+  final bool value;
+
+  SetIsAvailabilityDrawerOpen(this.value);
 }
 
 class UpdateCableNote {

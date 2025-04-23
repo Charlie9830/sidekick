@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sidekick/widgets/blur_listener.dart';
 
 class EditableTextField extends StatefulWidget {
@@ -11,6 +12,7 @@ class EditableTextField extends StatefulWidget {
   final double? cursorHeight;
   final bool selectAllOnFocus;
   final void Function(String newValue)? onChanged;
+  final List<TextInputFormatter> inputFormatters;
 
   const EditableTextField({
     super.key,
@@ -23,6 +25,7 @@ class EditableTextField extends StatefulWidget {
     this.textAlign,
     this.cursorHeight,
     this.selectAllOnFocus = false,
+    this.inputFormatters = const [],
   });
 
   @override
@@ -60,6 +63,7 @@ class _EditableTextFieldState extends State<EditableTextField> {
         controller: _controller,
         textAlign: widget.textAlign ?? TextAlign.start,
         style: widget.style,
+        inputFormatters: widget.inputFormatters,
         cursorHeight: widget.cursorHeight,
         decoration: InputDecoration(
           isDense: true,

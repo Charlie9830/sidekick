@@ -52,6 +52,7 @@ import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
+import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/redux/models/permanent_loom_composition.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
@@ -60,6 +61,7 @@ import 'package:sidekick/redux/state/app_state.dart';
 import 'package:path/path.dart' as p;
 import 'package:sidekick/screens/looms/add_spare_cables.dart';
 import 'package:sidekick/screens/sequencer_dialog/sequencer_dialog.dart';
+import 'package:sidekick/screens/setup_quantities_dialog/setup_quantities_dialog.dart';
 import 'package:sidekick/serialization/deserialize_project_file.dart';
 import 'package:sidekick/serialization/serialize_project_file.dart';
 import 'package:sidekick/snack_bars/composition_repair_error_snack_bar.dart';
@@ -70,6 +72,23 @@ import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+ThunkAction<AppState> showSetupQuantitiesDialog(BuildContext context) {
+  return (Store<AppState> store) async {
+    final items = store.state.fixtureState.loomStock.isEmpty
+        ? PermanentLoomComposition.buildAllLoomQuantities()
+        : store.state.fixtureState.loomStock.values.toList();
+
+    final result = await showDialog(
+        context: context,
+        builder: (innerContext) => SetupQuantitiesDialog(items: items));
+
+    if (result is Map<String, LoomStockModel>) {
+      print('Dispatching');
+      store.dispatch(SetLoomStock(result));
+    }
+  };
+}
+
 ThunkAction<AppState> changeToSpecificComposition(BuildContext context,
     String loomId, PermanentCompositionSelection newSelection) {
   return (Store<AppState> store) async {
@@ -78,7 +97,8 @@ ThunkAction<AppState> changeToSpecificComposition(BuildContext context,
       return;
     }
 
-    final concreteComposition = PermanentLoomComposition.byName[newSelection.name];
+    final concreteComposition =
+        PermanentLoomComposition.byName[newSelection.name];
 
     if (concreteComposition == null) {
       return;

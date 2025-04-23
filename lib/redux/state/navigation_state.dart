@@ -12,6 +12,7 @@ class NavigationState {
   final int activeImportManagerStep;
   final Set<String> selectedLoomOutlets;
   final LoomsDraggingState loomsDraggingState;
+  final bool isAvailabilityDrawerOpen;
 
   NavigationState({
     required this.selectedMultiOutlet,
@@ -24,6 +25,7 @@ class NavigationState {
     required this.activeImportManagerStep,
     required this.selectedLoomOutlets,
     required this.loomsDraggingState,
+    required this.isAvailabilityDrawerOpen,
   });
 
   NavigationState.initial()
@@ -36,7 +38,8 @@ class NavigationState {
         selectedRawPatchRow = '',
         activeImportManagerStep = 1,
         selectedLoomOutlets = {},
-        loomsDraggingState = LoomsDraggingState.idle;
+        loomsDraggingState = LoomsDraggingState.idle,
+        isAvailabilityDrawerOpen = false;
 
   NavigationState copyWith({
     String? selectedMultiOutlet,
@@ -49,6 +52,7 @@ class NavigationState {
     int? activeImportManagerStep,
     Set<String>? selectedLoomOutlets,
     LoomsDraggingState? loomsDraggingState,
+    bool? isAvailabilityDrawerOpen,
   }) {
     return NavigationState(
       selectedMultiOutlet: selectedMultiOutlet ?? this.selectedMultiOutlet,
@@ -62,6 +66,8 @@ class NavigationState {
           activeImportManagerStep ?? this.activeImportManagerStep,
       selectedLoomOutlets: selectedLoomOutlets ?? this.selectedLoomOutlets,
       loomsDraggingState: loomsDraggingState ?? this.loomsDraggingState,
+      isAvailabilityDrawerOpen:
+          isAvailabilityDrawerOpen ?? this.isAvailabilityDrawerOpen,
     );
   }
 }

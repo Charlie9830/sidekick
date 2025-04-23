@@ -67,6 +67,7 @@ class PropertyFieldState extends State<PropertyField> {
           textAlignVertical: TextAlignVertical.top,
           textAlign: widget.textAlign,
           decoration: buildInputDecoration(widget.suffix, widget.hintText),
+          
         ),
       ),
       label: widget.label,

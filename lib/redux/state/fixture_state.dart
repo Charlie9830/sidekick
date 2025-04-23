@@ -6,6 +6,8 @@ import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
+import 'package:sidekick/redux/models/loom_stock_model.dart';
+import 'package:sidekick/redux/models/permanent_loom_composition.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 
@@ -23,6 +25,7 @@ class FixtureState {
   final int maxSequenceBreak;
   final bool honorDataSpans;
   final CableType defaultPowerMulti;
+  final Map<String, LoomStockModel> loomStock;
 
   FixtureState({
     required this.fixtures,
@@ -38,6 +41,7 @@ class FixtureState {
     required this.honorDataSpans,
     required this.cables,
     required this.defaultPowerMulti,
+    required this.loomStock,
   });
 
   FixtureState.initial()
@@ -53,7 +57,8 @@ class FixtureState {
         fixtureTypes = {},
         honorDataSpans = false,
         cables = {},
-        defaultPowerMulti = CableType.socapex;
+        defaultPowerMulti = CableType.socapex,
+        loomStock = {};
 
   FixtureState copyWith({
     Map<String, FixtureModel>? fixtures,
@@ -69,6 +74,7 @@ class FixtureState {
     int? maxSequenceBreak,
     bool? honorDataSpans,
     CableType? defaultPowerMulti,
+    Map<String, LoomStockModel>? loomStock,
   }) {
     return FixtureState(
       fixtures: fixtures ?? this.fixtures,
@@ -84,6 +90,7 @@ class FixtureState {
       maxSequenceBreak: maxSequenceBreak ?? this.maxSequenceBreak,
       honorDataSpans: honorDataSpans ?? this.honorDataSpans,
       defaultPowerMulti: defaultPowerMulti ?? this.defaultPowerMulti,
+      loomStock: loomStock ?? this.loomStock,
     );
   }
 }

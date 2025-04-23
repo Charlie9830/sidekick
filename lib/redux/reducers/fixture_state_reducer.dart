@@ -109,6 +109,10 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     return state.copyWith(fixtureTypes: a.types);
   }
 
+  if (a is SetLoomStock) {
+    return state.copyWith(loomStock: a.value);
+  }
+
   if (a is NewProject) {
     return FixtureState.initial();
   }

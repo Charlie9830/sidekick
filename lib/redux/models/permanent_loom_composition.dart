@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:collection/collection.dart';
 import 'package:sidekick/extension_methods/queue_pop.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
+import 'package:sidekick/redux/models/loom_stock_model.dart';
 
 const String kSocaSlug = 'Soca';
 const String kWielandSlug = '6way';
@@ -299,6 +300,29 @@ class PermanentLoomComposition {
       (comp) => MapEntry(comp.name, comp),
     ),
   );
+
+  static List<LoomStockModel> buildAllLoomQuantities() => validCompositions
+      .expand(
+        (comp) => comp.validLengths.map(
+          (length) => LoomStockModel(
+              compositionName: comp.name,
+              length: length,
+              qty: _getDefaultStockQtyOfComposition(comp)),
+        ),
+      )
+      .toList();
+
+  static int _getDefaultStockQtyOfComposition(PermanentLoomComposition comp) {
+    if (comp.socaWays == 2 || comp.wieland6Ways == 2) {
+      return 4;
+    }
+
+    if (comp.socaWays == 3 || comp.socaWays == 5) {
+      return 4;
+    }
+
+    return 2;
+  }
 
   @override
   String toString() {

@@ -9,6 +9,8 @@ class LoomsToolbarContents extends StatelessWidget {
   final void Function()? onChangePowerMultiTypeOfSelectedCables;
   final CableType defaultPowerMultiType;
   final Widget? infoTrailer;
+  final bool availabilityDrawOpen;
+  final void Function() onShowAvailabilityDrawPressed;
 
   const LoomsToolbarContents({
     super.key,
@@ -18,6 +20,8 @@ class LoomsToolbarContents extends StatelessWidget {
     required this.defaultPowerMultiType,
     required this.onDefaultPowerMultiTypeChanged,
     required this.onChangePowerMultiTypeOfSelectedCables,
+    required this.availabilityDrawOpen,
+    required this.onShowAvailabilityDrawPressed,
     this.infoTrailer,
   });
 
@@ -73,6 +77,16 @@ class LoomsToolbarContents extends StatelessWidget {
             )),
         const Spacer(),
         if (infoTrailer != null) infoTrailer!,
+        Tooltip(
+          message: availabilityDrawOpen
+              ? 'Close Availability drawer'
+              : 'Open Availability drawer',
+          child: IconButton.filledTonal(
+            isSelected: availabilityDrawOpen,
+            icon: const Icon(Icons.factory),
+            onPressed: () => onShowAvailabilityDrawPressed(),
+          ),
+        )
       ],
     );
   }

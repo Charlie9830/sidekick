@@ -9,6 +9,10 @@ NavigationState navStateReducer(NavigationState state, dynamic a) {
     );
   }
 
+  if (a is SetIsAvailabilityDrawerOpen) {
+    return state.copyWith(isAvailabilityDrawerOpen: a.value);
+  }
+
   if (a is SetLoomsDraggingState) {
     return state.copyWith(loomsDraggingState: a.value);
   }

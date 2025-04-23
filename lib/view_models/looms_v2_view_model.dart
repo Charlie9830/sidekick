@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
+import 'package:sidekick/redux/models/loom_stock_model.dart';
+import 'package:sidekick/redux/models/permanent_loom_composition.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/view_models/loom_view_model.dart';
 
@@ -28,6 +32,10 @@ class LoomsV2ViewModel {
   final CableType defaultPowerMultiType;
   final void Function(CableType type) onDefaultPowerMultiTypeChanged;
   final void Function()? onChangePowerMultiTypeOfSelectedCables;
+  final bool availabilityDrawOpen;
+  final void Function() onShowAvailabilityDrawPressed;
+  final List<LoomStockQuantityViewModel> stockVms;
+  final void Function() onSetupQuantiesDrawerButtonPressed;
 
   LoomsV2ViewModel({
     required this.outlets,
@@ -48,6 +56,10 @@ class LoomsV2ViewModel {
     required this.onDefaultPowerMultiTypeChanged,
     required this.defaultPowerMultiType,
     required this.onChangePowerMultiTypeOfSelectedCables,
+    required this.onShowAvailabilityDrawPressed,
+    required this.availabilityDrawOpen,
+    required this.stockVms,
+    required this.onSetupQuantiesDrawerButtonPressed,
   });
 }
 
@@ -84,4 +96,14 @@ class OutletDividerViewModel extends OutletViewModel {
     required this.title,
     required String uid,
   }) : super(uid: uid, assigned: false);
+}
+
+class LoomStockQuantityViewModel {
+  final LoomStockModel stock;
+  final int inUse;
+
+  LoomStockQuantityViewModel({
+    required this.stock,
+    required this.inUse,
+  });
 }

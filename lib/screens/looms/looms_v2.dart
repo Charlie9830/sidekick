@@ -8,7 +8,9 @@ import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
 import 'package:sidekick/modifier_key_listener.dart';
+import 'package:sidekick/redux/models/permanent_loom_composition.dart';
 import 'package:sidekick/screens/looms/cable_row_item.dart';
+import 'package:sidekick/screens/looms/composition_item.dart';
 import 'package:sidekick/screens/looms/drag_data.dart';
 import 'package:sidekick/screens/looms/drop_target_overlays/modify_existing_loom_drop_targets.dart';
 import 'package:sidekick/screens/looms/loom_header.dart';
@@ -17,6 +19,7 @@ import 'package:sidekick/screens/looms/loom_row_item.dart';
 import 'package:sidekick/screens/looms/looms_toolbar_contents.dart';
 import 'package:sidekick/screens/looms/no_looms_hover_fallback.dart';
 import 'package:sidekick/screens/looms/outlet_list_tile.dart';
+import 'package:sidekick/screens/looms/quantities_drawer.dart';
 import 'package:sidekick/view_models/cable_view_model.dart';
 import 'package:sidekick/view_models/loom_view_model.dart';
 import 'package:sidekick/view_models/looms_v2_view_model.dart';
@@ -50,8 +53,13 @@ class _LoomsV2State extends State<LoomsV2> {
                   widget.vm.onCombineSelectedDataCablesIntoSneak,
               onSplitSneakIntoDmxPressed: widget.vm.onSplitSneakIntoDmxPressed,
               defaultPowerMultiType: widget.vm.defaultPowerMultiType,
-              onDefaultPowerMultiTypeChanged: widget.vm.onDefaultPowerMultiTypeChanged,
-              onChangePowerMultiTypeOfSelectedCables: widget.vm.onChangePowerMultiTypeOfSelectedCables,
+              onDefaultPowerMultiTypeChanged:
+                  widget.vm.onDefaultPowerMultiTypeChanged,
+              onChangePowerMultiTypeOfSelectedCables:
+                  widget.vm.onChangePowerMultiTypeOfSelectedCables,
+              availabilityDrawOpen: widget.vm.availabilityDrawOpen,
+              onShowAvailabilityDrawPressed:
+                  widget.vm.onShowAvailabilityDrawPressed,
             )),
 
             // Body
@@ -137,6 +145,12 @@ class _LoomsV2State extends State<LoomsV2> {
                                     modifier), // No Looms exist already so we can insert this at index 0.
                           ),
                   )),
+
+                  // Availbility Drawer
+                  if (widget.vm.availabilityDrawOpen)
+                    QuantatiesDrawer(
+                        itemVms: widget.vm.stockVms,
+                        onSetupButtonPressed: widget.vm.onSetupQuantiesDrawerButtonPressed)
                 ],
               ),
             )
