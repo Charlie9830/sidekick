@@ -13,6 +13,12 @@ class DMXAddressModel {
       : address = 0,
         universe = 0;
 
+  factory DMXAddressModel.fromGlobal(int globalAddress) {
+    return DMXAddressModel(
+        universe: globalAddress <= 512 ? 1 : (globalAddress / 512).floor(),
+        address: globalAddress % 512);
+  }
+
   DMXAddressModel copyWith({
     int? address,
     int? universe,

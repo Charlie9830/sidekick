@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:sidekick/redux/models/import_settings_model.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 
@@ -9,6 +10,7 @@ class FileState {
   final ImportSettingsModel importSettings;
   final String fixtureTypeDatabasePath;
   final bool isFixtureTypeDatabasePathValid;
+  final String fixtureMappingFilePath;
 
   FileState({
     this.fixturePatchImportPath = "",
@@ -18,6 +20,7 @@ class FileState {
     this.importSettings = const ImportSettingsModel(),
     this.projectMetadata = const ProjectFileMetadataModel.initial(),
     this.isFixtureTypeDatabasePathValid = false,
+    this.fixtureMappingFilePath = '',
   });
 
   FileState.initial()
@@ -27,7 +30,8 @@ class FileState {
         fixtureTypeDatabasePath = "",
         projectMetadata = const ProjectFileMetadataModel.initial(),
         importSettings = const ImportSettingsModel(),
-        isFixtureTypeDatabasePathValid = false;
+        isFixtureTypeDatabasePathValid = false,
+        fixtureMappingFilePath = '';
 
   FileState copyWith({
     String? fixturePatchImportPath,
@@ -37,6 +41,7 @@ class FileState {
     ImportSettingsModel? importSettings,
     String? fixtureTypeDatabasePath,
     bool? isFixtureTypeDatabasePathValid,
+    String? fixtureMappingFilePath,
   }) {
     return FileState(
       fixturePatchImportPath:
@@ -50,6 +55,8 @@ class FileState {
           fixtureTypeDatabasePath ?? this.fixtureTypeDatabasePath,
       isFixtureTypeDatabasePathValid:
           isFixtureTypeDatabasePathValid ?? this.isFixtureTypeDatabasePathValid,
+      fixtureMappingFilePath:
+          fixtureMappingFilePath ?? this.fixtureMappingFilePath,
     );
   }
 }

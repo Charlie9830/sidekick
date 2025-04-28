@@ -15,6 +15,10 @@ class ImportManagerViewModel {
   final List<PatchDataItemError> rowErrors;
   final int step;
   final void Function()? onNextButtonPressed;
+  final void Function(String path) onFixtureDatabaseFilePathChanged;
+  final void Function(String path) onFixtureMappingFilePathChanged;
+  final String fixtureDatabaseFilePath;
+  final String fixtureMappingFilePath;
 
   ImportManagerViewModel({
     required this.importFilePath,
@@ -28,6 +32,10 @@ class ImportManagerViewModel {
     required this.step,
     required this.onNextButtonPressed,
     required this.incomingRowVms,
+    required this.onFixtureDatabaseFilePathChanged,
+    required this.onFixtureMappingFilePathChanged,
+    required this.fixtureDatabaseFilePath,
+    required this.fixtureMappingFilePath,
   });
 }
 

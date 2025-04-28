@@ -5,20 +5,24 @@ const int kPersistentSettingsFileVersion = 1;
 class PersistentSettingsModel {
   final int fileVersion;
   final String fixtureTypeDatabasePath;
+  final String fixtureMappingFilePath;
 
   PersistentSettingsModel({
     this.fixtureTypeDatabasePath = '',
     required this.fileVersion,
+    this.fixtureMappingFilePath = '',
   });
 
   const PersistentSettingsModel.initial()
       : fixtureTypeDatabasePath = '',
+        fixtureMappingFilePath = '',
         fileVersion = kPersistentSettingsFileVersion;
 
   Map<String, dynamic> toMap() {
     return {
       'fileVersion': fileVersion,
       'fixtureTypeDatabasePath': fixtureTypeDatabasePath,
+      'fixtureMappingFilePath': fixtureMappingFilePath,
     };
   }
 
@@ -26,6 +30,7 @@ class PersistentSettingsModel {
     return PersistentSettingsModel(
       fileVersion: map['fileVersion']?.toInt() ?? 0,
       fixtureTypeDatabasePath: map['fixtureTypeDatabasePath'] ?? '',
+      fixtureMappingFilePath: map['fixtureMappingFilePath'] ?? '',
     );
   }
 
@@ -37,11 +42,14 @@ class PersistentSettingsModel {
   PersistentSettingsModel copyWith({
     int? fileVersion,
     String? fixtureTypeDatabasePath,
+    String? fixtureMappingFilePath,
   }) {
     return PersistentSettingsModel(
       fileVersion: fileVersion ?? this.fileVersion,
       fixtureTypeDatabasePath:
           fixtureTypeDatabasePath ?? this.fixtureTypeDatabasePath,
+      fixtureMappingFilePath:
+          fixtureMappingFilePath ?? this.fixtureMappingFilePath,
     );
   }
 }

@@ -47,6 +47,13 @@ class ImportManagerContainer extends StatelessWidget {
               ? () => store.dispatch(SetActiveImportManagerStep(
                   store.state.navstate.activeImportManagerStep + 1))
               : null,
+          onFixtureDatabaseFilePathChanged: (path) =>
+              store.dispatch(updateFixtureDatabaseFilePath(path)),
+          onFixtureMappingFilePathChanged: (path) =>
+              store.dispatch(updateFixtureMappingFilePath(path)),
+          fixtureDatabaseFilePath:
+              store.state.fileState.fixtureTypeDatabasePath,
+          fixtureMappingFilePath: store.state.fileState.fixtureMappingFilePath,
         );
       },
     );

@@ -103,7 +103,7 @@ class FixtureModel implements ModelCollectionMember {
 
   @override
   String toString() {
-    return 'FixtureModel( fid: $fid )';
+    return 'FixtureModel(#$fid )';
   }
 
   @override

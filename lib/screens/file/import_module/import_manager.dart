@@ -1,12 +1,13 @@
-import 'package:collection/collection.dart';
 import 'package:easy_stepper/easy_stepper.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
-import 'package:sidekick/item_selection/item_selection_container.dart';
-import 'package:sidekick/item_selection/item_selection_listener.dart';
-import 'package:sidekick/screens/file/import_module/cell_geometry.dart';
+import 'package:mvr/mvr.dart';
+import 'package:sidekick/file_type_groups.dart';
+import 'package:sidekick/redux/models/dmx_address_model.dart';
+import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/screens/file/import_module/row_error_item.dart';
-import 'package:sidekick/screens/file/import_module/row_side.dart';
-import 'package:sidekick/screens/file/import_module/table_header.dart';
+import 'package:sidekick/screens/file/import_module/select_file_control.dart';
 import 'package:sidekick/view_models/import_manager_view_model.dart';
 import 'package:path/path.dart' as p;
 
@@ -23,6 +24,7 @@ class ImportManager extends StatefulWidget {
 
 class _ImportManagerState extends State<ImportManager> {
   late final FocusNode _selectionFocusNode;
+  Map<String, FixtureTypeModel> _fixtureTypes = {};
 
   @override
   void initState() {
@@ -67,6 +69,7 @@ class _ImportManagerState extends State<ImportManager> {
                   defaultStepBorderType: BorderType.normal,
                   stepRadius: 32,
                   steps: const [
+                    EasyStep(icon: Icon(Icons.file_open), title: 'Select File'),
                     EasyStep(icon: Icon(Icons.dry_cleaning), title: 'Validate'),
                     EasyStep(
                       icon: Icon(Icons.merge),
@@ -76,25 +79,20 @@ class _ImportManagerState extends State<ImportManager> {
                 ),
               )),
           Expanded(
-              child: Column(
-            children: [
-              Expanded(
-                flex: 2,
-                child: ItemSelectionContainer<String>(
-                    focusNode: _selectionFocusNode,
-                    itemIndicies: Map<String, int>.fromEntries(
-                        widget.vm.rowPairings.mapIndexed((index, pairVm) =>
-                            MapEntry(pairVm.selectionId, index))),
-                    selectedItems: {
-                      widget.vm.selectedRow,
-                    },
-                    onSelectionUpdated: _handleSelectionUpdate,
-                    child: _buildIncomingFixtureTable(context)),
+              child: switch (widget.vm.step) {
+            1 => SelectFileControl(
+                fixtureDatabaseSpreadsheetFilePath:
+                    widget.vm.fixtureDatabaseFilePath,
+                fixtureTypeMappingFilePath: widget.vm.fixtureMappingFilePath,
+                onFixtureTypesLoaded: (types) =>
+                    setState(() => _fixtureTypes = types),
+                onFixtureDatabaseFilePathChanged:
+                    widget.vm.onFixtureDatabaseFilePathChanged,
+                onFixtureMappingFilePathChanged:
+                    widget.vm.onFixtureMappingFilePathChanged,
               ),
-              if (widget.vm.rowErrors.isNotEmpty)
-                Expanded(flex: 1, child: _buildErrorPane(context)),
-            ],
-          )),
+            _ => Text('No Content'),
+          }),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -128,69 +126,6 @@ class _ImportManagerState extends State<ImportManager> {
         )),
       ],
     );
-  }
-
-  void _handleSelectionUpdate(UpdateType type, Set<String> items) {
-    if (items.isNotEmpty) {
-      widget.vm.onRowSelectionChanged(items.first);
-    }
-  }
-
-  Widget _buildIncomingFixtureTable(BuildContext context) {
-    return Column(
-      children: [
-        _buildIncomingFixtureTableHeaders(context),
-        Expanded(
-            child: ListView.builder(
-                padding: const EdgeInsets.only(left: 12),
-                itemExtent: CellGeometry.itemExtent,
-                itemCount: widget.vm.incomingRowVms.length,
-                itemBuilder: (context, index) {
-                  return _buildIncomignFixtureTableRow(
-                      context, widget.vm.incomingRowVms[index]);
-                }))
-      ],
-    );
-  }
-
-  Widget _buildIncomignFixtureTableRow(
-      BuildContext context, RawRowViewModel rowVm) {
-    return ItemSelectionListener<String>(
-      value: rowVm.selectionId,
-      child: SizedBox(
-        height: CellGeometry.itemExtent,
-        child: Container(
-          color: widget.vm.selectedRow == rowVm.selectionId
-              ? Theme.of(context).focusColor
-              : null,
-          child: Row(
-            children: [
-              // Incoming Data.
-              Expanded(
-                  child: RowSide(
-                hasErrors: rowVm.row.errors.isNotEmpty,
-                fid: rowVm.row.fid,
-                fixtureType: rowVm.row.fixtureType,
-                location: rowVm.row.location,
-                address: rowVm.row.address,
-                universe: rowVm.row.universe,
-              )),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildIncomingFixtureTableHeaders(BuildContext context) {
-    return const SizedBox(
-        height: 56,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Expanded(child: TableHeader()),
-          ],
-        ));
   }
 
   @override

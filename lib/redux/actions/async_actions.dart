@@ -46,6 +46,7 @@ import 'package:sidekick/import_merging/merge_fixtures.dart';
 import 'package:sidekick/model_collection/convert_to_map_entry.dart';
 import 'package:sidekick/persistent_settings/fetch_persistent_settings.dart';
 import 'package:sidekick/persistent_settings/init_persistent_settings_storage.dart';
+import 'package:sidekick/persistent_settings/persistent_settings_model.dart';
 import 'package:sidekick/persistent_settings/update_persistent_settings.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
@@ -71,6 +72,24 @@ import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+ThunkAction<AppState> updateFixtureDatabaseFilePath(String path) {
+  return (Store<AppState> store) async {
+    store.dispatch(SetFixtureTypeDatabasePath(path));
+
+    await updatePersistentSettings(
+        (existing) => existing.copyWith(fixtureTypeDatabasePath: path));
+  };
+}
+
+ThunkAction<AppState> updateFixtureMappingFilePath(String path) {
+  return (Store<AppState> store) async {
+    store.dispatch(SetFixtureMappingFilePath(path));
+
+    await updatePersistentSettings(
+        (existing) => existing.copyWith(fixtureMappingFilePath: path));
+  };
+}
 
 ThunkAction<AppState> showSetupQuantitiesDialog(BuildContext context) {
   return (Store<AppState> store) async {

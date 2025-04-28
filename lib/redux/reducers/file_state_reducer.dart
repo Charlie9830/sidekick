@@ -34,6 +34,12 @@ FileState fileStateReducer(FileState state, dynamic a) {
     );
   }
 
+  if (a is SetFixtureMappingFilePath) {
+    return state.copyWith(
+      fixtureMappingFilePath: a.value,
+    );
+  }
+
   if (a is SetImportSettings) {
     return state.copyWith(
       importSettings: a.settings,
