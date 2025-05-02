@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:xml/xml.dart';
 
+
 class FixtureTypeMappingParser {
   Future<List<FixtureMatchModel>> parseMappingFile(File sourceFile) async {
     final document = XmlDocument.parse(await sourceFile.readAsString());
@@ -24,7 +25,7 @@ class DictionaryTagNames {
   static const String fixtureMap = "FixtureMap";
   static const String fixture = "Fixture";
   static const String ma2 = "MA2";
-  static const String ma3 = "MA3";
+  static const String mvr = "MVR";
   static const String match = "Match";
   static const String mode = "Mode";
   static const String ignore = "Ignore";
@@ -75,25 +76,25 @@ class FixtureMatchModel {
       '=====\n$name\nFixture Patterns: \n$fixturePattern, \n\n Mode Patterns:\n$modePatterns)\n=====\n';
 }
 
-enum Console {
+enum MappingFlavour {
   ma2,
-  ma3,
+  mvr,
 }
 
 /// Represents the enumeration of <Match/> tags from the Fixture Dictionary. Stores the value of each pattern attribute
 /// grouped by console type.
 class MatchPatternModel {
   final PatternCollection ma2;
-  final PatternCollection ma3;
+  final PatternCollection mvr;
 
   MatchPatternModel({
     required this.ma2,
-    required this.ma3,
+    required this.mvr,
   });
 
   const MatchPatternModel.wildcard()
       : ma2 = const PatternCollection.wildcard(),
-        ma3 = const PatternCollection.wildcard();
+        mvr = const PatternCollection.wildcard();
 
   factory MatchPatternModel.fromElements(
       {required Iterable<XmlElement> elements,
@@ -103,8 +104,8 @@ class MatchPatternModel {
           tagName: DictionaryTagNames.ma2,
           elements: elements,
           fallbackPattern: fallbackPattern),
-      ma3: _findPatterns(
-          tagName: DictionaryTagNames.ma3,
+      mvr: _findPatterns(
+          tagName: DictionaryTagNames.mvr,
           elements: elements,
           fallbackPattern: fallbackPattern),
     );
@@ -124,7 +125,7 @@ class MatchPatternModel {
       {required String tagName,
       required Iterable<XmlElement> elements,
       required String fallbackPattern}) {
-    // First find the console element, usually a <MA2> or <MA3> element.
+    // First find the console element, usually a <MA2> or <MVR> element.
     final consoleElement =
         elements.firstWhereOrNull((element) => element.name.local == tagName);
 
@@ -158,17 +159,17 @@ class MatchPatternModel {
         positive: positivePatterns, negative: negativePatterns);
   }
 
-  PatternCollection getPredicates(Console console) {
+  PatternCollection getPredicates(MappingFlavour console) {
     switch (console) {
-      case Console.ma2:
+      case MappingFlavour.ma2:
         return ma2;
-      case Console.ma3:
-        return ma3;
+      case MappingFlavour.mvr:
+        return mvr;
     }
   }
 
   @override
-  String toString() => '<MA2> $ma2\n<MA3>: $ma3';
+  String toString() => '<MA2> $ma2\n<MVR>: $mvr';
 }
 
 class ModeMatchModel {

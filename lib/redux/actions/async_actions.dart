@@ -1128,6 +1128,12 @@ ThunkAction<AppState> initializeApp(BuildContext context) {
         store.dispatch(SetFixtureTypes(fixtureTypeDatabaseResult.fixtureTypes));
       }
     }
+
+    // Load the Fixture Mapping Path.
+    if (persistentSettings.fixtureMappingFilePath.isNotEmpty) {
+      store.dispatch(
+          SetFixtureMappingFilePath(persistentSettings.fixtureMappingFilePath));
+    }
   };
 }
 

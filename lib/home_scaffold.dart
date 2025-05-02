@@ -9,6 +9,7 @@ class HomeScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         title: "It's just a Phase!",
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
               seedColor: Colors.indigoAccent, brightness: Brightness.dark),

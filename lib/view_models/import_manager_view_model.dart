@@ -1,10 +1,10 @@
+import 'package:sidekick/enums.dart';
 import 'package:sidekick/excel/new/raw_row_data.dart';
 import 'package:sidekick/excel/patch_data_item_error.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/import_settings_model.dart';
 
 class ImportManagerViewModel {
-  final String importFilePath;
   final ImportSettingsModel settings;
   final List<String> sheetNames;
   final List<RawRowViewModel> incomingRowVms;
@@ -13,15 +13,14 @@ class ImportManagerViewModel {
   final void Function(String selectedItem) onRowSelectionChanged;
   final String selectedRow;
   final List<PatchDataItemError> rowErrors;
-  final int step;
-  final void Function()? onNextButtonPressed;
+  final ImportManagerStep step;
+  final void Function(ImportManagerStep nextStep)? onNextStep;
   final void Function(String path) onFixtureDatabaseFilePathChanged;
-  final void Function(String path) onFixtureMappingFilePathChanged;
+  final void Function(String path) onFixtureMappingPathChanged;
   final String fixtureDatabaseFilePath;
   final String fixtureMappingFilePath;
 
   ImportManagerViewModel({
-    required this.importFilePath,
     required this.settings,
     required this.sheetNames,
     required this.rowPairings,
@@ -30,10 +29,10 @@ class ImportManagerViewModel {
     required this.selectedRow,
     required this.rowErrors,
     required this.step,
-    required this.onNextButtonPressed,
+    required this.onNextStep,
     required this.incomingRowVms,
     required this.onFixtureDatabaseFilePathChanged,
-    required this.onFixtureMappingFilePathChanged,
+    required this.onFixtureMappingPathChanged,
     required this.fixtureDatabaseFilePath,
     required this.fixtureMappingFilePath,
   });

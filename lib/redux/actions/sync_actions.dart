@@ -49,10 +49,10 @@ class SetSelectedLoomOutlets {
   SetSelectedLoomOutlets(this.value);
 }
 
-class SetActiveImportManagerStep {
-  final int value;
+class SetImportManagerStep {
+  final ImportManagerStep value;
 
-  SetActiveImportManagerStep(this.value);
+  SetImportManagerStep(this.value);
 }
 
 class SetSelectedRawPatchRow {

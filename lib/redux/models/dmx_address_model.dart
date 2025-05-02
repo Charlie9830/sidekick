@@ -14,6 +14,10 @@ class DMXAddressModel {
         universe = 0;
 
   factory DMXAddressModel.fromGlobal(int globalAddress) {
+    if (globalAddress == 0) {
+      return const DMXAddressModel.unknown();
+    }
+
     return DMXAddressModel(
         universe: globalAddress <= 512 ? 1 : (globalAddress / 512).floor(),
         address: globalAddress % 512);
@@ -47,6 +51,8 @@ class DMXAddressModel {
 
   factory DMXAddressModel.fromJson(String source) =>
       DMXAddressModel.fromMap(json.decode(source));
+
+  String toSlashNotationString() => '$universe/$address';
 
   @override
   String toString() =>

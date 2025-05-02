@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
+import 'package:sidekick/enums.dart';
 import 'package:sidekick/excel/new/raw_row_data.dart';
 import 'package:sidekick/excel/patch_data_item_error.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
@@ -24,14 +25,11 @@ class ImportManagerContainer extends StatelessWidget {
       },
       converter: (Store<AppState> store) {
         final rowPairings = _selectRowPairings(store);
-        final hasErrors = store.state.importState.rawPatchData
-            .every((row) => row.errors.isEmpty);
         final incomingRowVms = _selectRawIncomingRows(store);
         final selectedIncomingRowErrors =
             _selectRowErrors(incomingRowVms, store);
 
         return ImportManagerViewModel(
-          importFilePath: store.state.fileState.fixturePatchImportPath,
           settings: store.state.fileState.importSettings,
           sheetNames: store.state.importState.sheetNames.toList(),
           incomingRowVms: incomingRowVms,
@@ -42,14 +40,12 @@ class ImportManagerContainer extends StatelessWidget {
               store.dispatch(SetSelectedRawPatchRow(item)),
           selectedRow: store.state.navstate.selectedRawPatchRow,
           rowErrors: selectedIncomingRowErrors,
-          step: store.state.navstate.activeImportManagerStep,
-          onNextButtonPressed: hasErrors
-              ? () => store.dispatch(SetActiveImportManagerStep(
-                  store.state.navstate.activeImportManagerStep + 1))
-              : null,
+          step: store.state.navstate.importManagerStep,
+          onNextStep: (nextStep) =>
+              store.dispatch(SetImportManagerStep(nextStep)),
           onFixtureDatabaseFilePathChanged: (path) =>
               store.dispatch(updateFixtureDatabaseFilePath(path)),
-          onFixtureMappingFilePathChanged: (path) =>
+          onFixtureMappingPathChanged: (path) =>
               store.dispatch(updateFixtureMappingFilePath(path)),
           fixtureDatabaseFilePath:
               store.state.fileState.fixtureTypeDatabasePath,

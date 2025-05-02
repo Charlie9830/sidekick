@@ -9,7 +9,7 @@ class NavigationState {
   final bool openAfterExport;
   final int selectedDiffingTab;
   final String selectedRawPatchRow;
-  final int activeImportManagerStep;
+  final ImportManagerStep importManagerStep;
   final Set<String> selectedLoomOutlets;
   final LoomsDraggingState loomsDraggingState;
   final bool isAvailabilityDrawerOpen;
@@ -22,7 +22,7 @@ class NavigationState {
     required this.openAfterExport,
     required this.selectedDiffingTab,
     required this.selectedRawPatchRow,
-    required this.activeImportManagerStep,
+    required this.importManagerStep,
     required this.selectedLoomOutlets,
     required this.loomsDraggingState,
     required this.isAvailabilityDrawerOpen,
@@ -36,7 +36,7 @@ class NavigationState {
         openAfterExport = true,
         selectedDiffingTab = 0,
         selectedRawPatchRow = '',
-        activeImportManagerStep = 1,
+        importManagerStep = ImportManagerStep.fileSelect,
         selectedLoomOutlets = {},
         loomsDraggingState = LoomsDraggingState.idle,
         isAvailabilityDrawerOpen = false;
@@ -49,7 +49,7 @@ class NavigationState {
     bool? openAfterExport,
     int? selectedDiffingTab,
     String? selectedRawPatchRow,
-    int? activeImportManagerStep,
+    ImportManagerStep? importManagerStep,
     Set<String>? selectedLoomOutlets,
     LoomsDraggingState? loomsDraggingState,
     bool? isAvailabilityDrawerOpen,
@@ -62,8 +62,7 @@ class NavigationState {
       openAfterExport: openAfterExport ?? this.openAfterExport,
       selectedDiffingTab: selectedDiffingTab ?? this.selectedDiffingTab,
       selectedRawPatchRow: selectedRawPatchRow ?? this.selectedRawPatchRow,
-      activeImportManagerStep:
-          activeImportManagerStep ?? this.activeImportManagerStep,
+      importManagerStep: importManagerStep ?? this.importManagerStep,
       selectedLoomOutlets: selectedLoomOutlets ?? this.selectedLoomOutlets,
       loomsDraggingState: loomsDraggingState ?? this.loomsDraggingState,
       isAvailabilityDrawerOpen:
