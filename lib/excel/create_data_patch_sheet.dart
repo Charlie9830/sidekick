@@ -1,5 +1,4 @@
 import 'package:excel/excel.dart';
-import 'package:sidekick/classes/named_colors.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
