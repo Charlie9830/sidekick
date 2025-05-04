@@ -8,10 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
-import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
-import 'package:sidekick/balancer/models/balancer_power_outlet_model.dart';
-import 'package:sidekick/balancer/naive_balancer.dart';
-import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/classes/cable_family.dart';
 import 'package:sidekick/classes/export_file_paths.dart';
 import 'package:sidekick/classes/permanent_composition_selection.dart';
@@ -53,7 +49,6 @@ import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/redux/models/permanent_loom_composition.dart';
-import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:path/path.dart' as p;
@@ -1249,6 +1244,8 @@ ThunkAction<AppState> saveProjectFile(BuildContext context, SaveType saveType) {
 
 ThunkAction<AppState> importPatchFile(BuildContext context) {
   return (Store<AppState> store) async {
+    // TODO: Delete me
+
     final filePath = store.state.fileState.fixturePatchImportPath;
 
     if (store.state.fixtureState.fixtures.isNotEmpty ||
@@ -1672,40 +1669,6 @@ ThunkAction<AppState> export(BuildContext context) {
   };
 }
 
-ThunkAction<AppState> generatePatch(BuildContext context) {
-  return (Store<AppState> store) async {
-    final fixtures = store.state.fixtureState.fixtures.values.toList();
-    final balancer = NaiveBalancer();
-
-    try {
-      final unbalancedMultiOutlets = balancer.assignToOutlets(
-        fixtures: fixtures
-            .map((fixture) => BalancerFixtureModel.fromFixture(
-                fixture: fixture,
-                type: store.state.fixtureState.fixtureTypes[fixture.typeId]!))
-            .toList(),
-        multiOutlets:
-            store.state.fixtureState.powerMultiOutlets.values.toList(),
-        maxSequenceBreak: store.state.fixtureState.maxSequenceBreak,
-      );
-
-      final balancedMultiOutlets = _balanceOutlets(
-        unbalancedMultiOutlets: unbalancedMultiOutlets,
-        balancer: balancer,
-        balanceTolerance: store.state.fixtureState.balanceTolerance,
-      );
-
-      _updatePowerMultisAndOutlets(store, balancedMultiOutlets);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
-          context: context,
-          message: 'A balancing error occurred',
-          extendedMessage: e.toString()));
-      rethrow;
-    }
-  };
-}
-
 ThunkAction<AppState> addSpareOutlet(String uid) {
   return (Store<AppState> store) async {
     final multiOutlet = store.state.fixtureState.powerMultiOutlets[uid];
@@ -1740,86 +1703,6 @@ ThunkAction<AppState> deleteSpareOutlet(String uid) {
   };
 }
 
-Map<PowerMultiOutletModel, List<PowerOutletModel>> _balanceOutlets({
-  required Map<PowerMultiOutletModel, List<BalancerPowerOutletModel>>
-      unbalancedMultiOutlets,
-  required NaiveBalancer balancer,
-  required double balanceTolerance,
-}) {
-  PhaseLoad currentLoad = PhaseLoad(0, 0, 0);
-
-  return unbalancedMultiOutlets.map((multiOutlet, outlets) {
-    final result = balancer.balanceOutlets(
-      outlets,
-      balanceTolerance: balanceTolerance,
-      initialLoad: currentLoad,
-    );
-
-    currentLoad = result.load;
-
-    return MapEntry(
-        multiOutlet,
-        result.outlets
-            .map((balancerOutlet) => PowerOutletModel(
-                phase: balancerOutlet.phase,
-                multiOutletId: multiOutlet.uid,
-                multiPatch: balancerOutlet.multiPatch,
-                locationId: balancerOutlet.locationId,
-                fixtureIds: balancerOutlet.child.fixtures
-                    .map((fixture) => fixture.uid)
-                    .toList(),
-                load: balancerOutlet.child.amps))
-            .toList());
-  });
-}
-
-void _updatePowerMultisAndOutlets(Store<AppState> store,
-    Map<PowerMultiOutletModel, List<PowerOutletModel>> balancedMultiOutlets) {
-  final balancedAndDefaultNamedOutlets =
-      _applyDefaultMultiOutletNames(balancedMultiOutlets, store);
-
-  // Power Outlets
-  store.dispatch(SetPowerOutlets(
-      balancedAndDefaultNamedOutlets.values.flattened.toList()));
-
-  // Power Multis.
-  store.dispatch(
-    SetPowerMultiOutlets(
-      Map<String, PowerMultiOutletModel>.from(
-          balancedAndDefaultNamedOutlets.keys.toModelMap()),
-    ),
-  );
-}
-
-/// Looks up the default Multi Outlet names for outlets that have not been assigned a name.
-Map<PowerMultiOutletModel, List<PowerOutletModel>>
-    _applyDefaultMultiOutletNames(
-        Map<PowerMultiOutletModel, List<PowerOutletModel>> balancedMultiOutlets,
-        Store<AppState> store) {
-  return Map<PowerMultiOutletModel, List<PowerOutletModel>>.fromEntries(
-      balancedMultiOutlets.entries.map((entry) {
-    final outlet = entry.key;
-
-    final location = store.state.fixtureState.locations[outlet.locationId];
-
-    if (location == null) {
-      return entry;
-    }
-
-    final multisInLocation = balancedMultiOutlets.keys
-        .where((multi) => multi.locationId == location.uid)
-        .toList();
-
-    final outletName = location.getPrefixedPowerMulti(
-        multisInLocation.length > 1 ? outlet.number : null);
-
-    return MapEntry(
-      outlet.copyWith(name: outletName),
-      entry.value,
-    );
-  }));
-}
-
 void _updatePowerMultiSpareCircuitCount(
     Store<AppState> store, String uid, int desiredCount) {
   final existingMultiOutlets = store.state.fixtureState.powerMultiOutlets;
@@ -1827,25 +1710,7 @@ void _updatePowerMultiSpareCircuitCount(
   existingMultiOutlets.update(
       uid, (existing) => existing.copyWith(desiredSpareCircuits: desiredCount));
 
-  final balancer = NaiveBalancer();
-
-  final unbalancedMultiOutlets = balancer.assignToOutlets(
-    fixtures: store.state.fixtureState.fixtures.values
-        .map((fixture) => BalancerFixtureModel.fromFixture(
-            fixture: fixture,
-            type: store.state.fixtureState.fixtureTypes[fixture.typeId]!))
-        .toList(),
-    multiOutlets: existingMultiOutlets.values.toList(),
-    maxSequenceBreak: store.state.fixtureState.maxSequenceBreak,
-  );
-
-  final balancedMultiOutlets = _balanceOutlets(
-    unbalancedMultiOutlets: unbalancedMultiOutlets,
-    balancer: balancer,
-    balanceTolerance: store.state.fixtureState.balanceTolerance,
-  );
-
-  _updatePowerMultisAndOutlets(store, balancedMultiOutlets);
+  store.dispatch(SetPowerMultiOutlets(existingMultiOutlets));
 }
 
 int _findNextAvailableSequenceNumber(List<int> sequenceNumbers) {

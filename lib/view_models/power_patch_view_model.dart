@@ -12,7 +12,6 @@ class PowerPatchViewModel {
   final String selectedMultiOutlet;
   final PhaseLoad phaseLoad;
 
-  final void Function() onGeneratePatch;
   final void Function(String uid) onAddSpareOutlet;
   final void Function(String uid) onDeleteSpareOutlet;
   final void Function(String newValue) onBalanceToleranceChanged;
@@ -26,7 +25,6 @@ class PowerPatchViewModel {
     required this.rows,
     required this.phaseLoad,
     required this.balanceTolerancePercent,
-    required this.onGeneratePatch,
     required this.onAddSpareOutlet,
     required this.onDeleteSpareOutlet,
     required this.onBalanceToleranceChanged,

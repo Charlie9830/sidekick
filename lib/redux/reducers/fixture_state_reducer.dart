@@ -1,6 +1,8 @@
 import 'package:collection/collection.dart';
+import 'package:sidekick/assert_outlet_name_and_number.dart';
 import 'package:sidekick/extension_methods/clone_map.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
+import 'package:sidekick/perform_power_patch.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
@@ -12,10 +14,21 @@ import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   if (a is SetImportedFixtureData) {
+    final outlets = performPowerPatch(
+      fixtures: a.fixtures,
+      fixtureTypes: a.fixtureTypes,
+      powerMultiOutlets: {},
+      locations: a.locations,
+      maxSequenceBreak: state.maxSequenceBreak,
+      balanceTolerance: state.balanceTolerance,
+    );
+
     return state.copyWith(
       fixtures: a.fixtures,
       locations: a.locations,
       fixtureTypes: a.fixtureTypes,
+      powerMultiOutlets: outlets.powerMultiOutlets,
+      outlets: outlets.powerOutlets,
     );
   }
 
@@ -133,20 +146,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is ResetFixtureState) {
-    return state.copyWith(
-      fixtures: FixtureState.initial().fixtures,
-      balanceTolerance: FixtureState.initial().balanceTolerance,
-      dataMultis: FixtureState.initial().dataMultis,
-      dataPatches: FixtureState.initial().dataPatches,
-      locations: FixtureState.initial().locations,
-      looms: FixtureState.initial().looms,
-      maxSequenceBreak: FixtureState.initial().maxSequenceBreak,
-      outlets: FixtureState.initial().outlets,
-      powerMultiOutlets: FixtureState.initial().powerMultiOutlets,
-      cables: FixtureState.initial().cables,
-      defaultPowerMulti: FixtureState.initial().defaultPowerMulti,
-      honorDataSpans: FixtureState.initial().honorDataSpans,
-    );
+    return FixtureState.initial();
   }
 
   if (a is UpdateFixtureTypeShortName) {
@@ -162,14 +162,26 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is UpdateFixtureTypeMaxPiggybacks) {
-    return state.copyWith(
-      fixtureTypes: state.fixtureTypes.clone()
-        ..update(
+    final updatedFixtureTypes = state.fixtureTypes.clone()
+      ..update(
           a.id,
           (type) => type.copyWith(
-            maxPiggybacks: int.parse(a.newValue.trim()),
-          ),
-        ),
+                maxPiggybacks: int.parse(a.newValue.trim()),
+              ));
+
+    final outlets = performPowerPatch(
+      fixtures: state.fixtures,
+      fixtureTypes: updatedFixtureTypes,
+      powerMultiOutlets: state.powerMultiOutlets,
+      locations: state.locations,
+      maxSequenceBreak: state.maxSequenceBreak,
+      balanceTolerance: state.balanceTolerance,
+    );
+
+    return state.copyWith(
+      fixtureTypes: updatedFixtureTypes,
+      powerMultiOutlets: outlets.powerMultiOutlets,
+      outlets: outlets.powerOutlets,
     );
   }
 
@@ -202,49 +214,90 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetFixtures) {
+    final outlets = performPowerPatch(
+      fixtures: a.fixtures,
+      fixtureTypes: state.fixtureTypes,
+      powerMultiOutlets: state.powerMultiOutlets,
+      locations: state.locations,
+      maxSequenceBreak: state.maxSequenceBreak,
+      balanceTolerance: state.balanceTolerance,
+    );
+
     return state.copyWith(
       fixtures: a.fixtures,
+      powerMultiOutlets: outlets.powerMultiOutlets,
+      outlets: outlets.powerOutlets,
     );
   }
 
   if (a is SetLocations) {
     return state.copyWith(
       locations: a.locations,
-      dataMultis: _assertOutletNameAndNumbers<DataMultiModel>(
+      dataMultis: assertOutletNameAndNumbers<DataMultiModel>(
               state.dataMultis.values, a.locations)
           .toModelMap(),
-      powerMultiOutlets: _assertOutletNameAndNumbers<PowerMultiOutletModel>(
+      powerMultiOutlets: assertOutletNameAndNumbers<PowerMultiOutletModel>(
               state.powerMultiOutlets.values, a.locations)
           .toModelMap(),
-      dataPatches: _assertOutletNameAndNumbers<DataPatchModel>(
+      dataPatches: assertOutletNameAndNumbers<DataPatchModel>(
               state.dataPatches.values, a.locations)
           .toModelMap(),
     );
   }
 
-  if (a is SetPowerOutlets) {
-    return state.copyWith(
-      outlets: a.outlets,
-    );
-  }
-
   if (a is SetPowerMultiOutlets) {
+    final outlets = performPowerPatch(
+      fixtures: state.fixtures,
+      fixtureTypes: state.fixtureTypes,
+      powerMultiOutlets: a.multiOutlets,
+      locations: state.locations,
+      maxSequenceBreak: state.maxSequenceBreak,
+      balanceTolerance: state.balanceTolerance,
+    );
+
     return state.copyWith(
-      powerMultiOutlets:
-          _assertPowerMultiState(a.multiOutlets, state.locations),
+      powerMultiOutlets: outlets.powerMultiOutlets,
+      outlets: outlets.powerOutlets,
     );
   }
 
   if (a is SetBalanceTolerance) {
+    final tolerance = _convertBalanceTolerance(a.value, state.balanceTolerance);
+
+    final outlets = performPowerPatch(
+      fixtures: state.fixtures,
+      fixtureTypes: state.fixtureTypes,
+      powerMultiOutlets: state.powerMultiOutlets,
+      locations: state.locations,
+      maxSequenceBreak: state.maxSequenceBreak,
+      balanceTolerance: tolerance,
+    );
+
     return state.copyWith(
-        balanceTolerance:
-            _convertBalanceTolerance(a.value, state.balanceTolerance));
+      balanceTolerance: tolerance,
+      powerMultiOutlets: outlets.powerMultiOutlets,
+      outlets: outlets.powerOutlets,
+    );
   }
 
   if (a is SetMaxSequenceBreak) {
+    final maxSequenceBreak =
+        _convertMaxSequenceBreak(a.value, state.maxSequenceBreak);
+        
+    final outlets = performPowerPatch(
+      fixtures: state.fixtures,
+      fixtureTypes: state.fixtureTypes,
+      powerMultiOutlets: state.powerMultiOutlets,
+      locations: state.locations,
+      maxSequenceBreak: maxSequenceBreak,
+      balanceTolerance: state.balanceTolerance,
+    );
+
     return state.copyWith(
-        maxSequenceBreak:
-            _convertMaxSequenceBreak(a.value, state.maxSequenceBreak));
+      maxSequenceBreak: maxSequenceBreak,
+      powerMultiOutlets: outlets.powerMultiOutlets,
+      outlets: outlets.powerOutlets,
+    );
   }
 
   if (a is SetLooms) {
@@ -309,21 +362,6 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
   );
 }
 
-Map<String, PowerMultiOutletModel> _assertPowerMultiState(
-    Map<String, PowerMultiOutletModel> multiOutlets,
-    Map<String, LocationModel> locations) {
-  final outletsByLocationId =
-      multiOutlets.values.groupListsBy((item) => item.locationId);
-
-  final sortedOutlets = locations.values
-      .map((location) => (outletsByLocationId[location.uid] ?? []).sorted())
-      .flattened;
-
-  return _assertOutletNameAndNumbers<PowerMultiOutletModel>(
-          sortedOutlets, locations)
-      .toModelMap();
-}
-
 Map<String, DataMultiModel> _assertDataMultiState(
     Map<String, DataMultiModel> multiOutlets,
     Map<String, LocationModel> locations) {
@@ -335,7 +373,7 @@ Map<String, DataMultiModel> _assertDataMultiState(
           .sorted((a, b) => b.number - a.number))
       .flattened;
 
-  return _assertOutletNameAndNumbers<DataMultiModel>(sortedOutlets, locations)
+  return assertOutletNameAndNumbers<DataMultiModel>(sortedOutlets, locations)
       .toModelMap();
 }
 
@@ -349,7 +387,7 @@ Map<String, DataPatchModel> _assertDataPatchState(
       .map((location) => (patchesByLocationId[location.uid] ?? []).sorted())
       .flattened;
 
-  return _assertOutletNameAndNumbers<DataPatchModel>(sortedPatches, locations)
+  return assertOutletNameAndNumbers<DataPatchModel>(sortedPatches, locations)
       .toModelMap();
 }
 
@@ -373,38 +411,6 @@ Map<String, CableModel> _assertCableOrderings({
       .flattened;
 
   return orderedCables.toModelMap();
-}
-
-List<T> _assertOutletNameAndNumbers<T extends Outlet>(
-    Iterable<Outlet> outlets, Map<String, LocationModel> locations) {
-  final typedOutlets = outlets.whereType<T>();
-
-  final outletsByLocationId =
-      typedOutlets.groupListsBy((outlet) => outlet.locationId);
-
-  return outletsByLocationId.entries
-      .map((entry) {
-        final locationId = entry.key;
-
-        final location = locations[locationId]!;
-        final outletsInLocation = entry.value;
-
-        return outletsInLocation.mapIndexed((index, outlet) =>
-            _updateOutletNameAndNumber(outlet,
-                location.getPrefixedNameByType(outlet, index + 1), index + 1));
-      })
-      .flattened
-      .toList()
-      .cast<T>();
-}
-
-Outlet _updateOutletNameAndNumber(Outlet outlet, String name, int number) {
-  return switch (outlet) {
-    PowerMultiOutletModel o => o.copyWith(name: name, number: number),
-    DataPatchModel o => o.copyWith(name: name, number: number),
-    DataMultiModel o => o.copyWith(name: name, number: number),
-    _ => throw UnimplementedError('No handling for Type ${outlet.runtimeType}')
-  };
 }
 
 Map<String, CableModel> _toggleCableDropperState(

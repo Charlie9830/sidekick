@@ -341,12 +341,6 @@ class SetPowerMultiOutlets {
   SetPowerMultiOutlets(this.multiOutlets);
 }
 
-class SetPowerOutlets {
-  final List<PowerOutletModel> outlets;
-
-  SetPowerOutlets(this.outlets);
-}
-
 class SelectPatchRow {
   final String uid;
 

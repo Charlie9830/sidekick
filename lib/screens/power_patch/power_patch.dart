@@ -36,16 +36,7 @@ class _PowerPatchState extends State<PowerPatch> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          ElevatedButton.icon(
-            icon: const Icon(Icons.cable),
-            label: const Text('Patch'),
-            onPressed: widget.vm.onGeneratePatch,
-          ),
-          const VerticalDivider(
-            indent: 8,
-            endIndent: 8,
-          ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
           SizedBox(
             width: 110,
             child: PropertyField(
