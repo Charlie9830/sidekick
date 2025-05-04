@@ -111,8 +111,9 @@ void createDataMultiSheet({
 
     final locationColor = locations[multi.locationId]?.color;
 
-    final namedColor =
-        locationColor != null ? locationColor.firstColorOrNone.name : '';
+    final namedColor = locationColor != null
+        ? locationColor.firstColorOrNone.name.toLowerCase()
+        : '';
 
     final associatedSneak =
         cables.values.firstWhereOrNull((cable) => cable.outletId == multi.uid);

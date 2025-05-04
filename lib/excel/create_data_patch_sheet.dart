@@ -35,8 +35,9 @@ void createDataPatchSheet({
 
     final locationColor = locations[patch.locationId]?.color;
 
-    final namedColor =
-        locationColor != null ? NamedColors.names[locationColor] ?? '' : '';
+    final namedColor = locationColor != null
+        ? locationColor.firstColorOrNone.name.toLowerCase()
+        : '';
 
     // Lookup Sneak Parent if any.
     final associatedCable = cablesByOutletId[patch.uid];

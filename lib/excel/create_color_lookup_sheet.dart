@@ -20,7 +20,7 @@ void createColorLookupSheet({
     final location = locations[multi.locationId];
     final colorName = location == null
         ? ''
-        : NamedColors.names[location.color.firstColorOrNone.name] ?? '';
+        : location.color.firstColorOrNone.name.toLowerCase();
 
     sheet.appendRow([
       TextCellValue(multi.name),
