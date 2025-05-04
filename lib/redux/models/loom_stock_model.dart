@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
-import 'package:sidekick/redux/models/permanent_loom_composition.dart';
 
 class LoomStockModel extends ModelCollectionMember {
   final double length;

@@ -65,7 +65,6 @@ const double _kMapsToIconWidth = 100;
 class _FixtureMappingItem extends StatelessWidget {
   final FixtureMappingViewModel vm;
   const _FixtureMappingItem({
-    super.key,
     required this.vm,
   });
 
@@ -170,7 +169,7 @@ class _FixtureMappingItem extends StatelessWidget {
 class _MappingErrorDisplay extends StatelessWidget {
   final MappingError? fixtureError;
   final MappingError? modeError;
-  const _MappingErrorDisplay({super.key, this.fixtureError, this.modeError});
+  const _MappingErrorDisplay({this.fixtureError, this.modeError});
 
   @override
   Widget build(BuildContext context) {
@@ -238,42 +237,24 @@ class _MappingErrorDisplay extends StatelessWidget {
 
 class _Value extends StatelessWidget {
   final String value;
-  final List<String> errors;
   final MainAxisAlignment alignment;
-  final TextAlign textAlign;
 
   const _Value(
     this.value, {
-    super.key,
-    this.errors = const [],
     this.alignment = MainAxisAlignment.start,
-    this.textAlign = TextAlign.center,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: alignment,
-      children: [
-        Text(
-          value,
-          textAlign: textAlign,
-        ),
-        if (errors.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(left: 8),
-            child: Tooltip(
-              message: errors.join('\n\n'),
-              child: const Icon(Icons.error, color: Colors.redAccent),
-            ),
-          )
-      ],
+      children: [Text(value)],
     );
   }
 }
 
 class _MapsToIcon extends StatelessWidget {
-  const _MapsToIcon({super.key});
+  const _MapsToIcon();
 
   @override
   Widget build(BuildContext context) {
@@ -294,9 +275,7 @@ class _ExistsInDatabaseIcon extends StatelessWidget {
   final bool existsInDatabase;
   final String mappedFixtureTypeValue;
   const _ExistsInDatabaseIcon(
-      {super.key,
-      required this.mappedFixtureTypeValue,
-      required this.existsInDatabase});
+      {required this.mappedFixtureTypeValue, required this.existsInDatabase});
 
   @override
   Widget build(BuildContext context) {

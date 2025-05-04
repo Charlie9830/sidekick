@@ -1,5 +1,3 @@
-import 'package:sidekick/redux/models/import_settings_model.dart';
-
 class ImportViewModel {
   final String importFilePath;
   final List<String> sheetNames;

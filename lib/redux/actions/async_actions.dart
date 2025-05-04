@@ -44,7 +44,6 @@ import 'package:sidekick/helpers/fill_cables_to_satisfy_permanent_loom.dart';
 import 'package:sidekick/model_collection/convert_to_map_entry.dart';
 import 'package:sidekick/persistent_settings/fetch_persistent_settings.dart';
 import 'package:sidekick/persistent_settings/init_persistent_settings_storage.dart';
-import 'package:sidekick/persistent_settings/persistent_settings_model.dart';
 import 'package:sidekick/persistent_settings/update_persistent_settings.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';

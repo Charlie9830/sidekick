@@ -253,7 +253,7 @@ class ViewDataStep extends StatelessWidget {
 
 class _Cell extends StatelessWidget {
   final String value;
-  const _Cell(this.value, {super.key});
+  const _Cell(this.value);
 
   @override
   Widget build(BuildContext context) {

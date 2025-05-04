@@ -1,5 +1,4 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:sidekick/redux/models/import_settings_model.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 
 class FileState {

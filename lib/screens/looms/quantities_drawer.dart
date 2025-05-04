@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/screens/looms/composition_item.dart';
 import 'package:sidekick/view_models/looms_v2_view_model.dart';
 

@@ -1,9 +1,7 @@
-import 'package:redux/redux.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
-import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/view_models/fixture_table_view_model.dart';
 
 class ImportManagerViewModel {
