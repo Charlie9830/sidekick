@@ -18,10 +18,13 @@ class CableFamily {
     );
   }
 
-  /// Will return a list of [CableFamily] where relevant child cables are folded into their parent cables. 
+  CableFamily.singleParent(
+    this.parent,
+  ) : children = const [];
+
+  /// Will return a list of [CableFamily] where relevant child cables are folded into their parent cables.
   /// Children that have been folded will not appear in the top level collection.
   static List<CableFamily> createFamilies(Iterable<CableModel> cables) {
-
     final childrenByParentMultiId = cables
         .where((cable) => cable.parentMultiId.isNotEmpty)
         .groupListsBy((cable) => cable.parentMultiId);
@@ -30,6 +33,13 @@ class CableFamily {
         .map((cable) =>
             CableFamily(cable, childrenByParentMultiId[cable.uid] ?? []))
         .where((foldedCable) => foldedCable.parent.parentMultiId.isEmpty)
+        .toList();
+  }
+
+  static List<CableModel> flattened(Iterable<CableFamily> families) {
+    return families
+        .map((family) => [family.parent, ...family.children])
+        .flattened
         .toList();
   }
 

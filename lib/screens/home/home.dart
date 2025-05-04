@@ -6,9 +6,10 @@ import 'package:sidekick/containers/file_container.dart';
 import 'package:sidekick/containers/fixture_table_container.dart';
 import 'package:sidekick/containers/fixture_types_container.dart';
 import 'package:sidekick/containers/locations_container.dart';
-import 'package:sidekick/containers/looms_container.dart';
+import 'package:sidekick/containers/looms_v2_container.dart';
 import 'package:sidekick/containers/power_patch_container.dart';
 import 'package:sidekick/global_keys.dart';
+import 'package:sidekick/screens/the_lab.dart';
 import 'package:sidekick/view_models/home_view_model.dart';
 
 class Home extends StatefulWidget {
@@ -33,10 +34,11 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return DefaultTabController(
       animationDuration: Duration.zero,
-      length: 9,
+      length: 10,
       initialIndex: 0,
       child: Scaffold(
         key: homeScaffoldKey,
+        
         appBar: AppBar(
           title: const Text("It's Just a Phase!"),
           primary: true,
@@ -79,6 +81,10 @@ class _HomeState extends State<Home> {
                 Tab(
                   icon: Icon(Icons.difference),
                   child: Text('Diff'),
+                ),
+                Tab(
+                  icon: Icon(Icons.build),
+                  child: Text('Lab'),
                 )
               ]),
         ),
@@ -89,28 +95,29 @@ class _HomeState extends State<Home> {
             FixtureTableContainer(),
             PowerPatchContainer(),
             DataPatchContainer(),
-            LoomsContainer(),
+            LoomsV2Container(),
             LocationsContainer(),
             FixtureTypesContainer(),
             ExportContainer(),
             DiffingContainer(),
+            TheLab(),
           ],
         ),
-        floatingActionButton: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            FloatingActionButton(
-              onPressed: () => widget.vm.onDebugAction(),
-              backgroundColor: Colors.blueGrey,
-              child: const Icon(Icons.bug_report),
-            ),
-            const SizedBox(height: 24),
-            FloatingActionButton(
-              onPressed: () => widget.vm.onAppInitialize(),
-              child: const Icon(Icons.refresh),
-            ),
-          ],
-        ),
+        // floatingActionButton: Column(
+        //   mainAxisAlignment: MainAxisAlignment.end,
+        //   children: [
+        //     FloatingActionButton(
+        //       onPressed: () => widget.vm.onDebugAction(),
+        //       backgroundColor: Colors.blueGrey,
+        //       child: const Icon(Icons.bug_report),
+        //     ),
+        //     const SizedBox(height: 24),
+        //     FloatingActionButton(
+        //       onPressed: () => widget.vm.onAppInitialize(),
+        //       child: const Icon(Icons.refresh),
+        //     ),
+        //   ],
+        // ),
       ),
     );
   }

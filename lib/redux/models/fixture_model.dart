@@ -1,6 +1,8 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
+
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/dmx_address_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
@@ -18,6 +20,7 @@ class FixtureModel implements ModelCollectionMember {
   final String dataPatch;
   final String powerMultiId;
   final int powerPatch;
+  final String mode;
 
   FixtureModel({
     this.uid = '',
@@ -30,6 +33,7 @@ class FixtureModel implements ModelCollectionMember {
     this.dataPatch = '',
     this.powerMultiId = '',
     this.powerPatch = 0,
+    this.mode = '',
   });
 
   LocationModel lookupLocation(Map<String, LocationModel> locations) {
@@ -51,6 +55,7 @@ class FixtureModel implements ModelCollectionMember {
     String? dataPatch,
     String? powerMultiId,
     int? powerPatch,
+    String? mode,
   }) {
     return FixtureModel(
       uid: uid ?? this.uid,
@@ -63,6 +68,7 @@ class FixtureModel implements ModelCollectionMember {
       dataPatch: dataPatch ?? this.dataPatch,
       powerMultiId: powerMultiId ?? this.powerMultiId,
       powerPatch: powerPatch ?? this.powerPatch,
+      mode: mode ?? this.mode,
     );
   }
 
@@ -78,6 +84,7 @@ class FixtureModel implements ModelCollectionMember {
       'dataPatch': dataPatch,
       'powerMulti': powerMultiId,
       'powerPatch': powerPatch,
+      'mode': mode,
     };
   }
 
@@ -93,6 +100,7 @@ class FixtureModel implements ModelCollectionMember {
       dataPatch: map['dataPatch'] ?? '',
       powerMultiId: map['powerMulti'] ?? '',
       powerPatch: map['powerPatch']?.toInt() ?? 0,
+      mode: map['mode'] ?? '',
     );
   }
 
@@ -103,7 +111,7 @@ class FixtureModel implements ModelCollectionMember {
 
   @override
   String toString() {
-    return 'FixtureModel( fid: $fid )';
+    return 'FixtureModel(#$fid )';
   }
 
   @override

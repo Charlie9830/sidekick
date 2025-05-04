@@ -5,7 +5,8 @@ class FixtureTableViewModel {
   final bool? hasSelections;
   final void Function(Set<String> ids) onSelectedFixturesChanged;
   final void Function() onSelectAllFixtures;
-  final void Function(String startUid, String endUid, bool isAdditive) onRangeSelectFixtures;
+  final void Function(String startUid, String endUid, bool isAdditive)
+      onRangeSelectFixtures;
 
   FixtureTableViewModel({
     required this.selectedFixtureIds,
@@ -32,9 +33,9 @@ class FixtureRowDividerVM extends FixtureTableRow {
   });
 }
 
-class FixtureRowVM extends FixtureTableRow {
+class FixtureViewModel extends FixtureTableRow {
   final bool selected;
-  final String fixtureUid;
+  final String uid;
   final int sequence;
   final int fid;
   final String type;
@@ -46,10 +47,11 @@ class FixtureRowVM extends FixtureTableRow {
   final String dataPatch;
   final bool hasSequenceNumberBreak;
   final bool hasInvalidSequenceNumber;
+  final String mode;
 
-  FixtureRowVM({
+  FixtureViewModel({
     this.selected = false,
-    this.fixtureUid = '',
+    this.uid = '',
     this.sequence = 0,
     this.fid = 0,
     this.type = '',
@@ -59,6 +61,7 @@ class FixtureRowVM extends FixtureTableRow {
     this.powerPatch = 0,
     this.dataMulti = '',
     this.dataPatch = '',
+    this.mode = '',
     this.hasSequenceNumberBreak = false,
     this.hasInvalidSequenceNumber = false,
   });

@@ -3,7 +3,6 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/state/app_state.dart';
-import 'package:sidekick/screens/diffing/diffing.dart';
 import 'package:sidekick/view_models/diffing_view_model.dart';
 
 class DiffingContainer extends StatelessWidget {
@@ -13,9 +12,7 @@ class DiffingContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, DiffingViewModel>(
       builder: (context, viewModel) {
-        return Diffing(
-          vm: viewModel,
-        );
+        return const Text('Stubbed');
       },
       converter: (Store<AppState> store) {
         return DiffingViewModel(

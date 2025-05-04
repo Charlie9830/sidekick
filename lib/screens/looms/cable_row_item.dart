@@ -1,180 +1,194 @@
 import 'package:flutter/material.dart';
+import 'package:sidekick/editable_text_field.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
+import 'package:sidekick/redux/models/label_color_model.dart';
+import 'package:sidekick/screens/locations/multi_color_chit.dart';
 import 'package:sidekick/screens/looms/cable_flag.dart';
-import 'package:sidekick/screens/looms/editable_text_field.dart';
+
+const double kCableRowHeight = 26.0;
 
 class CableRowItem extends StatelessWidget {
   final CableModel cable;
-  final String labelColor;
+  final String typeLabel;
+  final LabelColorModel labelColor;
   final bool showTopBorder;
   final bool isSelected;
-  final bool hideLength;
   final bool disableLength;
   final int dmxUniverse;
   final String label;
+  final bool missingUpstreamCable;
   final void Function(String newValue)? onLengthChanged;
+  final void Function(String newValue) onNotesChanged;
 
   const CableRowItem({
     super.key,
     required this.cable,
     required this.labelColor,
+    this.typeLabel = '',
     this.showTopBorder = false,
     this.isSelected = false,
-    this.hideLength = false,
     this.disableLength = false,
     this.dmxUniverse = 0,
     this.label = '',
     this.onLengthChanged,
+    this.missingUpstreamCable = false,
+    required this.onNotesChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     final String length = cable.length.floor().toString();
+    final Color borderColor = Colors.grey.shade800;
 
     return Container(
       decoration: BoxDecoration(
         color: _getBackgroundColor(context),
         border: Border(
-          bottom: const BorderSide(color: Colors.grey),
-          top: showTopBorder
-              ? const BorderSide(color: Colors.grey)
-              : BorderSide.none,
+          bottom: BorderSide(color: borderColor),
+          top: showTopBorder ? BorderSide(color: borderColor) : BorderSide.none,
         ),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: IntrinsicHeight(
-          child: SizedBox(
-            height: 28,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                // Length
-                if (hideLength == false) ...[
-                  SizedBox(
-                      width: 100,
-                      child: disableLength
-                          ? const SizedBox()
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                SizedBox(
-                                  width: length.length >= 3 ? 42 : 36,
-                                  child: EditableTextField(
-                                    onChanged: (newValue) =>
-                                        onLengthChanged?.call(newValue),
-                                    selectAllOnFocus: true,
-                                    style:
-                                        Theme.of(context).textTheme.bodyMedium,
-                                    value: cable.length.floor().toString(),
-                                    suffix: 'm',
-                                  ),
-                                ),
-                                if (cable.length == 0)
-                                  const Tooltip(
-                                    waitDuration: Duration(milliseconds: 500),
-                                    message: 'Invalid Length',
-                                    child: Icon(Icons.error,
-                                        color: Colors.orangeAccent),
-                                  )
-                              ],
-                            )),
-                  const VerticalDivider(
-                    color: Colors.grey,
-                  ),
-                ],
-
-                // Cable Type
-                SizedBox(
-                    width: 120,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            // Multi Cable Child Offset.
-                            if (cable.parentMultiId.isNotEmpty)
-                              const SizedBox(width: 16),
-
-                            switch (cable.type) {
-                              CableType.socapex => const Icon(
-                                  Icons.electric_bolt,
-                                  size: 16,
-                                  color: Colors.grey),
-                              CableType.wieland6way => const Icon(Icons.power,
-                                  size: 16, color: Colors.grey),
-                              CableType.sneak => const Icon(
-                                  Icons.settings_ethernet,
-                                  size: 16,
-                                  color: Colors.grey),
-                              CableType.dmx => Icon(
-                                  cable.parentMultiId.isEmpty
-                                      ? Icons.settings_input_svideo
-                                      : Icons.subdirectory_arrow_right,
-                                  size: 16,
-                                  color: Colors.grey),
-                              CableType.unknown => const SizedBox(),
-                            },
-                            const SizedBox(width: 8),
-                            Text(_humanFriendlyType(cable.type,
-                                isSneakChild: cable.parentMultiId.isNotEmpty)),
-                          ],
-                        ),
-                      ],
-                    )),
-                const VerticalDivider(
-                  color: Colors.grey,
-                ),
-
-                // Label
-                SizedBox(
-                    width: 120,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(label),
-                        if (dmxUniverse != 0)
-                          Text('  -  U$dmxUniverse',
+        child: SizedBox(
+          height: kCableRowHeight,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              // Length
+              SizedBox(
+                  width: 100,
+                  child: disableLength
+                      ? Center(
+                          child: Text('-',
                               style: Theme.of(context)
                                   .textTheme
-                                  .bodyMedium!
-                                  .copyWith(color: Colors.grey)),
-                        const Spacer(),
-                        if (cable.isSpare)
-                          const CableFlag(
-                            text: 'Spare',
-                            color: Colors.pink,
-                          )
-                      ],
-                    )),
-                const VerticalDivider(
-                  color: Colors.grey,
-                ),
+                                  .bodySmall!
+                                  .copyWith(color: Colors.grey)))
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            SizedBox(
+                              width: length.length >= 3 ? 42 : 36,
+                              child: EditableTextField(
+                                onChanged: (newValue) =>
+                                    onLengthChanged?.call(newValue),
+                                selectAllOnFocus: true,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                                value: cable.length.floor().toString(),
+                                suffix: 'm',
+                              ),
+                            ),
+                            if (cable.length == 0)
+                              const Tooltip(
+                                waitDuration: Duration(milliseconds: 500),
+                                message: 'Invalid Length',
+                                child: Icon(Icons.error,
+                                    color: Colors.orangeAccent),
+                              )
+                          ],
+                        )),
+              VerticalDivider(
+                color: borderColor,
+              ),
 
-                // Color
-                SizedBox(width: 100, child: Text(labelColor)),
-                const VerticalDivider(
-                  color: Colors.grey,
-                ),
-                
-                Expanded(
-                    child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(cable.notes),
-                    if (cable.loomId.isEmpty)
-                      const Tooltip(
-                          message: 'Unloomed Cable',
-                          child: Icon(
-                            Icons.error,
-                            color: Colors.orangeAccent,
-                          ))
-                  ],
-                )),
-              ],
-            ),
+              // Cable Type
+              SizedBox(
+                  width: 120,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          switch (cable.type) {
+                            CableType.socapex => const Icon(Icons.bolt,
+                                size: 16, color: Colors.grey),
+                            CableType.wieland6way => const Icon(Icons.power,
+                                size: 16, color: Colors.grey),
+                            CableType.sneak => const Icon(
+                                Icons.settings_ethernet,
+                                size: 16,
+                                color: Colors.grey),
+                            CableType.dmx => Icon(
+                                cable.parentMultiId.isEmpty
+                                    ? Icons.settings_input_svideo
+                                    : Icons.subdirectory_arrow_right,
+                                size: 16,
+                                color: Colors.grey),
+                            CableType.unknown => const SizedBox(),
+                          },
+                          const SizedBox(width: 8),
+                          Text(typeLabel),
+                        ],
+                      ),
+                    ],
+                  )),
+              VerticalDivider(
+                color: borderColor,
+              ),
+
+              // Label
+              SizedBox(
+                  width: 164,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(label),
+                      if (dmxUniverse != 0)
+                        Text('  -  U$dmxUniverse',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium!
+                                .copyWith(color: Colors.grey)),
+                      const Spacer(),
+                      if (cable.upstreamId.isNotEmpty)
+                        missingUpstreamCable
+                            ? const _MissingUpstreamCableIcon()
+                            : cable.isDropper
+                                ? const CableFlag(
+                                    text: 'Drop', color: Colors.green)
+                                : const CableFlag(
+                                    text: 'Ext',
+                                    color: Colors.blueAccent,
+                                  ),
+                      if (cable.isSpare)
+                        const CableFlag(
+                          text: 'SP',
+                          color: Colors.pink,
+                        ),
+                    ],
+                  )),
+              VerticalDivider(
+                color: borderColor,
+              ),
+
+              // Color
+              SizedBox(
+                  width: 64,
+                  child: Center(
+                      child: MultiColorChit(
+                    value: labelColor,
+                    showPickerIcon: false,
+                  ))),
+              VerticalDivider(
+                color: borderColor,
+              ),
+
+              Expanded(
+                  child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                      child: EditableTextField(
+                    value: cable.notes,
+                    style: Theme.of(context).textTheme.bodySmall,
+                    onChanged: (newValue) => onNotesChanged(newValue),
+                  )),
+                ],
+              )),
+            ],
           ),
         ),
       ),
@@ -190,16 +204,14 @@ class CableRowItem extends StatelessWidget {
   }
 }
 
-String _humanFriendlyType(CableType type, {bool isSneakChild = false}) {
-  if (isSneakChild) {
-    return 'Data';
-  }
+class _MissingUpstreamCableIcon extends StatelessWidget {
+  const _MissingUpstreamCableIcon();
 
-  return switch (type) {
-    CableType.dmx => 'DMX',
-    CableType.socapex => 'Soca',
-    CableType.sneak => 'Sneak',
-    CableType.wieland6way => '6way',
-    CableType.unknown => "Unknown",
-  };
+  @override
+  Widget build(BuildContext context) {
+    return const Tooltip(
+        message:
+            "The upstream leg of this cable, eg: The feeder, has been deleted.",
+        child: Icon(Icons.link_off, color: Colors.redAccent));
+  }
 }

@@ -47,6 +47,13 @@ class LocationsContainer extends StatelessWidget {
             .where((patch) =>
                 patch.locationId == location.uid && patch.isSpare == false)
             .length,
+        otherLocationNames: location.isHybrid
+            ? location.hybridIds
+                .map((id) => store.state.fixtureState.locations[id])
+                .nonNulls
+                .map((location) => location.name)
+                .toList()
+            : const [],
       );
     }).toList();
   }

@@ -1,10 +1,9 @@
-
 import 'package:sidekick/screens/diffing/property_delta.dart';
-import 'package:sidekick/view_models/loom_item_view_model.dart';
+import 'package:sidekick/view_models/loom_view_model.dart';
 
 class LoomDiffingItemViewModel {
-  final LoomItemViewModel? current;
-  final LoomItemViewModel? original;
+  final LoomViewModel? current;
+  final LoomViewModel? original;
 
   final Set<PropertyDelta> deltas;
 
@@ -12,5 +11,5 @@ class LoomDiffingItemViewModel {
     required this.current,
     required this.original,
     required this.deltas,
-  });  
+  });
 }

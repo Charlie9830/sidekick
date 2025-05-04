@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/card_subtitle.dart';
-import 'package:sidekick/screens/looms/editable_text_field.dart';
 import 'package:sidekick/titled_card.dart';
 
 import 'package:sidekick/view_models/export_view_model.dart';

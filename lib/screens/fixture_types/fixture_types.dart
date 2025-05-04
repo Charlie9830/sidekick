@@ -39,14 +39,8 @@ class FixtureTypes extends StatelessWidget {
                   DataColumn(
                     tooltip:
                         'Taken from the Make and Manufacturer columns of the Fixture Database.',
-                    label: Text('Original Make & Model'),
+                    label: Text('Make and Manufacturer'),
                   ),
-
-                  // Original Short Name
-                  DataColumn(
-                      tooltip:
-                          'Taken from the Short Name (Patchinator, IJAP) column of the Fixture Database.',
-                      label: Text('Original Short Name')),
 
                   // Short Name
                   DataColumn(
@@ -72,11 +66,6 @@ class FixtureTypes extends StatelessWidget {
                     DataCell(
                       // Original Make & Model
                       Text(item.type.name),
-                    ),
-
-                    // Original Short Name
-                    DataCell(
-                      Text(item.type.originalShortName),
                     ),
 
                     // Short Name

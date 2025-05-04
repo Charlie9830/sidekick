@@ -1,20 +1,13 @@
 import 'dart:convert';
+import 'package:sidekick/redux/models/outlet.dart';
 
-import 'package:sidekick/model_collection/model_collection_member.dart';
-
-class DataMultiModel extends ModelCollectionMember {
-  @override
-  final String uid;
-  final String name;
-  final String locationId;
-  final int number;
-
+class DataMultiModel extends Outlet implements Comparable<DataMultiModel> {
   DataMultiModel({
-    this.uid = '',
-    this.name = '',
-    this.locationId = '',
-    this.number = 0,
-  });
+    required String uid,
+    required String locationId,
+    String name = '',
+    int number = 0,
+  }) : super(uid: uid, locationId: locationId, number: number, name: name);
 
   DataMultiModel copyWith({
     String? uid,
@@ -55,7 +48,7 @@ class DataMultiModel extends ModelCollectionMember {
 
   @override
   String toString() {
-    return 'DataMultiModel(uid: $uid, name: $name, locationId: $locationId, number: $number)';
+    return 'DataMultiModel(uid: $uid, name: $name, number: $number)';
   }
 
   @override
@@ -65,12 +58,16 @@ class DataMultiModel extends ModelCollectionMember {
     return other is DataMultiModel &&
         other.uid == uid &&
         other.name == name &&
-        other.locationId == locationId &&
         other.number == number;
   }
 
   @override
   int get hashCode {
-    return uid.hashCode ^ name.hashCode ^ locationId.hashCode ^ number.hashCode;
+    return uid.hashCode ^ name.hashCode ^ number.hashCode;
+  }
+
+  @override
+  int compareTo(DataMultiModel other) {
+    return number - other.number;
   }
 }

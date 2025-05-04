@@ -13,6 +13,15 @@ class DMXAddressModel {
       : address = 0,
         universe = 0;
 
+  factory DMXAddressModel.fromGlobal(int globalAddress) {
+    if (globalAddress == 0) {
+      return const DMXAddressModel.unknown();
+    }
+
+    return DMXAddressModel(
+        universe: (globalAddress / 512).ceil(), address: globalAddress % 512);
+  }
+
   DMXAddressModel copyWith({
     int? address,
     int? universe,
@@ -41,6 +50,8 @@ class DMXAddressModel {
 
   factory DMXAddressModel.fromJson(String source) =>
       DMXAddressModel.fromMap(json.decode(source));
+
+  String toSlashNotationString() => '$universe/$address';
 
   @override
   String toString() =>

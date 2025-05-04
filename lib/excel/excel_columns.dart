@@ -1,7 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:excel/excel.dart';
-import 'package:sidekick/excel/extract_header_row.dart';
-import 'package:sidekick/excel/extract_text_value.dart';
 
 enum ExcelColumnName {
   fixtureId,
@@ -40,21 +37,21 @@ class ExcelColumns {
 
   // Hidden from Public API until an implementation of dynamic column indexes is properly finished.
   // TODO: Implement a system to detect column indexes dynamically.
-  static int? _detectColumnOffset(Sheet sheet, ExcelColumnName desiredColumn) {
-    final headerRow = extractHeaderRow(sheet);
+  // static int? _detectColumnOffset(Sheet sheet, ExcelColumnName desiredColumn) {
+  //   final headerRow = extractHeaderRow(sheet);
 
-    return headerRow.nonNulls
-        .firstWhereOrNull(
-            (data) => _regexes[desiredColumn]!.hasMatch(extractTextValue(data)))
-        ?.columnIndex;
-  }
+  //   return headerRow.nonNulls
+  //       .firstWhereOrNull(
+  //           (data) => _regexes[desiredColumn]!.hasMatch(extractTextValue(data)))
+  //       ?.columnIndex;
+  // }
 
-  static final Map<ExcelColumnName, RegExp> _regexes = {
-    ExcelColumnName.fixtureType: RegExp(r'FIXTURE_NAME', caseSensitive: false),
-    ExcelColumnName.fixtureId: RegExp(r'FIXTURE_ID', caseSensitive: false),
-    ExcelColumnName.fixtureMode: RegExp(r'FIXTURE_MODE', caseSensitive: false),
-    ExcelColumnName.location: RegExp(r'LOCATION', caseSensitive: false),
-    ExcelColumnName.universe: RegExp(r'UNIVERSE', caseSensitive: false),
-    ExcelColumnName.address: RegExp(r'ADDRESS', caseSensitive: false),
-  };
+  // static final Map<ExcelColumnName, RegExp> _regexes = {
+  //   ExcelColumnName.fixtureType: RegExp(r'FIXTURE_NAME', caseSensitive: false),
+  //   ExcelColumnName.fixtureId: RegExp(r'FIXTURE_ID', caseSensitive: false),
+  //   ExcelColumnName.fixtureMode: RegExp(r'FIXTURE_MODE', caseSensitive: false),
+  //   ExcelColumnName.location: RegExp(r'LOCATION', caseSensitive: false),
+  //   ExcelColumnName.universe: RegExp(r'UNIVERSE', caseSensitive: false),
+  //   ExcelColumnName.address: RegExp(r'ADDRESS', caseSensitive: false),
+  // };
 }

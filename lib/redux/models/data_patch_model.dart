@@ -1,31 +1,31 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:sidekick/model_collection/model_collection_member.dart';
+import 'package:sidekick/redux/models/outlet.dart';
 
-class DataPatchModel extends ModelCollectionMember {
-  @override
-  final String uid;
-  final String name;
-  final int number;
+class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
   final int universe;
   final List<String> fixtureIds;
-  final String locationId;
   final bool isSpare;
   final int startsAtFixtureId;
   final int endsAtFixtureId;
 
   DataPatchModel({
-    required this.uid,
-    this.name = '',
-    this.number = 0,
+    required String uid,
+    required String locationId,
+    int number = 0,
+    String name = '',
     this.universe = 0,
     this.fixtureIds = const [],
-    required this.locationId,
     this.isSpare = false,
     this.startsAtFixtureId = 0,
     this.endsAtFixtureId = 0,
-  });
+  }) : super(
+          uid: uid,
+          locationId: locationId,
+          number: number,
+          name: name,
+        );
 
   String get nameWithUniverse => isSpare ? name : '$name $universeLabel';
 
@@ -120,5 +120,10 @@ class DataPatchModel extends ModelCollectionMember {
         isSpare.hashCode ^
         startsAtFixtureId.hashCode ^
         endsAtFixtureId.hashCode;
+  }
+
+  @override
+  int compareTo(DataPatchModel other) {
+    return number - other.number;
   }
 }

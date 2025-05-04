@@ -21,14 +21,11 @@ class ImportContainer extends StatelessWidget {
       converter: (Store<AppState> store) {
         return ImportViewModel(
           importFilePath: store.state.fileState.fixturePatchImportPath,
-          settings: store.state.fileState.importSettings,
-          onSettingsChanged: (newSettings) =>
-              store.dispatch(SetImportSettings(newSettings)),
           onFileSelected: (path) =>
               store.dispatch(setImportPath(context, path)),
           onImportButtonPressed: () => store.dispatch(importPatchFile(context)),
           sheetNames: store.state.importState.sheetNames.toList(),
-          onImportManagerButtonPressed: () => store.dispatch(openImportManager(context)),
+          onImportManagerButtonPressed: () => store.dispatch(showImportManager(context)),
         );
       },
     );

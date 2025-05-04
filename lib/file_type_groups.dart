@@ -11,7 +11,18 @@ const kProjectFileExtension = "phase";
 
 const kProjectFileTypes = <XTypeGroup>[
   XTypeGroup(
-    label: "IJAF Project File (*.$kProjectFileExtension)",
+    label: "Phase Project File (*.$kProjectFileExtension)",
     extensions: [kProjectFileExtension],
   )
+];
+
+const kMvrFileTypes = <XTypeGroup>[
+  XTypeGroup(
+    label: "MVR Files (*.mvr)",
+    extensions: ['mvr'],
+  )
+];
+
+const kXmlFileTypes = <XTypeGroup>[
+  XTypeGroup(label: "XML Files (*.xml)", extensions: ['xml'])
 ];

@@ -1,30 +1,28 @@
 import 'dart:convert';
 
-import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/redux/models/outlet.dart';
 
-class PowerMultiOutletModel extends ModelCollectionMember {
-  @override
-  final String uid;
-  final String locationId;
-  final int number;
+class PowerMultiOutletModel extends Outlet
+    implements Comparable<PowerMultiOutletModel> {
   final int desiredSpareCircuits;
-  final String name;
 
   PowerMultiOutletModel({
-    required this.uid,
-    required this.locationId,
-    required this.number,
+    required String uid,
+    required String locationId,
+    int number = 0,
+    String name = '',
     required this.desiredSpareCircuits,
-    required this.name,
-  });
+  }) : super(
+          uid: uid,
+          locationId: locationId,
+          number: number,
+          name: name,
+        );
 
   const PowerMultiOutletModel.none()
-      : uid = "none",
-        locationId = '',
-        number = 1,
-        desiredSpareCircuits = 0,
-        name = '';
+      : desiredSpareCircuits = 0,
+        super(locationId: '', uid: '', number: 0, name: '');
 
   LocationModel lookupLocation(Map<String, LocationModel> locations) {
     return locations[locationId] ?? const LocationModel.none();
@@ -95,5 +93,10 @@ class PowerMultiOutletModel extends ModelCollectionMember {
         number.hashCode ^
         desiredSpareCircuits.hashCode ^
         name.hashCode;
+  }
+
+  @override
+  int compareTo(PowerMultiOutletModel other) {
+    return number - other.number;
   }
 }

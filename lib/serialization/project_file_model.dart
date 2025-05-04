@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-import 'package:sidekick/model_collection/convert_to_model_map.dart';
+import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
@@ -9,6 +9,7 @@ import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
+import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
@@ -27,6 +28,7 @@ class ProjectFileModel {
   final int maxSequenceBreak;
   final double balanceTolerance;
   final CableType defaultPowerMulti;
+  final List<LoomStockModel> loomStock;
 
   ProjectFileModel({
     required this.metadata,
@@ -41,6 +43,7 @@ class ProjectFileModel {
     required this.maxSequenceBreak,
     required this.balanceTolerance,
     required this.defaultPowerMulti,
+    required this.loomStock,
   });
 
   ProjectFileModel copyWith({
@@ -56,6 +59,7 @@ class ProjectFileModel {
     int? maxSequenceBreak,
     double? balanceTolerance,
     CableType? defaultPowerMulti,
+    List<LoomStockModel>? loomStock,
   }) {
     return ProjectFileModel(
       metadata: metadata ?? this.metadata,
@@ -70,6 +74,7 @@ class ProjectFileModel {
       maxSequenceBreak: maxSequenceBreak ?? this.maxSequenceBreak,
       balanceTolerance: balanceTolerance ?? this.balanceTolerance,
       defaultPowerMulti: defaultPowerMulti ?? this.defaultPowerMulti,
+      loomStock: loomStock ?? this.loomStock,
     );
   }
 
@@ -87,58 +92,64 @@ class ProjectFileModel {
       'maxSequenceBreak': maxSequenceBreak,
       'balanceTolerance': balanceTolerance,
       'defaultPowerMulti': defaultPowerMulti.name,
+      'loomStock': loomStock.map((x) => x.toMap()).toList(),
     };
   }
 
   factory ProjectFileModel.fromMap(Map<String, dynamic> map) {
     return ProjectFileModel(
-      metadata: ProjectFileMetadataModel.fromMap(
-          map['metadata'] as Map<String, dynamic>),
-      fixtures: List<FixtureModel>.from(
-        (map['fixtures'] as List<dynamic>).map<FixtureModel>(
-          (x) => FixtureModel.fromMap(x as Map<String, dynamic>),
+        metadata: ProjectFileMetadataModel.fromMap(
+            map['metadata'] as Map<String, dynamic>),
+        fixtures: List<FixtureModel>.from(
+          (map['fixtures'] as List<dynamic>).map<FixtureModel>(
+            (x) => FixtureModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      powerMultiOutlets: List<PowerMultiOutletModel>.from(
-        (map['powerMultiOutlets'] as List<dynamic>).map<PowerMultiOutletModel>(
-          (x) => PowerMultiOutletModel.fromMap(x as Map<String, dynamic>),
+        powerMultiOutlets: List<PowerMultiOutletModel>.from(
+          (map['powerMultiOutlets'] as List<dynamic>)
+              .map<PowerMultiOutletModel>(
+            (x) => PowerMultiOutletModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      outlets: List<PowerOutletModel>.from(
-        (map['outlets'] as List<dynamic>).map<PowerOutletModel>(
-          (x) => PowerOutletModel.fromMap(x as Map<String, dynamic>),
+        outlets: List<PowerOutletModel>.from(
+          (map['outlets'] as List<dynamic>).map<PowerOutletModel>(
+            (x) => PowerOutletModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      dataMultis: List<DataMultiModel>.from(
-        (map['dataMultis'] as List<dynamic>).map<DataMultiModel>(
-          (x) => DataMultiModel.fromMap(x as Map<String, dynamic>),
+        dataMultis: List<DataMultiModel>.from(
+          (map['dataMultis'] as List<dynamic>).map<DataMultiModel>(
+            (x) => DataMultiModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      dataPatches: List<DataPatchModel>.from(
-        (map['dataPatches'] as List<dynamic>).map<DataPatchModel>(
-          (x) => DataPatchModel.fromMap(x as Map<String, dynamic>),
+        dataPatches: List<DataPatchModel>.from(
+          (map['dataPatches'] as List<dynamic>).map<DataPatchModel>(
+            (x) => DataPatchModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      locations: List<LocationModel>.from(
-        (map['locations'] as List<dynamic>).map<LocationModel>(
-          (x) => LocationModel.fromMap(x as Map<String, dynamic>),
+        locations: List<LocationModel>.from(
+          (map['locations'] as List<dynamic>).map<LocationModel>(
+            (x) => LocationModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      looms: List<LoomModel>.from(
-        (map['looms'] as List<dynamic>).map<LoomModel>(
-          (x) => LoomModel.fromMap(x as Map<String, dynamic>),
+        looms: List<LoomModel>.from(
+          (map['looms'] as List<dynamic>).map<LoomModel>(
+            (x) => LoomModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      cables: List<CableModel>.from(
-        (map['cables'] ?? []).map<CableModel>(
-          (x) => CableModel.fromMap(x as Map<String, dynamic>),
+        cables: List<CableModel>.from(
+          (map['cables'] ?? []).map<CableModel>(
+            (x) => CableModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      maxSequenceBreak: (map['maxSequenceBreak'] ?? 0) as int,
-      balanceTolerance: (map['balanceTolerance'] ?? 0.0) as double,
-      defaultPowerMulti:
-          CableType.values.byName(map['type'] ?? CableType.socapex.name),
-    );
+        maxSequenceBreak: (map['maxSequenceBreak'] ?? 0) as int,
+        balanceTolerance: (map['balanceTolerance'] ?? 0.0) as double,
+        defaultPowerMulti:
+            CableType.values.byName(map['type'] ?? CableType.socapex.name),
+        loomStock: List<LoomStockModel>.from(
+          (map['loomStock'] ?? []).map<LoomStockModel>(
+            (x) => LoomStockModel.fromMap(x as Map<String, dynamic>),
+          ),
+        ));
   }
 
   String toJson() => json.encode(toMap());
@@ -151,18 +162,20 @@ class ProjectFileModel {
     bool? honorDataSpans,
   }) {
     return FixtureState(
-        fixtures: convertToModelMap(fixtures),
-        outlets: outlets,
-        powerMultiOutlets: convertToModelMap(powerMultiOutlets),
-        balanceTolerance: balanceTolerance,
-        maxSequenceBreak: maxSequenceBreak,
-        locations: convertToModelMap(locations),
-        dataMultis: convertToModelMap(dataMultis),
-        dataPatches: convertToModelMap(dataPatches),
-        looms: convertToModelMap(looms),
-        fixtureTypes: fixtureTypes ?? FixtureState.initial().fixtureTypes,
-        honorDataSpans: honorDataSpans ?? FixtureState.initial().honorDataSpans,
-        cables: convertToModelMap(cables),
-        defaultPowerMulti: defaultPowerMulti);
+      fixtures: fixtures.toModelMap(),
+      outlets: outlets,
+      powerMultiOutlets: powerMultiOutlets.toModelMap(),
+      balanceTolerance: balanceTolerance,
+      maxSequenceBreak: maxSequenceBreak,
+      locations: locations.toModelMap(),
+      dataMultis: dataMultis.toModelMap(),
+      dataPatches: dataPatches.toModelMap(),
+      looms: looms.toModelMap(),
+      fixtureTypes: fixtureTypes ?? FixtureState.initial().fixtureTypes,
+      honorDataSpans: honorDataSpans ?? FixtureState.initial().honorDataSpans,
+      cables: cables.toModelMap(),
+      defaultPowerMulti: defaultPowerMulti,
+      loomStock: loomStock.toModelMap(),
+    );
   }
 }

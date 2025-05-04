@@ -1,4 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:sidekick/enums.dart';
+
 class NavigationState {
   final String selectedMultiOutlet;
   final Set<String> selectedFixtureIds;
@@ -6,8 +8,10 @@ class NavigationState {
   final Set<String> selectedCableIds;
   final bool openAfterExport;
   final int selectedDiffingTab;
-  final String selectedRawPatchRow;
-  final int activeImportManagerStep;
+  final ImportManagerStep importManagerStep;
+  final Set<String> selectedLoomOutlets;
+  final LoomsDraggingState loomsDraggingState;
+  final bool isAvailabilityDrawerOpen;
 
   NavigationState({
     required this.selectedMultiOutlet,
@@ -16,8 +20,10 @@ class NavigationState {
     required this.selectedCableIds,
     required this.openAfterExport,
     required this.selectedDiffingTab,
-    required this.selectedRawPatchRow,
-    required this.activeImportManagerStep,
+    required this.importManagerStep,
+    required this.selectedLoomOutlets,
+    required this.loomsDraggingState,
+    required this.isAvailabilityDrawerOpen,
   });
 
   NavigationState.initial()
@@ -27,8 +33,10 @@ class NavigationState {
         showAllFixtureTypes = false,
         openAfterExport = true,
         selectedDiffingTab = 0,
-        selectedRawPatchRow = '',
-        activeImportManagerStep = 1;
+        importManagerStep = ImportManagerStep.fileSelect,
+        selectedLoomOutlets = {},
+        loomsDraggingState = LoomsDraggingState.idle,
+        isAvailabilityDrawerOpen = false;
 
   NavigationState copyWith({
     String? selectedMultiOutlet,
@@ -37,8 +45,10 @@ class NavigationState {
     Set<String>? selectedCableIds,
     bool? openAfterExport,
     int? selectedDiffingTab,
-    String? selectedRawPatchRow,
-    int? activeImportManagerStep,
+    ImportManagerStep? importManagerStep,
+    Set<String>? selectedLoomOutlets,
+    LoomsDraggingState? loomsDraggingState,
+    bool? isAvailabilityDrawerOpen,
   }) {
     return NavigationState(
       selectedMultiOutlet: selectedMultiOutlet ?? this.selectedMultiOutlet,
@@ -47,9 +57,11 @@ class NavigationState {
       selectedCableIds: selectedCableIds ?? this.selectedCableIds,
       openAfterExport: openAfterExport ?? this.openAfterExport,
       selectedDiffingTab: selectedDiffingTab ?? this.selectedDiffingTab,
-      selectedRawPatchRow: selectedRawPatchRow ?? this.selectedRawPatchRow,
-      activeImportManagerStep:
-          activeImportManagerStep ?? this.activeImportManagerStep,
+      importManagerStep: importManagerStep ?? this.importManagerStep,
+      selectedLoomOutlets: selectedLoomOutlets ?? this.selectedLoomOutlets,
+      loomsDraggingState: loomsDraggingState ?? this.loomsDraggingState,
+      isAvailabilityDrawerOpen:
+          isAvailabilityDrawerOpen ?? this.isAvailabilityDrawerOpen,
     );
   }
 }

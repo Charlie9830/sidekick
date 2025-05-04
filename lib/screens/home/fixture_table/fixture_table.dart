@@ -117,7 +117,7 @@ class _FixtureTableState extends State<FixtureTable> {
                 itemBuilder: (context, index) {
                   return switch (rowVms[index]) {
                     FixtureRowDividerVM row => _buildDivider(row),
-                    FixtureRowVM row => _buildTableRow(index, row),
+                    FixtureViewModel row => _buildTableRow(index, row),
                     _ => const SizedBox(),
                   };
                 }),
@@ -127,12 +127,12 @@ class _FixtureTableState extends State<FixtureTable> {
     );
   }
 
-  TableRow _buildTableRow(int index, FixtureRowVM row) {
+  TableRow _buildTableRow(int index, FixtureViewModel row) {
     return TableRow(
-      rangeSelected: _rangeSelectStartFixtureId == row.fixtureUid,
+      rangeSelected: _rangeSelectStartFixtureId == row.uid,
       selected: row.selected,
       onPressed: (isSelected) =>
-          _handleSelectChanged(isSelected, row.fixtureUid),
+          _handleSelectChanged(isSelected, row.uid),
       cells: [
         _SequenceNumberCell(
           value: row.sequence.toString(),

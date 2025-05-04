@@ -1,39 +1,68 @@
-import 'dart:ui';
 import 'package:excel/excel.dart';
 import 'package:sidekick/diffing/union_proxy.dart';
-import 'package:sidekick/excel/new/raw_row_data.dart';
+import 'package:sidekick/enums.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
-import 'package:sidekick/redux/models/import_settings_model.dart';
+import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
+import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
 
-class SetActiveImportManagerStep {
-  final int value;
-
-  SetActiveImportManagerStep(this.value);
-}
-
-class SetSelectedRawPatchRow {
+class SetFixtureMappingFilePath {
   final String value;
 
-  SetSelectedRawPatchRow(this.value);
+  SetFixtureMappingFilePath(this.value);
 }
 
-class SetRawPatchData {
-  final List<RawRowData> data;
+class SetImportedFixtureData {
+  Map<String, FixtureModel> fixtures;
+  Map<String, LocationModel> locations;
+  Map<String, FixtureTypeModel> fixtureTypes;
 
-  SetRawPatchData(
-    this.data,
-  );
+  SetImportedFixtureData({
+    required this.fixtures,
+    required this.locations,
+    required this.fixtureTypes,
+  });
+}
+
+class UpdateLoomName {
+  final String uid;
+  final String value;
+
+  UpdateLoomName(this.uid, this.value);
+}
+
+class SetLoomStock {
+  final Map<String, LoomStockModel> value;
+
+  SetLoomStock(this.value);
+}
+
+class SetLoomsDraggingState {
+  final LoomsDraggingState value;
+
+  SetLoomsDraggingState(this.value);
+}
+
+class SetSelectedLoomOutlets {
+  final Set<String> value;
+
+  SetSelectedLoomOutlets(this.value);
+}
+
+class SetImportManagerStep {
+  final ImportManagerStep value;
+
+  SetImportManagerStep(this.value);
 }
 
 class SetImportExcelDocument {
@@ -122,12 +151,10 @@ class UpdateCablesAndDataMultis {
   );
 }
 
-class ToggleLoomDropperState {
+class ToggleCableDropperStateByLoom {
   final String loomId;
-  final List<CableModel> childCables;
-  final bool isDropper;
 
-  ToggleLoomDropperState(this.loomId, this.isDropper, this.childCables);
+  ToggleCableDropperStateByLoom(this.loomId);
 }
 
 class SetCablesAndLooms {
@@ -135,6 +162,19 @@ class SetCablesAndLooms {
   final Map<String, LoomModel> looms;
 
   SetCablesAndLooms(this.cables, this.looms);
+}
+
+class SetIsAvailabilityDrawerOpen {
+  final bool value;
+
+  SetIsAvailabilityDrawerOpen(this.value);
+}
+
+class UpdateCableNote {
+  final String id;
+  final String value;
+
+  UpdateCableNote(this.id, this.value);
 }
 
 class UpdateLoomLength {
@@ -198,12 +238,6 @@ class SetFixtureTypeDatabasePath {
   final String path;
 
   SetFixtureTypeDatabasePath(this.path);
-}
-
-class SetImportSettings {
-  final ImportSettingsModel settings;
-
-  SetImportSettings(this.settings);
 }
 
 class ResetFixtureState {
@@ -346,7 +380,7 @@ class UpdateLocationDelimiter {
 
 class UpdateLocationColor {
   final String locationId;
-  final Color newValue;
+  final LabelColorModel newValue;
 
   UpdateLocationColor(this.locationId, this.newValue);
 }

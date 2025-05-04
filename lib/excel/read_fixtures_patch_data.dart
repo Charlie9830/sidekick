@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:excel/excel.dart';
 import 'package:sidekick/excel/excel_columns.dart';
-import 'package:sidekick/model_collection/convert_to_model_map.dart';
+import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/models/dmx_address_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
@@ -80,8 +80,8 @@ Future<FixturesDataReadResult> readFixturesPatchData({
 
     // Construct a Map of our Library Fixture Types by their short Name.
     Map<String, FixtureTypeModel> fixtureTypesByOriginalShortName =
-        Map<String, FixtureTypeModel>.fromEntries(fixtureTypes.values
-            .map((type) => MapEntry(type.originalShortName, type)));
+        Map<String, FixtureTypeModel>.fromEntries(
+            fixtureTypes.values.map((type) => MapEntry(type.shortName, type)));
 
     for (final (index, row) in rawDataRows.indexed) {
       final (fixtureId, fidError) = _extractFixtureIdCellValue(
@@ -146,11 +146,11 @@ Future<FixturesDataReadResult> readFixturesPatchData({
     }
 
     return FixturesDataReadResult(
-      fixtures: convertToModelMap(fixtures),
-      locations: convertToModelMap(locationNameMap.values),
+      fixtures: fixtures.toModelMap(),
+      locations: locationNameMap.values.toModelMap(),
       inUseTypeIds: inUseTypeIds,
     );
-  } on UnsupportedError catch (e) {
+  } on UnsupportedError {
     return FixturesDataReadResult(
         errorMessage: 'Unsupported file type. Only .xlsx files are supported.');
   }
@@ -194,8 +194,6 @@ Future<FixturesDataReadResult> readFixturesPatchData({
 
   if (cell == null) {
     return (0, null);
-
-    return (0, 'No Fixture Id data at row $rowIndex');
   }
 
   if (cell is TextCellValue) {
@@ -203,9 +201,6 @@ Future<FixturesDataReadResult> readFixturesPatchData({
 
     if (fid == null) {
       return (0, null);
-
-      
-      return (0, "Invalid Fixture ID data at row $rowIndex");
     }
 
     return (fid, null);

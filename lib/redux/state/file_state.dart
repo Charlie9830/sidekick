@@ -1,4 +1,4 @@
-import 'package:sidekick/persistent_settings/persistent_settings_model.dart';
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:sidekick/redux/models/import_settings_model.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 
@@ -7,18 +7,18 @@ class FileState {
   final String projectFilePath;
   final String lastUsedProjectDirectory;
   final ProjectFileMetadataModel projectMetadata;
-  final ImportSettingsModel importSettings;
   final String fixtureTypeDatabasePath;
   final bool isFixtureTypeDatabasePathValid;
+  final String fixtureMappingFilePath;
 
   FileState({
     this.fixturePatchImportPath = "",
     this.projectFilePath = "",
     this.lastUsedProjectDirectory = "",
     this.fixtureTypeDatabasePath = "",
-    this.importSettings = const ImportSettingsModel(),
     this.projectMetadata = const ProjectFileMetadataModel.initial(),
     this.isFixtureTypeDatabasePathValid = false,
+    this.fixtureMappingFilePath = '',
   });
 
   FileState.initial()
@@ -27,17 +27,17 @@ class FileState {
         lastUsedProjectDirectory = "",
         fixtureTypeDatabasePath = "",
         projectMetadata = const ProjectFileMetadataModel.initial(),
-        importSettings = const ImportSettingsModel(),
-        isFixtureTypeDatabasePathValid = false;
+        isFixtureTypeDatabasePathValid = false,
+        fixtureMappingFilePath = '';
 
   FileState copyWith({
     String? fixturePatchImportPath,
     String? projectFilePath,
     String? lastUsedProjectDirectory,
     ProjectFileMetadataModel? projectMetadata,
-    ImportSettingsModel? importSettings,
     String? fixtureTypeDatabasePath,
     bool? isFixtureTypeDatabasePathValid,
+    String? fixtureMappingFilePath,
   }) {
     return FileState(
       fixturePatchImportPath:
@@ -46,11 +46,12 @@ class FileState {
       lastUsedProjectDirectory:
           lastUsedProjectDirectory ?? this.lastUsedProjectDirectory,
       projectMetadata: projectMetadata ?? this.projectMetadata,
-      importSettings: importSettings ?? this.importSettings,
       fixtureTypeDatabasePath:
           fixtureTypeDatabasePath ?? this.fixtureTypeDatabasePath,
       isFixtureTypeDatabasePathValid:
           isFixtureTypeDatabasePathValid ?? this.isFixtureTypeDatabasePathValid,
+      fixtureMappingFilePath:
+          fixtureMappingFilePath ?? this.fixtureMappingFilePath,
     );
   }
 }

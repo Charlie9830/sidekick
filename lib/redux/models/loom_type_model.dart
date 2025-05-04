@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:collection/collection.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/permanent_loom_composition.dart';
@@ -41,6 +40,8 @@ class LoomTypeModel with DiffComparable {
     return composition.isValidComposition(children);
   }
 
+  String get humanFriendlyLength => convertToHumanFriendlyLength(length);
+
   LoomTypeModel copyWith({
     LoomType? type,
     double? length,
@@ -80,4 +81,9 @@ class LoomTypeModel with DiffComparable {
         DiffPropertyName.permanentComposition: permanentComposition,
         DiffPropertyName.loomType: type,
       };
+
+  static String convertToHumanFriendlyLength(double length) =>
+      length.remainder(1) != 0
+          ? length.toStringAsFixed(1)
+          : length.toStringAsFixed(0);
 }
