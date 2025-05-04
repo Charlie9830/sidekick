@@ -1,13 +1,11 @@
 import 'package:excel/excel.dart';
 import 'package:sidekick/diffing/union_proxy.dart';
 import 'package:sidekick/enums.dart';
-import 'package:sidekick/excel/new/raw_row_data.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
-import 'package:sidekick/redux/models/import_settings_model.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
@@ -22,6 +20,18 @@ class SetFixtureMappingFilePath {
   final String value;
 
   SetFixtureMappingFilePath(this.value);
+}
+
+class SetImportedFixtureData {
+  Map<String, FixtureModel> fixtures;
+  Map<String, LocationModel> locations;
+  Map<String, FixtureTypeModel> fixtureTypes;
+
+  SetImportedFixtureData({
+    required this.fixtures,
+    required this.locations,
+    required this.fixtureTypes,
+  });
 }
 
 class UpdateLoomName {
@@ -53,20 +63,6 @@ class SetImportManagerStep {
   final ImportManagerStep value;
 
   SetImportManagerStep(this.value);
-}
-
-class SetSelectedRawPatchRow {
-  final String value;
-
-  SetSelectedRawPatchRow(this.value);
-}
-
-class SetRawPatchData {
-  final List<RawRowData> data;
-
-  SetRawPatchData(
-    this.data,
-  );
 }
 
 class SetImportExcelDocument {
@@ -242,12 +238,6 @@ class SetFixtureTypeDatabasePath {
   final String path;
 
   SetFixtureTypeDatabasePath(this.path);
-}
-
-class SetImportSettings {
-  final ImportSettingsModel settings;
-
-  SetImportSettings(this.settings);
 }
 
 class ResetFixtureState {

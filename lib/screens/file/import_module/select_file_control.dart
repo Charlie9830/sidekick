@@ -106,7 +106,7 @@ class SelectFileControl extends StatelessWidget {
                       ),
                       FileSelectButton(
                         path: fixtureDatabaseFilePath,
-                        onFileSelectPressed: _handleFixtureTypeMappingSelect,
+                        onFileSelectPressed: _handleFixtureDatabaseSelect,
                       ),
                     ],
                   ),

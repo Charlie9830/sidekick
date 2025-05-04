@@ -18,6 +18,7 @@ class RawFixtureModel {
   final DMXAddressModel address;
   final List<MultipleMatchError> modeMappingErrors;
   final List<FixtureMappingError> typeMappingErrors;
+  final String generatedLocationId;
 
   RawFixtureModel({
     required this.fixtureId,
@@ -35,6 +36,7 @@ class RawFixtureModel {
     this.sanitizedModeName = '',
     this.modeMappingErrors = const [],
     this.typeMappingErrors = const [],
+    this.generatedLocationId = '',
   });
 
   RawFixtureModel copyWith({
@@ -53,6 +55,7 @@ class RawFixtureModel {
     DMXAddressModel? address,
     List<MultipleMatchError>? modeMappingErrors,
     List<FixtureMappingError>? typeMappingErrors,
+    String? generatedLocationId,
   }) {
     return RawFixtureModel(
       mvrId: mvrId ?? this.mvrId,
@@ -71,6 +74,7 @@ class RawFixtureModel {
       address: address ?? this.address,
       modeMappingErrors: modeMappingErrors ?? this.modeMappingErrors,
       typeMappingErrors: typeMappingErrors ?? this.typeMappingErrors,
+      generatedLocationId: generatedLocationId ?? this.generatedLocationId,
     );
   }
 }

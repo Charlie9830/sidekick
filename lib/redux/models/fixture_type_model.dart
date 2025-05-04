@@ -3,21 +3,19 @@ import 'package:sidekick/model_collection/model_collection_member.dart';
 class FixtureTypeModel extends ModelCollectionMember {
   @override
   final String uid;
-  final String originalMake;
-  final String originalModel;
+  final String make;
+  final String model;
   final String name;
   final String shortName;
-  final String originalShortName;
   final double amps;
   final int maxPiggybacks;
 
   FixtureTypeModel({
     required this.uid,
-    this.originalMake = '',
-    this.originalModel = '',
+    this.make = '',
+    this.model = '',
     this.name = '',
     this.shortName = '',
-    this.originalShortName = '',
     this.amps = 0.0,
     this.maxPiggybacks = 1,
   });
@@ -26,9 +24,8 @@ class FixtureTypeModel extends ModelCollectionMember {
       : uid = "",
         name = "",
         shortName = "",
-        originalMake = '',
-        originalModel = '',
-        originalShortName = '',
+        make = '',
+        model = '',
         amps = 0,
         maxPiggybacks = 1;
 
@@ -36,9 +33,8 @@ class FixtureTypeModel extends ModelCollectionMember {
 
   FixtureTypeModel copyWith({
     String? uid,
-    String? originalMake,
-    String? originalModel,
-    String? originalShortName,
+    String? make,
+    String? model,
     String? name,
     String? shortName,
     double? amps,
@@ -46,9 +42,8 @@ class FixtureTypeModel extends ModelCollectionMember {
   }) {
     return FixtureTypeModel(
       uid: uid ?? this.uid,
-      originalMake: originalMake ?? this.originalMake,
-      originalModel: originalModel ?? this.originalModel,
-      originalShortName: originalShortName ?? this.originalShortName,
+      make: make ?? this.make,
+      model: make ?? this.model,
       name: name ?? this.name,
       shortName: shortName ?? this.shortName,
       amps: amps ?? this.amps,

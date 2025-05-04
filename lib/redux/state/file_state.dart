@@ -7,7 +7,6 @@ class FileState {
   final String projectFilePath;
   final String lastUsedProjectDirectory;
   final ProjectFileMetadataModel projectMetadata;
-  final ImportSettingsModel importSettings;
   final String fixtureTypeDatabasePath;
   final bool isFixtureTypeDatabasePathValid;
   final String fixtureMappingFilePath;
@@ -17,7 +16,6 @@ class FileState {
     this.projectFilePath = "",
     this.lastUsedProjectDirectory = "",
     this.fixtureTypeDatabasePath = "",
-    this.importSettings = const ImportSettingsModel(),
     this.projectMetadata = const ProjectFileMetadataModel.initial(),
     this.isFixtureTypeDatabasePathValid = false,
     this.fixtureMappingFilePath = '',
@@ -29,7 +27,6 @@ class FileState {
         lastUsedProjectDirectory = "",
         fixtureTypeDatabasePath = "",
         projectMetadata = const ProjectFileMetadataModel.initial(),
-        importSettings = const ImportSettingsModel(),
         isFixtureTypeDatabasePathValid = false,
         fixtureMappingFilePath = '';
 
@@ -38,7 +35,6 @@ class FileState {
     String? projectFilePath,
     String? lastUsedProjectDirectory,
     ProjectFileMetadataModel? projectMetadata,
-    ImportSettingsModel? importSettings,
     String? fixtureTypeDatabasePath,
     bool? isFixtureTypeDatabasePathValid,
     String? fixtureMappingFilePath,
@@ -50,7 +46,6 @@ class FileState {
       lastUsedProjectDirectory:
           lastUsedProjectDirectory ?? this.lastUsedProjectDirectory,
       projectMetadata: projectMetadata ?? this.projectMetadata,
-      importSettings: importSettings ?? this.importSettings,
       fixtureTypeDatabasePath:
           fixtureTypeDatabasePath ?? this.fixtureTypeDatabasePath,
       isFixtureTypeDatabasePathValid:

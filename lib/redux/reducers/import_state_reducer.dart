@@ -16,12 +16,6 @@ ImportState importStateReducer(ImportState state, dynamic action) {
     );
   }
 
-  if (action is SetRawPatchData) {
-    return state.copyWith(
-      rawPatchData: action.data,
-    );
-  }
-
   if (action is SetImportExcelDocument) {
     return state.copyWith(document: action.document);
   }

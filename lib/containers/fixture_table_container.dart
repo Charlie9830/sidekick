@@ -70,10 +70,10 @@ class FixtureTableContainer extends StatelessWidget {
                   ),
                 ),
               ),
-            FixtureRowVM(
+            FixtureViewModel(
                 selected: store.state.navstate.selectedFixtureIds
                     .contains(fixture.uid),
-                fixtureUid: fixture.uid,
+                uid: fixture.uid,
                 sequence: fixture.sequence,
                 fid: fixture.fid,
                 address: fixture.dmxAddress.formatted,

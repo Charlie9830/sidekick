@@ -1,11 +1,10 @@
 import 'package:collection/collection.dart';
 import 'package:mvr/mvr.dart';
-import 'package:sidekick/fixture_type_mapping_parser/fixture_type_mapping_parser.dart';
 import 'package:sidekick/redux/models/dmx_address_model.dart';
-import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/screens/file/import_module/mvr_import_settings.dart';
 import 'package:sidekick/screens/file/import_module/patch_import_settings.dart';
 import 'package:sidekick/screens/file/import_module/raw_fixture_model.dart';
+import 'package:sidekick/screens/file/import_module/raw_location_model.dart';
 import 'package:sidekick/screens/file/import_module/select_file_control.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
@@ -29,11 +28,15 @@ Future<ImportRawFixturesResult> _readMvrPatch(
 
   if (readResult == false) {
     return ImportRawFixturesResult(
-        fixtures: [], error: 'An unknown error occurred reading the MVR file.');
+        fixtures: [],
+        error: 'An unknown error occurred reading the MVR file.',
+        locations: []);
   }
 
   final rawFixtures = mvrReader.generalSceneDescription.layers
-      .map((layer) => layer.fixtures.map((fixture) => RawFixtureModel(
+      .map(
+        (layer) => layer.fixtures.map(
+          (fixture) => RawFixtureModel(
             generatedId: getUid(),
             mvrId: fixture.uuid,
             mvrLayerId: layer.uuid,
@@ -55,18 +58,34 @@ Future<ImportRawFixturesResult> _readMvrPatch(
               MvrLocationDataSource.classes => fixture.classing,
               MvrLocationDataSource.position => fixture.position,
             },
-          )))
+          ),
+        ),
+      )
       .flattened;
 
-  return ImportRawFixturesResult(fixtures: rawFixtures.toList(), error: null);
+  final locations = Map<String, RawLocationModel>.fromEntries(
+      rawFixtures.map((fixture) => MapEntry(
+          fixture.mvrLocationId,
+          RawLocationModel(
+            mvrId: fixture.mvrLocationId,
+            generatedId: '',
+            name: fixture.locationName,
+          ))));
+
+  return ImportRawFixturesResult(
+      fixtures: rawFixtures.toList(),
+      error: null,
+      locations: locations.values.toList());
 }
 
 class ImportRawFixturesResult {
   final List<RawFixtureModel> fixtures;
+  final List<RawLocationModel> locations;
   final String? error;
 
   ImportRawFixturesResult({
     required this.fixtures,
     required this.error,
+    required this.locations,
   });
 }

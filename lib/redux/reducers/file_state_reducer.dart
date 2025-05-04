@@ -40,20 +40,6 @@ FileState fileStateReducer(FileState state, dynamic a) {
     );
   }
 
-  if (a is SetImportSettings) {
-    return state.copyWith(
-      importSettings: a.settings,
-    );
-  }
-
-  if (a is SetExcelSheetNames) {
-    return state.copyWith(
-        importSettings: state.importSettings.copyWith(
-      patchDataSourceSheetName:
-          a.selectedSheet ?? state.importSettings.patchDataSourceSheetName,
-    ));
-  }
-
   if (a is SetPatchImportFilePath) {
     return state.copyWith(fixturePatchImportPath: a.path);
   }

@@ -8,7 +8,6 @@ class NavigationState {
   final Set<String> selectedCableIds;
   final bool openAfterExport;
   final int selectedDiffingTab;
-  final String selectedRawPatchRow;
   final ImportManagerStep importManagerStep;
   final Set<String> selectedLoomOutlets;
   final LoomsDraggingState loomsDraggingState;
@@ -21,7 +20,6 @@ class NavigationState {
     required this.selectedCableIds,
     required this.openAfterExport,
     required this.selectedDiffingTab,
-    required this.selectedRawPatchRow,
     required this.importManagerStep,
     required this.selectedLoomOutlets,
     required this.loomsDraggingState,
@@ -35,7 +33,6 @@ class NavigationState {
         showAllFixtureTypes = false,
         openAfterExport = true,
         selectedDiffingTab = 0,
-        selectedRawPatchRow = '',
         importManagerStep = ImportManagerStep.fileSelect,
         selectedLoomOutlets = {},
         loomsDraggingState = LoomsDraggingState.idle,
@@ -48,7 +45,6 @@ class NavigationState {
     Set<String>? selectedCableIds,
     bool? openAfterExport,
     int? selectedDiffingTab,
-    String? selectedRawPatchRow,
     ImportManagerStep? importManagerStep,
     Set<String>? selectedLoomOutlets,
     LoomsDraggingState? loomsDraggingState,
@@ -61,7 +57,6 @@ class NavigationState {
       selectedCableIds: selectedCableIds ?? this.selectedCableIds,
       openAfterExport: openAfterExport ?? this.openAfterExport,
       selectedDiffingTab: selectedDiffingTab ?? this.selectedDiffingTab,
-      selectedRawPatchRow: selectedRawPatchRow ?? this.selectedRawPatchRow,
       importManagerStep: importManagerStep ?? this.importManagerStep,
       selectedLoomOutlets: selectedLoomOutlets ?? this.selectedLoomOutlets,
       loomsDraggingState: loomsDraggingState ?? this.loomsDraggingState,

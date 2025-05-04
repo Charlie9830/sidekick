@@ -2,6 +2,11 @@ import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/state/navigation_state.dart';
 
 NavigationState navStateReducer(NavigationState state, dynamic a) {
+  if (a is SetImportedFixtureData) {
+    return state.copyWith(
+        importManagerStep: NavigationState.initial().importManagerStep);
+  }
+  
   if (a is SetSelectedLoomOutlets) {
     return state.copyWith(
       selectedLoomOutlets: a.value,
@@ -19,10 +24,6 @@ NavigationState navStateReducer(NavigationState state, dynamic a) {
 
   if (a is SetSelectedDiffingTab) {
     return state.copyWith(selectedDiffingTab: a.value);
-  }
-
-  if (a is SetSelectedRawPatchRow) {
-    return state.copyWith(selectedRawPatchRow: a.value);
   }
 
   if (a is SetImportManagerStep) {

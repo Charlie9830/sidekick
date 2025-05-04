@@ -1,16 +1,16 @@
 class RawLocationModel {
-  final String generatedId;
   final String mvrId;
+  final String generatedId;
   final String name;
 
   RawLocationModel({
-    required this.generatedId,
     required this.mvrId,
+    required this.generatedId,
     required this.name,
   });
 
   const RawLocationModel.none()
-      : generatedId = '',
-        mvrId = '',
+      : mvrId = '',
+        generatedId = '',
         name = '';
 }

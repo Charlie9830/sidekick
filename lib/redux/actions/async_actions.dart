@@ -27,7 +27,6 @@ import 'package:sidekick/excel/create_data_patch_sheet.dart';
 import 'package:sidekick/excel/create_fixture_type_validation_sheet.dart';
 import 'package:sidekick/excel/create_lighting_looms_sheet.dart';
 import 'package:sidekick/excel/create_power_patch_sheet.dart';
-import 'package:sidekick/excel/new/read_raw_patch_data.dart';
 import 'package:sidekick/excel/read_fixture_type_database.dart';
 import 'package:sidekick/excel/read_fixtures_patch_data.dart';
 import 'package:sidekick/extension_methods/clone_map.dart';
@@ -42,7 +41,6 @@ import 'package:sidekick/helpers/convert_to_permanent_loom.dart';
 import 'package:sidekick/helpers/determine_default_loom_name.dart';
 import 'package:sidekick/helpers/extract_locations_from_outlets.dart';
 import 'package:sidekick/helpers/fill_cables_to_satisfy_permanent_loom.dart';
-import 'package:sidekick/import_merging/merge_fixtures.dart';
 import 'package:sidekick/model_collection/convert_to_map_entry.dart';
 import 'package:sidekick/persistent_settings/fetch_persistent_settings.dart';
 import 'package:sidekick/persistent_settings/init_persistent_settings_storage.dart';
@@ -60,6 +58,7 @@ import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:path/path.dart' as p;
+import 'package:sidekick/screens/file/import_module/import_manager_result.dart';
 import 'package:sidekick/screens/looms/add_spare_cables.dart';
 import 'package:sidekick/screens/sequencer_dialog/sequencer_dialog.dart';
 import 'package:sidekick/screens/setup_quantities_dialog/setup_quantities_dialog.dart';
@@ -70,6 +69,7 @@ import 'package:sidekick/snack_bars/export_success_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
+import 'package:sidekick/snack_bars/import_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -588,23 +588,25 @@ ThunkAction<AppState> createNewExtensionLoomV2(BuildContext context,
   };
 }
 
-ThunkAction<AppState> openImportManager(BuildContext context) {
+ThunkAction<AppState> showImportManager(BuildContext context) {
   return (Store<AppState> store) async {
-    store.dispatch(readInitialRawPatchData());
-
-    await showDialog(
+    final result = await showDialog(
         context: context,
         builder: (innerContext) => const ImportManagerContainer());
-  };
-}
 
-ThunkAction<AppState> readInitialRawPatchData() {
-  return (Store<AppState> store) async {
-    final sheet = store.state.importState.document
-        .sheets[store.state.fileState.importSettings.patchDataSourceSheetName]!;
+    if (result is ImportManagerResult) {
+      store.dispatch(SetImportedFixtureData(
+          fixtures: result.fixtures.toModelMap(),
+          locations: result.locations.toModelMap(),
+          fixtureTypes: result.fixtureTypes.toModelMap()));
 
-    final rawData = readRawPatchData(sheet, kDataOffset).toList();
-    store.dispatch(SetRawPatchData(rawData));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(importSuccessSnackBar(context));
+      }
+    } else {
+      store.dispatch(SetImportManagerStep(ImportManagerStep.fileSelect));
+    }
   };
 }
 
@@ -1249,11 +1251,9 @@ ThunkAction<AppState> saveProjectFile(BuildContext context, SaveType saveType) {
 ThunkAction<AppState> importPatchFile(BuildContext context) {
   return (Store<AppState> store) async {
     final filePath = store.state.fileState.fixturePatchImportPath;
-    final settings = store.state.fileState.importSettings;
 
-    if (settings.mergeWithExisting == false &&
-        (store.state.fixtureState.fixtures.isNotEmpty ||
-            store.state.fixtureState.locations.isNotEmpty)) {
+    if (store.state.fixtureState.fixtures.isNotEmpty ||
+        store.state.fixtureState.locations.isNotEmpty) {
       final dialogResult = await showGenericDialog(
           context: context,
           title: "Import file",
@@ -1269,7 +1269,7 @@ ThunkAction<AppState> importPatchFile(BuildContext context) {
     final fixturesPatchDataResult = await readFixturesPatchData(
       path: filePath,
       fixtureTypes: store.state.fixtureState.fixtureTypes,
-      patchSheetName: settings.patchDataSourceSheetName,
+      patchSheetName: "Sheet1",
     );
 
     if (fixturesPatchDataResult.errorMessage != null) {
@@ -1285,21 +1285,9 @@ ThunkAction<AppState> importPatchFile(BuildContext context) {
       return;
     }
 
-    if (settings.mergeWithExisting == true) {
-      store.dispatch(
-        SetFixtures(
-          mergeFixtures(
-            existing: store.state.fixtureState.fixtures,
-            incoming: fixturesPatchDataResult.fixtures,
-            settings: settings,
-          ),
-        ),
-      );
-    } else {
-      store.dispatch(ResetFixtureState());
-      store.dispatch(SetFixtures(fixturesPatchDataResult.fixtures));
-      store.dispatch(SetLocations(fixturesPatchDataResult.locations));
-    }
+    store.dispatch(ResetFixtureState());
+    store.dispatch(SetFixtures(fixturesPatchDataResult.fixtures));
+    store.dispatch(SetLocations(fixturesPatchDataResult.locations));
   };
 }
 

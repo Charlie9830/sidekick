@@ -8,9 +8,10 @@ import 'package:excel/excel.dart';
 const String _kSheetName = "Master List";
 const String _kManufactureColumnHeader = "Manufacture";
 const String _kModelColumnHeader = "Model";
-const String _kShortNameColumnHeader = "Short Name (Patchinator, IJAP)";
+const String _kShortNameColumnHeader = "Short Name (Phase)";
 const String _kMaxPiggybacksColumnHeader = "Max 16A Piggybacks";
 const String _kPowerDrawColumnHeader = "Power Draw (amps)";
+const String _kGuidColumnHeader = "GUID (Phase)";
 
 class FixtureTypeDatabaseReadResult {
   final Map<String, FixtureTypeModel> fixtureTypes;
@@ -28,6 +29,7 @@ class ColumnIndexes {
   final int shortName;
   final int powerDraw;
   final int maxPiggybacks;
+  final int guid;
 
   ColumnIndexes({
     this.manufacture = -1,
@@ -35,6 +37,7 @@ class ColumnIndexes {
     this.model = -1,
     this.powerDraw = -1,
     this.shortName = -1,
+    this.guid = -1,
   });
 
   List<ColumnIndex> get asList => [
@@ -43,6 +46,7 @@ class ColumnIndexes {
         ColumnIndex(_kShortNameColumnHeader, shortName),
         ColumnIndex(_kPowerDrawColumnHeader, powerDraw),
         ColumnIndex(_kMaxPiggybacksColumnHeader, maxPiggybacks),
+        ColumnIndex(_kGuidColumnHeader, guid),
       ];
 
   bool get hasInvalidIndexes => asList.any((col) => col.index == -1);
@@ -91,6 +95,8 @@ Future<FixtureTypeDatabaseReadResult> readFixtureTypeDatabase(
           (data) => data?.value.toString() == _kPowerDrawColumnHeader),
       shortName: headerRowData.indexWhere(
           (data) => data?.value.toString() == _kShortNameColumnHeader),
+      guid: headerRowData
+          .indexWhere((data) => data?.value.toString() == _kGuidColumnHeader),
     );
 
     if (columnIndexes.hasInvalidIndexes) {
@@ -108,6 +114,7 @@ Future<FixtureTypeDatabaseReadResult> readFixtureTypeDatabase(
 
     final Set<String> previouslyImportedModels = {};
     final List<FixtureTypeModel> fixtureTypes = [];
+    final Set<String> previouslyUsedGuids = {};
 
     for (final (index, cells) in dataRows.indexed) {
       // Gather Cell Values.
@@ -121,12 +128,15 @@ Future<FixtureTypeDatabaseReadResult> readFixtureTypeDatabase(
           cells.elementAtOrNull(columnIndexes.maxPiggybacks)?.value.toString();
       String? powerDraw =
           cells.elementAtOrNull(columnIndexes.powerDraw)?.value.toString();
+      String? guid =
+          cells.elementAtOrNull(columnIndexes.guid)?.value.toString();
 
       if (_isNullOrEmpty(manufacturer) &&
           _isNullOrEmpty(model) &&
           _isNullOrEmpty(shortName) &&
           _isNullOrEmpty(maxPiggybacks) &&
-          _isNullOrEmpty(powerDraw)) {
+          _isNullOrEmpty(powerDraw) &&
+          _isNullOrEmpty(guid)) {
         // Either an entirely blank row or the end of the data.
         continue;
       }
@@ -150,9 +160,24 @@ Future<FixtureTypeDatabaseReadResult> readFixtureTypeDatabase(
                 "Missing data in $_kPowerDrawColumnHeader column at row ${index + headerRowIndex + 2}");
       }
 
+      if (guid == null) {
+        return FixtureTypeDatabaseReadResult(
+            errorMessage:
+                "Missing data in $_kGuidColumnHeader column at row ${index + headerRowIndex + 2}");
+      }
+
       // These values can just be asserted to default values safely.
       shortName ??= model;
       maxPiggybacks ??= '1';
+
+      // Check that we haven't got a duplicated GUID.
+      if (previouslyUsedGuids.contains(guid)) {
+        return FixtureTypeDatabaseReadResult(
+            errorMessage:
+                'Duplicate value detected in GUID column. You cannot have duplicated values in the GUID Column. '
+                'Duplicate value detected at row ${index + headerRowIndex + 2}.');
+      }
+      previouslyUsedGuids.add(guid);
 
       // Check that we aren't importing duplicate models (Manufacture and Model data gets duplicated in the excel)
       if (previouslyImportedModels
@@ -172,14 +197,13 @@ Future<FixtureTypeDatabaseReadResult> readFixtureTypeDatabase(
       }
 
       fixtureTypes.add(FixtureTypeModel(
-        uid: _convertMakeAndModelToUid(manufacturer, model),
+        uid: guid,
         amps: amps,
         maxPiggybacks: int.tryParse(maxPiggybacks.trim()) ?? 1,
         name: _concatMakeAndModel(manufacturer, model),
         shortName: shortName,
-        originalShortName: shortName,
-        originalMake: manufacturer,
-        originalModel: model,
+        make: manufacturer,
+        model: model,
       ));
     }
 
@@ -198,8 +222,4 @@ String _concatMakeAndModel(String manufacturer, String model) {
 
 bool _isNullOrEmpty(String? value) {
   return value == null || value.isEmpty;
-}
-
-String _convertMakeAndModelToUid(String manufacturer, String model) {
-  return '${manufacturer.trim()}-${model.trim()}'.toLowerCase();
 }

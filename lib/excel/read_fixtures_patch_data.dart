@@ -80,8 +80,8 @@ Future<FixturesDataReadResult> readFixturesPatchData({
 
     // Construct a Map of our Library Fixture Types by their short Name.
     Map<String, FixtureTypeModel> fixtureTypesByOriginalShortName =
-        Map<String, FixtureTypeModel>.fromEntries(fixtureTypes.values
-            .map((type) => MapEntry(type.originalShortName, type)));
+        Map<String, FixtureTypeModel>.fromEntries(
+            fixtureTypes.values.map((type) => MapEntry(type.shortName, type)));
 
     for (final (index, row) in rawDataRows.indexed) {
       final (fixtureId, fidError) = _extractFixtureIdCellValue(

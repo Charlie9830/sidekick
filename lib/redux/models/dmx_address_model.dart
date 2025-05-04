@@ -19,8 +19,7 @@ class DMXAddressModel {
     }
 
     return DMXAddressModel(
-        universe: globalAddress <= 512 ? 1 : (globalAddress / 512).floor(),
-        address: globalAddress % 512);
+        universe: (globalAddress / 512).ceil(), address: globalAddress % 512);
   }
 
   DMXAddressModel copyWith({
