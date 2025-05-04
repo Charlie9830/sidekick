@@ -22,6 +22,9 @@ class LabelColorModel {
         colors: others.map((item) => item.colors).flattened.toList());
   }
 
+  NamedColorModel get firstColorOrNone =>
+      colors.firstOrNull ?? NamedColors.none;
+
   String get name => colors.map((color) => color.name).join('/');
 
   bool get isNone => this == const LabelColorModel.none() || colors.isEmpty;

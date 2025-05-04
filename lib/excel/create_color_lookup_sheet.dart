@@ -18,8 +18,9 @@ void createColorLookupSheet({
 
   for (final multi in powerMultis.values) {
     final location = locations[multi.locationId];
-    final colorName =
-        location == null ? '' : NamedColors.names[location.color] ?? '';
+    final colorName = location == null
+        ? ''
+        : NamedColors.names[location.color.firstColorOrNone.name] ?? '';
 
     sheet.appendRow([
       TextCellValue(multi.name),
