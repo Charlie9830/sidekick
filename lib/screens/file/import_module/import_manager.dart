@@ -92,8 +92,10 @@ class _ImportManagerState extends State<ImportManager> {
                   showLoadingAnimation: false,
                   defaultStepBorderType: BorderType.normal,
                   stepRadius: 24,
-                  activeStepBackgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                  finishedStepBackgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+                  activeStepBackgroundColor:
+                      Theme.of(context).colorScheme.primaryContainer,
+                  finishedStepBackgroundColor:
+                      Theme.of(context).colorScheme.secondaryContainer,
                   showStepBorder: true,
                   borderThickness: 2,
                   unreachedStepBorderColor: Colors.grey.shade800,
@@ -451,7 +453,7 @@ class _ImportManagerState extends State<ImportManager> {
         mode: fixtureMode,
         locationId: incomingFixture.mvrLocationId.isNotEmpty
             ? incomingFixture.mvrLocationId
-            : incomingFixture.generatedId,
+            : incomingFixture.generatedLocationId,
         sequence: existing?.sequence ?? index + 1,
       );
     }).toList();
