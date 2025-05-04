@@ -1,14 +1,14 @@
 import 'package:collection/collection.dart';
+import 'package:sidekick/assert_data_multi_and_patch_state.dart';
 import 'package:sidekick/assert_outlet_name_and_number.dart';
 import 'package:sidekick/extension_methods/clone_map.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
+import 'package:sidekick/perform_data_patch.dart';
 import 'package:sidekick/perform_power_patch.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
-import 'package:sidekick/redux/models/location_model.dart';
-import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
@@ -24,12 +24,17 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     );
 
     return state.copyWith(
-      fixtures: a.fixtures,
-      locations: a.locations,
-      fixtureTypes: a.fixtureTypes,
-      powerMultiOutlets: outlets.powerMultiOutlets,
-      outlets: outlets.powerOutlets,
-    );
+        fixtures: a.fixtures,
+        locations: a.locations,
+        fixtureTypes: a.fixtureTypes,
+        powerMultiOutlets: outlets.powerMultiOutlets,
+        outlets: outlets.powerOutlets,
+        dataPatches: performDataPatch(
+          fixtures: a.fixtures,
+          honorDataSpans: state.honorDataSpans,
+          dataPatches: {},
+          locations: a.locations,
+        ));
   }
 
   if (a is UpdateCableNote) {
@@ -123,11 +128,15 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetHonorDataSpans) {
-    return state.copyWith(honorDataSpans: a.value);
-  }
-
-  if (a is SetFixtureTypes) {
-    return state.copyWith(fixtureTypes: a.types);
+    return state.copyWith(
+      honorDataSpans: a.value,
+      dataPatches: performDataPatch(
+        fixtures: state.fixtures,
+        honorDataSpans: a.value,
+        dataPatches: state.dataPatches,
+        locations: state.locations,
+      ),
+    );
   }
 
   if (a is SetLoomStock) {
@@ -140,8 +149,8 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is OpenProject) {
     return a.project.toFixtureState(
-      fixtureTypes: state.fixtureTypes,
-      honorDataSpans: state.honorDataSpans,
+      fixtureTypes: state.fixtureTypes, // TODO: This should be Serialized.
+      honorDataSpans: state.honorDataSpans, // TODO: This should be serialized.
     );
   }
 
@@ -203,13 +212,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is SetDataMultis) {
     return state.copyWith(
-      dataMultis: _assertDataMultiState(a.multis, state.locations),
-    );
-  }
-
-  if (a is SetDataPatches) {
-    return state.copyWith(
-      dataPatches: _assertDataPatchState(a.patches, state.locations),
+      dataMultis: assertDataMultiState(a.multis, state.locations),
     );
   }
 
@@ -224,10 +227,14 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     );
 
     return state.copyWith(
-      fixtures: a.fixtures,
-      powerMultiOutlets: outlets.powerMultiOutlets,
-      outlets: outlets.powerOutlets,
-    );
+        fixtures: a.fixtures,
+        powerMultiOutlets: outlets.powerMultiOutlets,
+        outlets: outlets.powerOutlets,
+        dataPatches: performDataPatch(
+            fixtures: a.fixtures,
+            honorDataSpans: state.honorDataSpans,
+            dataPatches: state.dataPatches,
+            locations: state.locations));
   }
 
   if (a is SetLocations) {
@@ -283,7 +290,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   if (a is SetMaxSequenceBreak) {
     final maxSequenceBreak =
         _convertMaxSequenceBreak(a.value, state.maxSequenceBreak);
-        
+
     final outlets = performPowerPatch(
       fixtures: state.fixtures,
       fixtureTypes: state.fixtureTypes,
@@ -360,35 +367,6 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
         dataMultis: state.dataMultis,
         dataPatches: state.dataPatches),
   );
-}
-
-Map<String, DataMultiModel> _assertDataMultiState(
-    Map<String, DataMultiModel> multiOutlets,
-    Map<String, LocationModel> locations) {
-  final outletsByLocationId =
-      multiOutlets.values.groupListsBy((item) => item.locationId);
-
-  final sortedOutlets = locations.values
-      .map((location) => (outletsByLocationId[location.uid] ?? [])
-          .sorted((a, b) => b.number - a.number))
-      .flattened;
-
-  return assertOutletNameAndNumbers<DataMultiModel>(sortedOutlets, locations)
-      .toModelMap();
-}
-
-Map<String, DataPatchModel> _assertDataPatchState(
-    Map<String, DataPatchModel> dataPatches,
-    Map<String, LocationModel> locations) {
-  final patchesByLocationId =
-      dataPatches.values.groupListsBy((item) => item.locationId);
-
-  final sortedPatches = locations.values
-      .map((location) => (patchesByLocationId[location.uid] ?? []).sorted())
-      .flattened;
-
-  return assertOutletNameAndNumbers<DataPatchModel>(sortedPatches, locations)
-      .toModelMap();
 }
 
 Map<String, CableModel> _assertCableOrderings({

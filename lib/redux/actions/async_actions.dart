@@ -11,7 +11,6 @@ import 'package:redux_thunk/redux_thunk.dart';
 import 'package:sidekick/classes/cable_family.dart';
 import 'package:sidekick/classes/export_file_paths.dart';
 import 'package:sidekick/classes/permanent_composition_selection.dart';
-import 'package:sidekick/classes/universe_span.dart';
 import 'package:sidekick/containers/import_manager_container.dart';
 import 'package:sidekick/data_selectors/select_all_outlets.dart';
 import 'package:sidekick/data_selectors/select_outlets.dart';
@@ -23,7 +22,6 @@ import 'package:sidekick/excel/create_data_patch_sheet.dart';
 import 'package:sidekick/excel/create_fixture_type_validation_sheet.dart';
 import 'package:sidekick/excel/create_lighting_looms_sheet.dart';
 import 'package:sidekick/excel/create_power_patch_sheet.dart';
-import 'package:sidekick/excel/read_fixture_type_database.dart';
 import 'package:sidekick/excel/read_fixtures_patch_data.dart';
 import 'package:sidekick/extension_methods/clone_map.dart';
 import 'package:sidekick/extension_methods/copy_with_inserted_entry.dart';
@@ -1115,14 +1113,9 @@ ThunkAction<AppState> initializeApp(BuildContext context) {
 
     // Set the Fixture Database Path value, and load the Fixture Database if we can.
     if (persistentSettings.fixtureTypeDatabasePath.isNotEmpty) {
-      final fixtureTypeDatabaseResult = await readFixtureTypeDatabase(
-          persistentSettings.fixtureTypeDatabasePath);
-      if (fixtureTypeDatabaseResult.errorMessage == null) {
-        store.dispatch(SetFixtureTypeDatabasePath(
-            persistentSettings.fixtureTypeDatabasePath));
-        store.dispatch(SetIsFixtureTypeDatabasePathValid(true));
-        store.dispatch(SetFixtureTypes(fixtureTypeDatabaseResult.fixtureTypes));
-      }
+      store.dispatch(
+        SetFixtureTypeDatabasePath(persistentSettings.fixtureTypeDatabasePath),
+      );
     }
 
     // Load the Fixture Mapping Path.
@@ -1130,45 +1123,6 @@ ThunkAction<AppState> initializeApp(BuildContext context) {
       store.dispatch(
           SetFixtureMappingFilePath(persistentSettings.fixtureMappingFilePath));
     }
-  };
-}
-
-ThunkAction<AppState> selectFixtureTypeDatabaseFile(
-    BuildContext context, String path) {
-  return (Store<AppState> store) async {
-    store.dispatch(SetFixtureTypeDatabasePath(path));
-
-    if (await File(path).exists() == false) {
-      store.dispatch(SetIsFixtureTypeDatabasePathValid(false));
-
-      if (homeScaffoldKey.currentContext?.mounted == true) {
-        ScaffoldMessenger.of(homeScaffoldKey.currentContext!).showSnackBar(
-            fileErrorSnackBar(homeScaffoldKey.currentContext!,
-                'Unable to find Fixture Type Database File.'));
-      }
-      return;
-    }
-
-    final result = await readFixtureTypeDatabase(path);
-
-    if (result.errorMessage != null) {
-      store.dispatch(SetIsFixtureTypeDatabasePathValid(false));
-
-      if (context.mounted) {
-        await showGenericDialog(
-            context: context,
-            title: 'Error',
-            message: result.errorMessage!,
-            affirmativeText: "Okay");
-      }
-      return;
-    }
-
-    store.dispatch(SetIsFixtureTypeDatabasePathValid(true));
-    store.dispatch(SetFixtureTypes(result.fixtureTypes));
-
-    await updatePersistentSettings(
-        (existing) => existing.copyWith(fixtureTypeDatabasePath: path));
   };
 }
 
@@ -1434,68 +1388,6 @@ ThunkAction<AppState> commitDataPatch() {
     });
 
     store.dispatch(SetFixtures(updatedFixtures));
-  };
-}
-
-ThunkAction<AppState> generateDataPatch() {
-  return (Store<AppState> store) async {
-    final fixturesByLocationId = store.state.fixtureState.fixtures.values
-        .groupListsBy((fixture) => fixture.locationId);
-
-    final spansByLocationId = fixturesByLocationId.map(
-      (locationId, fixtures) => MapEntry(
-        locationId,
-        store.state.fixtureState.honorDataSpans
-            ? UniverseSpan.createSpans(fixtures)
-            : fixtures
-                .groupListsBy((fix) => fix.dmxAddress.universe)
-                .entries
-                .map((entry) => UniverseSpan(
-                      fixtureIds:
-                          entry.value.map((fixture) => fixture.uid).toList(),
-                      startsAt: entry.value.first,
-                      universe: entry.key,
-                      endsAt: entry.value.last,
-                    )),
-      ),
-    );
-
-    final List<DataPatchModel> patches = [];
-
-    for (final entry in spansByLocationId.entries) {
-      final locationId = entry.key;
-      final spans = entry.value;
-
-      final patchesInLocation = store.state.fixtureState.dataPatches.values
-          .where((patch) => patch.locationId == locationId);
-
-      final Queue<DataPatchModel> existingPatches =
-          Queue<DataPatchModel>.from(patchesInLocation);
-
-      final location = store.state.fixtureState.locations[locationId]!;
-
-      for (final (index, span) in spans.indexed) {
-        final basePatch = existingPatches.isNotEmpty
-            ? existingPatches.removeFirst()
-            : DataPatchModel(
-                uid: getUid(),
-                locationId: locationId,
-              );
-
-        patches.add(basePatch.copyWith(
-          name: location.getPrefixedDataPatch(index + 1),
-          number: index + 1,
-          universe: span.universe,
-          startsAtFixtureId: span.startsAt.fid,
-          endsAtFixtureId: span.endsAt?.fid ?? 0,
-          fixtureIds: span.fixtureIds,
-          isSpare: false,
-        ));
-      }
-    }
-
-    store.dispatch(SetDataPatches(Map<String, DataPatchModel>.fromEntries(
-        patches.map((patch) => MapEntry(patch.uid, patch)))));
   };
 }
 

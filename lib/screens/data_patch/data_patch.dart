@@ -19,11 +19,7 @@ class DataPatch extends StatelessWidget {
         Toolbar(
             child: Row(
           children: [
-            ElevatedButton.icon(
-                icon: const Icon(Icons.cable),
-                onPressed: vm.onGeneratePatchPressed,
-                label: const Text('Patch')),
-            const VerticalDivider(),
+            const SizedBox(width: 8),
             Tooltip(
               message:
                   'If enabled, new data lines will be added when universe or sequence number breaks are detected',

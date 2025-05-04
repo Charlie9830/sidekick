@@ -3,7 +3,6 @@ import 'package:sidekick/diffing/union_proxy.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
-import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
@@ -11,7 +10,6 @@ import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
-import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
@@ -222,12 +220,6 @@ class SetShowAllFixtureTypes {
   SetShowAllFixtureTypes(this.value);
 }
 
-class SetFixtureTypes {
-  final Map<String, FixtureTypeModel> types;
-
-  SetFixtureTypes(this.types);
-}
-
 class SetIsFixtureTypeDatabasePathValid {
   final bool value;
 
@@ -305,12 +297,6 @@ class SetSelectedFixtureIds {
   final Set<String> ids;
 
   SetSelectedFixtureIds(this.ids);
-}
-
-class SetDataPatches {
-  final Map<String, DataPatchModel> patches;
-
-  SetDataPatches(this.patches);
 }
 
 class SetDataMultis {

@@ -1,11 +1,9 @@
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
-import 'package:sidekick/card_subtitle.dart';
 import 'package:sidekick/containers/import_container.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/file_type_groups.dart';
 import 'package:sidekick/generic_dialog/show_generic_dialog.dart';
-import 'package:sidekick/screens/file/file_selector_button.dart';
 import 'package:sidekick/titled_card.dart';
 import 'package:sidekick/view_models/file_view_model.dart';
 import 'package:path/path.dart' as p;
@@ -61,32 +59,6 @@ class FileScreen extends StatelessWidget {
               title: "Import",
               child: ImportContainer(),
             ),
-            TitledCard(
-                title: "Other Data Sources",
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const CardSubtitle('Fixture Type Database'),
-                        const SizedBox(width: 16),
-                        switch (vm.isFixtureTypeDatabasePathValid) {
-                          true => const Icon(Icons.check, color: Colors.green),
-                          false => const Icon(Icons.clear, color: Colors.red),
-                        }
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    FileSelectorButton(
-                      path: vm.fixtureTypeDatabasePath,
-                      onPressed: () =>
-                          _handleChooseFixtureTypeDatabaseButtonPressed(
-                        context,
-                      ),
-                    )
-                  ],
-                ))
           ],
         ),
       ),
@@ -141,17 +113,5 @@ class FileScreen extends StatelessWidget {
 
   void _handleSaveProjectAsButtonPressed(BuildContext context) async {
     vm.onSaveProjectButtonPressed(SaveType.saveAs);
-  }
-
-  void _handleChooseFixtureTypeDatabaseButtonPressed(
-      BuildContext context) async {
-    final selectedFilePath =
-        await openFile(acceptedTypeGroups: kExcelFileTypes);
-
-    if (context.mounted) {
-      if (selectedFilePath != null && selectedFilePath.path.isNotEmpty) {
-        vm.onFixtureTypeDatabaseFileSelected(selectedFilePath.path);
-      }
-    }
   }
 }
