@@ -388,6 +388,14 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
     return lookup[key]!;
   }
 
+  static String getDefaultDelimiterValue(String locationName) {
+    if (locationName.lastIndexOf(r'\d') == locationName.length - 1) {
+      return '.';
+    } else {
+      return '';
+    }
+  }
+
   @override
   Map<DiffPropertyName, Object> getDiffValues() => {
         DiffPropertyName.name: name,

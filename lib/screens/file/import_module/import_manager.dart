@@ -474,7 +474,9 @@ class _ImportManagerState extends State<ImportManager> {
               : incomingLocation.generatedId,
           name: incomingLocation.name,
           color: LocationModel.matchColor(incomingLocation.name),
-          multiPrefix: LocationModel.matchMultiPrefix(incomingLocation.name));
+          multiPrefix: LocationModel.matchMultiPrefix(incomingLocation.name),
+          delimiter:
+              LocationModel.getDefaultDelimiterValue(incomingLocation.name));
     }).toList();
 
     final existingInUseFixtureTypes = widget.vm.existingFixtures.values

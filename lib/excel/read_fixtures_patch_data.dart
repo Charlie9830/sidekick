@@ -242,7 +242,9 @@ Map<String, LocationModel> _readLocations(List<List<Data?>> rows) {
               uid: getUid(),
               name: locationName,
               color: LocationModel.matchColor(locationName),
-              multiPrefix: LocationModel.matchMultiPrefix(locationName)))));
+              multiPrefix: LocationModel.matchMultiPrefix(locationName),
+              delimiter:
+                  LocationModel.getDefaultDelimiterValue(locationName)))));
 }
 
 String _convertRawLocationToString(Data? data) {
