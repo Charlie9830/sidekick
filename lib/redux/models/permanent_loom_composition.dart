@@ -278,7 +278,7 @@ class PermanentLoomComposition {
     // 3 way 6way + Sneak.
     PermanentLoomComposition._(
       socaWays: 0,
-      wieland6Ways: 2,
+      wieland6Ways: 3,
       dmxWays: 0,
       sneakWays: 1,
       validLengths: _3and5wayLengths,
