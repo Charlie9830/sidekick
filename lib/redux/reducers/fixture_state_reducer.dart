@@ -149,7 +149,6 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is OpenProject) {
     return a.project.toFixtureState(
-      fixtureTypes: state.fixtureTypes, // TODO: This should be Serialized.
       honorDataSpans: state.honorDataSpans, // TODO: This should be serialized.
     );
   }

@@ -29,6 +29,7 @@ class ProjectFileModel {
   final double balanceTolerance;
   final CableType defaultPowerMulti;
   final List<LoomStockModel> loomStock;
+  final List<FixtureTypeModel> fixtureTypes;
 
   ProjectFileModel({
     required this.metadata,
@@ -44,6 +45,7 @@ class ProjectFileModel {
     required this.balanceTolerance,
     required this.defaultPowerMulti,
     required this.loomStock,
+    required this.fixtureTypes,
   });
 
   ProjectFileModel copyWith({
@@ -60,6 +62,7 @@ class ProjectFileModel {
     double? balanceTolerance,
     CableType? defaultPowerMulti,
     List<LoomStockModel>? loomStock,
+    List<FixtureTypeModel>? fixtureTypes,
   }) {
     return ProjectFileModel(
       metadata: metadata ?? this.metadata,
@@ -75,6 +78,7 @@ class ProjectFileModel {
       balanceTolerance: balanceTolerance ?? this.balanceTolerance,
       defaultPowerMulti: defaultPowerMulti ?? this.defaultPowerMulti,
       loomStock: loomStock ?? this.loomStock,
+      fixtureTypes: fixtureTypes ?? this.fixtureTypes,
     );
   }
 
@@ -93,6 +97,7 @@ class ProjectFileModel {
       'balanceTolerance': balanceTolerance,
       'defaultPowerMulti': defaultPowerMulti.name,
       'loomStock': loomStock.map((x) => x.toMap()).toList(),
+      'fixtureTypes': fixtureTypes.map((x) => x.toMap()).toList(),
     };
   }
 
@@ -149,7 +154,10 @@ class ProjectFileModel {
           (map['loomStock'] ?? []).map<LoomStockModel>(
             (x) => LoomStockModel.fromMap(x as Map<String, dynamic>),
           ),
-        ));
+        ),
+        fixtureTypes: List<FixtureTypeModel>.from((map['fixtureTypes'] ?? [])
+            .map<FixtureTypeModel>(
+                (x) => FixtureTypeModel.fromMap(x as Map<String, dynamic>))));
   }
 
   String toJson() => json.encode(toMap());
@@ -158,7 +166,6 @@ class ProjectFileModel {
       ProjectFileModel.fromMap(json.decode(source) as Map<String, dynamic>);
 
   FixtureState toFixtureState({
-    Map<String, FixtureTypeModel>? fixtureTypes,
     bool? honorDataSpans,
   }) {
     return FixtureState(
@@ -171,7 +178,7 @@ class ProjectFileModel {
       dataMultis: dataMultis.toModelMap(),
       dataPatches: dataPatches.toModelMap(),
       looms: looms.toModelMap(),
-      fixtureTypes: fixtureTypes ?? FixtureState.initial().fixtureTypes,
+      fixtureTypes: fixtureTypes.toModelMap(),
       honorDataSpans: honorDataSpans ?? FixtureState.initial().honorDataSpans,
       cables: cables.toModelMap(),
       defaultPowerMulti: defaultPowerMulti,
