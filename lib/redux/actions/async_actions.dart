@@ -19,6 +19,7 @@ import 'package:sidekick/enums.dart';
 import 'package:sidekick/excel/create_color_lookup_sheet.dart';
 import 'package:sidekick/excel/create_data_multi_sheet.dart';
 import 'package:sidekick/excel/create_data_patch_sheet.dart';
+import 'package:sidekick/excel/create_fixture_addressing_sheet.dart';
 import 'package:sidekick/excel/create_fixture_type_validation_sheet.dart';
 import 'package:sidekick/excel/create_lighting_looms_sheet.dart';
 import 'package:sidekick/excel/create_power_patch_sheet.dart';
@@ -1528,13 +1529,35 @@ ThunkAction<AppState> export(BuildContext context) {
       return;
     }
 
+    final addressingExcel = Excel.createExcel();
+
+    createFixtureAddressingSheet(
+      fixtures: store.state.fixtureState.fixtures.values.toList(),
+      locations: store.state.fixtureState.locations,
+      fixtureTypes: store.state.fixtureState.fixtureTypes,
+      excel: addressingExcel,
+      projectName: store.state.fileState.projectMetadata.projectName,
+    );
+
+    final addressingBytes = addressingExcel.save();
+
+    if (addressingBytes == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(fileErrorSnackBar(
+            context, 'An error occured writing the Fixture Addressing sheet'));
+      }
+
+      return;
+    }
+
     final fileWrites = [
       File(outputPaths.referenceDataPath).writeAsBytes(referenceDataBytes),
       File(outputPaths.loomsPath).writeAsBytes(loomsBytes),
       File(outputPaths.powerPatchPath)
           .writeAsBytes(powerPatchTemplateBytes.buffer.asUint8List()),
       File(outputPaths.dataPatchPath)
-          .writeAsBytes(dataPatchTemplateBytes.buffer.asUint8List())
+          .writeAsBytes(dataPatchTemplateBytes.buffer.asUint8List()),
+      File(outputPaths.addressesPath).writeAsBytes(addressingBytes),
     ];
 
     try {
@@ -1557,6 +1580,7 @@ ThunkAction<AppState> export(BuildContext context) {
       await launchUrl(Uri.file(outputPaths.powerPatchPath));
       await launchUrl(Uri.file(outputPaths.dataPatchPath));
       await launchUrl(Uri.file(outputPaths.loomsPath));
+      await launchUrl(Uri.file(outputPaths.addressesPath));
     }
   };
 }
