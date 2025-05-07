@@ -104,6 +104,7 @@ class LoomDiffing extends StatelessWidget {
     final result = await openFile(
       confirmButtonText: 'Select',
       acceptedTypeGroups: kProjectFileTypes,
+      initialDirectory: vm.initialDirectory,
     );
 
     if (result != null) {

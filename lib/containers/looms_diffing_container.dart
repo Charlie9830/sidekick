@@ -17,6 +17,7 @@ import 'package:sidekick/view_models/diff_app_state_view_model.dart';
 import 'package:sidekick/view_models/loom_diffing_item_view_model.dart';
 import 'package:sidekick/view_models/loom_diffing_view_model.dart';
 import 'package:sidekick/view_models/loom_view_model.dart';
+import 'package:path/path.dart' as p;
 
 class LoomsDiffingContainer extends StatelessWidget {
   const LoomsDiffingContainer({Key? key}) : super(key: key);
@@ -35,6 +36,9 @@ class LoomsDiffingContainer extends StatelessWidget {
                 store.dispatch(SetComparisonFilePath(path));
                 diffViewModel.onFileSelectedForCompare(path);
               },
+              initialDirectory: store.state.fileState.comparisonFilePath.isEmpty
+                  ? store.state.fileState.lastUsedProjectDirectory
+                  : p.dirname(store.state.fileState.comparisonFilePath),
               comparisonFilePath: store.state.fileState.comparisonFilePath,
               itemVms: _getLoomDiffs(
                   currentLoomVms: selectLoomViewModels(store).toModelMap(),
