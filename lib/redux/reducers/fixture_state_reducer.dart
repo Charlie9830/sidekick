@@ -14,10 +14,10 @@ import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   if (a is SetImportedFixtureData) {
-    final outlets = performPowerPatch(
+    final powerPatch = performPowerPatch(
       fixtures: a.fixtures,
       fixtureTypes: a.fixtureTypes,
-      powerMultiOutlets: {},
+      powerMultiOutlets: state.powerMultiOutlets,
       locations: a.locations,
       maxSequenceBreak: state.maxSequenceBreak,
       balanceTolerance: state.balanceTolerance,
@@ -27,12 +27,12 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
         fixtures: a.fixtures,
         locations: a.locations,
         fixtureTypes: a.fixtureTypes,
-        powerMultiOutlets: outlets.powerMultiOutlets,
-        outlets: outlets.powerOutlets,
+        powerMultiOutlets: powerPatch.powerMultiOutlets,
+        outlets: powerPatch.powerOutlets,
         dataPatches: performDataPatch(
           fixtures: a.fixtures,
           honorDataSpans: state.honorDataSpans,
-          dataPatches: {},
+          dataPatches: state.dataPatches,
           locations: a.locations,
         ));
   }

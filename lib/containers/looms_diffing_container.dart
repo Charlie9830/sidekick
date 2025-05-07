@@ -6,6 +6,7 @@ import 'package:sidekick/data_selectors/select_loom_view_models.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
+import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
@@ -30,7 +31,11 @@ class LoomsDiffingContainer extends StatelessWidget {
           },
           converter: (Store<AppState> store) {
             return LoomDiffingViewModel(
-              onFileSelectedForCompare: diffViewModel.onFileSelectedForCompare,
+              onFileSelectedForCompare: (path) {
+                store.dispatch(SetComparisonFilePath(path));
+                diffViewModel.onFileSelectedForCompare(path);
+              },
+              comparisonFilePath: store.state.fileState.comparisonFilePath,
               itemVms: _getLoomDiffs(
                   currentLoomVms: selectLoomViewModels(store).toModelMap(),
                   originalLoomVms: diffViewModel.originalLoomViewModels),
@@ -38,11 +43,12 @@ class LoomsDiffingContainer extends StatelessWidget {
           },
         );
       },
-      converter: (Store<DiffAppState> store) {
+      converter: (Store<DiffAppState> diffStore) {
         return DiffAppStateViewModel(
-            originalLoomViewModels: selectLoomViewModels(store).toModelMap(),
+            originalLoomViewModels:
+                selectLoomViewModels(diffStore).toModelMap(),
             onFileSelectedForCompare: (path) =>
-                store.dispatch(openProjectFile(context, false, path)));
+                diffStore.dispatch(openProjectFile(context, false, path)));
       },
     );
   }

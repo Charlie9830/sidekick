@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sidekick/builders/build_cable_row_item.dart';
 import 'package:sidekick/diff_state_overlay.dart';
 import 'package:sidekick/file_type_groups.dart';
-import 'package:sidekick/screens/file/import_module/file_select_button.dart';
+import 'package:sidekick/file_select_button.dart';
 import 'package:sidekick/screens/looms/loom_row_item.dart';
 import 'package:sidekick/view_models/loom_diffing_view_model.dart';
 import 'package:sidekick/widgets/toolbar.dart';
@@ -23,8 +23,11 @@ class LoomDiffing extends StatelessWidget {
             child: Row(
           children: [
             FileSelectButton(
-              path: '',
+              path: vm.comparisonFilePath,
               onFileSelectPressed: _handleSelectFileForComparePressed,
+              hintText: 'Select file to compare with..',
+              dropTargetName: 'Drop Phase Project here',
+              onFileDropped: vm.onFileSelectedForCompare,
             ),
           ],
         )),

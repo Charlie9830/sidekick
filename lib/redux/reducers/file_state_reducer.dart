@@ -12,6 +12,10 @@ FileState fileStateReducer(FileState state, dynamic a) {
     );
   }
 
+  if (a is SetComparisonFilePath) {
+    return state.copyWith(comparisonFilePath: a.value);
+  }
+
   if (a is UpdateProjectName) {
     return state.copyWith(
         projectMetadata:

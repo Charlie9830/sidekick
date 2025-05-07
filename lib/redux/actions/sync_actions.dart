@@ -14,6 +14,12 @@ import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
 
+class SetComparisonFilePath {
+  final String value;
+
+  SetComparisonFilePath(this.value);
+}
+
 class SetFixtureMappingFilePath {
   final String value;
 

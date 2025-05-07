@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sidekick/screens/file/import_module/file_select_button.dart';
+import 'package:sidekick/file_select_button.dart';
 import 'package:sidekick/screens/file/import_module/fixture_mapping_view_model.dart';
 import 'package:sidekick/screens/file/import_module/map_fixture_types.dart';
 

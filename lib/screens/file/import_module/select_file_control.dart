@@ -1,7 +1,7 @@
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:sidekick/file_type_groups.dart';
-import 'package:sidekick/screens/file/import_module/file_select_button.dart';
+import 'package:sidekick/file_select_button.dart';
 import 'package:sidekick/screens/file/import_module/file_valid_icon.dart';
 import 'package:sidekick/screens/file/import_module/mvr_import_settings.dart';
 import 'package:sidekick/screens/file/import_module/patch_import_settings.dart';
@@ -44,6 +44,11 @@ class SelectFileControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sourceFileClass = switch (settings.source) {
+      PatchSource.grandMA2XML => "GrandMA2 Fixture Layers",
+      PatchSource.mvr => "MVR File",
+    };
+
     return Row(
       children: [
         _buildSourceSelector(context),
@@ -54,17 +59,15 @@ class SelectFileControl extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                  switch (settings.source) {
-                    PatchSource.grandMA2XML => "GrandMA2 Fixture Layers",
-                    PatchSource.mvr => "MVR File",
-                  },
+              Text(sourceFileClass,
                   style: Theme.of(context).textTheme.titleSmall),
               const Divider(),
               FileSelectButton(
                 path: fixturePatchFilePath,
                 onFileSelectPressed: _handlePatchFileSelect,
                 showOpenButton: false,
+                dropTargetName: 'Drop $sourceFileClass here',
+                onFileDropped: onPatchFilePathChanged,
               ),
               const SizedBox(height: 16),
               Expanded(

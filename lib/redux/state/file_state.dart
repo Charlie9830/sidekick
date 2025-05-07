@@ -9,6 +9,7 @@ class FileState {
   final String fixtureTypeDatabasePath;
   final bool isFixtureTypeDatabasePathValid;
   final String fixtureMappingFilePath;
+  final String comparisonFilePath;
 
   FileState({
     this.fixturePatchImportPath = "",
@@ -18,6 +19,7 @@ class FileState {
     this.projectMetadata = const ProjectFileMetadataModel.initial(),
     this.isFixtureTypeDatabasePathValid = false,
     this.fixtureMappingFilePath = '',
+    this.comparisonFilePath = '',
   });
 
   const FileState.initial()
@@ -27,7 +29,8 @@ class FileState {
         fixtureTypeDatabasePath = "",
         projectMetadata = const ProjectFileMetadataModel.initial(),
         isFixtureTypeDatabasePathValid = false,
-        fixtureMappingFilePath = '';
+        fixtureMappingFilePath = '',
+        comparisonFilePath = '';
 
   FileState copyWith({
     String? fixturePatchImportPath,
@@ -37,6 +40,7 @@ class FileState {
     String? fixtureTypeDatabasePath,
     bool? isFixtureTypeDatabasePathValid,
     String? fixtureMappingFilePath,
+    String? comparisonFilePath,
   }) {
     return FileState(
       fixturePatchImportPath:
@@ -51,6 +55,7 @@ class FileState {
           isFixtureTypeDatabasePathValid ?? this.isFixtureTypeDatabasePathValid,
       fixtureMappingFilePath:
           fixtureMappingFilePath ?? this.fixtureMappingFilePath,
+      comparisonFilePath: comparisonFilePath ?? this.comparisonFilePath,
     );
   }
 }
