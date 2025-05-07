@@ -27,5 +27,5 @@ mixin DiffComparable {
         .toSet();
   }
 
-  Map<DiffPropertyName, Object> getDiffValues();
+  Map<DeltaPropertyName, Object> getDiffValues();
 }

@@ -1,32 +1,31 @@
 import 'package:flutter/material.dart';
-
-enum DiffState {
-  unchanged,
-  added,
-  changed,
-  deleted,
-}
+import 'package:sidekick/screens/diffing/property_delta.dart';
 
 class DiffStateOverlay extends StatelessWidget {
   final Widget child;
-  final DiffState diff;
-  final bool expand;
+  final DiffState? diff;
   final bool enabled;
+  final bool expand;
 
-  const DiffStateOverlay(
-      {super.key,
-      required this.child,
-      required this.diff,
-      this.expand = true,
-      this.enabled = false});
+  const DiffStateOverlay({
+    super.key,
+    required this.child,
+    required this.diff,
+    this.expand = true,
+    this.enabled = true,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      foregroundDecoration: BoxDecoration(
-        color: enabled ? _getDiffStateColor(diff) : null,
-      ),
-      child: expand ? SizedBox.expand(child: child) : child,
+    if (diff == null || enabled == false) {
+      return child;
+    }
+
+    return Stack(
+      children: [
+        child,
+        Positioned.fill(child: Container(color: _getDiffStateColor(diff!)))
+      ],
     );
   }
 
@@ -39,5 +38,3 @@ class DiffStateOverlay extends StatelessWidget {
     };
   }
 }
-
-

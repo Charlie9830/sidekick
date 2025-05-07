@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:material_table_view/material_table_view.dart';
 import 'package:sidekick/diff_state_overlay.dart';
+import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/screens/file/import_module/incoming_fixture_item_view_model.dart';
 import 'package:sidekick/view_models/fixture_table_view_model.dart';
 

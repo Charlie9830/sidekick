@@ -57,8 +57,10 @@ class LoomModel extends ModelCollectionMember with DiffComparable {
   }
 
   @override
-  Map<DiffPropertyName, Object> getDiffValues() => {
-        DiffPropertyName.length: type,
-        DiffPropertyName.loomType: type,
+  Map<DeltaPropertyName, Object> getDiffValues() => {
+        DeltaPropertyName.length: type.length,
+        DeltaPropertyName.loomType: type,
+        DeltaPropertyName.permanentComposition: type.permanentComposition,
+        DeltaPropertyName.name: name,
       };
 }

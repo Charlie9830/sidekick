@@ -1,4 +1,5 @@
-enum DiffPropertyName {
+enum DeltaPropertyName {
+  none,
   name,
   length,
   permanentComposition,
@@ -18,32 +19,32 @@ enum DiffPropertyName {
   fixtureId,
   fixtureType,
   universe,
-  address,
+  address, loomId, outletId, parentMultiId,
 }
 
-enum ChangeType {
+enum DiffState {
+  unchanged,
   added,
+  changed,
   deleted,
-  none,
-  modified,
 }
 
 class PropertyDelta {
-  final DiffPropertyName name;
-  final ChangeType type;
+  final DeltaPropertyName name;
+  final DiffState diff;
 
   PropertyDelta(
     this.name,
-    this.type,
+    this.diff,
   );
 
-  PropertyDelta.modified(this.name) : type = ChangeType.modified;
+  PropertyDelta.modified(this.name) : diff = DiffState.changed;
 
   @override
-  int get hashCode => name.hashCode ^ type.hashCode;
+  int get hashCode => name.hashCode ^ diff.hashCode;
 
   @override
   bool operator ==(Object other) {
-    return other is PropertyDelta && name == other.name && type == other.type;
+    return other is PropertyDelta && name == other.name && diff == other.diff;
   }
 }

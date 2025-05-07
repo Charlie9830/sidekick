@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/containers/data_patch_container.dart';
-import 'package:sidekick/containers/diffing_container.dart';
 import 'package:sidekick/containers/export_container.dart';
 import 'package:sidekick/containers/file_container.dart';
 import 'package:sidekick/containers/fixture_table_container.dart';
 import 'package:sidekick/containers/fixture_types_container.dart';
 import 'package:sidekick/containers/locations_container.dart';
+import 'package:sidekick/containers/looms_diffing_container.dart';
 import 'package:sidekick/containers/looms_v2_container.dart';
 import 'package:sidekick/containers/power_patch_container.dart';
 import 'package:sidekick/global_keys.dart';
@@ -38,7 +38,7 @@ class _HomeState extends State<Home> {
       initialIndex: 0,
       child: Scaffold(
         key: homeScaffoldKey,
-        
+
         appBar: AppBar(
           title: const Text("It's Just a Phase!"),
           primary: true,
@@ -99,7 +99,7 @@ class _HomeState extends State<Home> {
             LocationsContainer(),
             FixtureTypesContainer(),
             ExportContainer(),
-            DiffingContainer(),
+            LoomsDiffingContainer(),
             TheLab(),
           ],
         ),

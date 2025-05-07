@@ -146,10 +146,15 @@ class CableModel extends ModelCollectionMember with DiffComparable {
   }
 
   @override
-  Map<DiffPropertyName, Object> getDiffValues() => {
-        DiffPropertyName.length: length,
-        DiffPropertyName.notes: notes,
-        DiffPropertyName.cableType: type,
-        DiffPropertyName.isSpare: isSpare,
+  Map<DeltaPropertyName, Object> getDiffValues() => {
+        DeltaPropertyName.length: length,
+        DeltaPropertyName.notes: notes,
+        DeltaPropertyName.cableType: type,
+        DeltaPropertyName.isSpare: isSpare,
+        DeltaPropertyName.outletId: outletId,
+        DeltaPropertyName.isDrop: isDropper,
+        DeltaPropertyName.isExtension: upstreamId.isNotEmpty,
+        DeltaPropertyName.loomId: loomId,
+        DeltaPropertyName.parentMultiId: parentMultiId,
       };
 }

@@ -26,15 +26,15 @@ class NavigationState {
     required this.isAvailabilityDrawerOpen,
   });
 
-  NavigationState.initial()
+  const NavigationState.initial()
       : selectedMultiOutlet = "",
-        selectedFixtureIds = {},
-        selectedCableIds = {},
+        selectedFixtureIds = const {},
+        selectedCableIds = const {},
         showAllFixtureTypes = false,
         openAfterExport = true,
         selectedDiffingTab = 0,
         importManagerStep = ImportManagerStep.fileSelect,
-        selectedLoomOutlets = {},
+        selectedLoomOutlets = const {},
         loomsDraggingState = LoomsDraggingState.idle,
         isAvailabilityDrawerOpen = false;
 

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:sidekick/containers/looms_diffing_container.dart';
+import 'package:sidekick/diff_state_overlay.dart';
 import 'package:sidekick/editable_text_field.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
+import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/screens/locations/multi_color_chit.dart';
 import 'package:sidekick/screens/looms/cable_flag.dart';
 
@@ -19,11 +22,13 @@ class CableRowItem extends StatelessWidget {
   final bool missingUpstreamCable;
   final void Function(String newValue)? onLengthChanged;
   final void Function(String newValue) onNotesChanged;
+  final CableDelta? cableDelta;
 
   const CableRowItem({
     super.key,
     required this.cable,
     required this.labelColor,
+    this.cableDelta,
     this.typeLabel = '',
     this.showTopBorder = false,
     this.isSelected = false,
@@ -40,25 +45,31 @@ class CableRowItem extends StatelessWidget {
     final String length = cable.length.floor().toString();
     final Color borderColor = Colors.grey.shade800;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: _getBackgroundColor(context),
-        border: Border(
-          bottom: BorderSide(color: borderColor),
-          top: showTopBorder ? BorderSide(color: borderColor) : BorderSide.none,
+    return DiffStateOverlay(
+      diff: cableDelta?.overallDiff,
+      child: Container(
+        height: kCableRowHeight,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: _getBackgroundColor(context),
+          border: Border(
+            bottom: BorderSide(color: borderColor),
+            top: showTopBorder
+                ? BorderSide(color: borderColor)
+                : BorderSide.none,
+          ),
         ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: SizedBox(
-          height: kCableRowHeight,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               // Length
               SizedBox(
-                  width: 100,
+                width: 100,
+                child: DiffStateOverlay(
+                  diff: cableDelta?.checkDiffState(DeltaPropertyName.length),
                   child: disableLength
                       ? Center(
                           child: Text('-',
@@ -88,14 +99,18 @@ class CableRowItem extends StatelessWidget {
                                     color: Colors.orangeAccent),
                               )
                           ],
-                        )),
+                        ),
+                ),
+              ),
               VerticalDivider(
                 color: borderColor,
               ),
 
               // Cable Type
               SizedBox(
-                  width: 120,
+                width: 120,
+                child: DiffStateOverlay(
+                  diff: cableDelta?.checkDiffState(DeltaPropertyName.cableType),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -123,14 +138,18 @@ class CableRowItem extends StatelessWidget {
                         ],
                       ),
                     ],
-                  )),
+                  ),
+                ),
+              ),
               VerticalDivider(
                 color: borderColor,
               ),
 
               // Label
               SizedBox(
-                  width: 164,
+                width: 164,
+                child: DiffStateOverlay(
+                  diff: cableDelta?.checkDiffState(DeltaPropertyName.label),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -159,35 +178,45 @@ class CableRowItem extends StatelessWidget {
                           color: Colors.pink,
                         ),
                     ],
-                  )),
+                  ),
+                ),
+              ),
               VerticalDivider(
                 color: borderColor,
               ),
 
               // Color
               SizedBox(
-                  width: 64,
+                width: 64,
+                child: DiffStateOverlay(
+                  diff: cableDelta?.checkDiffState(DeltaPropertyName.color),
                   child: Center(
                       child: MultiColorChit(
                     value: labelColor,
                     showPickerIcon: false,
-                  ))),
+                  )),
+                ),
+              ),
               VerticalDivider(
                 color: borderColor,
               ),
 
               Expanded(
+                child: DiffStateOverlay(
+                  diff: cableDelta?.checkDiffState(DeltaPropertyName.notes),
                   child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                      child: EditableTextField(
-                    value: cable.notes,
-                    style: Theme.of(context).textTheme.bodySmall,
-                    onChanged: (newValue) => onNotesChanged(newValue),
-                  )),
-                ],
-              )),
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                          child: EditableTextField(
+                        value: cable.notes,
+                        style: Theme.of(context).textTheme.bodySmall,
+                        onChanged: (newValue) => onNotesChanged(newValue),
+                      )),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ),

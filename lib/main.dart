@@ -18,7 +18,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return StoreProvider<AppState>(
       store: appStore,
-      child: const HomeScaffold(),
+      child: StoreProvider<DiffAppState>(
+        store: diffAppStore,
+        child: const HomeScaffold(),
+      ),
     );
   }
 }

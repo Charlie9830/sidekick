@@ -1,3 +1,4 @@
+import 'package:sidekick/containers/looms_diffing_container.dart';
 import 'package:sidekick/data_selectors/select_show_cable_top_border.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/screens/looms/cable_row_item.dart';
@@ -11,9 +12,11 @@ CableRowItem buildCableRowItem({
   required List<LoomViewModel> rowVms,
   LoomType? parentLoomType,
   required bool missingUpstreamCable,
+  CableDelta? cableDelta,
 }) {
   return CableRowItem(
     cable: vm.cable,
+    cableDelta: cableDelta,
     typeLabel: vm.typeLabel,
     labelColor: vm.labelColor,
     isSelected: selectedCableIds.contains(vm.cable.uid),

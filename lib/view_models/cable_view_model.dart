@@ -1,7 +1,8 @@
+import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
 
-class CableViewModel {
+class CableViewModel implements ModelCollectionMember {
   final CableModel cable;
   final String locationId;
   final LabelColorModel labelColor;
@@ -25,4 +26,7 @@ class CableViewModel {
     required this.typeLabel,
     required this.onNotesChanged,
   });
+
+  @override
+  String get uid => cable.uid;
 }

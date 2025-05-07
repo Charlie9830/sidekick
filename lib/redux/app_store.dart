@@ -8,3 +8,6 @@ final appStore = Store<AppState>(appStateReducer,
 
 dynamic dispatchStub(dynamic action) =>
     throw 'This call to dispatch() has been stubbed. Do not use.';
+
+final diffAppStore = Store<DiffAppState>(diffAppStateReducer,
+    initialState: DiffAppState.initial(), middleware: [thunkMiddleware]);

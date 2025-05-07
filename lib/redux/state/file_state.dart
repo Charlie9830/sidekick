@@ -20,7 +20,7 @@ class FileState {
     this.fixtureMappingFilePath = '',
   });
 
-  FileState.initial()
+  const FileState.initial()
       : fixturePatchImportPath = "",
         projectFilePath = "",
         lastUsedProjectDirectory = "",

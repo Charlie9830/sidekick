@@ -43,21 +43,21 @@ class FixtureState {
     required this.loomStock,
   });
 
-  FixtureState.initial()
-      : fixtures = {},
-        locations = {},
-        powerMultiOutlets = {},
-        outlets = [],
+  const FixtureState.initial()
+      : fixtures = const {},
+        locations = const {},
+        powerMultiOutlets = const {},
+        outlets = const [],
         balanceTolerance = 0.05, // 5% Balance Tolerance.
         maxSequenceBreak = 4,
-        dataMultis = {},
-        dataPatches = {},
-        looms = {},
-        fixtureTypes = {},
+        dataMultis = const {},
+        dataPatches = const {},
+        looms = const {},
+        fixtureTypes = const {},
         honorDataSpans = false,
-        cables = {},
+        cables = const {},
         defaultPowerMulti = CableType.socapex,
-        loomStock = {};
+        loomStock = const {};
 
   FixtureState copyWith({
     Map<String, FixtureModel>? fixtures,
