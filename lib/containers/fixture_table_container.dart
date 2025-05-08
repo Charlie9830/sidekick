@@ -1,7 +1,9 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
+
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
@@ -37,66 +39,101 @@ class FixtureTableContainer extends StatelessWidget {
               .state.fixtureState.fixtures.values
               .map((fixture) => fixture.uid)
               .toSet())),
-          onRangeSelectFixtures: (startUid, endUid, isAdditive) =>
-              store.dispatch(rangeSelectFixtures(startUid, endUid, isAdditive )));
+          onRangeSelectFixtures: (startUid, endUid, isAdditive) => store
+              .dispatch(rangeSelectFixtures(startUid, endUid, isAdditive)));
     });
   }
 
   List<FixtureTableRow> _selectFixtureRowVms(Store<AppState> store) {
     const String kBadLookupValue = 'NONE';
-    String? lastLocationId;
-    FixtureModel? prevFixture;
 
-    final fixtures = store.state.fixtureState.fixtures.values.toList();
-    return fixtures
-        .map((fixture) {
-          final location =
-              store.state.fixtureState.locations[fixture.locationId];
-          final powerMulti =
-              store.state.fixtureState.powerMultiOutlets[fixture.powerMultiId];
+    final fixturesByLocationId = store.state.fixtureState.fixtures.values
+        .groupListsBy((fixture) => fixture.locationId);
 
-          final vms = [
-            if (lastLocationId != fixture.locationId)
-              FixtureRowDividerVM(
-                locationId: fixture.locationId,
-                title: location?.name ?? kBadLookupValue,
-                onSelectFixtures: () => store.dispatch(
-                  SetSelectedFixtureIds(
-                    store.state.fixtureState.fixtures.values
-                        .where((element) =>
-                            element.locationId == fixture.locationId)
-                        .map((fixture) => fixture.uid)
-                        .toSet(),
-                  ),
+    return store.state.fixtureState.locations.values
+        .map((location) {
+          final associatedFixtures =
+              (fixturesByLocationId[location.uid] ?? []).sorted();
+
+          return [
+            FixtureRowDividerVM(
+              locationId: location.uid,
+              title: location.name,
+              onSelectFixtures: () => store.dispatch(
+                SetSelectedFixtureIds(
+                  associatedFixtures.map((fixture) => fixture.uid).toSet(),
                 ),
               ),
-            FixtureViewModel(
-                selected: store.state.navstate.selectedFixtureIds
-                    .contains(fixture.uid),
-                uid: fixture.uid,
-                sequence: fixture.sequence,
-                fid: fixture.fid,
-                address: fixture.dmxAddress.formatted,
-                type: store.state.fixtureState.fixtureTypes[fixture.typeId]
-                        ?.name ??
-                    '',
-                location: location?.name ?? kBadLookupValue,
-                powerMulti: powerMulti?.name ?? kBadLookupValue,
-                powerPatch: fixture.powerPatch,
-                dataMulti: fixture.dataMulti,
-                dataPatch: fixture.dataPatch,
-                hasSequenceNumberBreak: prevFixture != null &&
-                    prevFixture!.sequence + 1 != fixture.sequence,
-                hasInvalidSequenceNumber: prevFixture != null &&
-                    prevFixture!.sequence == fixture.sequence)
+            ),
+            ...associatedFixtures.fold<FixtureVMAccumulator>(
+                FixtureVMAccumulator.empty(), (accum, fixture) {
+              final prevFixture = accum.prevFixture;
+
+              final powerMulti = store
+                  .state.fixtureState.powerMultiOutlets[fixture.powerMultiId];
+
+              final vm = FixtureViewModel(
+                  selected: store.state.navstate.selectedFixtureIds
+                      .contains(fixture.uid),
+                  uid: fixture.uid,
+                  sequence: fixture.sequence,
+                  fid: fixture.fid,
+                  address: fixture.dmxAddress.formatted,
+                  type: store.state.fixtureState.fixtureTypes[fixture.typeId]
+                          ?.name ??
+                      '',
+                  location: location.name,
+                  powerMulti: powerMulti?.name ?? kBadLookupValue,
+                  powerPatch: fixture.powerPatch,
+                  dataMulti: fixture.dataMulti,
+                  dataPatch: fixture.dataPatch,
+                  hasSequenceNumberBreak: prevFixture != null &&
+                      prevFixture.sequence + 1 != fixture.sequence,
+                  hasInvalidSequenceNumber: prevFixture != null &&
+                      (prevFixture.sequence == fixture.sequence ||
+                          accum.usedSequenceNumbers
+                              .contains(fixture.sequence)));
+
+              return accum.copyWith(prevFixture: fixture, usedSequenceNumbers: {
+                ...accum.usedSequenceNumbers,
+                fixture.sequence
+              }, vms: [
+                ...accum.vms,
+                vm,
+              ]);
+            }).vms,
           ];
-
-          lastLocationId = fixture.locationId;
-          prevFixture = fixture;
-
-          return vms;
         })
         .flattened
         .toList();
+  }
+}
+
+class FixtureVMAccumulator {
+  final List<FixtureViewModel> vms;
+  final Set<int> usedSequenceNumbers;
+  final FixtureModel? prevFixture;
+
+  FixtureVMAccumulator({
+    required this.vms,
+    required this.usedSequenceNumbers,
+    required this.prevFixture,
+  });
+
+  FixtureVMAccumulator.empty()
+      : vms = const [],
+        usedSequenceNumbers = {},
+        prevFixture = null;
+
+  FixtureVMAccumulator copyWith({
+    List<FixtureViewModel>? vms,
+    Set<int>? usedSequenceNumbers,
+    FixtureModel? prevFixture,
+  }) {
+    return FixtureVMAccumulator(
+      vms: vms ?? this.vms,
+      usedSequenceNumbers: usedSequenceNumbers ?? this.usedSequenceNumbers,
+      prevFixture: prevFixture ?? this.prevFixture,
+    );
   }
 }

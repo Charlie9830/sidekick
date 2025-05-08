@@ -8,7 +8,7 @@ import 'package:sidekick/redux/models/dmx_address_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 
-class FixtureModel implements ModelCollectionMember {
+class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
   @override
   final String uid;
   final int fid;
@@ -150,12 +150,16 @@ class FixtureModel implements ModelCollectionMember {
     final fixturesByLocation =
         fixtures.values.groupListsBy((fixture) => fixture.locationId);
 
-    final sortedFixturesByLocation = fixturesByLocation.map(
-        (locationId, fixtures) => MapEntry(
-            locationId, fixtures.sorted((a, b) => a.sequence - b.sequence)));
+    final sortedFixturesByLocation = fixturesByLocation
+        .map((locationId, fixtures) => MapEntry(locationId, fixtures.sorted()));
 
     return Map<String, FixtureModel>.fromEntries(sortedFixturesByLocation
         .values.flattened
         .map((fixture) => MapEntry(fixture.uid, fixture)));
+  }
+
+  @override
+  int compareTo(other) {
+    return sequence - other.sequence;
   }
 }

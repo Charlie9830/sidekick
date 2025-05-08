@@ -31,8 +31,10 @@ PowerPatchResult performPowerPatch({
 }) {
   final balancer = NaiveBalancer();
 
+  final sortedFixtures = FixtureModel.sort(fixtures, locations);
+
   final unbalancedMultiOutlets = balancer.assignToOutlets(
-    fixtures: fixtures.values
+    fixtures: sortedFixtures.values
         .map((fixture) => BalancerFixtureModel.fromFixture(
             fixture: fixture, type: fixtureTypes[fixture.typeId]!))
         .toList(),
