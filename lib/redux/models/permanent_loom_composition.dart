@@ -60,9 +60,10 @@ class PermanentLoomComposition {
   LoomSatisfactionResult satisfied(List<CableModel> cables) {
     if (cables.isEmpty) {
       return LoomSatisfactionResult(
-          satisfied: false,
-          satisfiedAtLength: 0,
-          error: _UnsatisfiedError.noSuitableComposition);
+        satisfied: false,
+        satisfiedAtLength: 0,
+        error: UnsatisfiedError.noCables,
+      );
     }
 
     final incomingSoca =
@@ -88,7 +89,7 @@ class PermanentLoomComposition {
       return LoomSatisfactionResult(
           satisfied: false,
           satisfiedAtLength: 0,
-          error: _UnsatisfiedError.noSuitableComposition);
+          error: UnsatisfiedError.noSuitableComposition);
     }
 
     final suitableLength = _matchSuitableLength(cables);
@@ -97,7 +98,7 @@ class PermanentLoomComposition {
       return LoomSatisfactionResult(
         satisfied: false,
         satisfiedAtLength: 0,
-        error: _UnsatisfiedError.noSuitableLength,
+        error: UnsatisfiedError.noSuitableLength,
       );
     }
 
@@ -349,15 +350,16 @@ class PermanentLoomCompositionResult {
   });
 }
 
-enum _UnsatisfiedError {
+enum UnsatisfiedError {
   noSuitableComposition,
   noSuitableLength,
+  noCables,
 }
 
 class LoomSatisfactionResult {
   final bool satisfied;
   final double satisfiedAtLength;
-  final _UnsatisfiedError? error;
+  final UnsatisfiedError? error;
 
   LoomSatisfactionResult({
     required this.satisfied,

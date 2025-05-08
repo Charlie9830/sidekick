@@ -33,7 +33,7 @@ class DiffStateOverlay extends StatelessWidget {
     return switch (diffState) {
       DiffState.unchanged => null,
       DiffState.added => Colors.lightGreenAccent.withAlpha(100),
-      DiffState.changed => Colors.orange.withAlpha(100),
+      DiffState.changed => Colors.yellow.withAlpha(75),
       DiffState.deleted => Colors.redAccent.withAlpha(100),
     };
   }

@@ -6,7 +6,7 @@ import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
 
-class LoomModel extends ModelCollectionMember with DiffComparable {
+class LoomModel extends ModelCollectionMember {
   @override
   final String uid;
   final LoomTypeModel type;
@@ -56,11 +56,5 @@ class LoomModel extends ModelCollectionMember with DiffComparable {
     return 'LoomModel(uid: $uid)';
   }
 
-  @override
-  Map<DeltaPropertyName, Object> getDiffValues() => {
-        DeltaPropertyName.length: type.length,
-        DeltaPropertyName.loomType: type,
-        DeltaPropertyName.permanentComposition: type.permanentComposition,
-        DeltaPropertyName.name: name,
-      };
+
 }

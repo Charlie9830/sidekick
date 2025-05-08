@@ -3,9 +3,11 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:sidekick/classes/named_colors.dart';
+import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/redux/models/named_color_model.dart';
+import 'package:sidekick/screens/diffing/property_delta.dart';
 
-class LabelColorModel {
+class LabelColorModel with DiffComparable {
   final List<NamedColorModel> colors;
 
   LabelColorModel({
@@ -28,6 +30,8 @@ class LabelColorModel {
   String get name => colors.map((color) => color.name).join('/');
 
   bool get isNone => this == const LabelColorModel.none() || colors.isEmpty;
+
+  String get fullyQualifiedName => colors.map((color) => color.name).join('/');
 
   LabelColorModel copyWith({
     List<NamedColorModel>? colors,
@@ -57,4 +61,11 @@ class LabelColorModel {
 
   factory LabelColorModel.fromJson(String source) =>
       LabelColorModel.fromMap(json.decode(source) as Map<String, dynamic>);
+
+  @override
+  Map<PropertyDeltaName, Object> getDiffValues() {
+    return {
+      PropertyDeltaName.color: fullyQualifiedName,
+    };
+  }
 }

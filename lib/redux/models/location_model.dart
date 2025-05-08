@@ -397,10 +397,10 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
   }
 
   @override
-  Map<DeltaPropertyName, Object> getDiffValues() => {
-        DeltaPropertyName.name: name,
-        DeltaPropertyName.color: color,
-        DeltaPropertyName.multiPrefix: multiPrefix,
-        DeltaPropertyName.delimiter: delimiter,
+  Map<PropertyDeltaName, Object> getDiffValues() => {
+        PropertyDeltaName.name: name,
+        PropertyDeltaName.color: color,
+        PropertyDeltaName.multiPrefix: multiPrefix,
+        PropertyDeltaName.delimiter: delimiter,
       };
 }

@@ -1,8 +1,10 @@
+import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
+import 'package:sidekick/screens/diffing/property_delta.dart';
 
-class CableViewModel implements ModelCollectionMember {
+class CableViewModel with DiffComparable implements ModelCollectionMember {
   final CableModel cable;
   final String locationId;
   final LabelColorModel labelColor;
@@ -29,4 +31,21 @@ class CableViewModel implements ModelCollectionMember {
 
   @override
   String get uid => cable.uid;
+
+  @override
+  Map<PropertyDeltaName, Object> getDiffValues() => {
+        PropertyDeltaName.cableLength: cable.length,
+        PropertyDeltaName.notes: cable.notes,
+        PropertyDeltaName.cableType: cable.type,
+        PropertyDeltaName.isSpare: cable.isSpare,
+        PropertyDeltaName.outletId: cable.outletId,
+        PropertyDeltaName.isDrop: cable.isDropper,
+        PropertyDeltaName.isExtension: isExtension,
+        PropertyDeltaName.loomId: cable.loomId,
+        PropertyDeltaName.parentMultiId: cable.parentMultiId,
+        PropertyDeltaName.label: label,
+        PropertyDeltaName.color: labelColor,
+        PropertyDeltaName.universe: universe,
+
+      };
 }

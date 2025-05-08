@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:sidekick/screens/diffing/property_delta.dart';
-import 'package:sidekick/screens/looms/cable_row_item.dart';
+import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/screens/looms/loom_header.dart';
 import 'package:sidekick/view_models/loom_view_model.dart';
 
 class LoomRowItem extends StatelessWidget {
   final LoomViewModel loomVm;
   final List<Widget> children;
-  final Set<PropertyDelta> deltas;
+  final PropertyDeltaSet? deltas;
   final int reorderableListViewIndex;
 
   const LoomRowItem({
@@ -15,7 +14,7 @@ class LoomRowItem extends StatelessWidget {
     required this.loomVm,
     required this.children,
     required this.reorderableListViewIndex,
-    this.deltas = const {},
+    this.deltas,
   });
 
   @override
@@ -29,6 +28,7 @@ class LoomRowItem extends StatelessWidget {
           LoomHeader(
             loomVm: loomVm,
             reorderableListViewIndex: reorderableListViewIndex,
+            deltas: deltas,
           ),
 
           // Child Items

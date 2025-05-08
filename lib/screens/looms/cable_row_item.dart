@@ -68,16 +68,17 @@ class CableRowItem extends StatelessWidget {
               // Length
               SizedBox(
                 width: 100,
-                child: DiffStateOverlay(
-                  diff: cableDelta?.checkDiffState(DeltaPropertyName.length),
-                  child: disableLength
-                      ? Center(
-                          child: Text('-',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall!
-                                  .copyWith(color: Colors.grey)))
-                      : Row(
+                child: disableLength
+                    ? Center(
+                        child: Text('-',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall!
+                                .copyWith(color: Colors.grey)))
+                    : DiffStateOverlay(
+                        diff: cableDelta?.properties
+                            .lookup(PropertyDeltaName.cableLength),
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             SizedBox(
@@ -100,7 +101,7 @@ class CableRowItem extends StatelessWidget {
                               )
                           ],
                         ),
-                ),
+                      ),
               ),
               VerticalDivider(
                 color: borderColor,
@@ -110,7 +111,8 @@ class CableRowItem extends StatelessWidget {
               SizedBox(
                 width: 120,
                 child: DiffStateOverlay(
-                  diff: cableDelta?.checkDiffState(DeltaPropertyName.cableType),
+                  diff: cableDelta?.properties
+                      .lookup(PropertyDeltaName.cableType),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -149,7 +151,7 @@ class CableRowItem extends StatelessWidget {
               SizedBox(
                 width: 164,
                 child: DiffStateOverlay(
-                  diff: cableDelta?.checkDiffState(DeltaPropertyName.label),
+                  diff: cableDelta?.properties.lookup(PropertyDeltaName.label),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -189,7 +191,7 @@ class CableRowItem extends StatelessWidget {
               SizedBox(
                 width: 64,
                 child: DiffStateOverlay(
-                  diff: cableDelta?.checkDiffState(DeltaPropertyName.color),
+                  diff: cableDelta?.properties.lookup(PropertyDeltaName.color),
                   child: Center(
                       child: MultiColorChit(
                     value: labelColor,
@@ -203,7 +205,7 @@ class CableRowItem extends StatelessWidget {
 
               Expanded(
                 child: DiffStateOverlay(
-                  diff: cableDelta?.checkDiffState(DeltaPropertyName.notes),
+                  diff: cableDelta?.properties.lookup(PropertyDeltaName.notes),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

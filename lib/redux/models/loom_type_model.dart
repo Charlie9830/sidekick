@@ -76,10 +76,10 @@ class LoomTypeModel with DiffComparable {
       LoomTypeModel.fromMap(json.decode(source));
 
   @override
-  Map<DeltaPropertyName, Object> getDiffValues() => {
-        DeltaPropertyName.length: length,
-        DeltaPropertyName.permanentComposition: permanentComposition,
-        DeltaPropertyName.loomType: type,
+  Map<PropertyDeltaName, Object> getDiffValues() => {
+        PropertyDeltaName.loomLength: length,
+        PropertyDeltaName.permanentComposition: permanentComposition,
+        PropertyDeltaName.loomType: type,
       };
 
   static String convertToHumanFriendlyLength(double length) =>

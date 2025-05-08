@@ -1,14 +1,12 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/data_selectors/select_loom_view_models.dart';
+import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
-import 'package:sidekick/redux/models/cable_model.dart';
-import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/diffing/loom_diffing.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
@@ -65,24 +63,21 @@ class LoomsDiffingContainer extends StatelessWidget {
       ...originalLoomVms.values.map((vm) => vm.loom.uid),
     };
 
-    final originalCableVms =
-        originalLoomVms.values.expand((vm) => vm.children).toModelMap();
-    final currentCableVms =
-        currentLoomVms.values.expand((vm) => vm.children).toModelMap();
-
-    final cableDeltas = _getCableDeltas(originalCableVms, currentCableVms);
-
     return allIds.map((loomId) {
       final current = currentLoomVms[loomId];
       final original = originalLoomVms[loomId];
+
+      final originalChildCableVms = original?.children.toModelMap() ?? {};
+      final currentChildCableVms = current?.children.toModelMap() ?? {};
 
       if (original != null && current == null) {
         return LoomDiffingItemViewModel(
           current: null,
           original: original,
-          deltas: {},
+          deltas: const PropertyDeltaSet.empty(),
           overallDiff: DiffState.deleted,
-          cableDeltas: const {},
+          cableDeltas:
+              _getCableDeltas(originalChildCableVms, currentChildCableVms),
         );
       }
 
@@ -90,18 +85,20 @@ class LoomsDiffingContainer extends StatelessWidget {
         return LoomDiffingItemViewModel(
           current: current,
           original: original,
-          deltas: {},
+          deltas: const PropertyDeltaSet.empty(),
           overallDiff: DiffState.added,
-          cableDeltas: const {},
+          cableDeltas:
+              _getCableDeltas(originalChildCableVms, currentChildCableVms),
         );
       }
 
       return LoomDiffingItemViewModel(
         current: current,
         original: original,
-        deltas: current!.loom.calculateDeltas(original!.loom),
+        deltas: current!.calculateDeltas(original!),
         overallDiff: DiffState.unchanged,
-        cableDeltas: cableDeltas,
+        cableDeltas:
+            _getCableDeltas(originalChildCableVms, currentChildCableVms),
       );
     }).toList();
   }
@@ -119,7 +116,7 @@ class LoomsDiffingContainer extends StatelessWidget {
         return CableDelta(
           uid: cableId,
           overallDiff: DiffState.deleted,
-          properties: const {},
+          properties: const PropertyDeltaSet.empty(),
         );
       }
 
@@ -128,19 +125,14 @@ class LoomsDiffingContainer extends StatelessWidget {
         return CableDelta(
           uid: cableId,
           overallDiff: DiffState.added,
-          properties: const {},
+          properties: const PropertyDeltaSet.empty(),
         );
       }
 
       return CableDelta(
-        uid: cableId,
-        overallDiff: DiffState.unchanged,
-        properties: current[cableId]!
-            .cable
-            .calculateDeltas(original[cableId]!.cable)
-            .map((delta) => delta.name)
-            .toSet(),
-      );
+          uid: cableId,
+          overallDiff: DiffState.unchanged,
+          properties: current[cableId]!.calculateDeltas(original[cableId]!));
     });
 
     return diffs.toModelMap();
@@ -151,14 +143,11 @@ class CableDelta extends ModelCollectionMember {
   @override
   final String uid;
   final DiffState overallDiff;
-  final Set<DeltaPropertyName> properties;
+  final PropertyDeltaSet properties;
 
   CableDelta({
     required this.uid,
     required this.overallDiff,
     required this.properties,
   });
-
-  DiffState checkDiffState(DeltaPropertyName property) =>
-      properties.contains(property) ? DiffState.changed : DiffState.unchanged;
 }

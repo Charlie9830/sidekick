@@ -29,7 +29,7 @@ const _ranking = {
   CableType.unknown: 4,
 };
 
-class CableModel extends ModelCollectionMember with DiffComparable {
+class CableModel extends ModelCollectionMember {
   @override
   final String uid;
   final double length;
@@ -144,17 +144,4 @@ class CableModel extends ModelCollectionMember with DiffComparable {
   static int compareByType(CableModel a, CableModel b) {
     return _ranking[a.type]! - _ranking[b.type]!;
   }
-
-  @override
-  Map<DeltaPropertyName, Object> getDiffValues() => {
-        DeltaPropertyName.length: length,
-        DeltaPropertyName.notes: notes,
-        DeltaPropertyName.cableType: type,
-        DeltaPropertyName.isSpare: isSpare,
-        DeltaPropertyName.outletId: outletId,
-        DeltaPropertyName.isDrop: isDropper,
-        DeltaPropertyName.isExtension: upstreamId.isNotEmpty,
-        DeltaPropertyName.loomId: loomId,
-        DeltaPropertyName.parentMultiId: parentMultiId,
-      };
 }

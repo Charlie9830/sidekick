@@ -13,6 +13,7 @@ class EditableTextField extends StatefulWidget {
   final bool selectAllOnFocus;
   final void Function(String newValue)? onChanged;
   final List<TextInputFormatter> inputFormatters;
+  final bool enabled;
 
   const EditableTextField({
     super.key,
@@ -26,6 +27,7 @@ class EditableTextField extends StatefulWidget {
     this.cursorHeight,
     this.selectAllOnFocus = false,
     this.inputFormatters = const [],
+    this.enabled = true,
   });
 
   @override
@@ -60,6 +62,7 @@ class _EditableTextFieldState extends State<EditableTextField> {
         }
       },
       child: TextField(
+        enabled: widget.enabled,
         controller: _controller,
         textAlign: widget.textAlign ?? TextAlign.start,
         style: widget.style,

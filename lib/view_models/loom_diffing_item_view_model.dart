@@ -1,4 +1,5 @@
 import 'package:sidekick/containers/looms_diffing_container.dart';
+import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/view_models/loom_view_model.dart';
 
@@ -8,7 +9,7 @@ class LoomDiffingItemViewModel {
   final Map<String, CableDelta> cableDeltas;
   final DiffState overallDiff;
 
-  final Set<PropertyDelta> deltas;
+  final PropertyDeltaSet deltas;
 
   LoomDiffingItemViewModel({
     required this.current,

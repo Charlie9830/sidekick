@@ -1,7 +1,7 @@
-enum DeltaPropertyName {
+enum PropertyDeltaName {
   none,
   name,
-  length,
+  cableLength,
   permanentComposition,
   loomType,
   loomClass,
@@ -19,7 +19,7 @@ enum DeltaPropertyName {
   fixtureId,
   fixtureType,
   universe,
-  address, loomId, outletId, parentMultiId,
+  address, loomId, outletId, parentMultiId, loomLength,
 }
 
 enum DiffState {
@@ -27,24 +27,4 @@ enum DiffState {
   added,
   changed,
   deleted,
-}
-
-class PropertyDelta {
-  final DeltaPropertyName name;
-  final DiffState diff;
-
-  PropertyDelta(
-    this.name,
-    this.diff,
-  );
-
-  PropertyDelta.modified(this.name) : diff = DiffState.changed;
-
-  @override
-  int get hashCode => name.hashCode ^ diff.hashCode;
-
-  @override
-  bool operator ==(Object other) {
-    return other is PropertyDelta && name == other.name && diff == other.diff;
-  }
 }
