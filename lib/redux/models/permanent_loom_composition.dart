@@ -58,6 +58,13 @@ class PermanentLoomComposition {
   }
 
   LoomSatisfactionResult satisfied(List<CableModel> cables) {
+    if (cables.isEmpty) {
+      return LoomSatisfactionResult(
+          satisfied: false,
+          satisfiedAtLength: 0,
+          error: _UnsatisfiedError.noSuitableComposition);
+    }
+
     final incomingSoca =
         cables.where((cable) => cable.type == CableType.socapex).length;
     final incomingWieland6way =
