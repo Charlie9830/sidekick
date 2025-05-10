@@ -5,6 +5,7 @@ Future<bool?> showGenericDialog(
     required String title,
     required String message,
     required String affirmativeText,
+    bool scrollable = false,
     String? declineText}) async {
   if (declineText != null && declineText.trim().isEmpty) {
     assert(false,
@@ -15,6 +16,7 @@ Future<bool?> showGenericDialog(
       context: context,
       builder: (innerContext) {
         return AlertDialog(
+          scrollable: scrollable,
           title: Text(title),
           content: Text(message),
           actions: [
@@ -23,7 +25,6 @@ Future<bool?> showGenericDialog(
                 child: Text(declineText),
                 onPressed: () => Navigator.of(innerContext).pop(false),
               ),
-              
             TextButton(
               child: Text(affirmativeText),
               onPressed: () => Navigator.of(innerContext).pop(true),

@@ -16,6 +16,7 @@ SnackBar genericErrorSnackBar({
             label: 'Show more',
             onPressed: () => showGenericDialog(
                 context: context,
+                scrollable: true,
                 title: 'Details',
                 message: '$extendedMessage\n${_parseError(error)}',
                 affirmativeText: 'Okay'),
