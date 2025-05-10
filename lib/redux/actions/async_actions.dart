@@ -1177,22 +1177,32 @@ ThunkAction<AppState> saveProjectFile(BuildContext context, SaveType saveType) {
       targetFilePath = selectedFilePath.path;
     }
 
-    // Ensure the file path contains the correct extension.
-    if (p.extension(targetFilePath).trim() != '.$kProjectFileExtension') {
-      targetFilePath = '$targetFilePath.$kProjectFileExtension';
-    }
+    try {
+      // Ensure the file path contains the correct extension.
+      if (p.extension(targetFilePath).trim() != '.$kProjectFileExtension') {
+        targetFilePath = '$targetFilePath.$kProjectFileExtension';
+      }
 
-    // Perform the File Operations.
-    var newMetadata = await serializeProjectFile(store.state, targetFilePath);
+      // Perform the File Operations.
+      var newMetadata = await serializeProjectFile(store.state, targetFilePath);
 
-    // Save the updated Metadata.
-    store.dispatch(SetProjectFileMetadata(newMetadata));
-    store.dispatch(SetLastUsedProjectDirectory(p.dirname(targetFilePath)));
-    store.dispatch(SetProjectFilePath(targetFilePath));
+      // Save the updated Metadata.
+      store.dispatch(SetProjectFileMetadata(newMetadata));
+      store.dispatch(SetLastUsedProjectDirectory(p.dirname(targetFilePath)));
+      store.dispatch(SetProjectFilePath(targetFilePath));
 
-    if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(fileSaveSuccessSnackBar(context));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(fileSaveSuccessSnackBar(context));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
+            context: context,
+            message: 'An error occurred saving the project',
+            error: e,
+            extendedMessage: e.toString()));
+      }
     }
   };
 }
