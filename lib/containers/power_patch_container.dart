@@ -38,17 +38,21 @@ class PowerPatchContainer extends StatelessWidget {
             onDeleteSpareOutlet: (uid) =>
                 store.dispatch(deleteSpareOutlet(uid)),
             onMultiOutletPressed: (uid) =>
-                store.dispatch(SetSelectedMultiOutlet(uid)),
-            onCommit: () => store.dispatch(commitPowerPatch(context)));
+                store.dispatch(SetSelectedMultiOutlet(uid)));
       },
     );
   }
 
   PhaseLoad _selectPhaseLoad(Store<AppState> store) {
+    final outlets = store.state.fixtureState.powerMultiOutlets.values
+        .map((multi) => multi.children)
+        .flattened
+        .toList();
+
     return PhaseLoad(
-      PhaseLoad.calculateTotalPhaseLoad(store.state.fixtureState.outlets, 1),
-      PhaseLoad.calculateTotalPhaseLoad(store.state.fixtureState.outlets, 2),
-      PhaseLoad.calculateTotalPhaseLoad(store.state.fixtureState.outlets, 3),
+      PhaseLoad.calculateTotalPhaseLoad(outlets, 1),
+      PhaseLoad.calculateTotalPhaseLoad(outlets, 2),
+      PhaseLoad.calculateTotalPhaseLoad(outlets, 3),
     );
   }
 
@@ -68,8 +72,7 @@ class PowerPatchContainer extends StatelessWidget {
                     store.dispatch(SetLocationPowerLock(location.uid, value))),
             ...associatedMultis.map((multi) => MultiOutletRow(
                 multi,
-                store.state.fixtureState.outlets
-                    .where((outlet) => outlet.multiOutletId == multi.uid)
+                multi.children
                     .map(
                       (outlet) => PowerOutletVM(
                           outlet: outlet,

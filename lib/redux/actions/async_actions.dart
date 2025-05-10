@@ -1176,7 +1176,7 @@ ThunkAction<AppState> saveProjectFile(BuildContext context, SaveType saveType) {
 
       targetFilePath = selectedFilePath.path;
     }
-
+    
     // Ensure the file path contains the correct extension.
     if (p.extension(targetFilePath).trim() != '.$kProjectFileExtension') {
       targetFilePath = '$targetFilePath.$kProjectFileExtension';
@@ -1392,33 +1392,6 @@ ThunkAction<AppState> commitDataPatch() {
   };
 }
 
-ThunkAction<AppState> commitPowerPatch(BuildContext context) {
-  return (Store<AppState> store) async {
-    // Map FixtureIds to their associated Power Outlet
-    final fixtureLookupMap = Map<String, PowerOutletModel>.fromEntries(
-        store.state.fixtureState.outlets
-            .map((outlet) => outlet.fixtureIds.map(
-                  (id) => MapEntry(id, outlet),
-                ))
-            .flattened);
-
-    final existingFixtures = store.state.fixtureState.fixtures.clone();
-
-    existingFixtures.updateAll((uid, fixture) {
-      final outlet = fixtureLookupMap[uid]!;
-      final multiOutlet =
-          store.state.fixtureState.powerMultiOutlets[outlet.multiOutletId]!;
-
-      return fixture.copyWith(
-        powerMultiId: multiOutlet.uid,
-        powerPatch: outlet.multiPatch,
-      );
-    });
-
-    store.dispatch(SetFixtures(existingFixtures));
-  };
-}
-
 ThunkAction<AppState> export(BuildContext context) {
   return (Store<AppState> store) async {
     final outputPaths = ExportFilePaths(
@@ -1457,7 +1430,6 @@ ThunkAction<AppState> export(BuildContext context) {
     final referenceDataExcel = Excel.createExcel();
     createPowerPatchSheet(
       excel: referenceDataExcel,
-      outlets: store.state.fixtureState.outlets,
       powerMultis: store.state.fixtureState.powerMultiOutlets,
       locations: store.state.fixtureState.locations,
       fixtures: store.state.fixtureState.fixtures,
@@ -1472,9 +1444,9 @@ ThunkAction<AppState> export(BuildContext context) {
 
     createFixtureTypeValidationSheet(
       excel: referenceDataExcel,
-      outlets: store.state.fixtureState.outlets,
       fixtures: store.state.fixtureState.fixtures,
       fixtureTypes: store.state.fixtureState.fixtureTypes,
+      powerMultis: store.state.fixtureState.powerMultiOutlets,
     );
 
     createDataPatchSheet(

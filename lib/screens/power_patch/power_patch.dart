@@ -61,12 +61,6 @@ class _PowerPatchState extends State<PowerPatch> {
               child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              OutlinedButton.icon(
-                icon: const Icon(Icons.commit),
-                onPressed: widget.vm.onCommit,
-                label: const Text('Commit'),
-              ),
-              const SizedBox(width: 16),
               BalanceGauge(
                 phaseALoad: widget.vm.phaseLoad.a,
                 phaseBLoad: widget.vm.phaseLoad.b,

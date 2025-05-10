@@ -1,3 +1,35 @@
+// TODO: Update this to not dumb code...
+// Example here.
+/*
+  
+enum Phase {
+  red,
+  white,
+  blue,
+}
+
+void main() {
+  final circuits = List<int>.generate(96, (index) => index + 1);
+  
+  
+  final result = circuits.map((circuit) => '$circuit : ${detectPhase(circuit)}').join("\n");
+  
+  print(result);
+ 
+}
+
+Phase detectPhase(int patchNumber) {
+  final remainder = patchNumber % 3;
+  
+  return switch(remainder) {
+      1 => Phase.red,
+      2 => Phase.white,
+      0 => Phase.blue,
+      _ => throw "Unknown"
+  };
+}
+*/
+
 int getPhaseFromIndex(int index) {
   return switch (index) {
     0 => 1,

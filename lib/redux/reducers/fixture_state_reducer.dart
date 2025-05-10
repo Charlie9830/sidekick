@@ -29,7 +29,6 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
         locations: a.locations,
         fixtureTypes: a.fixtureTypes,
         powerMultiOutlets: powerPatch.powerMultiOutlets,
-        outlets: powerPatch.powerOutlets,
         dataPatches: performDataPatch(
           fixtures: a.fixtures,
           honorDataSpans: state.honorDataSpans,
@@ -190,7 +189,6 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     return state.copyWith(
       fixtureTypes: updatedFixtureTypes,
       powerMultiOutlets: outlets.powerMultiOutlets,
-      outlets: outlets.powerOutlets,
     );
   }
 
@@ -229,7 +227,6 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     return state.copyWith(
         fixtures: a.fixtures,
         powerMultiOutlets: outlets.powerMultiOutlets,
-        outlets: outlets.powerOutlets,
         dataPatches: performDataPatch(
             fixtures: a.fixtures,
             honorDataSpans: state.honorDataSpans,
@@ -264,7 +261,6 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
     return state.copyWith(
       powerMultiOutlets: outlets.powerMultiOutlets,
-      outlets: outlets.powerOutlets,
     );
   }
 
@@ -283,7 +279,6 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     return state.copyWith(
       balanceTolerance: tolerance,
       powerMultiOutlets: outlets.powerMultiOutlets,
-      outlets: outlets.powerOutlets,
     );
   }
 
@@ -303,7 +298,6 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     return state.copyWith(
       maxSequenceBreak: maxSequenceBreak,
       powerMultiOutlets: outlets.powerMultiOutlets,
-      outlets: outlets.powerOutlets,
     );
   }
 

@@ -6,22 +6,22 @@ import 'package:sidekick/balancer/asserts/asserts.dart';
 import 'package:sidekick/balancer/balancer_base.dart';
 import 'package:sidekick/balancer/balancer_result.dart';
 import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
+import 'package:sidekick/balancer/models/balancer_multi_outlet_model.dart';
 import 'package:sidekick/balancer/models/balancer_power_patch_model.dart';
 import 'package:sidekick/balancer/phase_load.dart';
-import 'package:sidekick/balancer/power_family.dart';
 import 'package:sidekick/balancer/power_span.dart';
 import 'package:sidekick/balancer/shared_utils.dart';
 import 'package:sidekick/extension_methods/queue_pop.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
-import 'package:sidekick/balancer/models/balancer_power_outlet_model.dart';
+import 'package:sidekick/balancer/models/balancer_outlet_model.dart';
 import 'package:sidekick/utils/electrical_equations.dart';
 import 'package:sidekick/utils/get_multi_patch_from_index.dart';
 import 'package:sidekick/utils/get_phase_from_index.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:sidekick/utils/round_up_to_nearest_multi_break.dart';
 
-typedef CleanupFunction = List<BalancerPowerOutletModel> Function(
-    List<BalancerPowerOutletModel> slice);
+typedef CleanupFunction = List<BalancerOutletModel> Function(
+    List<BalancerOutletModel> slice);
 
 const int _maxAttempts = 3;
 
@@ -29,7 +29,7 @@ class NaiveBalancer implements Balancer {
   /// Takes a list of [FixtureModel], performs Piggybacking then assigns to Outlets.
   /// Does not attempt any Phase Balancing.
   @override
-  Map<PowerMultiOutletModel, List<BalancerPowerOutletModel>> assignToOutlets({
+  List<BalancerMultiOutletModel> assignToOutlets({
     required List<BalancerFixtureModel> fixtures,
     required List<PowerMultiOutletModel> multiOutlets,
     double maxAmpsPerCircuit = 16,
@@ -42,7 +42,7 @@ class NaiveBalancer implements Balancer {
       maxSequenceBreak: maxSequenceBreak,
     );
 
-    final List<PowerFamily> families = [];
+    final List<BalancerMultiOutletModel> updatedMultis = [];
 
     for (final locationEntry in patchesByLocationId.entries) {
       final locationId = locationEntry.key;
@@ -58,15 +58,17 @@ class NaiveBalancer implements Balancer {
       while (patchesQueue.isNotEmpty) {
         // Create a new Multi Outlet if we don't have one, otherwise use an existing one.
         final multiOutlet = existingMultiOutletsAssignedToLocationQueue.isEmpty
-            ? PowerMultiOutletModel(
+            ? BalancerMultiOutletModel(
                 uid: getUid(),
                 locationId: locationId,
                 number:
                     0, // We will iterate through and update these once we have the full picture.
                 name: '',
+                children: [],
                 desiredSpareCircuits: 0,
               )
-            : existingMultiOutletsAssignedToLocationQueue.removeFirst();
+            : BalancerMultiOutletModel.fromMultiOutletWithoutChildren(
+                existingMultiOutletsAssignedToLocationQueue.removeFirst());
 
         final patchSlice =
             patchesQueue.pop(6 - multiOutlet.desiredSpareCircuits).toList();
@@ -86,42 +88,41 @@ class NaiveBalancer implements Balancer {
         }
 
         final outlets = patchSlice.mapIndexed((index, patch) =>
-            BalancerPowerOutletModel(
+            BalancerOutletModel(
                 child: patch,
                 locationId: locationId,
                 multiOutletId: multiOutlet.uid,
                 phase: getPhaseFromIndex(index),
                 multiPatch: getMultiPatchFromIndex(index)));
 
-        families
-            .add(PowerFamily(parent: multiOutlet, children: outlets.toList()));
+        updatedMultis.add(multiOutlet.copyWith(
+          children: outlets.toList(),
+        ));
       }
     }
 
-    final familiesByLocationId =
-        families.groupListsBy((family) => family.parent.locationId);
+    final multisByLocationId =
+        updatedMultis.groupListsBy((multi) => multi.locationId);
 
-    final familiesWithMultiNumbering = familiesByLocationId.entries
+    final withAssertedMultiNumbering = multisByLocationId.entries
         .map((entry) {
-          final familiesInLocation = entry.value;
+          final multisInLocation = entry.value;
 
-          return familiesInLocation.mapIndexed((index, family) {
-            return family.copyWith(
-                parent: family.parent.copyWith(number: index + 1));
+          return multisInLocation.mapIndexed((index, multi) {
+            return multi.copyWith(
+              number: index + 1,
+            );
           });
         })
         .flattened
         .toList();
 
-    return Map<PowerMultiOutletModel,
-            List<BalancerPowerOutletModel>>.fromEntries(
-        familiesWithMultiNumbering
-            .map((family) => MapEntry(family.parent, family.children)));
+    return withAssertedMultiNumbering;
   }
 
   @override
   BalancerResult balanceOutlets(
-    List<BalancerPowerOutletModel> outlets, {
+    List<BalancerOutletModel> outlets, {
     double balanceTolerance = 0.5,
     PhaseLoad initialLoad = const PhaseLoad.zero(),
   }) {
@@ -221,8 +222,8 @@ class NaiveBalancer implements Balancer {
 }
 
 /// Recursively calls itself to attempt to balance the Slice.
-List<BalancerPowerOutletModel> _balanceSlice(
-  List<BalancerPowerOutletModel> slice, {
+List<BalancerOutletModel> _balanceSlice(
+  List<BalancerOutletModel> slice, {
   int attemptCount = 1,
   required double imbalanceTolerance,
   required PhaseLoad previousLoadsTotal,
@@ -245,7 +246,7 @@ List<BalancerPowerOutletModel> _balanceSlice(
   }
 
   // Insantiate a new List to which we will make changes on.
-  List<BalancerPowerOutletModel> workingList = clonedSlice.toList();
+  List<BalancerOutletModel> workingList = clonedSlice.toList();
 
   // Calculate the Lightest and Heaviest phases.
   var (lightestPhase, heaviestPhase) = _calculateLightestAndHeavistLoads(
@@ -322,8 +323,8 @@ BalancerResult _selectBestBalancingResult(List<BalancerResult> results) {
   return (phases.first, phases.last);
 }
 
-(BalancerPowerOutletModel a, BalancerPowerOutletModel b)
-    _selectOutletsByPhaseIndex(int index, List<BalancerPowerOutletModel> list) {
+(BalancerOutletModel a, BalancerOutletModel b) _selectOutletsByPhaseIndex(
+    int index, List<BalancerOutletModel> list) {
   if (list.length != 6) {
     throw "Cannot select outlets from a list smaller then 6 elements. Ensure each Patch Slice is asserted to be 6 elements";
   }
@@ -339,7 +340,7 @@ BalancerResult _selectBestBalancingResult(List<BalancerResult> results) {
 }
 
 (double a, double b) _calculateSwappedLoad(double totalLoadA, double totalLoadB,
-    BalancerPowerOutletModel a, BalancerPowerOutletModel b) {
+    BalancerOutletModel a, BalancerOutletModel b) {
   return (
     totalLoadA - a.child.amps + b.child.amps,
     totalLoadB - b.child.amps + a.child.amps,
@@ -367,8 +368,8 @@ double _calculateLoadBalanceScore(
 
 /// Selects children of the given [list] of outlets and swaps them based on how close the
 /// swap will get the phases to the median load between them (Midpoint load between [a] and [b]).
-List<BalancerPowerOutletModel> _shellShuffleOutletChildren(
-    IndexedLoad a, IndexedLoad b, List<BalancerPowerOutletModel> list) {
+List<BalancerOutletModel> _shellShuffleOutletChildren(
+    IndexedLoad a, IndexedLoad b, List<BalancerOutletModel> list) {
   // The target Load is the median load between the two phases. ie: The midpoint betweeen the phases.
   final targetLoad = median([a.load, b.load]);
 
@@ -416,8 +417,8 @@ List<BalancerPowerOutletModel> _shellShuffleOutletChildren(
 ///
 /// Swaps the children of the outlets given by [indexA] and [indexB].
 ///
-List<BalancerPowerOutletModel> _swapOutletChildren(
-    int indexA, int indexB, List<BalancerPowerOutletModel> list) {
+List<BalancerOutletModel> _swapOutletChildren(
+    int indexA, int indexB, List<BalancerOutletModel> list) {
   final clone = list.toList();
 
   final outletA = clone[indexA].copyWith();
@@ -432,7 +433,7 @@ List<BalancerPowerOutletModel> _swapOutletChildren(
   return clone;
 }
 
-PhaseLoad _calculatePhaseLoading(List<BalancerPowerOutletModel> slice) {
+PhaseLoad _calculatePhaseLoading(List<BalancerOutletModel> slice) {
   final List<double> loads = [0, 0, 0];
 
   for (var (index, outlet) in slice.indexed) {
@@ -446,8 +447,8 @@ PhaseLoad _calculatePhaseLoading(List<BalancerPowerOutletModel> slice) {
   return PhaseLoad(loads[0], loads[1], loads[2]);
 }
 
-List<BalancerPowerOutletModel> _assertUnevenPiggybackOrdering(
-    List<BalancerPowerOutletModel> slice) {
+List<BalancerOutletModel> _assertUnevenPiggybackOrdering(
+    List<BalancerOutletModel> slice) {
   // We can end up in a situation where we have Uneven Piggybacking, this is generally triggered by a slice having a given qty of piggybackable fixtures
   // which then aren't evenly divisible by that Fixtures maxPiggyback ammount.
   // EG:
@@ -525,8 +526,8 @@ List<BalancerPowerOutletModel> _assertUnevenPiggybackOrdering(
   return workingSlice;
 }
 
-List<BalancerPowerOutletModel> _assertCrossPhaseNumericOrdering(
-    List<BalancerPowerOutletModel> slice) {
+List<BalancerOutletModel> _assertCrossPhaseNumericOrdering(
+    List<BalancerOutletModel> slice) {
   // Clone the Input List.
   final sliceCopy = slice.toList();
 
@@ -543,7 +544,7 @@ List<BalancerPowerOutletModel> _assertCrossPhaseNumericOrdering(
   // Instantiate a buffer to store the results. This is because
   // we will be adding indexes out of order, which we can't use List.Add or list.insert when
   // they are out of numeric order.
-  final Map<int, BalancerPowerOutletModel> resultBuffer = {};
+  final Map<int, BalancerOutletModel> resultBuffer = {};
 
   // Iterate through each group of Outlets with common amperages.
   for (var entry in outletsByAmperage.entries.toList()) {
@@ -556,7 +557,7 @@ List<BalancerPowerOutletModel> _assertCrossPhaseNumericOrdering(
 
     // Sort the outlets by the Sequence Numeber, then store them as a Queue (Using a queue saves us having to
     // instantiate another variable for tracking the index).
-    final sortedBySequenceNumber = Queue<BalancerPowerOutletModel>.from(
+    final sortedBySequenceNumber = Queue<BalancerOutletModel>.from(
         outlets.sorted((a, b) => a.child.compareBySequence(b.child)).toList());
 
     // Iterate through the origin indexes.
@@ -583,8 +584,8 @@ List<BalancerPowerOutletModel> _assertCrossPhaseNumericOrdering(
 /// Asserts a numeric ordering of Fixture numbers where possible. Constrained only to outlets that belong on the
 /// same Phase.
 ///
-List<BalancerPowerOutletModel> _assertInterPhaseNumericOrdering(
-    List<BalancerPowerOutletModel> slice) {
+List<BalancerOutletModel> _assertInterPhaseNumericOrdering(
+    List<BalancerOutletModel> slice) {
   final sliceCopy = slice.toList();
   final phase1Outlets = sliceCopy.where((outlet) => outlet.phase == 1).toList();
   final phase2Outlets = sliceCopy.where((outlet) => outlet.phase == 2).toList();
@@ -607,8 +608,7 @@ List<BalancerPowerOutletModel> _assertInterPhaseNumericOrdering(
 /// The latter outlet has a numerically smaller fixture number then the former outlet.
 /// Modifications are performed in Place to [slice]
 void _maybeNumericallyShuffleSortOutlets(
-    List<BalancerPowerOutletModel> phaseOutlets,
-    List<BalancerPowerOutletModel> slice) {
+    List<BalancerOutletModel> phaseOutlets, List<BalancerOutletModel> slice) {
   if (phaseOutlets.isEmpty || phaseOutlets.length <= 2) {
     if (phaseOutlets.length > 2) {
       throw "phaseOutlets length was greater than 2. Which is odd. ${phaseOutlets.length}";

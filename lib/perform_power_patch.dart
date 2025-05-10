@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:sidekick/assert_outlet_name_and_number.dart';
 import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
-import 'package:sidekick/balancer/models/balancer_power_outlet_model.dart';
+import 'package:sidekick/balancer/models/balancer_multi_outlet_model.dart';
 import 'package:sidekick/balancer/naive_balancer.dart';
 import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
@@ -12,12 +12,10 @@ import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 
 class PowerPatchResult {
-  final List<PowerOutletModel> powerOutlets;
   final Map<String, PowerMultiOutletModel> powerMultiOutlets;
 
   PowerPatchResult({
     required this.powerMultiOutlets,
-    required this.powerOutlets,
   });
 }
 
@@ -48,15 +46,15 @@ PowerPatchResult performPowerPatch({
     balanceTolerance: balanceTolerance,
   );
 
-  final withDefaultMultiOutletNames =
-      _applyDefaultMultiOutletNames(balancedMultiOutlets, locations);
+  final withDefaultMultiOutletNames = _applyDefaultMultiOutletNames(
+      multiOutlets: balancedMultiOutlets, locations: locations);
 
   return PowerPatchResult(
-      powerMultiOutlets: _assertPowerMultiState(
-          Map<String, PowerMultiOutletModel>.from(
-              withDefaultMultiOutletNames.keys.toModelMap()),
-          locations),
-      powerOutlets: withDefaultMultiOutletNames.values.flattened.toList());
+    powerMultiOutlets: _assertPowerMultiState(
+      withDefaultMultiOutletNames.toModelMap(),
+      locations,
+    ),
+  );
 }
 
 Map<String, PowerMultiOutletModel> _assertPowerMultiState(
@@ -74,65 +72,60 @@ Map<String, PowerMultiOutletModel> _assertPowerMultiState(
       .toModelMap();
 }
 
-Map<PowerMultiOutletModel, List<PowerOutletModel>> _balanceOutlets({
-  required Map<PowerMultiOutletModel, List<BalancerPowerOutletModel>>
-      unbalancedMultiOutlets,
+List<PowerMultiOutletModel> _balanceOutlets({
+  required List<BalancerMultiOutletModel> unbalancedMultiOutlets,
   required NaiveBalancer balancer,
   required double balanceTolerance,
 }) {
   PhaseLoad currentLoad = PhaseLoad(0, 0, 0);
 
-  return unbalancedMultiOutlets.map((multiOutlet, outlets) {
-    final result = balancer.balanceOutlets(
-      outlets,
-      balanceTolerance: balanceTolerance,
-      initialLoad: currentLoad,
-    );
+  final balancedMultiOutlets = unbalancedMultiOutlets.map((multiOutlet) {
+    final balanceResult = balancer.balanceOutlets(multiOutlet.children,
+        balanceTolerance: balanceTolerance, initialLoad: currentLoad);
 
-    currentLoad = result.load;
+    currentLoad = balanceResult.load;
 
-    return MapEntry(
-        multiOutlet,
-        result.outlets
+    return multiOutlet.copyWith(children: balanceResult.outlets);
+  });
+
+  return balancedMultiOutlets.map((balancerMultiOutlet) {
+    return PowerMultiOutletModel(
+        uid: balancerMultiOutlet.uid,
+        locationId: balancerMultiOutlet.locationId,
+        desiredSpareCircuits: balancerMultiOutlet.desiredSpareCircuits,
+        children: balancerMultiOutlet.children
             .map((balancerOutlet) => PowerOutletModel(
                 phase: balancerOutlet.phase,
-                multiOutletId: multiOutlet.uid,
                 multiPatch: balancerOutlet.multiPatch,
-                locationId: balancerOutlet.locationId,
                 fixtureIds: balancerOutlet.child.fixtures
                     .map((fixture) => fixture.uid)
                     .toList(),
                 load: balancerOutlet.child.amps))
             .toList());
-  });
+  }).toList();
 }
 
-/// Looks up the default Multi Outlet names for outlets that have not been assigned a name.
-Map<PowerMultiOutletModel, List<PowerOutletModel>>
-    _applyDefaultMultiOutletNames(
-  Map<PowerMultiOutletModel, List<PowerOutletModel>> balancedMultiOutlets,
-  Map<String, LocationModel> locations,
-) {
-  return Map<PowerMultiOutletModel, List<PowerOutletModel>>.fromEntries(
-      balancedMultiOutlets.entries.map((entry) {
-    final outlet = entry.key;
+List<PowerMultiOutletModel> _applyDefaultMultiOutletNames({
+  required List<PowerMultiOutletModel> multiOutlets,
+  required Map<String, LocationModel> locations,
+}) {
+  final multisByLocationId =
+      multiOutlets.groupListsBy((multi) => multi.locationId);
 
-    final location = locations[outlet.locationId];
+  return multiOutlets.map((multi) {
+    final location = locations[multi.locationId];
 
     if (location == null) {
-      return entry;
+      return multi;
     }
 
-    final multisInLocation = balancedMultiOutlets.keys
-        .where((multi) => multi.locationId == location.uid)
-        .toList();
+    final multisInLocation = multisByLocationId[location.uid]!;
 
-    final outletName = location.getPrefixedPowerMulti(
-        multisInLocation.length > 1 ? outlet.number : null);
+    final multiName = location.getPrefixedPowerMulti(
+        multisInLocation.length > 1 ? multi.number : null);
 
-    return MapEntry(
-      outlet.copyWith(name: outletName),
-      entry.value,
+    return multi.copyWith(
+      name: multiName,
     );
-  }));
+  }).toList();
 }

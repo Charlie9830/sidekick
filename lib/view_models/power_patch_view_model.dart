@@ -17,10 +17,8 @@ class PowerPatchViewModel {
   final void Function(String newValue) onBalanceToleranceChanged;
   final void Function(String newValue) onMaxSequenceBreakChanged;
   final void Function(String uid) onMultiOutletPressed;
-  final void Function() onCommit;
 
   PowerPatchViewModel({
-    required this.onCommit,
     required this.selectedMultiOutlet,
     required this.rows,
     required this.phaseLoad,

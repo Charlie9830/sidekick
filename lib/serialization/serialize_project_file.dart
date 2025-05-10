@@ -27,7 +27,6 @@ Future<ProjectFileMetadataModel> serializeProjectFile(
     dataPatches: state.fixtureState.dataPatches.values.toList(),
     locations: state.fixtureState.locations.values.toList(),
     powerMultiOutlets: state.fixtureState.powerMultiOutlets.values.toList(),
-    outlets: state.fixtureState.outlets.toList(),
     maxSequenceBreak: state.fixtureState.maxSequenceBreak,
     looms: state.fixtureState.looms.values.toList(),
     cables: state.fixtureState.cables.values.toList(),
