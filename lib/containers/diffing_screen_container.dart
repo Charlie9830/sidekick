@@ -1,6 +1,8 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
+import 'package:sidekick/containers/select_power_patch_view_models.dart';
 import 'package:sidekick/data_selectors/select_loom_view_models.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
@@ -8,28 +10,31 @@ import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/state/app_state.dart';
+import 'package:sidekick/screens/diffing/diffing_screen.dart';
 import 'package:sidekick/screens/diffing/loom_diffing.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/view_models/cable_view_model.dart';
 import 'package:sidekick/view_models/diff_app_state_view_model.dart';
 import 'package:sidekick/view_models/loom_diffing_item_view_model.dart';
-import 'package:sidekick/view_models/loom_diffing_view_model.dart';
+import 'package:sidekick/view_models/diffing_screen_view_model.dart';
 import 'package:sidekick/view_models/loom_view_model.dart';
 import 'package:path/path.dart' as p;
+import 'package:sidekick/view_models/patch_diffing_item_view_model.dart';
+import 'package:sidekick/view_models/power_patch_view_model.dart';
 
-class LoomsDiffingContainer extends StatelessWidget {
-  const LoomsDiffingContainer({Key? key}) : super(key: key);
+class DiffingScreenContainer extends StatelessWidget {
+  const DiffingScreenContainer({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return StoreConnector<DiffAppState, DiffAppStateViewModel>(
       builder: (context, diffViewModel) {
-        return StoreConnector<AppState, LoomDiffingViewModel>(
+        return StoreConnector<AppState, DiffingScreenViewModel>(
           builder: (context, viewModel) {
-            return LoomDiffing(vm: viewModel);
+            return DiffingScreen(viewModel: viewModel);
           },
           converter: (Store<AppState> store) {
-            return LoomDiffingViewModel(
+            return DiffingScreenViewModel(
               onFileSelectedForCompare: (path) {
                 store.dispatch(SetComparisonFilePath(path));
                 diffViewModel.onFileSelectedForCompare(path);
@@ -38,7 +43,11 @@ class LoomsDiffingContainer extends StatelessWidget {
                   ? store.state.fileState.lastUsedProjectDirectory
                   : p.dirname(store.state.fileState.comparisonFilePath),
               comparisonFilePath: store.state.fileState.comparisonFilePath,
-              itemVms: _getLoomDiffs(
+              patchItemVms: _getPatchDiffs(
+                currentPatchVms: selectPowerPatchViewModels(store).toModelMap(),
+                originalPatchVms: diffViewModel.originalPatchViewModels,
+              ),
+              loomItemVms: _getLoomDiffs(
                   currentLoomVms: selectLoomViewModels(store).toModelMap(),
                   originalLoomVms: diffViewModel.originalLoomViewModels),
             );
@@ -47,12 +56,62 @@ class LoomsDiffingContainer extends StatelessWidget {
       },
       converter: (Store<DiffAppState> diffStore) {
         return DiffAppStateViewModel(
-            originalLoomViewModels:
-                selectLoomViewModels(diffStore).toModelMap(),
-            onFileSelectedForCompare: (path) =>
-                diffStore.dispatch(openProjectFile(context, false, path)));
+          originalLoomViewModels: selectLoomViewModels(diffStore).toModelMap(),
+          onFileSelectedForCompare: (path) =>
+              diffStore.dispatch(openProjectFile(context, false, path)),
+          originalPatchViewModels:
+              selectPowerPatchViewModels(diffStore).toModelMap(),
+        );
       },
     );
+  }
+
+  List<PatchDiffingItemViewModel> _getPatchDiffs({
+    required Map<String, PowerPatchRowViewModel> currentPatchVms,
+    required Map<String, PowerPatchRowViewModel> originalPatchVms,
+  }) {
+    final allIds = {
+      ...currentPatchVms.values.map((vm) => _extractPowerPatchUid(vm)),
+      ...originalPatchVms.values.map((vm) => _extractPowerPatchUid(vm)),
+    };
+
+    return allIds.map((rowId) {
+      final current = currentPatchVms[rowId];
+      final original = originalPatchVms[rowId];
+
+      if (original != null && current == null) {
+        return PatchDiffingItemViewModel(
+          current: null,
+          original: original,
+          deltas: const PropertyDeltaSet.empty(),
+          overallDiff: DiffState.deleted,
+        );
+      }
+
+      if (current != null && original == null) {
+        return PatchDiffingItemViewModel(
+          current: current,
+          original: original,
+          deltas: const PropertyDeltaSet.empty(),
+          overallDiff: DiffState.added,
+        );
+      }
+
+      return PatchDiffingItemViewModel(
+          current: current,
+          original: original,
+          deltas: current!.calculateDeltas(original!),
+          overallDiff: DiffState.unchanged,
+          outletDeltas: _getOutletDeltas(original: original, current: current));
+    }).toList();
+  }
+
+  String _extractPowerPatchUid(PowerPatchRowViewModel powerPatch) {
+    return switch (powerPatch) {
+      LocationRowViewModel i => i.location.uid,
+      MultiOutletRowViewModel i => i.multiOutlet.uid,
+      _ => throw UnimplementedError(),
+    };
   }
 
   List<LoomDiffingItemViewModel> _getLoomDiffs(
@@ -103,6 +162,28 @@ class LoomsDiffingContainer extends StatelessWidget {
     }).toList();
   }
 
+  List<OutletDelta> _getOutletDeltas(
+      {required PowerPatchRowViewModel original,
+      required PowerPatchRowViewModel current}) {
+    if (original is MultiOutletRowViewModel == false ||
+        current is MultiOutletRowViewModel == false) {
+      return [];
+    }
+
+    if (original is MultiOutletRowViewModel &&
+        current is MultiOutletRowViewModel) {
+      return current.childOutlets.mapIndexed((index, currentChild) {
+        final originalChild = original.childOutlets[index];
+
+        return OutletDelta(
+            multiPatchIndex: index,
+            properties: currentChild.calculateDeltas(originalChild));
+      }).toList();
+    }
+
+    return [];
+  }
+
   Map<String, CableDelta> _getCableDeltas(Map<String, CableViewModel> original,
       Map<String, CableViewModel> current) {
     final allIds = {
@@ -139,7 +220,7 @@ class LoomsDiffingContainer extends StatelessWidget {
   }
 }
 
-class CableDelta extends ModelCollectionMember {
+class CableDelta implements ModelCollectionMember {
   @override
   final String uid;
   final DiffState overallDiff;
@@ -148,6 +229,16 @@ class CableDelta extends ModelCollectionMember {
   CableDelta({
     required this.uid,
     required this.overallDiff,
+    required this.properties,
+  });
+}
+
+class OutletDelta {
+  final int multiPatchIndex;
+  final PropertyDeltaSet properties;
+
+  OutletDelta({
+    required this.multiPatchIndex,
     required this.properties,
   });
 }

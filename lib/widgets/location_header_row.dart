@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:sidekick/diff_state_overlay.dart';
+import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/screens/diffing/property_delta.dart';
 
 class LocationHeaderRow extends StatelessWidget {
   final LocationModel location;
   final Widget trailing;
+  final PropertyDeltaSet? deltas;
 
   const LocationHeaderRow(
       {Key? key,
       required this.location,
+      this.deltas,
       this.trailing = const SizedBox(width: 0)})
       : super(key: key);
 
@@ -24,7 +29,10 @@ class LocationHeaderRow extends StatelessWidget {
             color: Colors.grey,
           ),
           const SizedBox(width: 8),
-          Text(location.name, style: Theme.of(context).textTheme.titleMedium),
+          DiffStateOverlay(
+              diff: deltas?.lookup(PropertyDeltaName.locationName),
+              child: Text(location.name,
+                  style: Theme.of(context).textTheme.titleMedium)),
           const Spacer(),
           trailing,
         ],

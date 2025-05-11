@@ -1,42 +1,26 @@
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:sidekick/builders/build_cable_row_item.dart';
 import 'package:sidekick/diff_state_overlay.dart';
-import 'package:sidekick/file_type_groups.dart';
-import 'package:sidekick/file_select_button.dart';
 import 'package:sidekick/screens/looms/loom_row_item.dart';
-import 'package:sidekick/view_models/loom_diffing_view_model.dart';
-import 'package:sidekick/widgets/toolbar.dart';
+import 'package:sidekick/view_models/loom_diffing_item_view_model.dart';
 
 class LoomDiffing extends StatelessWidget {
-  final LoomDiffingViewModel vm;
+  final List<LoomDiffingItemViewModel> itemVms;
   const LoomDiffing({
+    required this.itemVms,
     super.key,
-    required this.vm,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Toolbar(
-            child: Row(
-          children: [
-            FileSelectButton(
-              path: vm.comparisonFilePath,
-              onFileSelectPressed: _handleSelectFileForComparePressed,
-              hintText: 'Select file to compare with..',
-              dropTargetName: 'Drop Phase Project here',
-              onFileDropped: vm.onFileSelectedForCompare,
-            ),
-          ],
-        )),
         Expanded(
           child: ListView.separated(
               separatorBuilder: (context, index) => const Divider(height: 48),
-              itemCount: vm.itemVms.length,
+              itemCount: itemVms.length,
               itemBuilder: (context, index) {
-                final item = vm.itemVms[index];
+                final item = itemVms[index];
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -99,17 +83,5 @@ class LoomDiffing extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  void _handleSelectFileForComparePressed() async {
-    final result = await openFile(
-      confirmButtonText: 'Select',
-      acceptedTypeGroups: kProjectFileTypes,
-      initialDirectory: vm.initialDirectory,
-    );
-
-    if (result != null) {
-      vm.onFileSelectedForCompare(result.path);
-    }
   }
 }

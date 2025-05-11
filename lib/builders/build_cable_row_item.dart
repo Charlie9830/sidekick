@@ -1,4 +1,4 @@
-import 'package:sidekick/containers/looms_diffing_container.dart';
+import 'package:sidekick/containers/diffing_screen_container.dart';
 import 'package:sidekick/data_selectors/select_show_cable_top_border.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/screens/looms/cable_row_item.dart';

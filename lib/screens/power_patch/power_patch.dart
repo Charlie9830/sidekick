@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/screens/power_patch/balance_gauge.dart';
-import 'package:sidekick/screens/power_patch/location_header_trailer.dart';
-import 'package:sidekick/screens/power_patch/power_outlet_table.dart';
+import 'package:sidekick/screens/power_patch/location_row.dart';
+import 'package:sidekick/screens/power_patch/multi_outlet_row.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';
-import 'package:sidekick/widgets/location_header_row.dart';
 import 'package:sidekick/widgets/property_field.dart';
 import 'package:sidekick/widgets/toolbar.dart';
 
@@ -82,77 +81,18 @@ class _PowerPatchState extends State<PowerPatch> {
     ]);
   }
 
-  Widget _buildRow(BuildContext context, PowerPatchRow row) {
+  Widget _buildRow(BuildContext context, PowerPatchRowViewModel row) {
     return switch (row) {
-      LocationRow locationRow => LocationHeaderRow(
-          key: Key(locationRow.location.uid),
-          location: locationRow.location,
-          trailing: LocationHeaderTrailer(
-            multiCount: row.multiCount,
-            isLocked: locationRow.location.isPowerPatchLocked,
-            onLockChanged: (value) => row.onLockChanged(value),
-          ),
-        ),
-      MultiOutletRow outletRow => _buildMultiOutlet(context, outletRow),
+      LocationRowViewModel vm => LocationRow(key: Key(vm.uid), vm: vm),
+      MultiOutletRowViewModel vm => GestureDetector(
+          onTap: () => widget.vm.onMultiOutletPressed(row.multiOutlet.uid),
+          child: MultiOutletRow(
+            vm: vm,
+            selected: vm.uid == widget.vm.selectedMultiOutlet,
+            onAddSpareOutlet: widget.vm.onAddSpareOutlet,
+            onDeleteSpareOutlet: widget.vm.onDeleteSpareOutlet,
+          )),
       _ => const Text("Error"),
     };
-  }
-
-  Widget _buildMultiOutlet(BuildContext context, MultiOutletRow row) {
-    return GestureDetector(
-      onTap: () => widget.vm.onMultiOutletPressed(row.multiOutlet.uid),
-      child: Card(
-        color: widget.vm.selectedMultiOutlet == row.multiOutlet.uid
-            ? Theme.of(context).highlightColor
-            : null,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Icon(Icons.electric_bolt,
-                      color: Colors.yellow, size: 20),
-                  const SizedBox(width: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4.0),
-                    child: Text(
-                      row.multiOutlet.name,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (row.multiOutlet.desiredSpareCircuits > 0)
-                    Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: CircleAvatar(
-                          backgroundColor: Colors.blueGrey,
-                          radius: 12,
-                          child: Text(
-                            '${row.multiOutlet.desiredSpareCircuits}',
-                          ),
-                        )),
-                  IconButton(
-                    icon: const Icon(Icons.playlist_add),
-                    onPressed: row.multiOutlet.desiredSpareCircuits < 6
-                        ? () => widget.vm.onAddSpareOutlet(row.multiOutlet.uid)
-                        : null,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.playlist_remove),
-                    onPressed: row.multiOutlet.desiredSpareCircuits > 0
-                        ? () =>
-                            widget.vm.onDeleteSpareOutlet(row.multiOutlet.uid)
-                        : null,
-                  ),
-                ],
-              ),
-            ),
-            OutletTable(outletVM: row.childOutlets),
-          ],
-        ),
-      ),
-    );
   }
 }

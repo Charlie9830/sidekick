@@ -5,7 +5,7 @@ import 'package:sidekick/containers/file_container.dart';
 import 'package:sidekick/containers/fixture_table_container.dart';
 import 'package:sidekick/containers/fixture_types_container.dart';
 import 'package:sidekick/containers/locations_container.dart';
-import 'package:sidekick/containers/looms_diffing_container.dart';
+import 'package:sidekick/containers/diffing_screen_container.dart';
 import 'package:sidekick/containers/looms_v2_container.dart';
 import 'package:sidekick/containers/power_patch_container.dart';
 import 'package:sidekick/global_keys.dart';
@@ -99,7 +99,7 @@ class _HomeState extends State<Home> {
             LocationsContainer(),
             FixtureTypesContainer(),
             ExportContainer(),
-            LoomsDiffingContainer(),
+            DiffingScreenContainer(),
             TheLab(),
           ],
         ),

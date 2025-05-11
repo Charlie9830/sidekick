@@ -1,13 +1,16 @@
 import 'package:sidekick/view_models/loom_diffing_item_view_model.dart';
+import 'package:sidekick/view_models/patch_diffing_item_view_model.dart';
 
-class LoomDiffingViewModel {
+class DiffingScreenViewModel {
   final void Function(String path) onFileSelectedForCompare;
-  final List<LoomDiffingItemViewModel> itemVms;
+  final List<LoomDiffingItemViewModel> loomItemVms;
+  final List<PatchDiffingItemViewModel> patchItemVms;
   final String comparisonFilePath;
   final String initialDirectory;
 
-  LoomDiffingViewModel({
-    required this.itemVms,
+  DiffingScreenViewModel({
+    required this.loomItemVms,
+    required this.patchItemVms,
     required this.onFileSelectedForCompare,
     required this.comparisonFilePath,
     required this.initialDirectory,
