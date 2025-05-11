@@ -1,6 +1,5 @@
 import 'package:collection/collection.dart';
 import 'package:redux/redux.dart';
-import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';
 
@@ -14,10 +13,9 @@ List<PowerPatchRowViewModel> selectPowerPatchViewModels(Store<AppState> store) {
 
         return [
           LocationRowViewModel(
-              location: location,
-              multiCount: associatedMultis.length,
-              onLockChanged: (value) =>
-                  store.dispatch(SetLocationPowerLock(location.uid, value))),
+            location: location,
+            multiCount: associatedMultis.length,
+          ),
           ...associatedMultis.map((multi) => MultiOutletRowViewModel(
               multi,
               multi.children

@@ -113,19 +113,6 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     );
   }
 
-  if (a is SetLocationPowerLock) {
-    return state.copyWith(
-        locations: state.locations.clone()
-          ..update(a.locationId,
-              (existing) => existing.copyWith(isPowerPatchLocked: a.value)));
-  }
-
-  if (a is SetLocationDataLock) {
-    return state.copyWith(
-        locations: state.locations.clone()
-          ..update(a.locationId,
-              (existing) => existing.copyWith(isDataPatchLocked: a.value)));
-  }
 
   if (a is SetHonorDataSpans) {
     return state.copyWith(

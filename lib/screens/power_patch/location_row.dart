@@ -22,8 +22,6 @@ class LocationRow extends StatelessWidget {
       trailing: LocationHeaderTrailer(
         multiCount: vm.multiCount,
         deltas: deltas,
-        isLocked: vm.location.isPowerPatchLocked,
-        onLockChanged: (value) => vm.onLockChanged(value),
       ),
     );
   }

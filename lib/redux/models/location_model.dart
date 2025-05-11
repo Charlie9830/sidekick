@@ -20,8 +20,6 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
   final String name;
   final LabelColorModel color;
   final String multiPrefix;
-  final bool isPowerPatchLocked;
-  final bool isDataPatchLocked;
   final String delimiter;
   final Set<String> hybridIds;
 
@@ -32,8 +30,6 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       this.name = '',
       required this.color,
       this.multiPrefix = '',
-      this.isDataPatchLocked = false,
-      this.isPowerPatchLocked = false,
       this.delimiter = '.',
       this.hybridIds = const {}});
 
@@ -41,8 +37,6 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       : uid = 'none',
         name = '',
         multiPrefix = '',
-        isDataPatchLocked = false,
-        isPowerPatchLocked = false,
         color = const LabelColorModel.none(),
         delimiter = '',
         hybridIds = const {};
@@ -58,8 +52,6 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
     String? name,
     LabelColorModel? color,
     String? multiPrefix,
-    bool? isPowerPatchLocked,
-    bool? isDataPatchLocked,
     String? delimiter,
     Set<String>? hybridIds,
   }) {
@@ -68,8 +60,6 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       name: name ?? this.name,
       color: color ?? this.color,
       multiPrefix: multiPrefix ?? this.multiPrefix,
-      isPowerPatchLocked: isPowerPatchLocked ?? this.isPowerPatchLocked,
-      isDataPatchLocked: isDataPatchLocked ?? this.isDataPatchLocked,
       delimiter: delimiter ?? this.delimiter,
       hybridIds: hybridIds ?? this.hybridIds,
     );
@@ -130,8 +120,6 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       'name': name,
       'color': color.toMap(),
       'multiPrefix': multiPrefix,
-      'isPowerPatchLocked': isPowerPatchLocked,
-      'isDataPatchLocked': isDataPatchLocked,
       'delimiter': delimiter,
       'hybridIds': hybridIds.toList(),
     };
@@ -145,8 +133,6 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
           ? const LabelColorModel.none()
           : LabelColorModel.fromMap(map['color']),
       multiPrefix: map['multiPrefix'] ?? '',
-      isPowerPatchLocked: map['isPowerPatchLocked'] ?? false,
-      isDataPatchLocked: map['isDataPatchLocked'] ?? false,
       delimiter: map['delimiter'] ?? '',
       hybridIds: map['hybridIds'] == null
           ? const <String>{}
