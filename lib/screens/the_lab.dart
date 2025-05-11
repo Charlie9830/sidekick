@@ -31,7 +31,7 @@ class _TheLabState extends State<TheLab> {
               backgroundColor: Colors.red,
             ),
             body: ListView(
-              children: [
+              children: const [
                 OverlayTest(
                   child: Text("Hello"),
                 ),

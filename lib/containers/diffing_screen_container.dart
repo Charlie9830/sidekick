@@ -11,7 +11,6 @@ import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/diffing/diffing_screen.dart';
-import 'package:sidekick/screens/diffing/loom_diffing.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/view_models/cable_view_model.dart';
 import 'package:sidekick/view_models/diff_app_state_view_model.dart';

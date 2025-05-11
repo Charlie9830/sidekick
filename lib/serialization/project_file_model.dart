@@ -168,7 +168,7 @@ class ProjectFileModel {
       dataPatches: dataPatches.toModelMap(),
       looms: looms.toModelMap(),
       fixtureTypes: fixtureTypes.toModelMap(),
-      honorDataSpans: honorDataSpans ?? FixtureState.initial().honorDataSpans,
+      honorDataSpans: honorDataSpans ?? const FixtureState.initial().honorDataSpans,
       cables: cables.toModelMap(),
       defaultPowerMulti: defaultPowerMulti,
       loomStock: loomStock.toModelMap(),

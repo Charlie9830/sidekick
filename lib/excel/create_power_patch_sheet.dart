@@ -6,7 +6,6 @@ import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
-import 'package:sidekick/redux/models/power_outlet_model.dart';
 
 void createPowerPatchSheet(
     {required Excel excel,

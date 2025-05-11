@@ -99,7 +99,6 @@ class _FileSelectButtonState extends State<FileSelectButton> {
 class _Hovering extends StatelessWidget {
   final String hoveringName;
   const _Hovering({
-    super.key,
     required this.hoveringName,
   });
 

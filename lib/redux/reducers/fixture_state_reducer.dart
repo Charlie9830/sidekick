@@ -131,7 +131,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is NewProject) {
-    return FixtureState.initial();
+    return const FixtureState.initial();
   }
 
   if (a is OpenProject) {
@@ -141,7 +141,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is ResetFixtureState) {
-    return FixtureState.initial();
+    return const FixtureState.initial();
   }
 
   if (a is UpdateFixtureTypeShortName) {

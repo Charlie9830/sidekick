@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:sidekick/screens/diffing/diffing_toolbar.dart';
 import 'package:sidekick/screens/diffing/loom_diffing.dart';
