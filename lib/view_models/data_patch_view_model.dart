@@ -3,13 +3,11 @@ import 'package:sidekick/redux/models/location_model.dart';
 
 class DataPatchViewModel {
   final List<DataPatchRow> rows;
-  final void Function() onCommit;
   final bool honorDataSpans;
   final void Function(bool newValue) onHonorDataSpansChanged;
 
   DataPatchViewModel({
     required this.rows,
-    required this.onCommit,
     required this.onHonorDataSpansChanged,
     required this.honorDataSpans,
   });

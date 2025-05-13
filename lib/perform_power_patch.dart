@@ -4,6 +4,7 @@ import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
 import 'package:sidekick/balancer/models/balancer_multi_outlet_model.dart';
 import 'package:sidekick/balancer/naive_balancer.dart';
 import 'package:sidekick/balancer/phase_load.dart';
+import 'package:sidekick/extension_methods/clone_map.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
@@ -13,9 +14,11 @@ import 'package:sidekick/redux/models/power_outlet_model.dart';
 
 class PowerPatchResult {
   final Map<String, PowerMultiOutletModel> powerMultiOutlets;
+  final Map<String, FixtureModel> fixtures;
 
   PowerPatchResult({
     required this.powerMultiOutlets,
+    required this.fixtures,
   });
 }
 
@@ -46,15 +49,39 @@ PowerPatchResult performPowerPatch({
     balanceTolerance: balanceTolerance,
   );
 
-  final withDefaultMultiOutletNames = _applyDefaultMultiOutletNames(
-      multiOutlets: balancedMultiOutlets, locations: locations);
+  final withDefaultMultiOutletNamesAndAssertedState = _assertPowerMultiState(
+      _applyDefaultMultiOutletNames(
+              multiOutlets: balancedMultiOutlets, locations: locations)
+          .toModelMap(),
+      locations);
 
   return PowerPatchResult(
-    powerMultiOutlets: _assertPowerMultiState(
-      withDefaultMultiOutletNames.toModelMap(),
-      locations,
-    ),
+    powerMultiOutlets: withDefaultMultiOutletNamesAndAssertedState,
+    fixtures: _applyPowerPatchData(
+        _extractPowerPatchDataByFixtureId(
+            withDefaultMultiOutletNamesAndAssertedState),
+        fixtures),
   );
+}
+
+Map<String, FixtureModel> _applyPowerPatchData(
+    Map<String, String> powerPatchData, Map<String, FixtureModel> fixtures) {
+  return fixtures.clone()
+    ..updateAll((id, fixture) =>
+        fixture.copyWith(powerPatch: powerPatchData[id] ?? ''));
+}
+
+// Returns a Map<String, String> where the key is the fixture Id and the value is the formatted Power patch data for the fixture.
+Map<String, String> _extractPowerPatchDataByFixtureId(
+    Map<String, PowerMultiOutletModel> multiOutlets) {
+  return Map<String, String>.fromEntries(multiOutlets.values.map((multi) {
+    final fixtureIdsWithOutlets = multi.children
+        .map((outlet) => outlet.fixtureIds.map((id) => (id, outlet)))
+        .flattened;
+
+    return fixtureIdsWithOutlets.map((tuple) =>
+        MapEntry(tuple.$1, "${multi.name} - ${tuple.$2.multiPatch}"));
+  }).flattened);
 }
 
 Map<String, PowerMultiOutletModel> _assertPowerMultiState(

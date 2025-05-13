@@ -82,26 +82,12 @@ class _FixtureTableState extends State<FixtureTable> {
               TableHeaderColumn(
                   width: ColumnWidths.address, label: Text('Address')),
               TableHeaderColumn(
-                width: ColumnWidths.powerMulti,
-                label: IconLabel(
-                  icon:
-                      Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
-                  label: 'Multi',
-                ),
-              ),
-              TableHeaderColumn(
                 width: ColumnWidths.powerPatch,
                 label: IconLabel(
                     icon: Icon(Icons.electric_bolt,
                         color: Colors.yellow, size: 16),
                     label: 'Patch'),
               ),
-              TableHeaderColumn(
-                  width: ColumnWidths.dataMulti,
-                  label: IconLabel(
-                      icon: Icon(Icons.settings_input_svideo,
-                          color: Colors.blue, size: 16),
-                      label: 'Multi')),
               TableHeaderColumn(
                 width: ColumnWidths.dataPatch,
                 label: IconLabel(
@@ -131,8 +117,7 @@ class _FixtureTableState extends State<FixtureTable> {
     return TableRow(
       rangeSelected: _rangeSelectStartFixtureId == row.uid,
       selected: row.selected,
-      onPressed: (isSelected) =>
-          _handleSelectChanged(isSelected, row.uid),
+      onPressed: (isSelected) => _handleSelectChanged(isSelected, row.uid),
       cells: [
         _SequenceNumberCell(
           value: row.sequence.toString(),
@@ -143,11 +128,7 @@ class _FixtureTableState extends State<FixtureTable> {
         Text(row.type),
         Text(row.location),
         Text(row.address),
-        Text(row.powerMulti), // Power Multi
-        Text(
-          row.powerPatch == 0 ? '' : row.powerPatch.toString(),
-        ), // Power Patch
-        Text(row.dataMulti), // Data Multi
+        Text(row.powerPatch),
         Text(row.dataPatch),
       ],
     );

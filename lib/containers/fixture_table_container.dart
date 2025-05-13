@@ -69,9 +69,6 @@ class FixtureTableContainer extends StatelessWidget {
                 FixtureVMAccumulator.empty(), (accum, fixture) {
               final prevFixture = accum.prevFixture;
 
-              final powerMulti = store
-                  .state.fixtureState.powerMultiOutlets[fixture.powerMultiId];
-
               final vm = FixtureViewModel(
                   selected: store.state.navstate.selectedFixtureIds
                       .contains(fixture.uid),
@@ -82,11 +79,8 @@ class FixtureTableContainer extends StatelessWidget {
                   type: store.state.fixtureState.fixtureTypes[fixture.typeId]
                           ?.name ??
                       '',
-                  location: location.name,
-                  powerMulti: powerMulti?.name ?? kBadLookupValue,
                   powerPatch: fixture.powerPatch,
-                  dataMulti: fixture.dataMulti,
-                  dataPatch: fixture.dataPatch,
+                  location: location.name,
                   hasSequenceNumberBreak: prevFixture != null &&
                       prevFixture.sequence + 1 != fixture.sequence,
                   hasInvalidSequenceNumber: prevFixture != null &&

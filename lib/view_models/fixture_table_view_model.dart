@@ -41,9 +41,7 @@ class FixtureViewModel extends FixtureTableRow {
   final String type;
   final String location;
   final String address;
-  final String powerMulti;
-  final int powerPatch;
-  final String dataMulti;
+  final String powerPatch;
   final String dataPatch;
   final bool hasSequenceNumberBreak;
   final bool hasInvalidSequenceNumber;
@@ -57,9 +55,7 @@ class FixtureViewModel extends FixtureTableRow {
     this.type = '',
     this.location = '',
     this.address = '',
-    this.powerMulti = '',
-    this.powerPatch = 0,
-    this.dataMulti = '',
+    this.powerPatch = '',
     this.dataPatch = '',
     this.mode = '',
     this.hasSequenceNumberBreak = false,

@@ -22,7 +22,6 @@ class DataPatchContainer extends StatelessWidget {
       converter: (Store<AppState> store) {
         return DataPatchViewModel(
           rows: _selectDataPatchRows(store),
-          onCommit: () => store.dispatch(commitDataPatch()),
           onHonorDataSpansChanged: (newValue) =>
               store.dispatch(SetHonorDataSpans(newValue)),
           honorDataSpans: store.state.fixtureState.honorDataSpans,

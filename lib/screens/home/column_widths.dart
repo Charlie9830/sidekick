@@ -4,9 +4,7 @@ class ColumnWidths {
   static const double type = 200;
   static const double location = 200;
   static const double address = 128;
-  static const double powerMulti = 156;
   static const double powerPatch = 156;
-  static const double dataMulti = 156;
   static const double dataPatch = 156;
 
   static List<double> get asList => [
@@ -15,9 +13,7 @@ class ColumnWidths {
         type,
         location,
         address,
-        powerMulti,
-        powerMulti,
-        dataMulti,
-        dataMulti
+        powerPatch,
+        dataPatch,
       ];
 }

@@ -36,12 +36,6 @@ class DataPatch extends StatelessWidget {
                 ],
               ),
             ),
-            const Spacer(),
-            OutlinedButton.icon(
-              icon: const Icon(Icons.commit),
-              onPressed: vm.onCommit,
-              label: const Text('Commit'),
-            ),
           ],
         )),
         Expanded(

@@ -1370,37 +1370,6 @@ ThunkAction<AppState> setSequenceNumbers(BuildContext context) {
   };
 }
 
-ThunkAction<AppState> commitDataPatch() {
-  return (Store<AppState> store) async {
-    final dataPatchesByFixtureId = Map<String, DataPatchModel>.fromEntries(store
-        .state.fixtureState.dataPatches.values
-        .map((patch) => patch.fixtureIds.map((id) => MapEntry(id, patch)))
-        .flattened);
-
-    final updatedFixtures =
-        store.state.fixtureState.fixtures.map((uid, fixture) {
-      final associatedDataPatch = dataPatchesByFixtureId[uid];
-
-      if (associatedDataPatch == null) {
-        return MapEntry(uid, fixture);
-      }
-
-      // // TODO: Disabled until refactoring to Cable based Sneak children is complete.
-      // final associatedMultiPatch =
-      //     store.state.fixtureState.dataMultis[associatedDataPatch.multiId];
-
-      return MapEntry(
-          uid,
-          fixture.copyWith(
-            // dataMulti: associatedMultiPatch?.name ?? '',
-            dataPatch: associatedDataPatch.name,
-          ));
-    });
-
-    store.dispatch(SetFixtures(updatedFixtures));
-  };
-}
-
 ThunkAction<AppState> export(BuildContext context) {
   return (Store<AppState> store) async {
     final outputPaths = ExportFilePaths(
