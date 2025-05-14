@@ -43,7 +43,6 @@ import 'package:sidekick/persistent_settings/update_persistent_settings.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/app_store.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
-import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_stock_model.dart';
