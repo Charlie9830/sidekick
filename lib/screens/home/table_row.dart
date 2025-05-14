@@ -31,7 +31,10 @@ class TableRow extends StatelessWidget {
                 : null,
         child: SizedBox(
             height: 56,
-            child: Row(children: [
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
               const SizedBox(
                   width:
                       56), // Offset to match Header Row Left Padding (Checkbox etc),

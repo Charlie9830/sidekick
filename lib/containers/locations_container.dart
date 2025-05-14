@@ -44,8 +44,7 @@ class LocationsContainer extends StatelessWidget {
             .where((multi) => multi.locationId == location.uid)
             .length,
         dataPatchCount: store.state.fixtureState.dataPatches.values
-            .where((patch) =>
-                patch.locationId == location.uid && patch.isSpare == false)
+            .where((patch) => patch.locationId == location.uid)
             .length,
         otherLocationNames: location.isHybrid
             ? location.hybridIds

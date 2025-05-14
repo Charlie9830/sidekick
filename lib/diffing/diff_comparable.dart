@@ -45,9 +45,6 @@ class PropertyDeltaSet {
   DiffState lookup(PropertyDeltaName name) =>
       properties.contains(name) ? DiffState.changed : DiffState.unchanged;
 
-  DiffState? lookupOrNull(PropertyDeltaName name) =>
-      properties.contains(name) ? DiffState.changed : null;
-
   static Set<PropertyDeltaName> _convertToSet(
       List<PropertyDeltaName> properties) {
     final asSet = properties.toSet();

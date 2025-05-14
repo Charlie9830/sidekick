@@ -23,7 +23,7 @@ void createDataPatchSheet({
     TextCellValue('Color'),
   ]);
 
-  final activePatches = dataOutlets.where((outlet) => outlet.isSpare == false);
+  final activePatches = dataOutlets;
 
   final cablesByOutletId =
       cables.map((key, value) => MapEntry(value.outletId, value));

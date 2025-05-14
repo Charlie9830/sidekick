@@ -24,33 +24,37 @@ class DiffingToolbar extends StatelessWidget {
     const tabIconSize = 16.0;
 
     return Toolbar(
-      height: 124,
+        height: 124,
         child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        FileSelectButton(
-          path: comparisonFilePath,
-          onFileSelectPressed: _handleSelectFileForComparePressed,
-          hintText: 'Select file to compare with..',
-          dropTargetName: 'Drop Phase Project here',
-          onFileDropped: onFileSelectedForCompare,
-        ),
-        TabBar(
-          dividerHeight: 0,
-          controller: tabController,
-          tabs: [
-            Tab(
-              icon: const Icon(Icons.electric_bolt, size: tabIconSize),
-              child: Text('Patch', style: tabLabelTextStyle),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FileSelectButton(
+              path: comparisonFilePath,
+              onFileSelectPressed: _handleSelectFileForComparePressed,
+              hintText: 'Select file to compare with..',
+              dropTargetName: 'Drop Phase Project here',
+              onFileDropped: onFileSelectedForCompare,
             ),
-            Tab(
-              icon: const Icon(Icons.cable, size: tabIconSize),
-              child: Text('Looms', style: tabLabelTextStyle),
+            TabBar(
+              dividerHeight: 0,
+              controller: tabController,
+              tabs: [
+                Tab(
+                  icon: const Icon(Icons.lightbulb, size: tabIconSize),
+                  child: Text('Fixtures', style: tabLabelTextStyle),
+                ),
+                Tab(
+                  icon: const Icon(Icons.electric_bolt, size: tabIconSize),
+                  child: Text('Patch', style: tabLabelTextStyle),
+                ),
+                Tab(
+                  icon: const Icon(Icons.cable, size: tabIconSize),
+                  child: Text('Looms', style: tabLabelTextStyle),
+                ),
+              ],
             ),
           ],
-        ),
-      ],
-    ));
+        ));
   }
 
   void _handleSelectFileForComparePressed() async {

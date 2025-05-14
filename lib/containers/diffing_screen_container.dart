@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/containers/select_power_patch_view_models.dart';
+import 'package:sidekick/data_selectors/select_fixture_view_models.dart';
 import 'package:sidekick/data_selectors/select_loom_view_models.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
@@ -14,6 +15,8 @@ import 'package:sidekick/screens/diffing/diffing_screen.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/view_models/cable_view_model.dart';
 import 'package:sidekick/view_models/diff_app_state_view_model.dart';
+import 'package:sidekick/view_models/fixture_diffing_item_view_model.dart';
+import 'package:sidekick/view_models/fixture_table_view_model.dart';
 import 'package:sidekick/view_models/loom_diffing_item_view_model.dart';
 import 'package:sidekick/view_models/diffing_screen_view_model.dart';
 import 'package:sidekick/view_models/loom_view_model.dart';
@@ -34,22 +37,28 @@ class DiffingScreenContainer extends StatelessWidget {
           },
           converter: (Store<AppState> store) {
             return DiffingScreenViewModel(
-              onFileSelectedForCompare: (path) {
-                store.dispatch(SetComparisonFilePath(path));
-                diffViewModel.onFileSelectedForCompare(path);
-              },
-              initialDirectory: store.state.fileState.comparisonFilePath.isEmpty
-                  ? store.state.fileState.lastUsedProjectDirectory
-                  : p.dirname(store.state.fileState.comparisonFilePath),
-              comparisonFilePath: store.state.fileState.comparisonFilePath,
-              patchItemVms: _getPatchDiffs(
-                currentPatchVms: selectPowerPatchViewModels(store).toModelMap(),
-                originalPatchVms: diffViewModel.originalPatchViewModels,
-              ),
-              loomItemVms: _getLoomDiffs(
-                  currentLoomVms: selectLoomViewModels(store).toModelMap(),
-                  originalLoomVms: diffViewModel.originalLoomViewModels),
-            );
+                onFileSelectedForCompare: (path) {
+                  store.dispatch(SetComparisonFilePath(path));
+                  diffViewModel.onFileSelectedForCompare(path);
+                },
+                initialDirectory:
+                    store.state.fileState.comparisonFilePath.isEmpty
+                        ? store.state.fileState.lastUsedProjectDirectory
+                        : p.dirname(store.state.fileState.comparisonFilePath),
+                comparisonFilePath: store.state.fileState.comparisonFilePath,
+                patchItemVms: _getPatchDiffs(
+                  currentPatchVms:
+                      selectPowerPatchViewModels(store).toModelMap(),
+                  originalPatchVms: diffViewModel.originalPatchViewModels,
+                ),
+                loomItemVms: _getLoomDiffs(
+                    currentLoomVms: selectLoomViewModels(store).toModelMap(),
+                    originalLoomVms: diffViewModel.originalLoomViewModels),
+                fixtureItemVms: _getFixtureDiffs(
+                  currentFixtureVms:
+                      selectFixtureRowViewModels(store).toModelMap(),
+                  originalFixtureVms: diffViewModel.originalFixtureViewModels,
+                ));
           },
         );
       },
@@ -60,9 +69,49 @@ class DiffingScreenContainer extends StatelessWidget {
               diffStore.dispatch(openProjectFile(context, false, path)),
           originalPatchViewModels:
               selectPowerPatchViewModels(diffStore).toModelMap(),
+          originalFixtureViewModels:
+              selectFixtureRowViewModels(diffStore).toModelMap(),
         );
       },
     );
+  }
+
+  List<FixtureDiffingItemViewModel> _getFixtureDiffs({
+    required Map<String, FixtureTableRowViewModel> currentFixtureVms,
+    required Map<String, FixtureTableRowViewModel> originalFixtureVms,
+  }) {
+    final allIds = {
+      ...currentFixtureVms.values.map((vm) => vm.uid),
+      ...originalFixtureVms.values.map((vm) => vm.uid),
+    };
+
+    return allIds.map((rowId) {
+      final current = currentFixtureVms[rowId];
+      final original = originalFixtureVms[rowId];
+
+      if (original != null && current == null) {
+        return FixtureDiffingItemViewModel(
+          current: null,
+          original: original,
+          overallDiff: DiffState.deleted,
+        );
+      }
+
+      if (current != null && original == null) {
+        return FixtureDiffingItemViewModel(
+          current: current,
+          original: original,
+          overallDiff: DiffState.added,
+        );
+      }
+
+      return FixtureDiffingItemViewModel(
+        current: current,
+        original: original,
+        deltas: current!.calculateDeltas(original!),
+        overallDiff: DiffState.unchanged,
+      );
+    }).toList();
   }
 
   List<PatchDiffingItemViewModel> _getPatchDiffs({

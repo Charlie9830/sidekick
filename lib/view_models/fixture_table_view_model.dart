@@ -1,5 +1,9 @@
+import 'package:sidekick/diffing/diff_comparable.dart';
+import 'package:sidekick/model_collection/model_collection_member.dart';
+import 'package:sidekick/screens/diffing/property_delta.dart';
+
 class FixtureTableViewModel {
-  List<FixtureTableRow> rowVms;
+  List<FixtureTableRowViewModel> rowVms;
   final Set<String> selectedFixtureIds;
   final void Function() onSetSequenceButtonPressed;
   final bool? hasSelections;
@@ -19,22 +23,35 @@ class FixtureTableViewModel {
   });
 }
 
-abstract class FixtureTableRow {}
+abstract class FixtureTableRowViewModel
+    with DiffComparable
+    implements ModelCollectionMember {}
 
-class FixtureRowDividerVM extends FixtureTableRow {
+class FixtureRowDividerVM extends FixtureTableRowViewModel {
   final String title;
   final String locationId;
   final void Function() onSelectFixtures;
+
+  @override
+  String get uid => locationId;
 
   FixtureRowDividerVM({
     required this.title,
     required this.locationId,
     required this.onSelectFixtures,
   });
+
+  @override
+  Map<PropertyDeltaName, Object> getDiffValues() {
+    return {
+      PropertyDeltaName.locationName: title,
+    };
+  }
 }
 
-class FixtureViewModel extends FixtureTableRow {
+class FixtureViewModel extends FixtureTableRowViewModel {
   final bool selected;
+  @override
   final String uid;
   final int sequence;
   final int fid;
@@ -42,7 +59,6 @@ class FixtureViewModel extends FixtureTableRow {
   final String location;
   final String address;
   final String powerPatch;
-  final String dataPatch;
   final bool hasSequenceNumberBreak;
   final bool hasInvalidSequenceNumber;
   final String mode;
@@ -56,9 +72,21 @@ class FixtureViewModel extends FixtureTableRow {
     this.location = '',
     this.address = '',
     this.powerPatch = '',
-    this.dataPatch = '',
     this.mode = '',
     this.hasSequenceNumberBreak = false,
     this.hasInvalidSequenceNumber = false,
   });
+
+  @override
+  Map<PropertyDeltaName, Object> getDiffValues() {
+    return {
+      PropertyDeltaName.fixtureId: fid,
+      PropertyDeltaName.sequenceNumber: sequence,
+      PropertyDeltaName.fixtureType: type,
+      PropertyDeltaName.locationName: location,
+      PropertyDeltaName.address: address,
+      PropertyDeltaName.powerPatch: powerPatch,
+      PropertyDeltaName.mode: mode,
+    };
+  }
 }

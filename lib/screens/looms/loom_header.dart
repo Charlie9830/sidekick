@@ -37,7 +37,7 @@ class LoomHeader extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 DiffStateOverlay(
-                  diff: deltas?.lookupOrNull(PropertyDeltaName.name),
+                  diff: deltas?.lookup(PropertyDeltaName.name),
                   child: SizedBox(
                     width: 400,
                     child: EditableTextField(

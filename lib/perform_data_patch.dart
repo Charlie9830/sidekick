@@ -70,5 +70,7 @@ Map<String, DataPatchModel> performDataPatch({
     }
   }
 
-  return assertDataPatchState(patches.toModelMap(), locations);
+  final assertedPatches = assertDataPatchState(patches.toModelMap(), locations);
+
+  return assertedPatches;
 }
