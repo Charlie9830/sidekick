@@ -19,6 +19,7 @@ class FixtureTableHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return TableHeader(
       hasSelections: hasSelections,
+      enabled: onSelectAllFixtures != null,
       onSelectAll: (value) {
         if (value == true) {
           onSelectAllFixtures?.call();
