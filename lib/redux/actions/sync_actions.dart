@@ -200,12 +200,6 @@ class SetSelectedCableIds {
   SetSelectedCableIds(this.ids);
 }
 
-class SetHonorDataSpans {
-  final bool value;
-
-  SetHonorDataSpans(this.value);
-}
-
 class SetShowAllFixtureTypes {
   final bool value;
 

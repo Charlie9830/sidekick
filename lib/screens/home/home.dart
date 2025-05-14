@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sidekick/containers/data_patch_container.dart';
 import 'package:sidekick/containers/export_container.dart';
 import 'package:sidekick/containers/file_container.dart';
 import 'package:sidekick/containers/fixture_table_container.dart';
@@ -34,7 +33,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return DefaultTabController(
       animationDuration: Duration.zero,
-      length: 10,
+      length: 9,
       initialIndex: 0,
       child: Scaffold(
         key: homeScaffoldKey,
@@ -59,9 +58,6 @@ class _HomeState extends State<Home> {
                   icon: Icon(Icons.electric_bolt),
                   child: Text('Patch'),
                 ),
-                Tab(
-                    icon: Icon(Icons.settings_input_svideo),
-                    child: Text('Patch')),
                 Tab(
                   icon: Icon(Icons.cable),
                   child: Text('Looms'),
@@ -94,7 +90,6 @@ class _HomeState extends State<Home> {
             FileContainer(),
             FixtureTableContainer(),
             PowerPatchContainer(),
-            DataPatchContainer(),
             LoomsV2Container(),
             LocationsContainer(),
             FixtureTypesContainer(),

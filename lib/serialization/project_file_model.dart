@@ -154,9 +154,7 @@ class ProjectFileModel {
   factory ProjectFileModel.fromJson(String source) =>
       ProjectFileModel.fromMap(json.decode(source) as Map<String, dynamic>);
 
-  FixtureState toFixtureState({
-    bool? honorDataSpans,
-  }) {
+  FixtureState toFixtureState() {
     return FixtureState(
       fixtures: fixtures.toModelMap(),
       powerMultiOutlets: powerMultiOutlets.toModelMap(),
@@ -167,7 +165,6 @@ class ProjectFileModel {
       dataPatches: dataPatches.toModelMap(),
       looms: looms.toModelMap(),
       fixtureTypes: fixtureTypes.toModelMap(),
-      honorDataSpans: honorDataSpans ?? const FixtureState.initial().honorDataSpans,
       cables: cables.toModelMap(),
       defaultPowerMulti: defaultPowerMulti,
       loomStock: loomStock.toModelMap(),

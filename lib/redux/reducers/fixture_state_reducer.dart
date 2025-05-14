@@ -31,7 +31,6 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
         powerMultiOutlets: powerPatch.powerMultiOutlets,
         dataPatches: performDataPatch(
           fixtures: a.fixtures,
-          honorDataSpans: state.honorDataSpans,
           dataPatches: state.dataPatches,
           locations: a.locations,
         ));
@@ -113,18 +112,6 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     );
   }
 
-  if (a is SetHonorDataSpans) {
-    return state.copyWith(
-      honorDataSpans: a.value,
-      dataPatches: performDataPatch(
-        fixtures: state.fixtures,
-        honorDataSpans: a.value,
-        dataPatches: state.dataPatches,
-        locations: state.locations,
-      ),
-    );
-  }
-
   if (a is SetLoomStock) {
     return state.copyWith(loomStock: a.value);
   }
@@ -134,9 +121,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is OpenProject) {
-    return a.project.toFixtureState(
-      honorDataSpans: state.honorDataSpans, // TODO: This should be serialized.
-    );
+    return a.project.toFixtureState();
   }
 
   if (a is ResetFixtureState) {
@@ -216,7 +201,6 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
         powerMultiOutlets: outlets.powerMultiOutlets,
         dataPatches: performDataPatch(
             fixtures: a.fixtures,
-            honorDataSpans: state.honorDataSpans,
             dataPatches: state.dataPatches,
             locations: state.locations));
   }
