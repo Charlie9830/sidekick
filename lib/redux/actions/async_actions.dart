@@ -94,7 +94,6 @@ ThunkAction<AppState> showSetupQuantitiesDialog(BuildContext context) {
         builder: (innerContext) => SetupQuantitiesDialog(items: items));
 
     if (result is Map<String, LoomStockModel>) {
-      print('Dispatching');
       store.dispatch(SetLoomStock(result));
     }
   };
