@@ -41,6 +41,7 @@ import 'package:sidekick/persistent_settings/fetch_persistent_settings.dart';
 import 'package:sidekick/persistent_settings/init_persistent_settings_storage.dart';
 import 'package:sidekick/persistent_settings/update_persistent_settings.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
+import 'package:sidekick/redux/app_store.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
@@ -1133,6 +1134,8 @@ ThunkAction<AppState> startNewProject(BuildContext context, bool saveCurrent) {
     }
 
     store.dispatch(NewProject());
+
+    diffAppStore.dispatch(NewProject());
   };
 }
 
@@ -1146,6 +1149,11 @@ ThunkAction<AppState> openProjectFile(
       parentDirectory: p.dirname(path),
       path: path,
     ));
+
+    // Reset the Diff App State.
+    if (store is! Store<DiffAppState>) {
+      diffAppStore.dispatch(NewProject());
+    }
   };
 }
 

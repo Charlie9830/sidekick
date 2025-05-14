@@ -9,6 +9,7 @@ FileState fileStateReducer(FileState state, dynamic a) {
       fixturePatchImportPath: '',
       projectFilePath: '',
       projectMetadata: const ProjectFileMetadataModel.initial(),
+      comparisonFilePath: '',
     );
   }
 
@@ -69,6 +70,7 @@ FileState fileStateReducer(FileState state, dynamic a) {
       lastUsedProjectDirectory: a.parentDirectory,
       projectMetadata: a.project.metadata,
       projectFilePath: a.path,
+      comparisonFilePath: '',
     );
   }
 
