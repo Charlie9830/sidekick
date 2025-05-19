@@ -98,21 +98,6 @@ class _HomeState extends State<Home> {
             TheLab(),
           ],
         ),
-        // floatingActionButton: Column(
-        //   mainAxisAlignment: MainAxisAlignment.end,
-        //   children: [
-        //     FloatingActionButton(
-        //       onPressed: () => widget.vm.onDebugAction(),
-        //       backgroundColor: Colors.blueGrey,
-        //       child: const Icon(Icons.bug_report),
-        //     ),
-        //     const SizedBox(height: 24),
-        //     FloatingActionButton(
-        //       onPressed: () => widget.vm.onAppInitialize(),
-        //       child: const Icon(Icons.refresh),
-        //     ),
-        //   ],
-        // ),
       ),
     );
   }

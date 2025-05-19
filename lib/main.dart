@@ -8,6 +8,8 @@ import 'package:sidekick/redux/app_store.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
   runApp(const MyApp());
 }
 

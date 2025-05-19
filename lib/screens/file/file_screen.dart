@@ -4,6 +4,7 @@ import 'package:sidekick/containers/import_container.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/file_type_groups.dart';
 import 'package:sidekick/generic_dialog/show_generic_dialog.dart';
+import 'package:sidekick/screens/home/app_info.dart';
 import 'package:sidekick/titled_card.dart';
 import 'package:sidekick/view_models/file_view_model.dart';
 import 'package:path/path.dart' as p;
@@ -16,51 +17,61 @@ class FileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TitledCard(
-                title: 'Project',
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    switch (vm.projectFilePath) {
-                      "" => const Text('Untitled Project'),
-                      _ => Tooltip(
-                          message: p.canonicalize(vm.projectFilePath),
-                          child: Text(p.basename(vm.projectFilePath))),
-                    },
-                    const SizedBox(height: 16),
-                    OutlinedButton(
-                      onPressed: () => _handleNewProjectButtonPressed(context),
-                      child: const Text('New'),
-                    ),
-                    const SizedBox(height: 8),
-                    OutlinedButton(
-                      onPressed: () => _handleOpenProjectButtonPressed(context),
-                      child: const Text('Open'),
-                    ),
-                    const SizedBox(height: 32),
-                    OutlinedButton(
-                      onPressed: () => _handleSaveProjectButtonPressed(context),
-                      child: const Text('Save'),
-                    ),
-                    const SizedBox(height: 8),
-                    OutlinedButton(
-                      onPressed: () =>
-                          _handleSaveProjectAsButtonPressed(context),
-                      child: const Text('Save as'),
-                    )
-                  ],
-                )),
-            const TitledCard(
-              title: "Import",
-              child: ImportContainer(),
-            ),
-          ],
-        ),
+      child: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TitledCard(
+                  title: 'Project',
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      switch (vm.projectFilePath) {
+                        "" => const Text('Untitled Project'),
+                        _ => Tooltip(
+                            message: p.canonicalize(vm.projectFilePath),
+                            child: Text(p.basename(vm.projectFilePath))),
+                      },
+                      const SizedBox(height: 16),
+                      OutlinedButton(
+                        onPressed: () =>
+                            _handleNewProjectButtonPressed(context),
+                        child: const Text('New'),
+                      ),
+                      const SizedBox(height: 8),
+                      OutlinedButton(
+                        onPressed: () =>
+                            _handleOpenProjectButtonPressed(context),
+                        child: const Text('Open'),
+                      ),
+                      const SizedBox(height: 32),
+                      OutlinedButton(
+                        onPressed: () =>
+                            _handleSaveProjectButtonPressed(context),
+                        child: const Text('Save'),
+                      ),
+                      const SizedBox(height: 8),
+                      OutlinedButton(
+                        onPressed: () =>
+                            _handleSaveProjectAsButtonPressed(context),
+                        child: const Text('Save as'),
+                      )
+                    ],
+                  )),
+              const TitledCard(
+                title: "Import",
+                child: ImportContainer(),
+              ),
+            ],
+          ),
+          const Positioned(
+            bottom: 8,
+            right: 8,
+            child: AppInfo(),
+          )
+        ],
       ),
     );
   }

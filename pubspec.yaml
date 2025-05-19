@@ -42,6 +42,7 @@ dependencies:
   material_table_view: ^5.4.0
   mvr:
     path: ../mvr/
+  package_info_plus: ^8.3.0
   path: ^1.9.0
   path_provider: ^2.1.5
   pluto_grid: ^8.0.0
