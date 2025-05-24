@@ -8,10 +8,8 @@ import 'package:sidekick/redux/models/loom_stock_model.dart';
 const String kSocaSlug = 'Soca';
 const String kWielandSlug = '6way';
 
-// ignore: non_constant_identifier_names
-final Set<double> _2wayLengths = {20, 30, 40, 50};
-// ignore: non_constant_identifier_names
-final Set<double> _3and5wayLengths = {25, 30, 35, 40, 45, 50};
+final Set<double> _k2wayLengths = {20, 30, 40, 50};
+final Set<double> _k3and5wayLengths = {25, 30, 35, 40, 45, 50};
 
 class PermanentLoomComposition {
   final int socaWays;
@@ -254,7 +252,7 @@ class PermanentLoomComposition {
       wieland6Ways: 0,
       dmxWays: 2,
       sneakWays: 0,
-      validLengths: _2wayLengths,
+      validLengths: _k2wayLengths,
     ),
 
     // 3 way Socapex + Sneak.
@@ -263,7 +261,7 @@ class PermanentLoomComposition {
       wieland6Ways: 0,
       dmxWays: 0,
       sneakWays: 1,
-      validLengths: _3and5wayLengths,
+      validLengths: _k3and5wayLengths,
     ),
 
     // 5 way Socapex + Sneak.
@@ -272,7 +270,7 @@ class PermanentLoomComposition {
         wieland6Ways: 0,
         dmxWays: 0,
         sneakWays: 1,
-        validLengths: _3and5wayLengths),
+        validLengths: _k3and5wayLengths),
 
     // 2 way 6way + 2 DMX.
     PermanentLoomComposition._(
@@ -280,7 +278,7 @@ class PermanentLoomComposition {
       wieland6Ways: 2,
       dmxWays: 2,
       sneakWays: 0,
-      validLengths: _2wayLengths,
+      validLengths: _k2wayLengths,
     ),
 
     // 3 way 6way + Sneak.
@@ -289,7 +287,7 @@ class PermanentLoomComposition {
       wieland6Ways: 3,
       dmxWays: 0,
       sneakWays: 1,
-      validLengths: _3and5wayLengths,
+      validLengths: _k3and5wayLengths,
     ),
 
     // 5 way 6way + Sneak.
@@ -297,8 +295,8 @@ class PermanentLoomComposition {
       socaWays: 0,
       wieland6Ways: 5,
       dmxWays: 0,
-      sneakWays: 2,
-      validLengths: _3and5wayLengths,
+      sneakWays: 1,
+      validLengths: _k3and5wayLengths,
     ),
   ];
 
