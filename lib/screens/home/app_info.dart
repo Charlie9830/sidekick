@@ -76,13 +76,17 @@ class _AppInfoState extends State<AppInfo> {
 class _Property extends StatelessWidget {
   final String label;
   final String value;
-  const _Property({super.key, required this.label, required this.value});
+  const _Property({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(label, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.grey)),
+        Text(label,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall!
+                .copyWith(color: Colors.grey)),
         const SizedBox(width: 8),
         Text(value, style: Theme.of(context).textTheme.bodySmall),
       ],

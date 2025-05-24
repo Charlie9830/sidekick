@@ -23,7 +23,6 @@ import 'package:sidekick/excel/create_fixture_addressing_sheet.dart';
 import 'package:sidekick/excel/create_fixture_type_validation_sheet.dart';
 import 'package:sidekick/excel/create_lighting_looms_sheet.dart';
 import 'package:sidekick/excel/create_power_patch_sheet.dart';
-import 'package:sidekick/excel/read_fixtures_patch_data.dart';
 import 'package:sidekick/extension_methods/clone_map.dart';
 import 'package:sidekick/extension_methods/copy_with_inserted_entry.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
@@ -1209,51 +1208,6 @@ ThunkAction<AppState> saveProjectFile(BuildContext context, SaveType saveType) {
             extendedMessage: e.toString()));
       }
     }
-  };
-}
-
-ThunkAction<AppState> importPatchFile(BuildContext context) {
-  return (Store<AppState> store) async {
-    // TODO: Delete me
-
-    final filePath = store.state.fileState.fixturePatchImportPath;
-
-    if (store.state.fixtureState.fixtures.isNotEmpty ||
-        store.state.fixtureState.locations.isNotEmpty) {
-      final dialogResult = await showGenericDialog(
-          context: context,
-          title: "Import file",
-          message: 'If you continue any unsaved changes will be lost',
-          affirmativeText: 'Continue',
-          declineText: 'Go back');
-
-      if (dialogResult == null || dialogResult == false) {
-        return;
-      }
-    }
-
-    final fixturesPatchDataResult = await readFixturesPatchData(
-      path: filePath,
-      fixtureTypes: store.state.fixtureState.fixtureTypes,
-      patchSheetName: "Sheet1",
-    );
-
-    if (fixturesPatchDataResult.errorMessage != null) {
-      if (context.mounted == true) {
-        await showGenericDialog(
-            // ignore: use_build_context_synchronously
-            context: context,
-            title: 'Patch Data Import Error',
-            message: fixturesPatchDataResult.errorMessage!,
-            affirmativeText: 'Okay');
-      }
-
-      return;
-    }
-
-    store.dispatch(ResetFixtureState());
-    store.dispatch(SetFixtures(fixturesPatchDataResult.fixtures));
-    store.dispatch(SetLocations(fixturesPatchDataResult.locations));
   };
 }
 

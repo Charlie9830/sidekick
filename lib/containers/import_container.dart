@@ -22,7 +22,6 @@ class ImportContainer extends StatelessWidget {
           importFilePath: store.state.fileState.fixturePatchImportPath,
           onFileSelected: (path) =>
               store.dispatch(setImportPath(context, path)),
-          onImportButtonPressed: () => store.dispatch(importPatchFile(context)),
           onImportManagerButtonPressed: () => store.dispatch(showImportManager(context)),
         );
       },
