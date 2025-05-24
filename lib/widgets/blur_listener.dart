@@ -12,6 +12,7 @@ class BlurListener extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Focus(
+      skipTraversal: true,
       onFocusChange: (hasFocus) {
         hasFocus ? onFocus?.call() : onBlur();
       },
