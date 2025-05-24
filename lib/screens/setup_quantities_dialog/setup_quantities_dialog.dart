@@ -3,10 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:sidekick/editable_text_field.dart';
 import 'package:sidekick/extension_methods/clone_map.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
+import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/loom_stock_model.dart';
+import 'package:sidekick/redux/models/permanent_loom_composition.dart';
+import 'package:sidekick/utils/get_uid.dart';
 
 class SetupQuantitiesDialog extends StatefulWidget {
-  final List<LoomStockModel> items;
+  final List<LoomStockItemViewModelBase> items;
   const SetupQuantitiesDialog({super.key, required this.items});
 
   @override
@@ -14,7 +17,7 @@ class SetupQuantitiesDialog extends StatefulWidget {
 }
 
 class _SetupQuantitiesDialogState extends State<SetupQuantitiesDialog> {
-  late Map<String, LoomStockModel> _items;
+  late Map<String, LoomStockItemViewModelBase> _items;
 
   @override
   void initState() {
@@ -35,7 +38,10 @@ class _SetupQuantitiesDialogState extends State<SetupQuantitiesDialog> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(_items),
+            onPressed: () => Navigator.of(context).pop(_items.values
+                .whereType<LoomStockItemViewModel>()
+                .map((vm) => vm.item)
+                .toModelMap()),
             child: const Text('Done'),
           ),
         ],
@@ -49,38 +55,49 @@ class _SetupQuantitiesDialogState extends State<SetupQuantitiesDialog> {
                 child: ListView.builder(
                   itemCount: items.length,
                   itemBuilder: (context, index) {
-                    final item = items[index];
+                    final itemVm = items[index];
 
-                    return ListTile(
-                      title: Text(item.fullName),
-                      trailing: SizedBox(
-                        width: 200,
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 48,
-                              child: EditableTextField(
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly
-                                ],
-                                value: item.qty.toString(),
-                                onChanged: (newValue) => setState(() =>
-                                    _items = _items.clone()
-                                      ..update(
-                                          item.uid,
-                                          (existing) => existing.copyWith(
-                                              qty:
-                                                  int.parse(newValue.trim())))),
-                                selectAllOnFocus: true,
-                                textAlign: TextAlign.center,
-                              ),
+                    return switch (itemVm) {
+                      LoomStockItemViewModel v => ListTile(
+                          title: Text(v.item.fullName),
+                          trailing: SizedBox(
+                            width: 200,
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 48,
+                                  child: EditableTextField(
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly
+                                    ],
+                                    value: v.item.qty.toString(),
+                                    onChanged: (newValue) => setState(() =>
+                                        _items = _items.clone()
+                                          ..update(
+                                              v.uid,
+                                              (existing) => (existing
+                                                          as LoomStockItemViewModel)
+                                                      .copyWith(
+                                                          item: v.item.copyWith(
+                                                    qty: int.parse(
+                                                      newValue.trim(),
+                                                    ),
+                                                  )))),
+                                    selectAllOnFocus: true,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                Text('In Stock',
+                                    style:
+                                        Theme.of(context).textTheme.labelSmall),
+                              ],
                             ),
-                            Text('In Stock',
-                                style: Theme.of(context).textTheme.labelSmall),
-                          ],
+                          ),
                         ),
-                      ),
-                    );
+                      LoomStockItemDividerViewModel() =>
+                        const Divider(endIndent: 108),
+                      _ => const SizedBox(),
+                    };
                   },
                 ),
               ),
@@ -91,4 +108,33 @@ class _SetupQuantitiesDialogState extends State<SetupQuantitiesDialog> {
       ),
     );
   }
+}
+
+abstract class LoomStockItemViewModelBase implements ModelCollectionMember {}
+
+class LoomStockItemViewModel extends LoomStockItemViewModelBase {
+  final LoomStockModel item;
+  final PermanentLoomComposition parentComposition;
+
+  @override
+  String get uid => item.uid;
+
+  LoomStockItemViewModel({
+    required this.item,
+    required this.parentComposition,
+  });
+
+  LoomStockItemViewModel copyWith({LoomStockModel? item}) {
+    return LoomStockItemViewModel(
+      item: item ?? this.item,
+      parentComposition: parentComposition,
+    );
+  }
+}
+
+class LoomStockItemDividerViewModel extends LoomStockItemViewModelBase {
+  @override
+  String uid = getUid();
+
+  LoomStockItemDividerViewModel();
 }

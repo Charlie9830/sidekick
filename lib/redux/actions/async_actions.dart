@@ -88,9 +88,40 @@ ThunkAction<AppState> showSetupQuantitiesDialog(BuildContext context) {
         ? PermanentLoomComposition.buildAllLoomQuantities()
         : store.state.fixtureState.loomStock.values.toList();
 
+    final vms = items
+        .map((item) => LoomStockItemViewModel(
+            item: item,
+            parentComposition:
+                PermanentLoomComposition.byName[item.compositionName]!))
+        .toList();
+
+    final sortedVms = [
+      // Socas
+      ...vms
+          .where((vm) => vm.parentComposition.socaWays > 0)
+          .groupListsBy((vm) => vm.parentComposition.powerWays)
+          .values
+          .map((group) => [
+                ...group,
+                LoomStockItemDividerViewModel(),
+              ])
+          .flattened,
+
+      // 6ways.
+      ...vms
+          .where((vm) => vm.parentComposition.wieland6Ways > 0)
+          .groupListsBy((vm) => vm.parentComposition.powerWays)
+          .values
+          .map((group) => [
+                ...group,
+                LoomStockItemDividerViewModel(),
+              ])
+          .flattened,
+    ];
+
     final result = await showDialog(
         context: context,
-        builder: (innerContext) => SetupQuantitiesDialog(items: items));
+        builder: (innerContext) => SetupQuantitiesDialog(items: sortedVms));
 
     if (result is Map<String, LoomStockModel>) {
       store.dispatch(SetLoomStock(result));
