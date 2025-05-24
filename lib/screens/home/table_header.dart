@@ -4,12 +4,14 @@ class TableHeader extends StatelessWidget {
   final bool? hasSelections;
   final List<TableHeaderColumn> columns;
   final Function(bool? value) onSelectAll;
+  final bool enabled;
 
   const TableHeader({
     Key? key,
     required this.columns,
     required this.hasSelections,
     required this.onSelectAll,
+    this.enabled = true,
   }) : super(key: key);
 
   @override
@@ -26,7 +28,7 @@ class TableHeader extends StatelessWidget {
                 Checkbox(
                   tristate: true,
                   value: hasSelections,
-                  onChanged: onSelectAll,
+                  onChanged: enabled ? onSelectAll : null,
                 ),
                 const SizedBox(width: 16),
                 ...columns.map(

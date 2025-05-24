@@ -6,7 +6,6 @@ import 'package:collection/collection.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/dmx_address_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
-import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 
 class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
   @override
@@ -16,11 +15,8 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
   final DMXAddressModel dmxAddress;
   final String typeId;
   final String locationId;
-  final String dataMulti;
-  final String dataPatch;
-  final String powerMultiId;
-  final int powerPatch;
   final String mode;
+  final String powerPatch;
 
   FixtureModel({
     this.uid = '',
@@ -29,19 +25,12 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
     this.dmxAddress = const DMXAddressModel.unknown(),
     this.typeId = '',
     this.locationId = '',
-    this.dataMulti = '',
-    this.dataPatch = '',
-    this.powerMultiId = '',
-    this.powerPatch = 0,
     this.mode = '',
+    this.powerPatch = '',
   });
 
   LocationModel lookupLocation(Map<String, LocationModel> locations) {
     return locations[locationId] ?? const LocationModel.none();
-  }
-
-  String lookupPowerMultiName(Map<String, PowerMultiOutletModel> powerMultis) {
-    return powerMultis[powerMultiId]?.name ?? "## BAD LOOKUP ##";
   }
 
   FixtureModel copyWith({
@@ -51,10 +40,7 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
     DMXAddressModel? dmxAddress,
     String? typeId,
     String? locationId,
-    String? dataMulti,
-    String? dataPatch,
-    String? powerMultiId,
-    int? powerPatch,
+    String? powerPatch,
     String? mode,
   }) {
     return FixtureModel(
@@ -64,11 +50,8 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
       dmxAddress: dmxAddress ?? this.dmxAddress,
       typeId: typeId ?? this.typeId,
       locationId: locationId ?? this.locationId,
-      dataMulti: dataMulti ?? this.dataMulti,
-      dataPatch: dataPatch ?? this.dataPatch,
-      powerMultiId: powerMultiId ?? this.powerMultiId,
-      powerPatch: powerPatch ?? this.powerPatch,
       mode: mode ?? this.mode,
+      powerPatch: powerPatch ?? this.powerPatch,
     );
   }
 
@@ -80,11 +63,8 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
       'dmxAddress': dmxAddress.toMap(),
       'typeId': typeId,
       'locationId': locationId,
-      'dataMulti': dataMulti,
-      'dataPatch': dataPatch,
-      'powerMulti': powerMultiId,
-      'powerPatch': powerPatch,
       'mode': mode,
+      'powerPatch': powerPatch,
     };
   }
 
@@ -96,10 +76,7 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
       dmxAddress: DMXAddressModel.fromMap(map['dmxAddress']),
       typeId: map['typeId'],
       locationId: map['locationId'] ?? '',
-      dataMulti: map['dataMulti'] ?? '',
-      dataPatch: map['dataPatch'] ?? '',
-      powerMultiId: map['powerMulti'] ?? '',
-      powerPatch: map['powerPatch']?.toInt() ?? 0,
+      powerPatch: map['powerPatch'] is String ? map['powerPatch'] : '',
       mode: map['mode'] ?? '',
     );
   }
@@ -124,11 +101,7 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
         other.sequence == sequence &&
         other.dmxAddress == dmxAddress &&
         other.typeId == typeId &&
-        other.locationId == locationId &&
-        other.dataMulti == dataMulti &&
-        other.dataPatch == dataPatch &&
-        other.powerMultiId == powerMultiId &&
-        other.powerPatch == powerPatch;
+        other.locationId == locationId;
   }
 
   @override
@@ -138,11 +111,7 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
         sequence.hashCode ^
         dmxAddress.hashCode ^
         typeId.hashCode ^
-        locationId.hashCode ^
-        dataMulti.hashCode ^
-        dataPatch.hashCode ^
-        powerMultiId.hashCode ^
-        powerPatch.hashCode;
+        locationId.hashCode;
   }
 
   static Map<String, FixtureModel> sort(Map<String, FixtureModel> fixtures,

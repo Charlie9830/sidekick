@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart' hide TableRow;
 import 'package:flutter/services.dart';
-import 'package:sidekick/screens/home/column_widths.dart';
-import 'package:sidekick/screens/home/table_header.dart';
-import 'package:sidekick/screens/home/table_row.dart';
+import 'package:sidekick/screens/home/fixture_table/fixture_table_header.dart';
+import 'package:sidekick/screens/home/fixture_table/fixture_table_row.dart';
 import 'package:sidekick/view_models/fixture_table_view_model.dart';
-import 'package:sidekick/widgets/icon_label.dart';
 import 'package:sidekick/widgets/toolbar.dart';
 
 final _modKeys = {
@@ -59,122 +57,20 @@ class _FixtureTableState extends State<FixtureTable> {
               ),
             ],
           )),
-          TableHeader(
+          FixtureTableHeader(
             hasSelections: widget.vm.hasSelections,
-            onSelectAll: (value) {
-              if (value == true) {
-                widget.vm.onSelectAllFixtures();
-              } else {
-                widget.vm.onSelectedFixturesChanged({});
-              }
-            },
-            columns: const [
-              TableHeaderColumn(
-                  width: ColumnWidths.sequence,
-                  label: Text(
-                    'Sequence #',
-                  )),
-              TableHeaderColumn(
-                  width: ColumnWidths.fid, label: Text('Fixture #')),
-              TableHeaderColumn(width: ColumnWidths.type, label: Text('Type')),
-              TableHeaderColumn(
-                  width: ColumnWidths.location, label: Text('Location')),
-              TableHeaderColumn(
-                  width: ColumnWidths.address, label: Text('Address')),
-              TableHeaderColumn(
-                width: ColumnWidths.powerMulti,
-                label: IconLabel(
-                  icon:
-                      Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
-                  label: 'Multi',
-                ),
-              ),
-              TableHeaderColumn(
-                width: ColumnWidths.powerPatch,
-                label: IconLabel(
-                    icon: Icon(Icons.electric_bolt,
-                        color: Colors.yellow, size: 16),
-                    label: 'Patch'),
-              ),
-              TableHeaderColumn(
-                  width: ColumnWidths.dataMulti,
-                  label: IconLabel(
-                      icon: Icon(Icons.settings_input_svideo,
-                          color: Colors.blue, size: 16),
-                      label: 'Multi')),
-              TableHeaderColumn(
-                width: ColumnWidths.dataPatch,
-                label: IconLabel(
-                    icon: Icon(Icons.settings_input_svideo,
-                        color: Colors.blue, size: 16),
-                    label: 'Patch'),
-              ),
-            ],
+            onSelectAllFixtures: widget.vm.onSelectAllFixtures,
+            onSelectedFixturesChanged: widget.vm.onSelectedFixturesChanged,
           ),
           Expanded(
             child: ListView.builder(
                 itemCount: rowVms.length,
-                itemBuilder: (context, index) {
-                  return switch (rowVms[index]) {
-                    FixtureRowDividerVM row => _buildDivider(row),
-                    FixtureViewModel row => _buildTableRow(index, row),
-                    _ => const SizedBox(),
-                  };
-                }),
+                itemBuilder: (context, index) => FixtureTableRow(
+                      vm: rowVms[index],
+                      onSelectChanged: _handleSelectChanged,
+                      rangeSelectFixtureStartId: _rangeSelectStartFixtureId,
+                    )),
           ),
-        ],
-      ),
-    );
-  }
-
-  TableRow _buildTableRow(int index, FixtureViewModel row) {
-    return TableRow(
-      rangeSelected: _rangeSelectStartFixtureId == row.uid,
-      selected: row.selected,
-      onPressed: (isSelected) =>
-          _handleSelectChanged(isSelected, row.uid),
-      cells: [
-        _SequenceNumberCell(
-          value: row.sequence.toString(),
-          hasInvalidSequenceNumber: row.hasInvalidSequenceNumber,
-          hasSequenceNumberBreak: row.hasSequenceNumberBreak,
-        ),
-        Text(row.fid.toString()),
-        Text(row.type),
-        Text(row.location),
-        Text(row.address),
-        Text(row.powerMulti), // Power Multi
-        Text(
-          row.powerPatch == 0 ? '' : row.powerPatch.toString(),
-        ), // Power Patch
-        Text(row.dataMulti), // Data Multi
-        Text(row.dataPatch),
-      ],
-    );
-  }
-
-  Widget _buildDivider(FixtureRowDividerVM dividerVM) {
-    return InkWell(
-      onTap: () => dividerVM.onSelectFixtures(),
-      child: Column(
-        children: [
-          const Divider(height: 0),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(children: [
-              Icon(Icons.location_on,
-                  color: Theme.of(context).colorScheme.primary),
-              const SizedBox(width: 8),
-              Text(dividerVM.title,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyLarge!
-                      .copyWith(color: Theme.of(context).colorScheme.primary))
-            ]),
-          ),
-          const SizedBox(height: 24),
-          const Divider(height: 0),
         ],
       ),
     );
@@ -263,27 +159,5 @@ class _FixtureTableState extends State<FixtureTable> {
   void dispose() {
     _focus.dispose();
     super.dispose();
-  }
-}
-
-class _SequenceNumberCell extends StatelessWidget {
-  final String value;
-  final bool hasSequenceNumberBreak;
-  final bool hasInvalidSequenceNumber;
-
-  const _SequenceNumberCell({
-    required this.hasInvalidSequenceNumber,
-    required this.hasSequenceNumberBreak,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(value,
-        style: hasSequenceNumberBreak || hasInvalidSequenceNumber
-            ? Theme.of(context).textTheme.bodyMedium!.copyWith(
-                color: hasInvalidSequenceNumber ? Colors.red : Colors.orange,
-                fontWeight: FontWeight.bold)
-            : null);
   }
 }

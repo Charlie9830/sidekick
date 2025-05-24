@@ -1,7 +1,7 @@
 import 'package:sidekick/balancer/models/balancer_power_patch_model.dart';
 
 
-class BalancerPowerOutletModel {
+class BalancerOutletModel {
   final int phase;
   final BalancerPowerPatchModel child;
   final bool isSpare;
@@ -9,7 +9,7 @@ class BalancerPowerOutletModel {
   final String locationId;
   final int multiPatch;
 
-  BalancerPowerOutletModel({
+  BalancerOutletModel({
     required this.phase,
     required this.child,
     required this.multiOutletId,
@@ -18,7 +18,7 @@ class BalancerPowerOutletModel {
     this.isSpare = false,
   });
   
-  BalancerPowerOutletModel copyWith({
+  BalancerOutletModel copyWith({
     int? phase,
     BalancerPowerPatchModel? child,
     bool? isSpare,
@@ -26,7 +26,7 @@ class BalancerPowerOutletModel {
     String? locationId,
     int? multiPatch,
   }) {
-    return BalancerPowerOutletModel(
+    return BalancerOutletModel(
       phase: phase ?? this.phase,
       child: child ?? this.child,
       isSpare: isSpare ?? this.isSpare,

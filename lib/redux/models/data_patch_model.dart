@@ -6,7 +6,6 @@ import 'package:sidekick/redux/models/outlet.dart';
 class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
   final int universe;
   final List<String> fixtureIds;
-  final bool isSpare;
   final int startsAtFixtureId;
   final int endsAtFixtureId;
 
@@ -17,7 +16,6 @@ class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
     String name = '',
     this.universe = 0,
     this.fixtureIds = const [],
-    this.isSpare = false,
     this.startsAtFixtureId = 0,
     this.endsAtFixtureId = 0,
   }) : super(
@@ -27,7 +25,7 @@ class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
           name: name,
         );
 
-  String get nameWithUniverse => isSpare ? name : '$name $universeLabel';
+  String get nameWithUniverse => '$name $universeLabel';
 
   String get universeLabel => 'U$universe';
 
@@ -49,7 +47,6 @@ class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
       universe: universe ?? this.universe,
       fixtureIds: fixtureIds ?? this.fixtureIds,
       locationId: locationId ?? this.locationId,
-      isSpare: isSpare ?? this.isSpare,
       startsAtFixtureId: startsAtFixtureId ?? this.startsAtFixtureId,
       endsAtFixtureId: endsAtFixtureId ?? this.endsAtFixtureId,
     );
@@ -63,7 +60,6 @@ class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
       'universe': universe,
       'fixtureIds': fixtureIds,
       'locationId': locationId,
-      'isSpare': isSpare,
       'startsAtFixtureId': startsAtFixtureId,
       'endsAtFixtureId': endsAtFixtureId,
     };
@@ -77,7 +73,6 @@ class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
       universe: map['universe']?.toInt() ?? 0,
       fixtureIds: List<String>.from(map['fixtureIds']),
       locationId: map['locationId'] ?? '',
-      isSpare: map['isSpare'] ?? false,
       startsAtFixtureId: map['startsAtFixtureId']?.toInt() ?? 0,
       endsAtFixtureId: map['endsAtFixtureId']?.toInt() ?? 0,
     );
@@ -90,7 +85,7 @@ class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
 
   @override
   String toString() {
-    return 'DataPatchModel(uid: $uid, name: $name, number: $number, universe: $universe, fixtureIds: $fixtureIds, locationId: $locationId, isSpare: $isSpare, startsAtFixtureId: $startsAtFixtureId, endsAtFixtureId: $endsAtFixtureId)';
+    return 'DataPatchModel(uid: $uid, name: $name, number: $number, universe: $universe, fixtureIds: $fixtureIds, locationId: $locationId, startsAtFixtureId: $startsAtFixtureId, endsAtFixtureId: $endsAtFixtureId)';
   }
 
   @override
@@ -104,7 +99,6 @@ class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
         other.universe == universe &&
         listEquals(other.fixtureIds, fixtureIds) &&
         other.locationId == locationId &&
-        other.isSpare == isSpare &&
         other.startsAtFixtureId == startsAtFixtureId &&
         other.endsAtFixtureId == endsAtFixtureId;
   }
@@ -117,7 +111,6 @@ class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
         universe.hashCode ^
         fixtureIds.hashCode ^
         locationId.hashCode ^
-        isSpare.hashCode ^
         startsAtFixtureId.hashCode ^
         endsAtFixtureId.hashCode;
   }

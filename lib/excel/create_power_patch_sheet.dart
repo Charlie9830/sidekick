@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:excel/excel.dart';
 import 'package:sidekick/classes/numeric_span.dart';
 import 'package:sidekick/excel/format_fixture_type.dart';
@@ -5,11 +6,9 @@ import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
-import 'package:sidekick/redux/models/power_outlet_model.dart';
 
 void createPowerPatchSheet(
     {required Excel excel,
-    required Iterable<PowerOutletModel> outlets,
     required Map<String, PowerMultiOutletModel> powerMultis,
     required Map<String, LocationModel> locations,
     required Map<String, FixtureModel> fixtures,
@@ -28,40 +27,51 @@ void createPowerPatchSheet(
     TextCellValue('Location'),
   ]);
 
-  for (final (index, outlet) in outlets.indexed) {
-    final rackNumber = ((index + 1) / 96).ceil();
-    final outletNumber = (index % 96) + 1;
+  final powerMultisByLocation =
+      powerMultis.values.groupListsBy((multi) => multi.locationId);
 
-    final location = locations[outlet.locationId];
-    final powerMultiOutlet = powerMultis[outlet.multiOutletId];
+  final orderedPowerMultis = locations.values
+      .map((location) => powerMultisByLocation[location.uid]!
+          .sorted((a, b) => a.number - b.number))
+      .flattened
+      .toList();
 
-    powerPatchSheet.appendRow([
-      // Rack Number
-      IntCellValue(rackNumber),
+  for (final multi in orderedPowerMultis) {
+    final location = locations[multi.locationId]!;
+    final rackNumber = (multi.number / 16).ceil();
 
-      // Rack Outlet Number
-      IntCellValue(outletNumber),
+    for (final outlet in multi.children) {
+      final outletNumber = (multi.number * 6) + outlet.multiPatch;
 
-      // Combined Rack Number and Outlet Number
-      TextCellValue('$rackNumber-$outletNumber'),
+      powerPatchSheet.appendRow([
+        // Rack Number
+        IntCellValue(rackNumber),
 
-      // Multi name
-      TextCellValue(powerMultiOutlet?.name ?? "UNNKOWN"),
+        // Rack Outlet Number
+        IntCellValue(outletNumber),
 
-      // Multi Patch
-      IntCellValue(outlet.multiPatch),
+        // Combined Rack Number and Outlet Number
+        TextCellValue('$rackNumber-$outletNumber'),
 
-      // Fixture Name
-      TextCellValue(formatFixtureType(
-          outlet.fixtureIds.map((id) => fixtures[id]!).toList(), fixtureTypes)),
+        // Multi name
+        TextCellValue(multi.name),
 
-      // Fixture ID
-      TextCellValue(_formatFixtureNumbers(
-          outlet.fixtureIds.map((id) => fixtures[id]!.fid))),
+        // Multi Patch
+        IntCellValue(outlet.multiPatch),
 
-      // Location
-      TextCellValue(location?.name ?? 'UNKNOWN')
-    ]);
+        // Fixture Name
+        TextCellValue(formatFixtureType(
+            outlet.fixtureIds.map((id) => fixtures[id]!).toList(),
+            fixtureTypes)),
+
+        // Fixture ID
+        TextCellValue(_formatFixtureNumbers(
+            outlet.fixtureIds.map((id) => fixtures[id]!.fid))),
+
+        // Location
+        TextCellValue(location.name)
+      ]);
+    }
   }
 }
 

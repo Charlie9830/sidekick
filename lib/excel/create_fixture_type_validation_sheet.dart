@@ -1,16 +1,19 @@
+import 'package:collection/collection.dart';
 import 'package:excel/excel.dart';
 import 'package:sidekick/excel/format_fixture_type.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
-import 'package:sidekick/redux/models/power_outlet_model.dart';
+import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 
 void createFixtureTypeValidationSheet({
   required Excel excel,
-  required Iterable<PowerOutletModel> outlets,
+  required Map<String, PowerMultiOutletModel> powerMultis,
   required Map<String, FixtureModel> fixtures,
   required Map<String, FixtureTypeModel> fixtureTypes,
 }) {
   final sheet = excel['Fixture Types'];
+
+  final outlets = powerMultis.values.map((multi) => multi.children).flattened;
 
   final fixturePatchTypes = Map<String, double>.fromEntries(outlets.map(
     (outlet) => MapEntry(

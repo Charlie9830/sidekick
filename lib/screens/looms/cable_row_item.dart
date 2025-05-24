@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sidekick/containers/looms_diffing_container.dart';
+import 'package:sidekick/containers/diffing_screen_container.dart';
 import 'package:sidekick/diff_state_overlay.dart';
 import 'package:sidekick/editable_text_field.dart';
 import 'package:sidekick/redux/models/cable_model.dart';

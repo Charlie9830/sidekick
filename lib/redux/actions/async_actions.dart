@@ -41,14 +41,13 @@ import 'package:sidekick/persistent_settings/fetch_persistent_settings.dart';
 import 'package:sidekick/persistent_settings/init_persistent_settings_storage.dart';
 import 'package:sidekick/persistent_settings/update_persistent_settings.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
+import 'package:sidekick/redux/app_store.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
-import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/redux/models/permanent_loom_composition.dart';
-import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:path/path.dart' as p;
 import 'package:sidekick/screens/file/import_module/import_manager_result.dart';
@@ -95,7 +94,6 @@ ThunkAction<AppState> showSetupQuantitiesDialog(BuildContext context) {
         builder: (innerContext) => SetupQuantitiesDialog(items: items));
 
     if (result is Map<String, LoomStockModel>) {
-      print('Dispatching');
       store.dispatch(SetLoomStock(result));
     }
   };
@@ -1134,6 +1132,8 @@ ThunkAction<AppState> startNewProject(BuildContext context, bool saveCurrent) {
     }
 
     store.dispatch(NewProject());
+
+    diffAppStore.dispatch(NewProject());
   };
 }
 
@@ -1147,6 +1147,11 @@ ThunkAction<AppState> openProjectFile(
       parentDirectory: p.dirname(path),
       path: path,
     ));
+
+    // Reset the Diff App State.
+    if (store is! Store<DiffAppState>) {
+      diffAppStore.dispatch(NewProject());
+    }
   };
 }
 
@@ -1371,64 +1376,6 @@ ThunkAction<AppState> setSequenceNumbers(BuildContext context) {
   };
 }
 
-ThunkAction<AppState> commitDataPatch() {
-  return (Store<AppState> store) async {
-    final dataPatchesByFixtureId = Map<String, DataPatchModel>.fromEntries(store
-        .state.fixtureState.dataPatches.values
-        .map((patch) => patch.fixtureIds.map((id) => MapEntry(id, patch)))
-        .flattened);
-
-    final updatedFixtures =
-        store.state.fixtureState.fixtures.map((uid, fixture) {
-      final associatedDataPatch = dataPatchesByFixtureId[uid];
-
-      if (associatedDataPatch == null) {
-        return MapEntry(uid, fixture);
-      }
-
-      // // TODO: Disabled until refactoring to Cable based Sneak children is complete.
-      // final associatedMultiPatch =
-      //     store.state.fixtureState.dataMultis[associatedDataPatch.multiId];
-
-      return MapEntry(
-          uid,
-          fixture.copyWith(
-            // dataMulti: associatedMultiPatch?.name ?? '',
-            dataPatch: associatedDataPatch.name,
-          ));
-    });
-
-    store.dispatch(SetFixtures(updatedFixtures));
-  };
-}
-
-ThunkAction<AppState> commitPowerPatch(BuildContext context) {
-  return (Store<AppState> store) async {
-    // Map FixtureIds to their associated Power Outlet
-    final fixtureLookupMap = Map<String, PowerOutletModel>.fromEntries(
-        store.state.fixtureState.outlets
-            .map((outlet) => outlet.fixtureIds.map(
-                  (id) => MapEntry(id, outlet),
-                ))
-            .flattened);
-
-    final existingFixtures = store.state.fixtureState.fixtures.clone();
-
-    existingFixtures.updateAll((uid, fixture) {
-      final outlet = fixtureLookupMap[uid]!;
-      final multiOutlet =
-          store.state.fixtureState.powerMultiOutlets[outlet.multiOutletId]!;
-
-      return fixture.copyWith(
-        powerMultiId: multiOutlet.uid,
-        powerPatch: outlet.multiPatch,
-      );
-    });
-
-    store.dispatch(SetFixtures(existingFixtures));
-  };
-}
-
 ThunkAction<AppState> export(BuildContext context) {
   return (Store<AppState> store) async {
     final outputPaths = ExportFilePaths(
@@ -1467,7 +1414,6 @@ ThunkAction<AppState> export(BuildContext context) {
     final referenceDataExcel = Excel.createExcel();
     createPowerPatchSheet(
       excel: referenceDataExcel,
-      outlets: store.state.fixtureState.outlets,
       powerMultis: store.state.fixtureState.powerMultiOutlets,
       locations: store.state.fixtureState.locations,
       fixtures: store.state.fixtureState.fixtures,
@@ -1482,9 +1428,9 @@ ThunkAction<AppState> export(BuildContext context) {
 
     createFixtureTypeValidationSheet(
       excel: referenceDataExcel,
-      outlets: store.state.fixtureState.outlets,
       fixtures: store.state.fixtureState.fixtures,
       fixtureTypes: store.state.fixtureState.fixtureTypes,
+      powerMultis: store.state.fixtureState.powerMultiOutlets,
     );
 
     createDataPatchSheet(

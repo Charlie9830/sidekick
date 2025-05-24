@@ -2,10 +2,12 @@ import 'dart:convert';
 
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
+import 'package:sidekick/redux/models/power_outlet_model.dart';
 
 class PowerMultiOutletModel extends Outlet
     implements Comparable<PowerMultiOutletModel> {
   final int desiredSpareCircuits;
+  final List<PowerOutletModel> children;
 
   PowerMultiOutletModel({
     required String uid,
@@ -13,6 +15,7 @@ class PowerMultiOutletModel extends Outlet
     int number = 0,
     String name = '',
     required this.desiredSpareCircuits,
+    required this.children,
   }) : super(
           uid: uid,
           locationId: locationId,
@@ -22,6 +25,7 @@ class PowerMultiOutletModel extends Outlet
 
   const PowerMultiOutletModel.none()
       : desiredSpareCircuits = 0,
+        children = const [],
         super(locationId: '', uid: '', number: 0, name: '');
 
   LocationModel lookupLocation(Map<String, LocationModel> locations) {
@@ -34,6 +38,7 @@ class PowerMultiOutletModel extends Outlet
     int? number,
     int? desiredSpareCircuits,
     String? name,
+    List<PowerOutletModel>? children,
   }) {
     return PowerMultiOutletModel(
       uid: uid ?? this.uid,
@@ -41,6 +46,7 @@ class PowerMultiOutletModel extends Outlet
       number: number ?? this.number,
       desiredSpareCircuits: desiredSpareCircuits ?? this.desiredSpareCircuits,
       name: name ?? this.name,
+      children: children ?? this.children,
     );
   }
 
@@ -51,6 +57,7 @@ class PowerMultiOutletModel extends Outlet
       'number': number,
       'desiredSpareCircuits': desiredSpareCircuits,
       'name': name,
+      'children': children.map((x) => x.toMap()).toList(),
     };
   }
 
@@ -61,6 +68,11 @@ class PowerMultiOutletModel extends Outlet
       number: map['number']?.toInt() ?? 0,
       desiredSpareCircuits: map['desiredSpareCircuits']?.toInt() ?? 0,
       name: map['name'] ?? '',
+      children: List<PowerOutletModel>.from(
+        ((map['children'] ?? []) as List<dynamic>).map<PowerOutletModel>(
+          (x) => PowerOutletModel.fromMap(x as Map<String, dynamic>),
+        ),
+      ),
     );
   }
 

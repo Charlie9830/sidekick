@@ -25,14 +25,12 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     );
 
     return state.copyWith(
-        fixtures: FixtureModel.sort(a.fixtures, a.locations),
+        fixtures: FixtureModel.sort(powerPatch.fixtures, a.locations),
         locations: a.locations,
         fixtureTypes: a.fixtureTypes,
         powerMultiOutlets: powerPatch.powerMultiOutlets,
-        outlets: powerPatch.powerOutlets,
         dataPatches: performDataPatch(
           fixtures: a.fixtures,
-          honorDataSpans: state.honorDataSpans,
           dataPatches: state.dataPatches,
           locations: a.locations,
         ));
@@ -114,48 +112,20 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     );
   }
 
-  if (a is SetLocationPowerLock) {
-    return state.copyWith(
-        locations: state.locations.clone()
-          ..update(a.locationId,
-              (existing) => existing.copyWith(isPowerPatchLocked: a.value)));
-  }
-
-  if (a is SetLocationDataLock) {
-    return state.copyWith(
-        locations: state.locations.clone()
-          ..update(a.locationId,
-              (existing) => existing.copyWith(isDataPatchLocked: a.value)));
-  }
-
-  if (a is SetHonorDataSpans) {
-    return state.copyWith(
-      honorDataSpans: a.value,
-      dataPatches: performDataPatch(
-        fixtures: state.fixtures,
-        honorDataSpans: a.value,
-        dataPatches: state.dataPatches,
-        locations: state.locations,
-      ),
-    );
-  }
-
   if (a is SetLoomStock) {
     return state.copyWith(loomStock: a.value);
   }
 
   if (a is NewProject) {
-    return FixtureState.initial();
+    return const FixtureState.initial();
   }
 
   if (a is OpenProject) {
-    return a.project.toFixtureState(
-      honorDataSpans: state.honorDataSpans, // TODO: This should be serialized.
-    );
+    return a.project.toFixtureState();
   }
 
   if (a is ResetFixtureState) {
-    return FixtureState.initial();
+    return const FixtureState.initial();
   }
 
   if (a is UpdateFixtureTypeShortName) {
@@ -190,7 +160,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     return state.copyWith(
       fixtureTypes: updatedFixtureTypes,
       powerMultiOutlets: outlets.powerMultiOutlets,
-      outlets: outlets.powerOutlets,
+      fixtures: outlets.fixtures,
     );
   }
 
@@ -227,12 +197,10 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     );
 
     return state.copyWith(
-        fixtures: a.fixtures,
+        fixtures: outlets.fixtures,
         powerMultiOutlets: outlets.powerMultiOutlets,
-        outlets: outlets.powerOutlets,
         dataPatches: performDataPatch(
             fixtures: a.fixtures,
-            honorDataSpans: state.honorDataSpans,
             dataPatches: state.dataPatches,
             locations: state.locations));
   }
@@ -264,7 +232,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
     return state.copyWith(
       powerMultiOutlets: outlets.powerMultiOutlets,
-      outlets: outlets.powerOutlets,
+      fixtures: outlets.fixtures,
     );
   }
 
@@ -283,7 +251,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     return state.copyWith(
       balanceTolerance: tolerance,
       powerMultiOutlets: outlets.powerMultiOutlets,
-      outlets: outlets.powerOutlets,
+      fixtures: outlets.fixtures,
     );
   }
 
@@ -303,7 +271,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     return state.copyWith(
       maxSequenceBreak: maxSequenceBreak,
       powerMultiOutlets: outlets.powerMultiOutlets,
-      outlets: outlets.powerOutlets,
+      fixtures: outlets.fixtures,
     );
   }
 

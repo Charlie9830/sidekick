@@ -21,7 +21,6 @@ class ExportContainer extends StatelessWidget {
       },
       converter: (Store<AppState> store) {
         return ExportViewModel(
-          outlets: store.state.fixtureState.outlets,
           locations: store.state.fixtureState.locations,
           lastUsedExportDirectory:
               store.state.fileState.projectMetadata.lastUsedExportDirectory,

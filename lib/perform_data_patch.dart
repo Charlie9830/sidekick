@@ -11,7 +11,7 @@ import 'package:sidekick/utils/get_uid.dart';
 
 Map<String, DataPatchModel> performDataPatch({
   required Map<String, FixtureModel> fixtures,
-  required bool honorDataSpans,
+  bool honorDataSpans = false,
   required Map<String, DataPatchModel> dataPatches,
   required Map<String, LocationModel> locations,
 }) {
@@ -70,5 +70,7 @@ Map<String, DataPatchModel> performDataPatch({
     }
   }
 
-  return assertDataPatchState(patches.toModelMap(), locations);
+  final assertedPatches = assertDataPatchState(patches.toModelMap(), locations);
+
+  return assertedPatches;
 }

@@ -9,8 +9,8 @@ class DiffStateOverlay extends StatelessWidget {
 
   const DiffStateOverlay({
     super.key,
-    required this.child,
     required this.diff,
+    required this.child,
     this.expand = true,
     this.enabled = true,
   });

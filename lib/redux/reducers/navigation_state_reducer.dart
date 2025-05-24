@@ -4,7 +4,7 @@ import 'package:sidekick/redux/state/navigation_state.dart';
 NavigationState navStateReducer(NavigationState state, dynamic a) {
   if (a is SetImportedFixtureData) {
     return state.copyWith(
-        importManagerStep: NavigationState.initial().importManagerStep);
+        importManagerStep: const NavigationState.initial().importManagerStep);
   }
   
   if (a is SetSelectedLoomOutlets) {
@@ -31,7 +31,7 @@ NavigationState navStateReducer(NavigationState state, dynamic a) {
   }
 
   if (a is NewProject || a is OpenProject) {
-    return NavigationState.initial();
+    return const NavigationState.initial();
   }
 
   if (a is SetOpenAfterExport) {

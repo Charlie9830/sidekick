@@ -200,26 +200,6 @@ class SetSelectedCableIds {
   SetSelectedCableIds(this.ids);
 }
 
-class SetLocationPowerLock {
-  final String locationId;
-  final bool value;
-
-  SetLocationPowerLock(this.locationId, this.value);
-}
-
-class SetLocationDataLock {
-  final String locationId;
-  final bool value;
-
-  SetLocationDataLock(this.locationId, this.value);
-}
-
-class SetHonorDataSpans {
-  final bool value;
-
-  SetHonorDataSpans(this.value);
-}
-
 class SetShowAllFixtureTypes {
   final bool value;
 
