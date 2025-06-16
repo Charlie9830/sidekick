@@ -18,8 +18,11 @@ class DMXAddressModel {
       return const DMXAddressModel.unknown();
     }
 
+    int address = globalAddress % 512;
+    address = address == 0 ? 512 : address;
+
     return DMXAddressModel(
-        universe: (globalAddress / 512).ceil(), address: globalAddress % 512);
+        universe: (globalAddress / 512).ceil(), address: address);
   }
 
   DMXAddressModel copyWith({
