@@ -100,3 +100,15 @@ flutter:
     - assets/excel/prg_power_patch.xlsx
     - assets/excel/prg_data_patch.xlsx
     - assets/icons/place_item.svg
+
+# MSIX Config.
+msix_config:
+  display_name: It's Just a Phase
+  publisher_display_name: Charlie Hall
+  identity_name: com.charliehall.phase
+  msix_version: 1.0.0
+  logo_path: ./windows_resources/msix_logo_512px.png
+  trim_logo: false
+  signtool_options: /sha1 3526b5fc655d9e858cf5c3488a645e60c856fb5b /fd sha256 /tr http://ts.ssl.com /td sha256
+  install_certificate: false
+  publisher: CN=Charlie Hall, O=Charlie Hall, L=Richmond, S=Victoria, C=AU
