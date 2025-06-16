@@ -31,6 +31,7 @@ void createPowerPatchSheet(
       powerMultis.values.groupListsBy((multi) => multi.locationId);
 
   final orderedPowerMultis = locations.values
+      .where((location) => location.isHybrid == false)
       .map((location) => powerMultisByLocation[location.uid]!
           .sorted((a, b) => a.number - b.number))
       .flattened
