@@ -37,22 +37,25 @@ void createPowerPatchSheet(
       .flattened
       .toList();
 
-  for (final multi in orderedPowerMultis) {
+  for (final (multiIndex, multi) in orderedPowerMultis.indexed) {
     final location = locations[multi.locationId]!;
-    final rackNumber = (multi.number / 16).ceil();
+    final rackNumber = ((multiIndex + 1) / 16).ceil();
 
     for (final outlet in multi.children) {
-      final outletNumber = (multi.number * 6) + outlet.multiPatch;
+      int rackScopedOutletNumber = ((multiIndex * 6) + outlet.multiPatch) % 96;
+      rackScopedOutletNumber == 0
+          ? rackScopedOutletNumber = 96
+          : rackScopedOutletNumber;
 
       powerPatchSheet.appendRow([
         // Rack Number
         IntCellValue(rackNumber),
 
         // Rack Outlet Number
-        IntCellValue(outletNumber),
+        IntCellValue(rackScopedOutletNumber),
 
         // Combined Rack Number and Outlet Number
-        TextCellValue('$rackNumber-$outletNumber'),
+        TextCellValue('$rackNumber-$rackScopedOutletNumber'),
 
         // Multi name
         TextCellValue(multi.name),
