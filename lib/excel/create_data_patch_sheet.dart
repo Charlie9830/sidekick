@@ -23,7 +23,7 @@ void createDataPatchSheet({
     TextCellValue('Color'),
   ]);
 
-  final activePatches = dataOutlets;
+  final activePatches = _extractActivePatches(cables, dataOutlets);
 
   final cablesByOutletId =
       cables.map((key, value) => MapEntry(value.outletId, value));
@@ -51,4 +51,14 @@ void createDataPatchSheet({
       TextCellValue(namedColor),
     ]);
   }
+}
+
+List<DataPatchModel> _extractActivePatches(
+    Map<String, CableModel> cables, Iterable<DataPatchModel> allDataOutlets) {
+  final outletIdsWithAssignedCables =
+      cables.values.map((cable) => cable.outletId).toSet();
+
+  return allDataOutlets
+      .where((patch) => outletIdsWithAssignedCables.contains(patch.uid))
+      .toList();
 }
