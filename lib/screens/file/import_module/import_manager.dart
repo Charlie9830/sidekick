@@ -458,26 +458,34 @@ class _ImportManagerState extends State<ImportManager> {
       );
     }).toList();
 
-    final locations = _incomingLocations.map((incomingLocation) {
-      final existingLocation =
-          widget.vm.existingLocations[incomingLocation.mvrId];
+    final locations = [
+      // Process incoming Locations and Merge with Existing Locations if applicable.
+      ..._incomingLocations.map((incomingLocation) {
+        final existingLocation =
+            widget.vm.existingLocations[incomingLocation.mvrId];
 
-      if (existingLocation != null) {
-        return existingLocation.copyWith(
-          name: incomingLocation.name,
-        );
-      }
+        if (existingLocation != null) {
+          return existingLocation.copyWith(
+            name: incomingLocation.name,
+          );
+        }
 
-      return LocationModel(
-          uid: incomingLocation.mvrId.isNotEmpty
-              ? incomingLocation.mvrId
-              : incomingLocation.generatedId,
-          name: incomingLocation.name,
-          color: LocationModel.matchColor(incomingLocation.name),
-          multiPrefix: LocationModel.matchMultiPrefix(incomingLocation.name),
-          delimiter:
-              LocationModel.getDefaultDelimiterValue(incomingLocation.name));
-    }).toList();
+        return LocationModel(
+            uid: incomingLocation.mvrId.isNotEmpty
+                ? incomingLocation.mvrId
+                : incomingLocation.generatedId,
+            name: incomingLocation.name,
+            color: LocationModel.matchColor(incomingLocation.name),
+            multiPrefix: LocationModel.matchMultiPrefix(incomingLocation.name),
+            delimiter:
+                LocationModel.getDefaultDelimiterValue(incomingLocation.name));
+      }),
+
+      // Marry with Existing Hybrid Locations.
+      // TODO: This will likely need to be smarter about how it marries in hybrid locations. For example, there should be some sort of handling 
+      // for when incoming locations does not contain a location that one of these Hybrids points to.
+      ...widget.vm.existingLocations.values.where((location) => location.isHybrid)
+    ];
 
     final existingInUseFixtureTypes = widget.vm.existingFixtures.values
         .map((fixture) => fixture.typeId)
