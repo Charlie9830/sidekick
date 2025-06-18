@@ -41,7 +41,7 @@ List<LoomViewModel> selectLoomViewModels(
           dataPatches: store.state.fixtureState.dataPatches,
           dataMultis: store.state.fixtureState.dataMultis,
           cable: cable,
-          preferUniverseOnly: forExcel,
+          forExcel: forExcel,
         ),
         typeLabel: _getTypeLabel(
           cable.type,

@@ -8,7 +8,7 @@ String selectCableLabel({
   required Map<String, DataMultiModel> dataMultis,
   required Map<String, DataPatchModel> dataPatches,
   required CableModel cable,
-  required bool preferUniverseOnly,
+  required bool forExcel,
 }) {
   if (cable.isSpare) {
     return 'SP ${cable.spareIndex + 1}';
@@ -19,7 +19,10 @@ String selectCableLabel({
   }
 
   if (cable.parentMultiId.isNotEmpty && cable.type == CableType.dmx) {
-    return _selectSneakChildLabel(dataPatches[cable.outletId]);
+    return _selectSneakChildLabel(
+      dataPatches[cable.outletId],
+      includeUniverseLabel: forExcel,
+    );
   }
 
   return switch (cable.type) {
@@ -27,8 +30,7 @@ String selectCableLabel({
     CableType.wieland6way =>
       powerMultiOutlets[cable.outletId]?.name ?? '',
     CableType.sneak => _selectSneakLabel(dataMultis[cable.outletId]),
-    CableType.dmx =>
-      _selectDMXLabel(dataPatches[cable.outletId], preferUniverseOnly),
+    CableType.dmx => _selectDMXLabel(dataPatches[cable.outletId], forExcel),
     CableType.unknown => throw UnimplementedError(),
   };
 }
@@ -41,18 +43,27 @@ String _selectSneakLabel(DataMultiModel? multi) {
   return multi.name;
 }
 
-String _selectSneakChildLabel(DataPatchModel? patch) {
+String _selectSneakChildLabel(DataPatchModel? patch,
+    {bool includeUniverseLabel = false}) {
   if (patch == null) {
     return '';
   }
 
-  return patch.name;
+  if (includeUniverseLabel == true) {
+    return patch.nameWithUniverse;
+  } else {
+    return patch.name;
+  }
 }
 
-String _selectDMXLabel(DataPatchModel? patch, bool preferUniverseOnly) {
+String _selectDMXLabel(DataPatchModel? patch, bool includeUniverse) {
   if (patch == null) {
     return '';
   }
 
-  return preferUniverseOnly ? patch.universeLabel : patch.name;
+  if (includeUniverse == true) {
+    return patch.nameWithUniverse;
+  } else {
+    return patch.name;
+  }
 }
