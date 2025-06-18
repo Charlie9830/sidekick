@@ -1111,26 +1111,9 @@ ThunkAction<AppState> deleteLoomV2(BuildContext context, String uid) {
 
 ThunkAction<AppState> debugButtonPressed() {
   return (Store<AppState> store) async {
-    final oldProjectFile = await deserializeProjectFile(
-        p.join(p.current, 'test_data', 'difference.phase'));
+    print("Debug Button Pressed");
 
-    final originalCables = oldProjectFile.cables.toSet();
-    final originalLooms = oldProjectFile.looms.toSet();
-
-    final currentCables = store.state.fixtureState.cables.values.toSet();
-    final currentLooms = store.state.fixtureState.looms.values.toSet();
-
-    store.dispatch(SetDiffingUnions(cables: {
-      ...originalCables.map((cable) => UnionProxy(ProxySource.original, cable)),
-      ...currentCables.map((cable) => UnionProxy(ProxySource.current, cable)),
-    }, looms: {
-      ...originalLooms.map((loom) => UnionProxy(ProxySource.original, loom)),
-      ...currentLooms.map((loom) => UnionProxy(ProxySource.current, loom)),
-    }));
-
-    store.dispatch(SetDiffingOriginalSource(
-      oldProjectFile.toFixtureState(),
-    ));
+    store.dispatch(SetFixtures(store.state.fixtureState.fixtures));
   };
 }
 

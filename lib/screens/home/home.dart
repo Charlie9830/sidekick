@@ -37,7 +37,6 @@ class _HomeState extends State<Home> {
       initialIndex: 0,
       child: Scaffold(
         key: homeScaffoldKey,
-
         appBar: AppBar(
           title: const Text("It's Just a Phase!"),
           primary: true,

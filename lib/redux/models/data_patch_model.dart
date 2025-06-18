@@ -117,6 +117,6 @@ class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
 
   @override
   int compareTo(DataPatchModel other) {
-    return number - other.number;
+    return universe - other.universe;
   }
 }
