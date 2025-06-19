@@ -13,6 +13,8 @@ class DMXAddressModel {
       : address = 0,
         universe = 0;
 
+  bool get isValid => universe != 0 && address >= 1 && address <= 512;
+
   factory DMXAddressModel.fromGlobal(int globalAddress) {
     if (globalAddress == 0) {
       return const DMXAddressModel.unknown();

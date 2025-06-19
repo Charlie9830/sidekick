@@ -15,8 +15,12 @@ Map<String, DataPatchModel> performDataPatch({
   required Map<String, DataPatchModel> dataPatches,
   required Map<String, LocationModel> locations,
 }) {
+  // Remove Fixtures without a Valid Universe or Address
+  final validFixtures =
+      fixtures.values.where((fixture) => fixture.dmxAddress.isValid);
+
   final fixturesByLocationId =
-      fixtures.values.groupListsBy((fixture) => fixture.locationId);
+      validFixtures.groupListsBy((fixture) => fixture.locationId);
 
   final spansByLocationId = fixturesByLocationId.map(
     (locationId, fixtures) => MapEntry(
