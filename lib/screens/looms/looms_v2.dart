@@ -148,7 +148,8 @@ class _LoomsV2State extends State<LoomsV2> {
                   if (widget.vm.availabilityDrawOpen)
                     QuantatiesDrawer(
                         itemVms: widget.vm.stockVms,
-                        onSetupButtonPressed: widget.vm.onSetupQuantiesDrawerButtonPressed)
+                        onSetupButtonPressed:
+                            widget.vm.onSetupQuantiesDrawerButtonPressed)
                 ],
               ),
             )
@@ -243,8 +244,10 @@ class _LoomsV2State extends State<LoomsV2> {
             childWhenDraggingOver: ModifyExistingLoomDropTargets(
               onOutletsAdded: (outletVms) => loomVm.addOutletsToLoom(
                   loomVm.loom.uid, outletVms.map((item) => item.uid).toSet()),
-              onCablesPlaced: (ids) =>
+              onCablesMoved: (ids) =>
                   loomVm.onMoveCablesIntoLoom(loomVm.loom.uid, ids),
+              onCablesAdded: (ids) =>
+                  loomVm.onAddCablesIntoLoomAsExtensions(loomVm.loom.uid, ids),
             ),
             child: LoomRowItem(
                 loomVm: loomVm,

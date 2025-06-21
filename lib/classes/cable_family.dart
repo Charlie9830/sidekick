@@ -29,17 +29,28 @@ class CableFamily {
   static List<CableFamily> createFamilies(Iterable<CableModel> cables) {
     final cableMap = cables.toModelMap();
 
-    return cableMap.values.map((cable) {
-      if (cable.isMultiCable) {
-        return CableFamily(
-            cable,
-            cableMap.values
-                .where((cable) => cable.parentMultiId == cable.uid)
-                .toList());
-      }
+    final families = cableMap.values
+        .map((cable) {
+          if (cable.isMultiCable) {
+            return CableFamily(
+                cable,
+                cableMap.values
+                    .where(
+                        (otherCable) => otherCable.parentMultiId == cable.uid)
+                    .toList());
+          }
 
-      return CableFamily(cable, []);
-    }).toList();
+          if (cableMap.containsKey(cable.parentMultiId)) {
+            // The Current cable is a child of a parent that exists in the [cables] iterable. We should skip it as it will get folded in with it's parent anyway.
+            return null;
+          }
+
+          return CableFamily(cable, []);
+        })
+        .nonNulls
+        .toList();
+
+    return families;
   }
 
   static List<CableModel> flattened(Iterable<CableFamily> families) {

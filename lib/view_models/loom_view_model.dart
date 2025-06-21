@@ -22,6 +22,7 @@ class LoomViewModel with DiffComparable implements ModelCollectionMember {
   final void Function(String uid, Set<String> ids) addOutletsToLoom;
   final void Function(String newValue) onNameChanged;
   final void Function(String uid, Set<String> ids) onMoveCablesIntoLoom;
+  final void Function(String uid, Set<String> ids) onAddCablesIntoLoomAsExtensions;
   final List<DropdownMenuEntry<PermanentCompositionSelection>> permCompEntries;
   final void Function(PermanentCompositionSelection selection)
       onChangeToSpecificComposition;
@@ -44,6 +45,7 @@ class LoomViewModel with DiffComparable implements ModelCollectionMember {
     required this.onMoveCablesIntoLoom,
     required this.permCompEntries,
     required this.onChangeToSpecificComposition,
+    required this.onAddCablesIntoLoomAsExtensions,
   });
 
   @override

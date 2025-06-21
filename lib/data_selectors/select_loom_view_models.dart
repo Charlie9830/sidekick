@@ -132,6 +132,8 @@ List<LoomViewModel> selectLoomViewModels(
               store.dispatch(UpdateLoomName(loom.uid, newValue)),
           onMoveCablesIntoLoom: (loomId, cableIds) =>
               store.dispatch(moveCablesIntoLoom(context!, loomId, cableIds)),
+
+          onAddCablesIntoLoomAsExtensions: (loomId, cableIds) => store.dispatch(addCablesToLoomAsExtensions(context!, loomId, cableIds )),
           permCompEntries: _getPermCompEntries(
               context,
               loom,

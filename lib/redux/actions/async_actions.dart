@@ -64,6 +64,62 @@ import 'package:sidekick/snack_bars/import_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+ThunkAction<AppState> addCablesToLoomAsExtensions(
+    BuildContext context, String loomId, Set<String> cableIds) {
+  return (Store<AppState> store) async {
+    final loom = store.state.fixtureState.looms[loomId];
+    final sourceCables = cableIds
+        .map((id) => store.state.fixtureState.cables[id])
+        .nonNulls
+        .toList();
+
+    if (loom == null ||
+        sourceCables.isEmpty ||
+        sourceCables.every((cable) => cable.loomId == loom.uid)) {
+      return;
+    }
+
+    final sourceCableFamilies = CableFamily.createFamilies(sourceCables);
+
+    final extensionCableFamilies = sourceCableFamilies.map((family) {
+      if (family.children.isEmpty) {
+        // Childless Cable
+        return family.copyWith(
+            parent: family.parent.copyWith(
+          uid: getUid(),
+          loomId: loom.uid,
+          upstreamId: family.parent.uid,
+          parentMultiId: '',
+        ));
+      } else {
+        // Multi Cable with Children.
+        final newParentId = getUid();
+        return family.copyWith(
+          parent: family.parent.copyWith(
+            uid: newParentId,
+            loomId: loom.uid,
+            upstreamId: family.parent.uid,
+          ),
+          children: family.children
+              .map((child) => child.copyWith(
+                    uid: getUid(),
+                    upstreamId: child.uid,
+                    parentMultiId: newParentId,
+                    loomId: loom.uid,
+                  ))
+              .toList(),
+        );
+      }
+    });
+
+    final extensionCables = CableFamily.flattened(extensionCableFamilies);
+
+    store.dispatch(SetCables(
+        Map<String, CableModel>.from(store.state.fixtureState.cables)
+          ..addAll(extensionCables.toModelMap())));
+  };
+}
+
 ThunkAction<AppState> updateFixtureDatabaseFilePath(String path) {
   return (Store<AppState> store) async {
     store.dispatch(SetFixtureTypeDatabasePath(path));

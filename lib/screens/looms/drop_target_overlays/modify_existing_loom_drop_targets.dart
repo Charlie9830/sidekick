@@ -6,12 +6,14 @@ import 'package:sidekick/view_models/looms_v2_view_model.dart';
 
 class ModifyExistingLoomDropTargets extends StatelessWidget {
   final void Function(Set<OutletViewModel> outletVms) onOutletsAdded;
-  final void Function(Set<String> cableIds) onCablesPlaced;
+  final void Function(Set<String> cableIds) onCablesMoved;
+  final void Function(Set<String> cableIds) onCablesAdded;
 
   const ModifyExistingLoomDropTargets({
     super.key,
     required this.onOutletsAdded,
-    required this.onCablesPlaced,
+    required this.onCablesMoved,
+    required this.onCablesAdded,
   });
 
   @override
@@ -25,16 +27,22 @@ class ModifyExistingLoomDropTargets extends StatelessWidget {
             icon: const Icon(Icons.add),
             title: 'Add',
             onAccept: (data) {
-              assert(data is OutletDragData);
-              onOutletsAdded((data as OutletDragData).outletVms);
+              if (data is OutletDragData) {
+                onOutletsAdded(data.outletVms);
+              }
+
+              if (data is CableDragData) {
+                onCablesAdded(data.cableIds);
+              }
             },
-            onWillAccept: (data) => data is OutletDragData,
+            onWillAccept: (data) =>
+                data is OutletDragData || data is CableDragData,
           ),
           LandingPad(
             icon: const PlaceItemIcon(),
             title: 'Move',
             onAccept: (data) {
-              onCablesPlaced((data as CableDragData).cableIds);
+              onCablesMoved((data as CableDragData).cableIds);
             },
             onWillAccept: (data) => data is CableDragData,
           ),
