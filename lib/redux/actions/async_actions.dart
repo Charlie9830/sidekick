@@ -540,6 +540,8 @@ ThunkAction<AppState> createNewExtensionLoomV2(BuildContext context,
             parent: family.parent.copyWith(
           uid: getUid(),
           upstreamId: family.parent.uid,
+          parentMultiId:
+              '', // Remove the cable from it's existing parent. This ensures we can drag a child cable from an existing loom and create and new loom from it.
           loomId: newLoom.uid,
         ));
       } else {
