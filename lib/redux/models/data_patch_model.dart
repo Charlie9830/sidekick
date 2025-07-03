@@ -29,6 +29,7 @@ class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
 
   String get universeLabel => 'U$universe';
 
+  @override
   DataPatchModel copyWith({
     String? uid,
     String? name,

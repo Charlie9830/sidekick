@@ -19,6 +19,7 @@ class CableActionModifierResult {
   final Map<String, LocationModel> locations;
   final LoomModel loom;
   final String? permanentLoomConversionError;
+  final List<CableModel> deletedCables;
 
   CableActionModifierResult({
     required this.cables,
@@ -27,6 +28,7 @@ class CableActionModifierResult {
     required this.outlets,
     required this.loom,
     required this.permanentLoomConversionError,
+    required this.deletedCables,
   });
 
   CableActionModifierResult copyWith({
@@ -36,6 +38,7 @@ class CableActionModifierResult {
     Map<String, LocationModel>? locations,
     LoomModel? loom,
     String? permanentLoomConversionError,
+    List<CableModel>? deletedCables,
   }) {
     return CableActionModifierResult(
       cables: cables ?? this.cables,
@@ -45,6 +48,7 @@ class CableActionModifierResult {
       loom: loom ?? this.loom,
       permanentLoomConversionError:
           permanentLoomConversionError ?? this.permanentLoomConversionError,
+      deletedCables: deletedCables ?? this.deletedCables,
     );
   }
 }
@@ -70,6 +74,7 @@ CableActionModifierResult applyCableActionModifiers({
             outlets: outlets,
             loom: loom,
             permanentLoomConversionError: null,
+            deletedCables: [],
           ),
           (prev, modifier) => switch (modifier) {
                 CableActionModifier.combineIntoSneaks =>
@@ -101,11 +106,20 @@ CableActionModifierResult _applyConvertToPermanentLoomAction(
 CableActionModifierResult _applyCombineIntoSneaksAction(
     CableActionModifierResult incoming) {
   final combinationResult = combineDmxIntoSneak(
-      incoming.cables.values.toList(), incoming.outlets, incoming.locations);
+      cables: incoming.cables.values.toList(),
+      outlets: incoming.outlets,
+      existingLocations: incoming.locations);
+
+  final cableIdsToDelete =
+      combinationResult.cablesToDelete.map((cable) => cable.uid).toSet();
 
   return incoming.copyWith(
     cables: incoming.cables.clone()
-      ..addAll(combinationResult.cables.toModelMap()),
+      ..addAll(combinationResult.cables.toModelMap())
+      ..removeWhere((key, value) => cableIdsToDelete.contains(
+          key)), // Delete any cables that have been flagged for removal
+    // Nominally these are now excess spare cables.
+    deletedCables: [], // Clear the collection of Deleted cables as we have performed that action now.
     dataMultis: incoming.dataMultis.clone()
       ..addAll(combinationResult.newDataMultis.toModelMap()),
     locations: incoming.locations.clone()

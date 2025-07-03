@@ -32,6 +32,7 @@ class PowerMultiOutletModel extends Outlet
     return locations[locationId] ?? const LocationModel.none();
   }
 
+  @override
   PowerMultiOutletModel copyWith({
     String? uid,
     String? locationId,

@@ -1,4 +1,7 @@
+import 'dart:collection';
+
 import 'package:collection/collection.dart';
+import 'package:sidekick/extension_methods/queue_pop.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
@@ -13,21 +16,27 @@ class CombineDmxIntoSneakResult {
   final List<CableModel> cables;
   final LocationModel location;
   final List<DataMultiModel> newDataMultis;
+  final List<CableModel> cablesToDelete;
 
   CombineDmxIntoSneakResult({
     required this.cables,
     required this.location,
     required this.newDataMultis,
+    required this.cablesToDelete,
   });
 }
 
-CombineDmxIntoSneakResult combineDmxIntoSneak(
-  List<CableModel> cables,
-  Map<String, Outlet> outlets,
-  Map<String, LocationModel> existingLocations,
-) {
-  final validCables =
-      cables.where((cable) => cable.type == CableType.dmx).toList();
+CombineDmxIntoSneakResult combineDmxIntoSneak({
+  required List<CableModel> cables,
+  required Map<String, Outlet> outlets,
+  required Map<String, LocationModel> existingLocations,
+  List<CableModel> reusableSneaks = const [],
+}) {
+  final reusableSneakQueue = Queue<CableModel>.from(reusableSneaks);
+
+  final validCables = cables
+      .where((cable) => cable.type == CableType.dmx && cable.isSpare == false)
+      .toList();
 
   // Find the Outlets associated with these cables.
   final associatedOutlets =
@@ -59,39 +68,56 @@ CombineDmxIntoSneakResult combineDmxIntoSneak(
                 throw 'Unable to combine into Sneak. Every child in this slice of at least 4 is a spare, meaning it does not have a parent outletId. Without that we cannot query for a locationId';
               }
 
-              final newMultiOutlet = DataMultiModel(
-                uid: getUid(),
-                locationId: targetLocationModel.uid,
-              );
+              final reusableSneak = reusableSneakQueue.isEmpty
+                  ? null
+                  : reusableSneakQueue.removeFirst();
 
-              final newSneak = CableModel(
-                uid: getUid(),
-                type: CableType.sneak,
-                length: inheritedLength,
-                loomId: loomId,
-                outletId: newMultiOutlet.uid,
-              );
+              final reusableMultiOutlet = reusableSneak == null
+                  ? null
+                  : outlets[reusableSneak.outletId] as DataMultiModel;
+
+              final multiOutlet = reusableMultiOutlet == null
+                  ? DataMultiModel(
+                      uid: getUid(),
+                      locationId: targetLocationModel.uid,
+                    )
+                  : reusableMultiOutlet.copyWith(
+                      locationId: targetLocationModel.uid,
+                    );
+
+              final sneak = reusableSneak?.copyWith(
+                    length: inheritedLength,
+                    loomId: loomId,
+                  ) ??
+                  CableModel(
+                    uid: getUid(),
+                    type: CableType.sneak,
+                    length: inheritedLength,
+                    loomId: loomId,
+                    outletId: multiOutlet.uid,
+                  );
 
               final updatedChildren = slice
-                  .map((child) => child.copyWith(parentMultiId: newSneak.uid))
+                  .map((child) => child.copyWith(parentMultiId: sneak.uid))
                   .toList();
 
               final withSparesFilled = [
                 ...updatedChildren,
                 ...List<CableModel>.generate(
-                    4 - updatedChildren.length,
-                    (index) => CableModel(
-                          uid: getUid(),
-                          type: CableType.dmx,
-                          isSpare: true,
-                          spareIndex: index,
-                          parentMultiId: newSneak.uid,
-                          loomId: loomId,
-                          length: inheritedLength,
-                        ))
+                  4 - updatedChildren.length,
+                  (index) => CableModel(
+                    uid: getUid(),
+                    type: CableType.dmx,
+                    isSpare: true,
+                    spareIndex: index,
+                    parentMultiId: sneak.uid,
+                    loomId: loomId,
+                    length: inheritedLength,
+                  ),
+                )
               ];
 
-              return (newSneak, newMultiOutlet, withSparesFilled);
+              return (sneak, multiOutlet, withSparesFilled);
             });
           })
           .flattened
@@ -107,7 +133,11 @@ CombineDmxIntoSneakResult combineDmxIntoSneak(
   return CombineDmxIntoSneakResult(
       cables: [...newSneaks, ...updatedChildren],
       location: targetLocationModel,
-      newDataMultis: newMultiOutlets.toList());
+      newDataMultis: newMultiOutlets.toList(),
+      cablesToDelete: cables
+          .where(
+              (cable) => cable.type == CableType.dmx && cable.isSpare == true)
+          .toList());
 }
 
 /// Will return the matching Location from [existingLocations], if one cannot be found a new one will be created.

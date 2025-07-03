@@ -430,14 +430,18 @@ ThunkAction<AppState> combineSelectedDataCablesIntoSneakV2(
         .toList();
 
     final combinationResult = combineDmxIntoSneak(
-      validCables,
-      [
-        ...store.state.fixtureState.dataMultis.values,
-        ...store.state.fixtureState.powerMultiOutlets.values,
-        ...store.state.fixtureState.dataPatches.values,
-      ].toModelMap(),
-      store.state.fixtureState.locations,
-    );
+        cables: validCables,
+        outlets: [
+          ...store.state.fixtureState.dataMultis.values,
+          ...store.state.fixtureState.powerMultiOutlets.values,
+          ...store.state.fixtureState.dataPatches.values,
+        ].toModelMap(),
+        existingLocations: store.state.fixtureState.locations,
+        reusableSneaks: validCables
+            .map((cable) => cable.parentMultiId)
+            .map((sneakId) => store.state.fixtureState.cables[sneakId])
+            .nonNulls
+            .toList());
 
     store.dispatch(SetLocations(store.state.fixtureState.locations.clone()
       ..addAll([combinationResult.location].toModelMap())));
@@ -445,12 +449,14 @@ ThunkAction<AppState> combineSelectedDataCablesIntoSneakV2(
     store.dispatch(SetDataMultis(store.state.fixtureState.dataMultis.clone()
       ..addAll(combinationResult.newDataMultis.toModelMap())));
 
+    final cableIdsToRemove =
+        combinationResult.cablesToDelete.map((cable) => cable.uid).toSet();
+
     store.dispatch(
       SetCables(
         store.state.fixtureState.cables.clone()
-          ..addAll(
-            combinationResult.cables.toModelMap(),
-          ),
+          ..addAll(combinationResult.cables.toModelMap())
+          ..removeWhere((key, value) => cableIdsToRemove.contains(key)),
       ),
     );
 

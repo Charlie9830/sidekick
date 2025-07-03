@@ -9,6 +9,7 @@ class DataMultiModel extends Outlet implements Comparable<DataMultiModel> {
     int number = 0,
   }) : super(uid: uid, locationId: locationId, number: number, name: name);
 
+  @override
   DataMultiModel copyWith({
     String? uid,
     String? name,

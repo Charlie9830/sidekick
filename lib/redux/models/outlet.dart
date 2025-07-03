@@ -13,4 +13,6 @@ abstract class Outlet extends ModelCollectionMember {
     required this.number,
     required this.name,
   });
+
+  Outlet copyWith();
 }
