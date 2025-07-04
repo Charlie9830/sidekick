@@ -1,4 +1,4 @@
-import 'package:sidekick/view_models/looms_v2_view_model.dart';
+import 'package:sidekick/view_models/looms_view_model.dart';
 
 abstract class DragData {}
 

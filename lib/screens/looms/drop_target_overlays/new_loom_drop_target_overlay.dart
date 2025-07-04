@@ -6,7 +6,7 @@ import 'package:sidekick/screens/looms/drop_target_overlays/combine_into_sneak_i
 import 'package:sidekick/screens/looms/drop_target_overlays/create_as_permanent_loom_info_tag.dart';
 import 'package:sidekick/screens/looms/landing_pad.dart';
 import 'package:sidekick/screens/looms/map_cable_action_modifier_keys.dart';
-import 'package:sidekick/view_models/looms_v2_view_model.dart';
+import 'package:sidekick/view_models/looms_view_model.dart';
 
 class NewLoomDropTargetOverlay extends StatelessWidget {
   final void Function(

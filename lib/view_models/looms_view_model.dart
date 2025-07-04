@@ -6,7 +6,7 @@ import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/view_models/loom_view_model.dart';
 
-class LoomsV2ViewModel {
+class LoomsViewModel {
   final List<OutletViewModel> outlets;
   final Set<String> selectedLoomOutlets;
   final void Function(UpdateType updateType, Set<String> values)
@@ -34,7 +34,7 @@ class LoomsV2ViewModel {
   final List<LoomStockQuantityViewModel> stockVms;
   final void Function() onSetupQuantiesDrawerButtonPressed;
 
-  LoomsV2ViewModel({
+  LoomsViewModel({
     required this.outlets,
     required this.selectedLoomOutlets,
     required this.onSelectedLoomOutletsChanged,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sidekick/custom_icons.dart';
 import 'package:sidekick/screens/looms/drag_data.dart';
 import 'package:sidekick/screens/looms/landing_pad.dart';
-import 'package:sidekick/view_models/looms_v2_view_model.dart';
+import 'package:sidekick/view_models/looms_view_model.dart';
 
 class ModifyExistingLoomDropTargets extends StatelessWidget {
   final void Function(Set<OutletViewModel> outletVms) onOutletsAdded;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/screens/looms/composition_item.dart';
-import 'package:sidekick/view_models/looms_v2_view_model.dart';
+import 'package:sidekick/view_models/looms_view_model.dart';
 
 class QuantatiesDrawer extends StatelessWidget {
   final List<LoomStockQuantityViewModel> itemVms;

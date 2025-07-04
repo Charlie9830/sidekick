@@ -12,14 +12,14 @@ import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/looms/looms_v2.dart';
-import 'package:sidekick/view_models/looms_v2_view_model.dart';
+import 'package:sidekick/view_models/looms_view_model.dart';
 
 class LoomsContainer extends StatelessWidget {
   const LoomsContainer({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, LoomsV2ViewModel>(
+    return StoreConnector<AppState, LoomsViewModel>(
         builder: (context, viewModel) {
       return LoomsV2(
         vm: viewModel,
@@ -27,7 +27,7 @@ class LoomsContainer extends StatelessWidget {
     }, converter: (Store<AppState> store) {
       final outlets = _selectOutlets(store);
 
-      return LoomsV2ViewModel(
+      return LoomsViewModel(
           outlets: outlets,
           loomsDraggingState: store.state.navstate.loomsDraggingState,
           onLoomsDraggingStateChanged: (draggingState) =>

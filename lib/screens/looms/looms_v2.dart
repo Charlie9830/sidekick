@@ -20,11 +20,11 @@ import 'package:sidekick/screens/looms/outlet_list_tile.dart';
 import 'package:sidekick/screens/looms/quantities_drawer.dart';
 import 'package:sidekick/view_models/cable_view_model.dart';
 import 'package:sidekick/view_models/loom_view_model.dart';
-import 'package:sidekick/view_models/looms_v2_view_model.dart';
+import 'package:sidekick/view_models/looms_view_model.dart';
 import 'package:sidekick/widgets/toolbar.dart';
 
 class LoomsV2 extends StatefulWidget {
-  final LoomsV2ViewModel vm;
+  final LoomsViewModel vm;
 
   const LoomsV2({
     super.key,
