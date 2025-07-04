@@ -89,11 +89,12 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is SetCables) {
     return state.copyWith(
-        cables: _assertCableOrderings(
-            cables: a.cables,
-            powerMultiOutlets: state.powerMultiOutlets,
-            dataMultis: state.dataMultis,
-            dataPatches: state.dataPatches));
+      cables: _assertCableOrderings(
+          cables: a.cables,
+          powerMultiOutlets: state.powerMultiOutlets,
+          dataMultis: state.dataMultis,
+          dataPatches: state.dataPatches),
+    );
   }
 
   if (a is UpdateLoomLength) {

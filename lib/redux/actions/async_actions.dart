@@ -258,7 +258,7 @@ ThunkAction<AppState> changeSelectedCablesToDefaultPowerMultiType() {
   };
 }
 
-ThunkAction<AppState> switchLoomTypeV2(BuildContext context, String loomId) {
+ThunkAction<AppState> switchLoomType(BuildContext context, String loomId) {
   return (Store<AppState> store) async {
     // Queries and Guard Clauses
     final loom = store.state.fixtureState.looms[loomId];
@@ -385,7 +385,7 @@ ThunkAction<AppState> moveCablesIntoLoom(
   };
 }
 
-ThunkAction<AppState> splitSelectedSneakIntoDmxV2(BuildContext context) {
+ThunkAction<AppState> splitSelectedSneakIntoDmx(BuildContext context) {
   return (Store<AppState> store) async {
     final sneakCables = store.state.navstate.selectedCableIds
         .map((id) => store.state.fixtureState.cables[id])
@@ -420,7 +420,7 @@ ThunkAction<AppState> splitSelectedSneakIntoDmxV2(BuildContext context) {
   };
 }
 
-ThunkAction<AppState> combineSelectedDataCablesIntoSneakV2(
+ThunkAction<AppState> combineSelectedDataCablesIntoSneak(
     BuildContext context) {
   return (Store<AppState> store) async {
     final validCables = store.state.navstate.selectedCableIds
@@ -465,7 +465,7 @@ ThunkAction<AppState> combineSelectedDataCablesIntoSneakV2(
   };
 }
 
-ThunkAction<AppState> createNewFeederLoomV2(
+ThunkAction<AppState> createNewFeederLoom(
     BuildContext context,
     List<String> outletIds,
     int insertIndex,
@@ -564,7 +564,7 @@ void _performPostCableActionModifierDispatches(BuildContext context,
   }
 }
 
-ThunkAction<AppState> createNewExtensionLoomV2(BuildContext context,
+ThunkAction<AppState> createNewExtensionLoom(BuildContext context,
     List<String> cableIds, int index, Set<CableActionModifier> modifiers) {
   return (Store<AppState> store) async {
     final cables = cableIds
@@ -901,23 +901,6 @@ List<CableModel> _generateSpareCablesToMeetComposition(
   ];
 }
 
-ThunkAction<AppState> removeSelectedCablesFromLoom(BuildContext context) {
-  return (Store<AppState> store) async {
-    final cables = store.state.navstate.selectedCableIds
-        .map((id) => store.state.fixtureState.cables[id])
-        .nonNulls
-        .toList();
-
-    if (cables.isEmpty) {
-      return;
-    }
-
-    store.dispatch(SetCables(store.state.fixtureState.cables.clone()
-      ..addAll(
-          cables.map((cable) => cable.copyWith(loomId: '')).toModelMap())));
-  };
-}
-
 ThunkAction<AppState> setSelectedCableIds(Set<String> ids) {
   return (Store<AppState> store) async {
     final cables =
@@ -940,7 +923,7 @@ ThunkAction<AppState> setSelectedCableIds(Set<String> ids) {
   };
 }
 
-ThunkAction<AppState> deleteSelectedCablesV2(BuildContext context) {
+ThunkAction<AppState> deleteSelectedCables(BuildContext context) {
   return (Store<AppState> store) async {
     final selectedCables = store.state.navstate.selectedCableIds
         .map((id) => store.state.fixtureState.cables[id])
@@ -1126,7 +1109,7 @@ ThunkAction<AppState> addOutletsToLoom(
   };
 }
 
-ThunkAction<AppState> deleteLoomV2(BuildContext context, String uid) {
+ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
   return (Store<AppState> store) async {
     if (uid.isEmpty) {
       return;

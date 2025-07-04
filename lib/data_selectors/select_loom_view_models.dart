@@ -115,14 +115,14 @@ List<LoomViewModel> selectLoomViewModels(
           onLengthChanged: (newValue) =>
               store.dispatch(UpdateLoomLength(loom.uid, newValue)),
           onDelete: () => store.dispatch(
-                deleteLoomV2(context!, loom.uid),
+                deleteLoom(context!, loom.uid),
               ),
           onDropperToggleButtonPressed: () => store.dispatch(
                 ToggleCableDropperStateByLoom(
                   loom.uid,
                 ),
               ),
-          onSwitchType: () => store.dispatch(switchLoomTypeV2(
+          onSwitchType: () => store.dispatch(switchLoomType(
                 context!,
                 loom.uid,
               )),

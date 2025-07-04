@@ -59,17 +59,17 @@ class LoomsV2Container extends StatelessWidget {
           onDefaultPowerMultiTypeChanged: (newValue) =>
               store.dispatch(SetDefaultPowerMulti(newValue)),
           onCombineSelectedDataCablesIntoSneak: () =>
-              store.dispatch(combineSelectedDataCablesIntoSneakV2(context)),
+              store.dispatch(combineSelectedDataCablesIntoSneak(context)),
           onSplitSneakIntoDmxPressed: () =>
-              store.dispatch(splitSelectedSneakIntoDmxV2(context)),
+              store.dispatch(splitSelectedSneakIntoDmx(context)),
           onCreateNewFeederLoom: (outletIds, insertIndex, modifiers) =>
-              store.dispatch(createNewFeederLoomV2(
+              store.dispatch(createNewFeederLoom(
                   context, outletIds, insertIndex, modifiers)),
           onCreateNewExtensionLoom: (cableIds, insertIndex, modifiers) =>
-              store.dispatch(createNewExtensionLoomV2(context, cableIds, insertIndex, modifiers)),
+              store.dispatch(createNewExtensionLoom(context, cableIds, insertIndex, modifiers)),
           loomVms: selectLoomViewModels(store, context: context),
           onLoomReorder: (oldIndex, newIndex) => store.dispatch(reorderLooms(context, oldIndex, newIndex)),
-          onDeleteSelectedCables: store.state.navstate.selectedCableIds.isNotEmpty ? () => store.dispatch(deleteSelectedCablesV2(context)) : null,
+          onDeleteSelectedCables: store.state.navstate.selectedCableIds.isNotEmpty ? () => store.dispatch(deleteSelectedCables(context)) : null,
           availabilityDrawOpen: store.state.navstate.isAvailabilityDrawerOpen,
           onShowAvailabilityDrawPressed: () => store.dispatch(SetIsAvailabilityDrawerOpen(!store.state.navstate.isAvailabilityDrawerOpen)),
           stockVms: _selectLoomStockViewModels(store),
