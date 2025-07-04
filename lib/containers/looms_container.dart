@@ -14,8 +14,8 @@ import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/looms/looms_v2.dart';
 import 'package:sidekick/view_models/looms_v2_view_model.dart';
 
-class LoomsV2Container extends StatelessWidget {
-  const LoomsV2Container({Key? key}) : super(key: key);
+class LoomsContainer extends StatelessWidget {
+  const LoomsContainer({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -62,11 +62,11 @@ class LoomsV2Container extends StatelessWidget {
               store.dispatch(combineSelectedDataCablesIntoSneak(context)),
           onSplitSneakIntoDmxPressed: () =>
               store.dispatch(splitSelectedSneakIntoDmx(context)),
-          onCreateNewFeederLoom: (outletIds, insertIndex, modifiers) =>
-              store.dispatch(createNewFeederLoom(
-                  context, outletIds, insertIndex, modifiers)),
+          onCreateNewFeederLoom: (outletIds, insertIndex, modifiers) => store.dispatch(
+              createNewFeederLoom(context, outletIds, insertIndex, modifiers)),
           onCreateNewExtensionLoom: (cableIds, insertIndex, modifiers) =>
-              store.dispatch(createNewExtensionLoom(context, cableIds, insertIndex, modifiers)),
+              store.dispatch(
+                  createNewExtensionLoom(context, cableIds, insertIndex, modifiers)),
           loomVms: selectLoomViewModels(store, context: context),
           onLoomReorder: (oldIndex, newIndex) => store.dispatch(reorderLooms(context, oldIndex, newIndex)),
           onDeleteSelectedCables: store.state.navstate.selectedCableIds.isNotEmpty ? () => store.dispatch(deleteSelectedCables(context)) : null,
