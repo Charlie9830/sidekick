@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
+import 'package:sidekick/assert_sneak_child_spares.dart';
 import 'package:sidekick/classes/cable_family.dart';
 import 'package:sidekick/classes/export_file_paths.dart';
 import 'package:sidekick/classes/permanent_composition_selection.dart';
@@ -420,8 +421,7 @@ ThunkAction<AppState> splitSelectedSneakIntoDmx(BuildContext context) {
   };
 }
 
-ThunkAction<AppState> combineSelectedDataCablesIntoSneak(
-    BuildContext context) {
+ThunkAction<AppState> combineSelectedDataCablesIntoSneak(BuildContext context) {
   return (Store<AppState> store) async {
     final validCables = store.state.navstate.selectedCableIds
         .map((id) => store.state.fixtureState.cables[id])
@@ -955,8 +955,9 @@ ThunkAction<AppState> deleteSelectedCables(BuildContext context) {
         .nonNulls
         .toSet();
 
-    store.dispatch(SetCables(store.state.fixtureState.cables.clone()
-      ..removeWhere((key, value) => cableIdsToRemove.contains(key))));
+    store.dispatch(SetCables(assertSneakChildSpares(
+        store.state.fixtureState.cables.clone()
+          ..removeWhere((key, value) => cableIdsToRemove.contains(key)))));
 
     if (dataMultiIdsToRemove.isNotEmpty) {
       store.dispatch(SetDataMultis(store.state.fixtureState.dataMultis.clone()
