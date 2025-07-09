@@ -41,7 +41,6 @@ List<LoomViewModel> selectLoomViewModels(
           dataPatches: store.state.fixtureState.dataPatches,
           dataMultis: store.state.fixtureState.dataMultis,
           cable: cable,
-          forExcel: forExcel,
         ),
         typeLabel: _getTypeLabel(
           cable.type,
@@ -132,16 +131,16 @@ List<LoomViewModel> selectLoomViewModels(
               store.dispatch(UpdateLoomName(loom.uid, newValue)),
           onMoveCablesIntoLoom: (loomId, cableIds) =>
               store.dispatch(moveCablesIntoLoom(context!, loomId, cableIds)),
-
-          onAddCablesIntoLoomAsExtensions: (loomId, cableIds) => store.dispatch(addCablesToLoomAsExtensions(context!, loomId, cableIds )),
+          onAddCablesIntoLoomAsExtensions: (loomId, cableIds) => store.dispatch(
+              addCablesToLoomAsExtensions(context!, loomId, cableIds)),
           permCompEntries: _getPermCompEntries(
               context,
               loom,
               childCables
                   .where((cable) => cable.parentMultiId.isEmpty)
                   .toList()),
-          onChangeToSpecificComposition: (newComposition) => store.dispatch(
-              changeToSpecificComposition(context!, loom.uid, newComposition)));
+          onChangeToSpecificComposition: (newComposition) => store
+              .dispatch(changeToSpecificComposition(context!, loom.uid, newComposition)));
     },
   ).toList();
 

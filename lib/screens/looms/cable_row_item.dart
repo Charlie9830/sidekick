@@ -136,7 +136,10 @@ class CableRowItem extends StatelessWidget {
                             CableType.unknown => const SizedBox(),
                           },
                           const SizedBox(width: 8),
-                          Text(typeLabel),
+                          Text(typeLabel,
+                              style: cable.parentMultiId.isNotEmpty
+                                  ? Theme.of(context).textTheme.bodySmall
+                                  : null),
                         ],
                       ),
                     ],
@@ -157,12 +160,6 @@ class CableRowItem extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(label),
-                      if (dmxUniverse != 0)
-                        Text('  -  U$dmxUniverse',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium!
-                                .copyWith(color: Colors.grey)),
                       const Spacer(),
                       if (cable.upstreamId.isNotEmpty)
                         missingUpstreamCable
