@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/classes/permanent_composition_selection.dart';
+import 'package:sidekick/data_selectors/select_cable_detached_state.dart';
 import 'package:sidekick/data_selectors/select_cable_label.dart';
 import 'package:sidekick/data_selectors/select_cable_location.dart';
 import 'package:sidekick/data_selectors/select_child_cables.dart';
@@ -25,6 +26,7 @@ List<LoomViewModel> selectLoomViewModels(
   // Wrapper Function to wrap multiple similiar calls to Cable VM creation.
   CableViewModel wrapCableVm(CableModel cable, int localNumber) {
     final associatedLocation = selectCableLocation(cable, store);
+  
 
     return CableViewModel(
         cable: cable,
@@ -42,6 +44,7 @@ List<LoomViewModel> selectLoomViewModels(
           dataMultis: store.state.fixtureState.dataMultis,
           cable: cable,
         ),
+        isDetached: selectCableDetachedState(dataMultis: store.state.fixtureState.dataMultis, cable: cable),
         typeLabel: _getTypeLabel(
           cable.type,
           localNumber,

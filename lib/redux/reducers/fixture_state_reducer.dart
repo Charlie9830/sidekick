@@ -88,12 +88,19 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetCables) {
+    final cables = _assertCableOrderings(
+      cables: a.cables,
+      powerMultiOutlets: state.powerMultiOutlets,
+      dataMultis: state.dataMultis,
+      dataPatches: state.dataPatches,
+    );
+
     return state.copyWith(
-      cables: _assertCableOrderings(
-          cables: a.cables,
-          powerMultiOutlets: state.powerMultiOutlets,
-          dataMultis: state.dataMultis,
-          dataPatches: state.dataPatches),
+      cables: cables,
+      dataMultis: assertDataMultiState(
+          multiOutlets: state.dataMultis,
+          locations: state.locations,
+          cables: cables),
     );
   }
 
@@ -102,14 +109,20 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetCablesAndLooms) {
+    final cables = _assertCableOrderings(
+      cables: a.cables,
+      powerMultiOutlets: state.powerMultiOutlets,
+      dataMultis: state.dataMultis,
+      dataPatches: state.dataPatches,
+    );
+
     return state.copyWith(
-      cables: _assertCableOrderings(
-        cables: a.cables,
-        powerMultiOutlets: state.powerMultiOutlets,
-        dataMultis: state.dataMultis,
-        dataPatches: state.dataPatches,
-      ),
+      cables: cables,
       looms: a.looms,
+      dataMultis: assertDataMultiState(
+          multiOutlets: state.dataMultis,
+          locations: state.locations,
+          cables: cables),
     );
   }
 
@@ -183,7 +196,11 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is SetDataMultis) {
     return state.copyWith(
-      dataMultis: assertDataMultiState(a.multis, state.locations),
+      dataMultis: assertDataMultiState(
+        multiOutlets: a.multis,
+        locations: state.locations,
+        cables: state.cables,
+      ),
     );
   }
 

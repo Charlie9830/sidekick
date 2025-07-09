@@ -30,5 +30,6 @@ CableRowItem buildCableRowItem({
     },
     missingUpstreamCable: missingUpstreamCable,
     onNotesChanged: (newValue) => vm.onNotesChanged(newValue),
+    isDetached: vm.isDetached,
   );
 }

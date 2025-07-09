@@ -118,6 +118,8 @@ class CableModel extends ModelCollectionMember {
   bool get isMultiCable =>
       switch (type) { CableType.sneak => true, _ => false };
 
+  bool get isExtension => upstreamId.isNotEmpty;
+
   CableClass get cableClass {
     if (isDropper) {
       return CableClass.dropper;

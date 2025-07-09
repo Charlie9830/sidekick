@@ -1452,7 +1452,6 @@ ThunkAction<AppState> export(BuildContext context) {
     createDataPatchSheet(
       excel: referenceDataExcel,
       dataOutlets: store.state.fixtureState.dataPatches.values,
-      dataMultis: store.state.fixtureState.dataMultis,
       locations: store.state.fixtureState.locations,
       cables: store.state.fixtureState.cables,
     );

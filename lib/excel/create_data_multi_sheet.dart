@@ -31,6 +31,8 @@ void createDataMultiSheet({
   final cablesByParentMultiId =
       cables.values.groupListsBy((cable) => cable.parentMultiId);
 
+  final rootDataMultis =
+      dataMultis.values.where((multi) => multi.isDetached == false).toList();
 
   // TODO: Rethink this.. It borks when you have more then 1 Data rack because it ends up assigning Node outputs on the first rack to Sneak Panel slots
   // on the second rack.. Should make it a bit smarter and and then possibly an option to turn on and off.
@@ -38,7 +40,7 @@ void createDataMultiSheet({
   // // Try to Assign Multis to their slots on the Sneak panel by Color in a first pass best effort manner. We will iterate once more
   // // after this to ensure all remaining multis get assigned somewhere.
 
-    // final Map<String, DataMultiModel?> assignedSneakPanelSlots = {
+  // final Map<String, DataMultiModel?> assignedSneakPanelSlots = {
   //   'Red': null,
   //   'White': null,
   //   'Blue': null,
@@ -57,11 +59,8 @@ void createDataMultiSheet({
   //   'Brown/Grey': null,
   // };
 
-
-
-
   // final List<DataMultiModel> rejects = [];
-  // for (final multi in dataMultis.values) {
+  // for (final multi in rootDataMultis) {
   //   final colorName = locations[multi.locationId]?.color.name;
 
   //   // Could'nt get a Suitable color. Send to the Reject Pile.
@@ -102,7 +101,7 @@ void createDataMultiSheet({
   //   assignedSneakPanelSlots[rejectedMulti.uid] = rejectedMulti;
   // }
 
-  for (final (index, multi) in dataMultis.values.indexed) {
+  for (final (index, multi) in rootDataMultis.indexed) {
     // TODO
     // Disabled until Smarter Sneak Slot assignment is fixed.
     //

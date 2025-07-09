@@ -23,6 +23,7 @@ class CableRowItem extends StatelessWidget {
   final void Function(String newValue)? onLengthChanged;
   final void Function(String newValue) onNotesChanged;
   final CableDelta? cableDelta;
+  final bool isDetached;
 
   const CableRowItem({
     super.key,
@@ -38,6 +39,7 @@ class CableRowItem extends StatelessWidget {
     this.onLengthChanged,
     this.missingUpstreamCable = false,
     required this.onNotesChanged,
+    this.isDetached = false,
   });
 
   @override
@@ -161,6 +163,11 @@ class CableRowItem extends StatelessWidget {
                     children: [
                       Text(label),
                       const Spacer(),
+                      if (isDetached)
+                        const Tooltip(
+                            message:
+                                'Detached Outlet:\nThis cable will not appear on the patch sheet',
+                            child: Icon(Icons.info, color: Colors.grey, size: 20)),
                       if (cable.upstreamId.isNotEmpty)
                         missingUpstreamCable
                             ? const _MissingUpstreamCableIcon()

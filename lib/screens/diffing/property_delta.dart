@@ -19,7 +19,7 @@ enum PropertyDeltaName {
   fixtureId,
   fixtureType,
   universe,
-  address, loomId, outletId, parentMultiId, loomLength, locationName, multiCount, multiName, desiredSpareCircuits, patchedFixtureIds, load, sequenceNumber, powerPatch, mode,
+  address, loomId, outletId, parentMultiId, loomLength, locationName, multiCount, multiName, desiredSpareCircuits, patchedFixtureIds, load, sequenceNumber, powerPatch, mode, isDetached,
 }
 
 enum DiffState {
