@@ -5,10 +5,12 @@ import 'package:sidekick/screens/diffing/property_delta.dart';
 
 class LocationHeaderTrailer extends StatelessWidget {
   final PropertyDeltaSet? deltas;
+  final void Function() onLocationSettingsButtonPressed;
 
   const LocationHeaderTrailer({
     super.key,
     required this.multiCount,
+    required this.onLocationSettingsButtonPressed,
     this.deltas,
   });
 
@@ -19,6 +21,12 @@ class LocationHeaderTrailer extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
+        FilledButton.tonalIcon(
+          onPressed: onLocationSettingsButtonPressed,
+          icon: const Icon(Icons.settings),
+          label: const Text('Settings'),
+        ),
+        const SizedBox(width: 24),
         DiffStateOverlay(
           diff: deltas?.lookup(PropertyDeltaName.multiCount),
           child: Row(

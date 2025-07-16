@@ -15,6 +15,7 @@ class PropertyField extends StatefulWidget {
   final TextEditingController? controller;
   final FocusNode? focusNode;
   final String? hintText;
+  final bool enabled;
 
   const PropertyField({
     Key? key,
@@ -28,6 +29,7 @@ class PropertyField extends StatefulWidget {
     this.controller,
     this.focusNode,
     this.hintText,
+    this.enabled = true,
   }) : super(key: key);
 
   @override
@@ -59,6 +61,7 @@ class PropertyFieldState extends State<PropertyField> {
       child: BlurListener(
         onBlur: () => widget.onBlur?.call(_controller.text),
         child: TextField(
+          enabled: widget.enabled,
           focusNode: widget.focusNode,
           autofocus: widget.autofocus,
           controller: _controller,
@@ -67,7 +70,6 @@ class PropertyFieldState extends State<PropertyField> {
           textAlignVertical: TextAlignVertical.top,
           textAlign: widget.textAlign,
           decoration: buildInputDecoration(widget.suffix, widget.hintText),
-          
         ),
       ),
       label: widget.label,

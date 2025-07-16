@@ -22,6 +22,7 @@ class LocationRow extends StatelessWidget {
       trailing: LocationHeaderTrailer(
         multiCount: vm.multiCount,
         deltas: deltas,
+        onLocationSettingsButtonPressed: vm.onSettingsButtonPressed,
       ),
     );
   }

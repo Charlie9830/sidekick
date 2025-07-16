@@ -224,13 +224,23 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetLocations) {
+    final outlets = performPowerPatch(
+      fixtures: state.fixtures,
+      fixtureTypes: state.fixtureTypes,
+      powerMultiOutlets: state.powerMultiOutlets,
+      locations: a.locations,
+      maxSequenceBreak: state.maxSequenceBreak,
+      balanceTolerance: state.balanceTolerance,
+    );
+
     return state.copyWith(
       locations: a.locations,
+      fixtures: outlets.fixtures,
       dataMultis: assertOutletNameAndNumbers<DataMultiModel>(
               state.dataMultis.values, a.locations)
           .toModelMap(),
       powerMultiOutlets: assertOutletNameAndNumbers<PowerMultiOutletModel>(
-              state.powerMultiOutlets.values, a.locations)
+              outlets.powerMultiOutlets.values, a.locations)
           .toModelMap(),
       dataPatches: assertOutletNameAndNumbers<DataPatchModel>(
               state.dataPatches.values, a.locations)

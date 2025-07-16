@@ -35,6 +35,11 @@ class _PowerPatchState extends State<PowerPatch> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          Text('Global Settings',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall!
+                  .copyWith(color: Colors.grey)),
           const SizedBox(width: 8),
           SizedBox(
             width: 110,
@@ -83,7 +88,10 @@ class _PowerPatchState extends State<PowerPatch> {
 
   Widget _buildRow(BuildContext context, PowerPatchRowViewModel row) {
     return switch (row) {
-      LocationRowViewModel vm => LocationRow(key: Key(vm.uid), vm: vm),
+      LocationRowViewModel vm => LocationRow(
+          key: Key(vm.uid),
+          vm: vm,
+          ),
       MultiOutletRowViewModel vm => GestureDetector(
           onTap: () => widget.vm.onMultiOutletPressed(row.multiOutlet.uid),
           child: MultiOutletRow(

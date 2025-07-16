@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:sidekick/screens/fixture_types/fixture_type_data_table.dart';
 import 'package:sidekick/view_models/fixture_types_view_model.dart';
-import 'package:sidekick/widgets/property_field.dart';
 import 'package:sidekick/widgets/toolbar.dart';
 
 class FixtureTypes extends StatelessWidget {
@@ -33,87 +32,12 @@ class FixtureTypes extends StatelessWidget {
         )),
         Expanded(
           child: SingleChildScrollView(
-            child: DataTable(
-                columns: const [
-                  // Name
-                  DataColumn(
-                    tooltip:
-                        'Taken from the Make and Manufacturer columns of the Fixture Database.',
-                    label: Text('Make and Manufacturer'),
-                  ),
-
-                  // Short Name
-                  DataColumn(
-                    label: Text('Short Name'),
-                  ),
-
-                  // Qty
-                  DataColumn(
-                    label: Text('Qty'),
-                  ),
-
-                  // Max Piggybacks
-                  DataColumn(label: Text('Max Piggybacks')),
-
-                  // Amps
-                  DataColumn(label: Text('Amps')),
-                ],
-                rows: vm.itemVms.map((item) {
-                  final piggybackedLoadSuffix = item.type.maxPiggybacks > 1
-                      ? '    (${(item.type.amps * item.type.maxPiggybacks).toStringAsFixed(1)}A)'
-                      : '';
-                  return DataRow(cells: [
-                    DataCell(
-                      // Original Make & Model
-                      Text(item.type.name),
-                    ),
-
-                    // Short Name
-                    DataCell(
-                      // Name
-                      withConstraint(
-                        PropertyField(
-                          value: item.type.shortName,
-                          onBlur: (newValue) =>
-                              vm.onShortNameChanged(item.type.uid, newValue),
-                        ),
-                        width: 240,
-                      ),
-                    ),
-
-                    // Qty
-                    DataCell(
-                      Text(item.qty.toString()),
-                    ),
-
-                    // Max Piggybacks.
-                    DataCell(withConstraint(
-                      PropertyField(
-                        value: item.type.maxPiggybacks.toString(),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly
-                        ],
-                        onBlur: (newValue) =>
-                            vm.onMaxPairingsChanged(item.type.uid, newValue),
-                      ),
-                    )),
-
-                    // Amps.
-                    DataCell(
-                      Text('${item.type.amps}A$piggybackedLoadSuffix'),
-                    ),
-                  ]);
-                }).toList()),
+            child: FixtureTypeDataTable(
+              items: vm.itemVms,
+            ),
           ),
         ),
       ],
-    );
-  }
-
-  Widget withConstraint(Widget child, {double? width}) {
-    return SizedBox(
-      width: width ?? 120,
-      child: child,
     );
   }
 }

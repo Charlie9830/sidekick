@@ -15,7 +15,10 @@ class Toolbar extends StatelessWidget {
     return SizedBox(
         height: height,
         child: Card(
-          child: child,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+            child: child,
+          ),
         ));
   }
 }

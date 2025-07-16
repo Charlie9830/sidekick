@@ -24,7 +24,7 @@ class PowerPatchContainer extends StatelessWidget {
       converter: (Store<AppState> store) {
         return PowerPatchViewModel(
             selectedMultiOutlet: store.state.navstate.selectedMultiOutlet,
-            rows: selectPowerPatchViewModels(store),
+            rows: selectPowerPatchViewModels(context, store),
             phaseLoad: _selectPhaseLoad(store),
             maxSequenceBreak: store.state.fixtureState.maxSequenceBreak,
             onMaxSequenceBreakChanged: (newValue) =>

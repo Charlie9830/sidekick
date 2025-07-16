@@ -15,7 +15,6 @@ import 'package:sidekick/classes/permanent_composition_selection.dart';
 import 'package:sidekick/containers/import_manager_container.dart';
 import 'package:sidekick/data_selectors/select_all_outlets.dart';
 import 'package:sidekick/data_selectors/select_outlets.dart';
-import 'package:sidekick/diffing/union_proxy.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/excel/create_color_lookup_sheet.dart';
 import 'package:sidekick/excel/create_data_multi_sheet.dart';
@@ -44,6 +43,7 @@ import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/app_store.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
@@ -51,6 +51,7 @@ import 'package:sidekick/redux/models/permanent_loom_composition.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:path/path.dart' as p;
 import 'package:sidekick/screens/file/import_module/import_manager_result.dart';
+import 'package:sidekick/screens/location_overrides_dialog/location_overrides_dialog.dart';
 import 'package:sidekick/screens/looms/add_spare_cables.dart';
 import 'package:sidekick/screens/sequencer_dialog/sequencer_dialog.dart';
 import 'package:sidekick/screens/setup_quantities_dialog/setup_quantities_dialog.dart';
@@ -64,6 +65,26 @@ import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/import_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+ThunkAction<AppState> showLocationOverridesDialog(
+    BuildContext context, String locationId) {
+  return (Store<AppState> store) async {
+    final result = await showDialog(
+        context: context,
+        builder: (context) => LocationOverridesDialog(
+            initialLocationId: locationId,
+            locations: store.state.fixtureState.locations,
+            fixtures: store.state.fixtureState.fixtures,
+            fixtureTypes: store.state.fixtureState.fixtureTypes,
+            globalMaxSequenceBreak: store.state.fixtureState.maxSequenceBreak));
+
+    if (result is Map<String, LocationModel>) {
+      store.dispatch(SetLocations(
+          Map<String, LocationModel>.from(store.state.fixtureState.locations)
+            ..addAll(result)));
+    }
+  };
+}
 
 ThunkAction<AppState> addCablesToLoomAsExtensions(
     BuildContext context, String loomId, Set<String> cableIds) {

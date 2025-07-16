@@ -21,10 +21,6 @@ class FixtureTypesContainer extends StatelessWidget {
       converter: (Store<AppState> store) {
         return FixtureTypesViewModel(
             itemVms: _selectFixtureTypeItems(store),
-            onMaxPairingsChanged: (id, newValue) =>
-                store.dispatch(UpdateFixtureTypeMaxPiggybacks(id, newValue)),
-            onShortNameChanged: (id, newValue) =>
-                store.dispatch(UpdateFixtureTypeShortName(id, newValue)),
             showAllFixtureTypes: store.state.navstate.showAllFixtureTypes,
             onShowAllFixtureTypesChanged: (newValue) =>
                 store.dispatch(SetShowAllFixtureTypes(newValue)));
@@ -53,6 +49,10 @@ class FixtureTypesContainer extends StatelessWidget {
                   .where((fixture) => fixture.typeId == type.uid)
                   .length,
               type: type,
+              onMaxPairingsChanged: (newValue) => store
+                  .dispatch(UpdateFixtureTypeMaxPiggybacks(type.uid, newValue)),
+              onShortNameChanged: (newValue) => store
+                  .dispatch(UpdateFixtureTypeShortName(type.uid, newValue)),
             ))
         .toList();
   }

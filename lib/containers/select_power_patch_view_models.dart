@@ -1,9 +1,12 @@
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
+import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';
 
-List<PowerPatchRowViewModel> selectPowerPatchViewModels(Store<AppState> store) {
+List<PowerPatchRowViewModel> selectPowerPatchViewModels(
+    BuildContext context, Store<AppState> store) {
   return store.state.fixtureState.locations.values
       .map((location) {
         final associatedMultis = store
@@ -13,9 +16,10 @@ List<PowerPatchRowViewModel> selectPowerPatchViewModels(Store<AppState> store) {
 
         return [
           LocationRowViewModel(
-            location: location,
-            multiCount: associatedMultis.length,
-          ),
+              location: location,
+              multiCount: associatedMultis.length,
+              onSettingsButtonPressed: () => store.dispatch(
+                  showLocationOverridesDialog(context, location.uid))),
           ...associatedMultis.map((multi) => MultiOutletRowViewModel(
               multi,
               multi.children

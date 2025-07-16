@@ -48,7 +48,7 @@ class DiffingScreenContainer extends StatelessWidget {
                 comparisonFilePath: store.state.fileState.comparisonFilePath,
                 patchItemVms: _getPatchDiffs(
                   currentPatchVms:
-                      selectPowerPatchViewModels(store).toModelMap(),
+                      selectPowerPatchViewModels(context, store).toModelMap(),
                   originalPatchVms: diffViewModel.originalPatchViewModels,
                 ),
                 loomItemVms: _getLoomDiffs(
@@ -68,7 +68,7 @@ class DiffingScreenContainer extends StatelessWidget {
           onFileSelectedForCompare: (path) =>
               diffStore.dispatch(openProjectFile(context, false, path)),
           originalPatchViewModels:
-              selectPowerPatchViewModels(diffStore).toModelMap(),
+              selectPowerPatchViewModels(context, diffStore).toModelMap(),
           originalFixtureViewModels:
               selectFixtureRowViewModels(diffStore).toModelMap(),
         );

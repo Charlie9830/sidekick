@@ -42,10 +42,12 @@ abstract class PowerPatchRowViewModel
 class LocationRowViewModel extends PowerPatchRowViewModel {
   final LocationModel location;
   final int multiCount;
+  final void Function() onSettingsButtonPressed;
 
   LocationRowViewModel({
     required this.location,
     required this.multiCount,
+    required this.onSettingsButtonPressed,
   });
 
   @override

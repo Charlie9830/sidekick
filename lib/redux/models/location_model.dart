@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 import 'dart:ui';
 
@@ -9,6 +10,7 @@ import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
+import 'package:sidekick/redux/models/location_override_model.dart';
 import 'package:sidekick/redux/models/named_color_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
@@ -22,16 +24,19 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
   final String multiPrefix;
   final String delimiter;
   final Set<String> hybridIds;
+  final LocationOverrideModel overrides;
 
   static const Color noColor = Color.fromARGB(0, 0, 0, 0);
 
-  LocationModel(
-      {required this.uid,
-      this.name = '',
-      required this.color,
-      this.multiPrefix = '',
-      this.delimiter = '.',
-      this.hybridIds = const {}});
+  LocationModel({
+    required this.uid,
+    this.name = '',
+    required this.color,
+    this.multiPrefix = '',
+    this.delimiter = '.',
+    this.hybridIds = const {},
+    this.overrides = const LocationOverrideModel.none(),
+  });
 
   const LocationModel.none()
       : uid = 'none',
@@ -39,7 +44,8 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
         multiPrefix = '',
         color = const LabelColorModel.none(),
         delimiter = '',
-        hybridIds = const {};
+        hybridIds = const {},
+        overrides = const LocationOverrideModel.none();
 
   bool get isHybrid => hybridIds.isNotEmpty;
 
@@ -54,6 +60,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
     String? multiPrefix,
     String? delimiter,
     Set<String>? hybridIds,
+    LocationOverrideModel? overrides,
   }) {
     return LocationModel(
       uid: uid ?? this.uid,
@@ -62,6 +69,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       multiPrefix: multiPrefix ?? this.multiPrefix,
       delimiter: delimiter ?? this.delimiter,
       hybridIds: hybridIds ?? this.hybridIds,
+      overrides: overrides ?? this.overrides,
     );
   }
 
@@ -122,6 +130,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       'multiPrefix': multiPrefix,
       'delimiter': delimiter,
       'hybridIds': hybridIds.toList(),
+      'overrides': overrides.toMap(),
     };
   }
 
@@ -139,6 +148,9 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
           : (map['hybridIds'] as List<dynamic>)
               .map((x) => x.toString())
               .toSet(),
+      overrides: map['overrides'] == null
+          ? const LocationOverrideModel.none()
+          : LocationOverrideModel.fromMap(map['overrides']),
     );
   }
 
