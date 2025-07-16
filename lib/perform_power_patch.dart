@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:sidekick/assert_outlet_name_and_number.dart';
 import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
+import 'package:sidekick/balancer/models/balancer_location_model.dart';
 import 'package:sidekick/balancer/models/balancer_multi_outlet_model.dart';
 import 'package:sidekick/balancer/naive_balancer.dart';
 import 'package:sidekick/balancer/phase_load.dart';
@@ -40,7 +41,10 @@ PowerPatchResult performPowerPatch({
             fixture: fixture, type: fixtureTypes[fixture.typeId]!))
         .toList(),
     multiOutlets: powerMultiOutlets.values.toList(),
-    maxSequenceBreak: maxSequenceBreak,
+    globalMaxSequenceBreak: maxSequenceBreak,
+    locations: Map<String, BalancerLocationModel>.from(locations.map(
+        (key, value) =>
+            MapEntry(key, BalancerLocationModel.fromLocation(value)))),
   );
 
   final balancedMultiOutlets = _balanceOutlets(

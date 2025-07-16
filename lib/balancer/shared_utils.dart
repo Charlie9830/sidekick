@@ -1,19 +1,23 @@
 import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
+import 'package:sidekick/balancer/models/balancer_location_model.dart';
 import 'package:sidekick/balancer/models/balancer_power_patch_model.dart';
 
 ///
 /// Given a list of [FixtureModel]'s, will return a List of [BalancerPowerPatchModel] with the fixtures
-/// piggybacked together, where possible, given the constraints of [maxSequenceBreak] and [FixtureModel.maxAllowedPiggybacks].
+/// piggybacked together, where possible, given the constraints of [globalMaxSequenceBreak] and [FixtureModel.maxAllowedPiggybacks].
 ///
-List<BalancerPowerPatchModel> performPiggybacking(
-    List<BalancerFixtureModel> fixtures, int maxSequenceBreak) {
+List<BalancerPowerPatchModel> performPiggybacking({
+  required List<BalancerFixtureModel> fixtures,
+  required int globalMaxSequenceBreak,
+  required Map<String, BalancerLocationModel> locations,
+}) {
   final Set<String> assignedFixtureUids = {};
   final List<BalancerPowerPatchModel> patches = [];
   int fixtureIndex = 0;
 
   while (patches.length <= assignedFixtureUids.length &&
       fixtureIndex < fixtures.length) {
-    final currentFixture = fixtures[fixtureIndex];
+    BalancerFixtureModel currentFixture = fixtures[fixtureIndex];
 
     if (assignedFixtureUids.contains(currentFixture.uid)) {
       // Fixture has already been assigned to a patch.
@@ -25,6 +29,19 @@ List<BalancerPowerPatchModel> performPiggybacking(
     BalancerPowerPatchModel patch = BalancerPowerPatchModel(fixtures: [
       currentFixture,
     ]);
+
+    // Collect and apply any location specific patch settings we have to the fixture type.
+    final currentLocationOverride =
+        locations[currentFixture.locationId]?.overrides;
+    currentFixture = currentFixture.copyWith(
+        type: currentFixture.type.copyWith(
+            maxPiggybacks:
+                currentLocationOverride?.maxPairings[currentFixture.type.uid]));
+
+    // Determine if we are adhearing to the Global max Sequence break, or a Location specific one.
+    final currentMaxSequenceBreak =
+        currentLocationOverride?.maxSequenceBreak.value ??
+            globalMaxSequenceBreak;
 
     if (currentFixture.type.canPiggyback == false) {
       // Current Fixture can't Piggyback with anything else. So we are done here.
@@ -54,7 +71,8 @@ List<BalancerPowerPatchModel> performPiggybacking(
           patch.fixtures.length + 1 <= currentFixture.type.maxPiggybacks;
       final allowedToOverrideMaxSequenceBreak =
           patch.isContiguousWith(candidateFixture) == true;
-      final satisfiesMaxSequenceBreak = sequenceOffset <= maxSequenceBreak;
+      final satisfiesMaxSequenceBreak =
+          sequenceOffset <= currentMaxSequenceBreak;
 
       // Check if we violate the "Critical" Conditions first, these are the unbreakable decrees.
       // 1. We can never Pair fixtures of differing types.

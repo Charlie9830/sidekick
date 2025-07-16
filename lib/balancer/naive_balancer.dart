@@ -6,6 +6,7 @@ import 'package:sidekick/balancer/asserts/asserts.dart';
 import 'package:sidekick/balancer/balancer_base.dart';
 import 'package:sidekick/balancer/balancer_result.dart';
 import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
+import 'package:sidekick/balancer/models/balancer_location_model.dart';
 import 'package:sidekick/balancer/models/balancer_multi_outlet_model.dart';
 import 'package:sidekick/balancer/models/balancer_power_patch_model.dart';
 import 'package:sidekick/balancer/phase_load.dart';
@@ -32,14 +33,16 @@ class NaiveBalancer implements Balancer {
   List<BalancerMultiOutletModel> assignToOutlets({
     required List<BalancerFixtureModel> fixtures,
     required List<PowerMultiOutletModel> multiOutlets,
+    required Map<String, BalancerLocationModel> locations,
     double maxAmpsPerCircuit = 16,
-    int maxSequenceBreak = 4,
+    int globalMaxSequenceBreak = 4,
   }) {
     // Generate Patches.
     final patchesByLocationId = _generatePatches(
       fixtures: fixtures,
       maxAmpsPerCircuit: maxAmpsPerCircuit,
-      maxSequenceBreak: maxSequenceBreak,
+      globalMaxSequenceBreak: globalMaxSequenceBreak,
+      locations: locations,
     );
 
     final List<BalancerMultiOutletModel> updatedMultis = [];
@@ -173,14 +176,20 @@ class NaiveBalancer implements Balancer {
   Map<String, List<BalancerPowerPatchModel>> _generatePatches({
     required List<BalancerFixtureModel> fixtures,
     required double maxAmpsPerCircuit,
-    required int maxSequenceBreak,
+    required int globalMaxSequenceBreak,
+    required Map<String, BalancerLocationModel> locations,
   }) {
     final powerSpans = PowerSpan.createSpans(fixtures);
 
     final patchesBySpan =
         Map<PowerSpan, List<BalancerPowerPatchModel>>.fromEntries(
             powerSpans.map((span) => MapEntry(
-                span, performPiggybacking(span.fixtures, maxSequenceBreak))));
+                span,
+                performPiggybacking(
+                  fixtures: span.fixtures,
+                  globalMaxSequenceBreak: globalMaxSequenceBreak,
+                  locations: locations,
+                ))));
 
     final patchesByLocation = Map<String, List<BalancerPowerPatchModel>>.from(
         patchesBySpan.entries.fold<Map<String, List<BalancerPowerPatchModel>>>(

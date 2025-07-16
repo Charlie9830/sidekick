@@ -18,6 +18,10 @@ class LocationOverrideModel {
       maxSequenceBreak != const LocationOverrideModel.none().maxSequenceBreak &&
       maxPairings.isNotEmpty;
 
+  int getMaxPairings({required String typeId, required int valueIfAbsent}) {
+    return maxPairings[typeId] ?? valueIfAbsent;
+  }
+
   LocationOverrideModel copyWith({
     OptionalInt? maxSequenceBreak,
     Map<String, int>? maxPairings,
@@ -37,8 +41,8 @@ class LocationOverrideModel {
 
   factory LocationOverrideModel.fromMap(Map<String, dynamic> map) {
     return LocationOverrideModel(
-      maxSequenceBreak: OptionalInt.fromMap(
-          map['maxSequenceBreak'] as Map<String, dynamic>),
+      maxSequenceBreak:
+          OptionalInt.fromMap(map['maxSequenceBreak'] as Map<String, dynamic>),
       maxPairings: Map<String, int>.from((map['maxPairings'] ??
           const <Map<String, int>>{}) as Map<String, int>),
     );
@@ -74,6 +78,5 @@ class OptionalInt {
   String toJson() => json.encode(toMap());
 
   factory OptionalInt.fromJson(String source) =>
-      OptionalInt.fromMap(
-          json.decode(source) as Map<String, dynamic>);
+      OptionalInt.fromMap(json.decode(source) as Map<String, dynamic>);
 }
