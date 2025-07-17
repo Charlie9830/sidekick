@@ -4,11 +4,11 @@ class OverrideSettingsButton extends StatelessWidget {
   const OverrideSettingsButton({
     super.key,
     required this.hasOverrides,
-    required this.onLocationSettingsButtonPressed,
+    required this.onPressed,
   });
 
   final bool hasOverrides;
-  final void Function() onLocationSettingsButtonPressed;
+  final void Function() onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +16,7 @@ class OverrideSettingsButton extends StatelessWidget {
       label: const Icon(Icons.check, color: Colors.black, size: 12),
       isLabelVisible: hasOverrides,
       child: FilledButton.tonalIcon(
-        onPressed: onLocationSettingsButtonPressed,
+        onPressed: onPressed,
         icon: const Icon(
           Icons.settings,
         ),

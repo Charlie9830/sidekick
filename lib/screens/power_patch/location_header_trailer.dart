@@ -26,7 +26,7 @@ class LocationHeaderTrailer extends StatelessWidget {
       children: [
         OverrideSettingsButton(
           hasOverrides: hasOverrides,
-          onLocationSettingsButtonPressed: onLocationSettingsButtonPressed,
+          onPressed: onLocationSettingsButtonPressed,
         ),
         const SizedBox(width: 24),
         DiffStateOverlay(
