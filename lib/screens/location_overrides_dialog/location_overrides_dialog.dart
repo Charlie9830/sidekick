@@ -169,7 +169,7 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(selectedLocation?.name ?? 'Location',
-                          style: Theme.of(context).textTheme.titleLarge),
+                          style: Theme.of(context).textTheme.titleMedium),
                     ),
                     const SizedBox(height: 8),
                     Padding(
