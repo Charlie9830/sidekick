@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:sidekick/diff_state_overlay.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
+import 'package:sidekick/screens/power_patch/override_settings_button.dart';
 
 class LocationHeaderTrailer extends StatelessWidget {
   final PropertyDeltaSet? deltas;
   final void Function() onLocationSettingsButtonPressed;
+  final bool hasOverrides;
 
   const LocationHeaderTrailer({
     super.key,
     required this.multiCount,
     required this.onLocationSettingsButtonPressed,
+    this.hasOverrides = false,
     this.deltas,
   });
 
@@ -21,10 +24,9 @@ class LocationHeaderTrailer extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        FilledButton.tonalIcon(
-          onPressed: onLocationSettingsButtonPressed,
-          icon: const Icon(Icons.settings),
-          label: const Text('Settings'),
+        OverrideSettingsButton(
+          hasOverrides: hasOverrides,
+          onLocationSettingsButtonPressed: onLocationSettingsButtonPressed,
         ),
         const SizedBox(width: 24),
         DiffStateOverlay(

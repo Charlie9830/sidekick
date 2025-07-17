@@ -15,7 +15,7 @@ class LocationOverrideModel {
         maxSequenceBreak = const OptionalInt.unset();
 
   bool get hasOverrides =>
-      maxSequenceBreak != const LocationOverrideModel.none().maxSequenceBreak &&
+      maxSequenceBreak != const LocationOverrideModel.none().maxSequenceBreak ||
       maxPairings.isNotEmpty;
 
   int getMaxPairings({required String typeId, required int valueIfAbsent}) {

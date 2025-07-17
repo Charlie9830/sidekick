@@ -5,6 +5,7 @@ import 'package:sidekick/widgets/property_field.dart';
 
 class FixtureTypeDataTable extends StatelessWidget {
   final List<FixtureTypeViewModel> items;
+
   const FixtureTypeDataTable({
     super.key,
     required this.items,
@@ -13,7 +14,6 @@ class FixtureTypeDataTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DataTable(
-      
         columns: const [
           // Name
           DataColumn(

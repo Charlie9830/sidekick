@@ -3,6 +3,7 @@ import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/screens/locations/color_select_dialog.dart';
 import 'package:sidekick/screens/locations/hybrid_tag.dart';
 import 'package:sidekick/screens/locations/multi_color_chit.dart';
+import 'package:sidekick/screens/power_patch/override_settings_button.dart';
 import 'package:sidekick/view_models/locations_view_model.dart';
 import 'package:sidekick/widgets/icon_label.dart';
 import 'package:sidekick/widgets/property_field.dart';
@@ -96,7 +97,7 @@ class Locations extends StatelessWidget {
               DataCell(Text(item.powerMultiCount.toString())),
 
               // Data Multi
-              DataCell(Text('${item.dataMultiCount} (${item.dataPatchCount})'))
+              DataCell(Text('${item.dataMultiCount} (${item.dataPatchCount})')),
             ]);
           }).toList()),
     );

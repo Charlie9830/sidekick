@@ -23,6 +23,7 @@ class LocationRow extends StatelessWidget {
         multiCount: vm.multiCount,
         deltas: deltas,
         onLocationSettingsButtonPressed: vm.onSettingsButtonPressed,
+        hasOverrides: vm.location.overrides.hasOverrides,
       ),
     );
   }
