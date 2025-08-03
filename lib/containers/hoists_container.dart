@@ -1,0 +1,167 @@
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux/redux.dart';
+import 'package:sidekick/extension_methods/greater_of.dart';
+import 'package:sidekick/extension_methods/to_model_map.dart';
+import 'package:sidekick/redux/actions/async_actions.dart';
+import 'package:sidekick/redux/actions/sync_actions.dart';
+import 'package:sidekick/redux/models/hoist_model.dart';
+import 'package:sidekick/redux/state/app_state.dart';
+import 'package:sidekick/screens/hoists/hoists.dart';
+
+import 'package:sidekick/view_models/hoists_view_model.dart';
+
+class HoistsContainer extends StatelessWidget {
+  const HoistsContainer({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return StoreConnector<AppState, HoistsViewModel>(
+      builder: (context, viewModel) {
+        return Hoists(
+          viewModel: viewModel,
+        );
+      },
+      converter: (Store<AppState> store) {
+        final hoistVmMap = _mapHoistViewModels(store);
+        final selectedHoistChannelVmMap =
+            _mapSelectedHoistChannelViewModels(store, hoistVmMap);
+
+        return HoistsViewModel(
+            hoistItems: _selectLocationHoistItems(
+                context: context, hoistViewModels: hoistVmMap, store: store),
+            selectedHoistViewModels: Map<String, HoistViewModel>.fromEntries(
+              store.state.navstate.selectedHoistIds
+                  .map((id) => hoistVmMap[id])
+                  .nonNulls
+                  .map((vm) => MapEntry(vm.uid, vm)),
+            ),
+            onSelectedHoistsChanged: (type, items) =>
+                store.dispatch(selectHoistOutlets(type, items)),
+            onSelectedHoistChannelsChanged: (type, items) =>
+                store.dispatch(selectHoistControllerChannels(type, items)),
+            hoistControllers:
+                _selectHoistControllers(store, selectedHoistChannelVmMap),
+            selectedHoistChannelViewModels: selectedHoistChannelVmMap,
+            onAddMotorController: (wayNumber) =>
+                store.dispatch(addHoistController(wayNumber)),
+            onDeleteSelectedHoistChannels: () =>
+                store.dispatch(deleteSelectedHoistChannels()),
+            onAddLocationButtonPressed: () =>
+                store.dispatch(addRiggingLocation(context)));
+      },
+    );
+  }
+
+  Map<String, HoistViewModel> _mapSelectedHoistChannelViewModels(
+      Store<AppState> store, Map<String, HoistViewModel> hoistVmMap) {
+    return Map<String, HoistViewModel>.fromEntries(store
+        .state.navstate.selectedHoistChannelIds
+        .map((id) => hoistVmMap[id])
+        .nonNulls
+        .map((vm) => MapEntry(vm.uid, vm)));
+  }
+
+  List<HoistControllerViewModel> _selectHoistControllers(Store<AppState> store,
+      Map<String, HoistViewModel> selectedHoistChannelViewModelMap) {
+    final hoistsByControllerId = store.state.fixtureState.hoists.values
+        .groupListsBy((hoist) => hoist.parentController.controllerId);
+
+    return store.state.fixtureState.hoistControllers.values.map((controller) {
+      final childHoists = hoistsByControllerId[controller.uid] ?? [];
+      final childHoistsByChannel = Map<int, HoistModel>.fromEntries(childHoists
+          .map((hoist) => MapEntry(hoist.parentController.channel, hoist)));
+
+      final channelCount = HoistModel.getHighestChannelNumber(childHoists)
+          .greaterOf(controller.ways);
+
+      return HoistControllerViewModel(
+          controller: controller,
+          hasOverflowed: channelCount > controller.ways,
+          onNameChanged: (newValue) => store.dispatch(UpdateHoistControllerName(
+              hoistId: controller.uid, value: newValue)),
+          onControllerWaysChanged: (newValue) => store.dispatch(
+              UpdateHoistControllerWayCount(
+                  hoistId: controller.uid, value: newValue)),
+          channels: List.generate(channelCount, (index) {
+            final channel = index + 1;
+            final hoist = childHoistsByChannel[channel];
+
+            return HoistChannelViewModel(
+                number: channel,
+                isOverflowing: channel > controller.ways,
+                onDragStarted: hoist != null
+                    ? () =>
+                        store.dispatch(AppendSelectedHoistChannelId(hoist.uid))
+                    : () {},
+                hoist: hoist == null
+                    ? null
+                    : _selectHoistViewModel(hoist: hoist, store: store),
+                onHoistsLanded: (hoistIds) => store.dispatch(
+                    assignHoistsToController(
+                        movingOrIncomingHoistIds: hoistIds,
+                        startingChannelNumber: channel,
+                        targetControllerId: controller.uid)),
+                selected: hoist == null
+                    ? false
+                    : store.state.navstate.selectedHoistChannelIds
+                        .contains(hoist.uid),
+                selectedHoistChannelViewModels:
+                    selectedHoistChannelViewModelMap);
+          }));
+    }).toList();
+  }
+
+  Map<String, HoistViewModel> _mapHoistViewModels(Store<AppState> store) {
+    return store.state.fixtureState.hoists.values
+        .map(
+          (hoist) => _selectHoistViewModel(
+            hoist: hoist,
+            store: store,
+          ),
+        )
+        .toModelMap();
+  }
+
+  HoistViewModel _selectHoistViewModel(
+      {required HoistModel hoist, required Store<AppState> store}) {
+    return HoistViewModel(
+      hoist: hoist,
+      locationName:
+          store.state.fixtureState.locations[hoist.locationId]?.name ?? '',
+      onDelete: () => store.dispatch(deleteHoist(hoist.uid)),
+      onNameChanged: (value) =>
+          store.dispatch(updateHoistName(hoist.uid, value)),
+      selected: store.state.navstate.selectedHoistIds.contains(hoist.uid),
+      assigned: hoist.parentController.isAssigned,
+    );
+  }
+
+  List<HoistItemBase> _selectLocationHoistItems(
+      {required BuildContext context,
+      required Map<String, HoistViewModel> hoistViewModels,
+      required Store<AppState> store}) {
+    final locations = store.state.fixtureState.locations.values
+        .where((location) => location.isHybrid == false);
+
+    final hoistViewModelsByLocationId =
+        hoistViewModels.values.groupListsBy((vm) => vm.hoist.locationId);
+
+    final value = locations
+        .map((location) => [
+              HoistLocationViewModel(
+                  location: location,
+                  onDeleteLocation: () =>
+                      store.dispatch(deleteLocation(context, location.uid)),
+                  onAddHoistButtonPressed: () =>
+                      store.dispatch(addHoist(location.uid))),
+              ...hoistViewModelsByLocationId[location.uid]?.map((vm) => vm) ??
+                  <HoistViewModel>[],
+            ])
+        .flattened
+        .toList();
+
+    return value;
+  }
+}

@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
@@ -20,7 +21,7 @@ class LocationsContainer extends StatelessWidget {
       },
       converter: (Store<AppState> store) {
         return LocationsViewModel(
-            itemVms: _selectLocationItems(store),
+            itemVms: _selectLocationItems(context, store),
             onMultiPrefixChanged: (locationId, newValue) => store.dispatch(
                   updateLocationMultiPrefix(locationId, newValue),
                 ),
@@ -33,27 +34,34 @@ class LocationsContainer extends StatelessWidget {
     );
   }
 
-  List<LocationItemViewModel> _selectLocationItems(Store<AppState> store) {
+  List<LocationItemViewModel> _selectLocationItems(
+      BuildContext context, Store<AppState> store) {
+    final powerMultisByLocation = store
+        .state.fixtureState.powerMultiOutlets.values
+        .groupListsBy((item) => item.locationId);
+    final dataMultisByLocation = store.state.fixtureState.dataMultis.values
+        .groupListsBy((item) => item.locationId);
+    final dataPatchesByLocation = store.state.fixtureState.dataPatches.values
+        .groupListsBy((item) => item.locationId);
+    final motorsByLocation = store.state.fixtureState.hoists.values
+        .groupListsBy((item) => item.locationId);
+
     return store.state.fixtureState.locations.values.map((location) {
       return LocationItemViewModel(
-        location: location,
-        powerMultiCount: store.state.fixtureState.powerMultiOutlets.values
-            .where((outlet) => outlet.locationId == location.uid)
-            .length,
-        dataMultiCount: store.state.fixtureState.dataMultis.values
-            .where((multi) => multi.locationId == location.uid)
-            .length,
-        dataPatchCount: store.state.fixtureState.dataPatches.values
-            .where((patch) => patch.locationId == location.uid)
-            .length,
-        otherLocationNames: location.isHybrid
-            ? location.hybridIds
-                .map((id) => store.state.fixtureState.locations[id])
-                .nonNulls
-                .map((location) => location.name)
-                .toList()
-            : const [],
-      );
+          location: location,
+          powerMultiCount: powerMultisByLocation[location.uid]?.length ?? 0,
+          dataMultiCount: dataMultisByLocation[location.uid]?.length ?? 0,
+          dataPatchCount: dataPatchesByLocation[location.uid]?.length ?? 0,
+          motorCount: motorsByLocation[location.uid]?.length ?? 0,
+          otherLocationNames: location.isHybrid
+              ? location.hybridIds
+                  .map((id) => store.state.fixtureState.locations[id])
+                  .nonNulls
+                  .map((location) => location.name)
+                  .toList()
+              : const [],
+          onDelete: () =>
+              store.dispatch(deleteLocation(context, location.uid)));
     }).toList();
   }
 }

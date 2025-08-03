@@ -5,6 +5,8 @@ import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
+import 'package:sidekick/redux/models/hoist_controller_model.dart';
+import 'package:sidekick/redux/models/hoist_model.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
@@ -13,6 +15,68 @@ import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
+
+class RemoveLocation {
+  final LocationModel location;
+  final Set<String> hoistIds;
+
+  RemoveLocation({
+    required this.location,
+    required this.hoistIds,
+  });
+}
+
+class SetHoistControllers {
+  final Map<String, HoistControllerModel> value;
+
+  SetHoistControllers(this.value);
+}
+
+class SetSelectedHoistOutlets {
+  final Set<String> value;
+
+  SetSelectedHoistOutlets(this.value);
+}
+
+class UpdateHoistControllerName {
+  final String hoistId;
+  final String value;
+
+  UpdateHoistControllerName({
+    required this.hoistId,
+    required this.value,
+  });
+}
+
+class UpdateHoistControllerWayCount {
+  final String hoistId;
+  final int value;
+
+  UpdateHoistControllerWayCount({
+    required this.hoistId,
+    required this.value,
+  });
+}
+
+class AppendSelectedHoistChannelId {
+  final String value;
+
+  AppendSelectedHoistChannelId(this.value);
+}
+
+class SetSelectedHoistChannelIds {
+  final Set<String> value;
+
+  SetSelectedHoistChannelIds(this.value);
+}
+
+class SetHoists {
+  final Map<String, HoistModel> value;
+
+  SetHoists(
+    this.value,
+  );
+}
 
 class SetComparisonFilePath {
   final String value;

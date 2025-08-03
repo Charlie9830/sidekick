@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:collection';
 import 'dart:io';
 
@@ -6,8 +7,14 @@ import 'package:excel/excel.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path/path.dart' as p;
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
+import 'package:sidekick/classes/named_colors.dart';
+import 'package:sidekick/redux/models/label_color_model.dart';
+import 'package:sidekick/screens/hoists/add_rigging_location.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import 'package:sidekick/assert_sneak_child_spares.dart';
 import 'package:sidekick/classes/cable_family.dart';
 import 'package:sidekick/classes/export_file_paths.dart';
@@ -23,8 +30,10 @@ import 'package:sidekick/excel/create_fixture_addressing_sheet.dart';
 import 'package:sidekick/excel/create_fixture_type_validation_sheet.dart';
 import 'package:sidekick/excel/create_lighting_looms_sheet.dart';
 import 'package:sidekick/excel/create_power_patch_sheet.dart';
+import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
 import 'package:sidekick/extension_methods/clone_map.dart';
 import 'package:sidekick/extension_methods/copy_with_inserted_entry.dart';
+import 'package:sidekick/extension_methods/greater_of.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/file_type_groups.dart';
 import 'package:sidekick/generic_dialog/show_generic_dialog.dart';
@@ -35,6 +44,7 @@ import 'package:sidekick/helpers/convert_to_permanent_loom.dart';
 import 'package:sidekick/helpers/determine_default_loom_name.dart';
 import 'package:sidekick/helpers/extract_locations_from_outlets.dart';
 import 'package:sidekick/helpers/fill_cables_to_satisfy_permanent_loom.dart';
+import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/model_collection/convert_to_map_entry.dart';
 import 'package:sidekick/persistent_settings/fetch_persistent_settings.dart';
 import 'package:sidekick/persistent_settings/init_persistent_settings_storage.dart';
@@ -43,13 +53,14 @@ import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/app_store.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/hoist_controller_model.dart';
+import 'package:sidekick/redux/models/hoist_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/redux/models/permanent_loom_composition.dart';
 import 'package:sidekick/redux/state/app_state.dart';
-import 'package:path/path.dart' as p;
 import 'package:sidekick/screens/file/import_module/import_manager_result.dart';
 import 'package:sidekick/screens/location_overrides_dialog/location_overrides_dialog.dart';
 import 'package:sidekick/screens/looms/add_spare_cables.dart';
@@ -64,7 +75,353 @@ import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/import_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
-import 'package:url_launcher/url_launcher.dart';
+
+ThunkAction<AppState> deleteLocation(BuildContext context, String locationId) {
+  return (Store<AppState> store) async {
+    final location = store.state.fixtureState.locations[locationId];
+
+    if (location == null || location.isRiggingOnlyLocation == false) {
+      return;
+    }
+
+    final result = await showGenericDialog(
+        context: context,
+        title: 'Delete Location',
+        message:
+            'Are you sure you want to delete ${location.name}. All motors and cables associated with this location will be deleted as well.',
+        affirmativeText: 'Delete',
+        declineText: 'Cancel');
+
+    if (result == true) {
+      final associatedHoists = store.state.fixtureState.hoists.values
+          .where((hoist) => hoist.locationId == locationId)
+          .toList();
+
+      // TODO: Delete associated cables.
+      store.dispatch(RemoveLocation(
+          location: location,
+          hoistIds: associatedHoists.map((hoist) => hoist.uid).toSet()));
+    }
+  };
+}
+
+ThunkAction<AppState> addRiggingLocation(BuildContext context) {
+  return (Store<AppState> store) async {
+    final result = await showModalBottomSheet(
+        context: context, builder: (context) => const AddRiggingLocation());
+
+    if (result is AddRiggingLocationDialogResult) {
+      final newLocation = LocationModel(
+        uid: getUid(),
+        color: result.labelColor,
+        name: result.name,
+        multiPrefix: result.prefix,
+        delimiter: '',
+        isRiggingOnlyLocation: true,
+      );
+
+      store.dispatch(SetLocations(store.state.fixtureState.locations.clone()
+        ..addAll({newLocation.uid: newLocation})));
+    }
+  };
+}
+
+ThunkAction<AppState> deleteSelectedHoistChannels() {
+  return (Store<AppState> store) async {
+    final hoistIds = store.state.navstate.selectedHoistChannelIds;
+
+    if (hoistIds.isEmpty) {
+      return;
+    }
+
+    store.dispatch(SetHoists(store.state.fixtureState.hoists.clone()
+      ..updateAll((id, hoist) => hoistIds.contains(id)
+          ? hoist.copyWith(
+              parentController:
+                  const HoistControllerChannelAssignment.unassigned())
+          : hoist)));
+
+    store.dispatch(SetSelectedHoistChannelIds({}));
+  };
+}
+
+ThunkAction<AppState> assignHoistsToController(
+    {required Set<String> movingOrIncomingHoistIds,
+    required int startingChannelNumber,
+    required String targetControllerId}) {
+  return (Store<AppState> store) async {
+    if (movingOrIncomingHoistIds.isEmpty ||
+        store.state.fixtureState.hoistControllers[targetControllerId] == null) {
+      return;
+    }
+
+    final movingOrIncomingHoists = movingOrIncomingHoistIds
+        .map((id) => store.state.fixtureState.hoists[id])
+        .nonNulls
+        .toList();
+
+    if (movingOrIncomingHoists.isEmpty) {
+      return;
+    }
+
+    final controller =
+        store.state.fixtureState.hoistControllers[targetControllerId];
+
+    if (controller == null) {
+      return;
+    }
+
+    final childHoistsByChannel = store.state.fixtureState.hoists.values
+        .where((hoist) =>
+            hoist.parentController.controllerId == targetControllerId)
+        .groupFoldBy(
+            (hoist) => hoist.parentController.channel, (_, hoist) => hoist);
+
+    final movingOrIncomingHoistsWithUpdatedChannels =
+        movingOrIncomingHoists.mapIndexed((index, hoist) => hoist.copyWith(
+            parentController: hoist.parentController
+                .copyWith(channel: startingChannelNumber + index)));
+
+    // Create a list that represents all channels currently in this controller, in their current channels, this includes unpopulated empty channels.
+    final allChannels = List.generate(
+        HoistModel.getHighestChannelNumber([
+          ...childHoistsByChannel.values.toList(),
+          ...movingOrIncomingHoistsWithUpdatedChannels
+        ]).greaterOf(controller.ways), (index) {
+      final originalHoist = childHoistsByChannel[index + 1];
+      return _HoistControllerChannel(
+        originalHoist: originalHoist,
+      );
+    });
+
+    final allChannelsWithPrunedMovingHoists = allChannels.map((channel) =>
+        movingOrIncomingHoistIds.contains(channel.originalHoist?.uid)
+            ? _HoistControllerChannel(originalHoist: null)
+            : channel);
+
+    final incomingHoistsQueue = Queue<HoistModel>.from(movingOrIncomingHoists);
+
+    final startingInsertionIndex = startingChannelNumber - 1;
+    final channelAccum = allChannelsWithPrunedMovingHoists.foldIndexed(
+        _ChannelAccumulator(
+            channels: [],
+            carry: Queue<_HoistControllerChannel>()), (index, accum, channel) {
+      if (incomingHoistsQueue.isEmpty) {
+        if (accum.carry.isNotEmpty) {
+          return accum.copyWith(
+            channels: [
+              ...accum.channels,
+              accum.carry.removeFirst(),
+            ],
+            carry: accum.carry..add(channel),
+          );
+        }
+
+        if (accum.carry.isEmpty) {
+          return accum.copyWith(channels: [
+            ...accum.channels,
+            channel,
+          ]);
+        }
+      }
+
+      if (index < startingInsertionIndex) {
+        return accum.copyWith(channels: [
+          ...accum.channels,
+          channel,
+        ]);
+      } else {
+        if (channel.originalHoist == null) {
+          return accum.copyWith(channels: [
+            ...accum.channels,
+            _HoistControllerChannel(
+                originalHoist: incomingHoistsQueue.removeFirst())
+          ]);
+        } else {
+          return accum.copyWith(
+            channels: [
+              ...accum.channels,
+              _HoistControllerChannel(
+                  originalHoist: incomingHoistsQueue.removeFirst())
+            ],
+            carry: accum.carry..add(channel),
+          );
+        }
+      }
+    });
+
+    final updatedChannels = [
+      ...channelAccum.channels,
+      ...channelAccum.carry,
+    ];
+
+    final updatedHoists = updatedChannels
+        .mapIndexed((index, channel) => channel.originalHoist?.copyWith(
+                parentController:
+                    channel.originalHoist?.parentController.copyWith(
+              channel: index + 1,
+              controllerId: targetControllerId,
+            )))
+        .nonNulls
+        .toList();
+    ;
+
+    store.dispatch(
+      SetHoists(
+        store.state.fixtureState.hoists.clone()
+          ..addAll(
+            updatedHoists.toModelMap(),
+          ),
+      ),
+    );
+
+    store.dispatch(SetSelectedHoistChannelIds(movingOrIncomingHoistIds));
+  };
+}
+
+class _ChannelAccumulator {
+  final List<_HoistControllerChannel> channels;
+  final Queue<_HoistControllerChannel> carry;
+
+  _ChannelAccumulator({
+    required this.channels,
+    required this.carry,
+  });
+
+  _ChannelAccumulator copyWith({
+    List<_HoistControllerChannel>? channels,
+    Queue<_HoistControllerChannel>? carry,
+  }) {
+    return _ChannelAccumulator(
+      channels: channels ?? this.channels,
+      carry: carry ?? this.carry,
+    );
+  }
+}
+
+class _HoistControllerChannel {
+  final HoistModel? originalHoist;
+
+  _HoistControllerChannel({
+    required this.originalHoist,
+  });
+
+  @override
+  String toString() {
+    return '$originalHoist';
+  }
+
+  _HoistControllerChannel copyWith({
+    HoistModel? originalHoist,
+    bool? dirty,
+  }) {
+    return _HoistControllerChannel(
+      originalHoist: originalHoist ?? this.originalHoist,
+    );
+  }
+}
+
+ThunkAction<AppState> addHoistController(int wayNumber) {
+  return (Store<AppState> store) async {
+    final String uid = getUid();
+    store.dispatch(SetHoistControllers(
+      store.state.fixtureState.hoistControllers.clone()
+        ..addAll({
+          uid: HoistControllerModel(
+            uid: uid,
+            name:
+                '${wayNumber}way Motor Controller #${store.state.fixtureState.hoistControllers.values.where((controller) => controller.ways == wayNumber).length + 1}',
+            ways: wayNumber,
+          )
+        }),
+    ));
+  };
+}
+
+ThunkAction<AppState> selectHoistOutlets(
+    UpdateType type, Set<String> hoistIds) {
+  return (Store<AppState> store) async {
+    switch (type) {
+      case UpdateType.overwrite:
+        store.dispatch(SetSelectedHoistOutlets(hoistIds));
+      case UpdateType.addIfAbsentElseRemove:
+        store.dispatch(SetSelectedHoistOutlets(
+          store.state.navstate.selectedHoistIds.toSet()
+            ..addAllIfAbsentElseRemove(hoistIds),
+        ));
+    }
+  };
+}
+
+ThunkAction<AppState> selectHoistControllerChannels(
+    UpdateType type, Set<String> hoistIds) {
+  return (Store<AppState> store) async {
+    switch (type) {
+      case UpdateType.overwrite:
+        store.dispatch(SetSelectedHoistChannelIds(hoistIds));
+      case UpdateType.addIfAbsentElseRemove:
+        store.dispatch(SetSelectedHoistChannelIds(
+          store.state.navstate.selectedHoistChannelIds.toSet()
+            ..addAllIfAbsentElseRemove(hoistIds),
+        ));
+    }
+  };
+}
+
+ThunkAction<AppState> updateHoistName(String hoistId, String newValue) {
+  return (Store<AppState> store) async {
+    final hoist = store.state.fixtureState.hoists[hoistId];
+
+    if (hoist == null) {
+      return;
+    }
+
+    store.dispatch(SetHoists(store.state.fixtureState.hoists.clone()
+      ..update(
+          hoistId,
+          (existing) => existing.copyWith(
+                name: newValue.trim(),
+              ))));
+  };
+}
+
+ThunkAction<AppState> deleteHoist(String hoistId) {
+  return (Store<AppState> store) async {
+    if (hoistId.isEmpty ||
+        store.state.fixtureState.hoists.containsKey(hoistId) == false) {
+      return;
+    }
+
+    store.dispatch(
+        SetHoists(store.state.fixtureState.hoists.clone()..remove(hoistId)));
+  };
+}
+
+ThunkAction<AppState> addHoist(String locationId) {
+  return (Store<AppState> store) async {
+    final location = store.state.fixtureState.locations[locationId];
+
+    if (location == null) {
+      return;
+    }
+
+    final existingHoistsInLocation = store.state.fixtureState.hoists.values
+        .where((hoist) => hoist.locationId == locationId)
+        .toList();
+
+    final newHoist = HoistModel(
+      uid: getUid(),
+      name: HoistModel.getDefaultName(
+          otherHoistsInLocation: existingHoistsInLocation, location: location),
+      locationId: locationId,
+      locationIndex: existingHoistsInLocation.length,
+      parentController: const HoistControllerChannelAssignment.unassigned(),
+    );
+
+    store.dispatch(SetHoists(store.state.fixtureState.hoists.clone()
+      ..addAll({newHoist.uid: newHoist})));
+  };
+}
 
 ThunkAction<AppState> showLocationOverridesDialog(
     BuildContext context, String locationId) {

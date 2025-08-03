@@ -3,7 +3,7 @@ import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/screens/locations/color_select_dialog.dart';
 import 'package:sidekick/screens/locations/hybrid_tag.dart';
 import 'package:sidekick/screens/locations/multi_color_chit.dart';
-import 'package:sidekick/screens/power_patch/override_settings_button.dart';
+import 'package:sidekick/screens/locations/rigging_only_tag.dart';
 import 'package:sidekick/view_models/locations_view_model.dart';
 import 'package:sidekick/widgets/icon_label.dart';
 import 'package:sidekick/widgets/property_field.dart';
@@ -21,18 +21,26 @@ class Locations extends StatelessWidget {
             DataColumn(
               label: Text('Colours'),
             ),
-            DataColumn(label: Text('Loom Prefix')),
-            DataColumn(label: Text('Delimiter')),
+            DataColumn(label: Text('Label Prefix')),
+            DataColumn(label: Text('Cable Delimiter')),
+            DataColumn(
+              label:
+                  IconLabel(icon: Icon(Icons.construction), label: 'Motor Qty'),
+            ),
             DataColumn(
                 label: IconLabel(
               icon: Icon(Icons.electric_bolt, color: Colors.yellow),
               label: 'Multi qty',
             )),
             DataColumn(
-                label: IconLabel(
-              icon: Icon(Icons.settings_input_svideo, color: Colors.blue),
-              label: 'Multi (Patch) qty',
-            )),
+              label: IconLabel(
+                icon: Icon(Icons.settings_input_svideo, color: Colors.blue),
+                label: 'Multi (Patch) qty',
+              ),
+            ),
+            DataColumn(
+              label: Text('Info'),
+            )
           ],
           rows: vm.itemVms.map((item) {
             withConstraint(Widget child, {double? width}) =>
@@ -48,6 +56,8 @@ class Locations extends StatelessWidget {
                         style: Theme.of(context).textTheme.bodyLarge),
                     if (item.location.isHybrid)
                       HybridTag(otherLocationNames: item.otherLocationNames),
+                    if (item.location.isRiggingOnlyLocation)
+                      const RiggingOnlyTag()
                   ],
                 ),
               ),
@@ -93,11 +103,26 @@ class Locations extends StatelessWidget {
                 ),
               ),
 
+              // Motor Qty
+              DataCell(Text(item.motorCount.toString())),
+
               // Multi Qty
               DataCell(Text(item.powerMultiCount.toString())),
 
               // Data Multi
               DataCell(Text('${item.dataMultiCount} (${item.dataPatchCount})')),
+
+              // More
+              DataCell(PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    enabled: item.location.isRiggingOnlyLocation,
+                    onTap: () => item.onDelete(),
+                    child: const Text('Delete'),
+                  ),
+                ],
+              ))
             ]);
           }).toList()),
     );

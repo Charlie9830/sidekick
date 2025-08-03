@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/enums.dart';
-import 'package:sidekick/modifier_key_listener.dart';
+import 'package:sidekick/modifier_key_provider.dart';
 import 'package:sidekick/screens/looms/drag_data.dart';
 import 'package:sidekick/screens/looms/drop_target_overlays/combine_into_sneak_info_tag.dart';
 import 'package:sidekick/screens/looms/drop_target_overlays/create_as_permanent_loom_info_tag.dart';

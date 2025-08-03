@@ -1,28 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/item_selection/item_selection_messenger.dart';
 
+enum ActivationType {
+  pointerUp,
+  pointerDown,
+}
+
 class ItemSelectionListener<T> extends StatelessWidget {
   final Widget child;
   final T value;
   final bool enabled;
+  final ActivationType activationType;
 
   const ItemSelectionListener({
     super.key,
     required this.child,
     required this.value,
     this.enabled = true,
+    this.activationType = ActivationType.pointerUp,
   });
 
   @override
   Widget build(BuildContext context) {
-    assert(ItemSelectionMessenger.of<T>(context) != null,
-        '[SelectionController] ancestor could not be found. Ensure a [SelectionController] has been provided as an ancestor widget to [ItemSelectionListener]');
-
     return Listener(
-      behavior: HitTestBehavior.opaque,
-      onPointerUp: enabled
-          ? (e) =>
-              ItemSelectionMessenger.of<T>(context)!.onItemPointerUp(e, value)
+      behavior: HitTestBehavior.deferToChild,
+      onPointerUp: enabled && activationType == ActivationType.pointerUp
+          ? (e) => ItemSelectionMessenger.of<T>(context)
+              ?.onItemPointerEvent(e, value)
+          : null,
+      onPointerDown: enabled && activationType == ActivationType.pointerDown
+          ? (e) => ItemSelectionMessenger.of<T>(context)
+              ?.onItemPointerEvent(e, value)
           : null,
       child: child,
     );

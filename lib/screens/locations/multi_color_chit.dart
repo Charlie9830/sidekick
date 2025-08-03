@@ -21,13 +21,15 @@ class MultiColorChit extends StatelessWidget {
     return SizedBox(
         height: height,
         width: _computeWidth(sanitizedColors.length, height),
-        child: value.colors.isEmpty && showPickerIcon
-            ? const Icon(Icons.color_lens)
-            : CustomPaint(
-                painter: ColorPainter(sanitizedColors
-                    .map((namedColor) => namedColor.color)
-                    .toList()),
-              ));
+        child:
+            (value.colors.isEmpty || value == const LabelColorModel.none()) &&
+                    showPickerIcon
+                ? const Icon(Icons.color_lens)
+                : CustomPaint(
+                    painter: ColorPainter(sanitizedColors
+                        .map((namedColor) => namedColor.color)
+                        .toList()),
+                  ));
   }
 
   double _computeWidth(int colorQty, double height) {

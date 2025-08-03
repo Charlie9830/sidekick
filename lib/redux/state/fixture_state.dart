@@ -4,6 +4,8 @@ import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
+import 'package:sidekick/redux/models/hoist_controller_model.dart';
+import 'package:sidekick/redux/models/hoist_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_stock_model.dart';
@@ -22,6 +24,8 @@ class FixtureState {
   final int maxSequenceBreak;
   final CableType defaultPowerMulti;
   final Map<String, LoomStockModel> loomStock;
+  final Map<String, HoistModel> hoists;
+  final Map<String, HoistControllerModel> hoistControllers;
 
   FixtureState({
     required this.fixtures,
@@ -36,6 +40,8 @@ class FixtureState {
     required this.cables,
     required this.defaultPowerMulti,
     required this.loomStock,
+    required this.hoists,
+    required this.hoistControllers,
   });
 
   const FixtureState.initial()
@@ -50,7 +56,9 @@ class FixtureState {
         fixtureTypes = const {},
         cables = const {},
         defaultPowerMulti = CableType.socapex,
-        loomStock = const {};
+        loomStock = const {},
+        hoists = const {},
+        hoistControllers = const {};
 
   FixtureState copyWith({
     Map<String, FixtureModel>? fixtures,
@@ -65,6 +73,8 @@ class FixtureState {
     int? maxSequenceBreak,
     CableType? defaultPowerMulti,
     Map<String, LoomStockModel>? loomStock,
+    Map<String, HoistModel>? hoists,
+    Map<String, HoistControllerModel>? hoistControllers,
   }) {
     return FixtureState(
       fixtures: fixtures ?? this.fixtures,
@@ -79,6 +89,8 @@ class FixtureState {
       maxSequenceBreak: maxSequenceBreak ?? this.maxSequenceBreak,
       defaultPowerMulti: defaultPowerMulti ?? this.defaultPowerMulti,
       loomStock: loomStock ?? this.loomStock,
+      hoists: hoists ?? this.hoists,
+      hoistControllers: hoistControllers ?? this.hoistControllers,
     );
   }
 }

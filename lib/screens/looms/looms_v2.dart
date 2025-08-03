@@ -7,7 +7,7 @@ import 'package:sidekick/enums.dart';
 import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
-import 'package:sidekick/modifier_key_listener.dart';
+import 'package:sidekick/modifier_key_provider.dart';
 import 'package:sidekick/screens/looms/cable_row_item.dart';
 import 'package:sidekick/screens/looms/drag_data.dart';
 import 'package:sidekick/screens/looms/drop_target_overlays/modify_existing_loom_drop_targets.dart';

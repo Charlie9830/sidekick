@@ -60,7 +60,7 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
         "When using [SelectionMode.multi], the [itemIndicies] property must be provided");
 
     return ItemSelectionMessenger<T>(
-      onItemPointerUp: _handleItemPointerUp,
+      onItemPointerEvent: _handleItemPointerEvent,
       child: KeyboardListener(
         focusNode: _keyboardFocusNode,
         onKeyEvent: _dispatchKeyEvent,
@@ -154,7 +154,7 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
     });
   }
 
-  void _handleItemPointerUp(PointerUpEvent e, T value) {
+  void _handleItemPointerEvent(PointerEvent e, T value) {
     _handleSelection(value);
   }
 

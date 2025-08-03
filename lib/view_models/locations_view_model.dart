@@ -22,7 +22,9 @@ class LocationItemViewModel {
   final int powerMultiCount;
   final int dataMultiCount;
   final int dataPatchCount;
+  final int motorCount;
   final List<String> otherLocationNames;
+  final void Function() onDelete;
 
   LocationItemViewModel({
     required this.location,
@@ -30,5 +32,7 @@ class LocationItemViewModel {
     required this.dataMultiCount,
     required this.dataPatchCount,
     required this.otherLocationNames,
+    required this.motorCount,
+    required this.onDelete,
   });
 }

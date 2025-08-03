@@ -1,66 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sidekick/modifier_key_change_builder.dart';
 
-typedef KeyChangeBuilder = Widget Function(
-    BuildContext context, Set<LogicalKeyboardKey> downKeys);
-
-class ModifierKeyChangeBuilder extends StatefulWidget {
-  final KeyChangeBuilder builder;
-  const ModifierKeyChangeBuilder({
+/// When inserted in the Widget Hierachy this widget will listen for changes to Keyboard Modifier keys.
+/// It provides an inheriated widget [ModifierKeyMessenger] which provides the current state of Modifier Keys
+/// to decendant widgets.
+class ModifierKeyProvider extends StatelessWidget {
+  final Widget child;
+  const ModifierKeyProvider({
     super.key,
-    required this.builder,
+    required this.child,
   });
 
   @override
-  State<ModifierKeyChangeBuilder> createState() =>
-      _ModifierKeyChangeBuilderState();
+  Widget build(BuildContext context) {
+    return ModifierKeyChangeBuilder(builder: (context, keysDown) {
+      return ModifierKeyMessenger(
+        keysDown: keysDown,
+        child: child,
+      );
+    });
+  }
 }
 
-final Set<LogicalKeyboardKey> _modifierKeys = {
-  LogicalKeyboardKey.controlLeft,
-  LogicalKeyboardKey.controlRight,
-  LogicalKeyboardKey.metaLeft,
-  LogicalKeyboardKey.metaRight,
-  LogicalKeyboardKey.altLeft,
-  LogicalKeyboardKey.altRight,
-  LogicalKeyboardKey.shiftLeft,
-  LogicalKeyboardKey.shiftRight,
-};
+class ModifierKeyMessenger extends InheritedWidget {
+  final Set<LogicalKeyboardKey> keysDown;
+  const ModifierKeyMessenger({
+    super.key,
+    required Widget child,
+    required this.keysDown,
+  }) : super(child: child);
 
-class _ModifierKeyChangeBuilderState extends State<ModifierKeyChangeBuilder> {
-  Set<LogicalKeyboardKey> _downModifierKeys = {};
-
-  @override
-  void initState() {
-    super.initState();
-
-    ServicesBinding.instance.keyboard.addHandler(_handleKeyEvent);
+  static ModifierKeyMessenger? of(BuildContext context) {
+    return context
+        .dependOnInheritedWidgetOfExactType<ModifierKeyMessenger>();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return widget.builder(context, _downModifierKeys);
-  }
-
-  bool _handleKeyEvent(KeyEvent e) {
-    if (e is KeyDownEvent && _modifierKeys.contains(e.logicalKey)) {
-      setState(() {
-        _downModifierKeys = _downModifierKeys.toSet()..add(e.logicalKey);
-      });
-    }
-
-    if (e is KeyUpEvent && _modifierKeys.contains(e.logicalKey)) {
-      setState(() {
-        _downModifierKeys = _downModifierKeys.toSet()..remove(e.logicalKey);
-      });
-    }
-
-    return false;
-  }
-
-  @override
-  void dispose() {
-    ServicesBinding.instance.keyboard.removeHandler(_handleKeyEvent);
-    super.dispose();
+  bool updateShouldNotify(ModifierKeyMessenger oldWidget) {
+    return oldWidget.keysDown != keysDown;
   }
 }

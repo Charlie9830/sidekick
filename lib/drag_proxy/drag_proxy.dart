@@ -373,6 +373,9 @@ class LongPressDraggableProxy<T extends Object> extends DraggableProxy<T> {
     super.ignoringFeedbackSemantics,
     super.ignoringFeedbackPointer,
     this.delay = const Duration(milliseconds: 250),
+    super.hitTestBehavior,
+    super.affinity,
+    super.rootOverlay,
   });
 
   /// Whether haptic feedback should be triggered on drag start.
@@ -403,14 +406,20 @@ class LongPressDraggableProxy<T extends Object> extends DraggableProxy<T> {
         onDragStarted?.call();
       },
       onDragCompleted: () {
+        if (context.mounted == false) return;
+
         DragProxyMessenger.of(context)?.setDragState(false);
         onDragCompleted?.call();
       },
       onDraggableCanceled: (velocity, offset) {
+        if (context.mounted == false) return;
+
         DragProxyMessenger.of(context)?.setDragState(false);
         onDraggableCanceled?.call(velocity, offset);
       },
       onDragEnd: (details) {
+        if (context.mounted == false) return;
+
         DragProxyMessenger.of(context)?.setDragState(false);
         onDragEnd?.call(details);
       },

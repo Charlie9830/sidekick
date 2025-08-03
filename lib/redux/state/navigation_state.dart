@@ -12,6 +12,8 @@ class NavigationState {
   final Set<String> selectedLoomOutlets;
   final LoomsDraggingState loomsDraggingState;
   final bool isAvailabilityDrawerOpen;
+  final Set<String> selectedHoistIds;
+  final Set<String> selectedHoistChannelIds;
 
   NavigationState({
     required this.selectedMultiOutlet,
@@ -24,6 +26,8 @@ class NavigationState {
     required this.selectedLoomOutlets,
     required this.loomsDraggingState,
     required this.isAvailabilityDrawerOpen,
+    required this.selectedHoistIds,
+    required this.selectedHoistChannelIds,
   });
 
   const NavigationState.initial()
@@ -36,7 +40,9 @@ class NavigationState {
         importManagerStep = ImportManagerStep.fileSelect,
         selectedLoomOutlets = const {},
         loomsDraggingState = LoomsDraggingState.idle,
-        isAvailabilityDrawerOpen = false;
+        isAvailabilityDrawerOpen = false,
+        selectedHoistIds = const {},
+        selectedHoistChannelIds = const {};
 
   NavigationState copyWith({
     String? selectedMultiOutlet,
@@ -49,6 +55,8 @@ class NavigationState {
     Set<String>? selectedLoomOutlets,
     LoomsDraggingState? loomsDraggingState,
     bool? isAvailabilityDrawerOpen,
+    Set<String>? selectedHoistIds,
+    Set<String>? selectedHoistChannelIds,
   }) {
     return NavigationState(
       selectedMultiOutlet: selectedMultiOutlet ?? this.selectedMultiOutlet,
@@ -62,6 +70,9 @@ class NavigationState {
       loomsDraggingState: loomsDraggingState ?? this.loomsDraggingState,
       isAvailabilityDrawerOpen:
           isAvailabilityDrawerOpen ?? this.isAvailabilityDrawerOpen,
+      selectedHoistIds: selectedHoistIds ?? this.selectedHoistIds,
+      selectedHoistChannelIds:
+          selectedHoistChannelIds ?? this.selectedHoistChannelIds,
     );
   }
 }

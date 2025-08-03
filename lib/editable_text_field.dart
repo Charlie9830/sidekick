@@ -71,6 +71,7 @@ class _EditableTextFieldState extends State<EditableTextField> {
         decoration: InputDecoration(
           isDense: true,
           hintText: widget.hintText,
+          hintStyle: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.grey),
           enabledBorder: InputBorder.none,
           prefixText: widget.prefix,
           suffixText: widget.suffix,

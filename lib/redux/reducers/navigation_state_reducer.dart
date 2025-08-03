@@ -2,11 +2,38 @@ import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/state/navigation_state.dart';
 
 NavigationState navStateReducer(NavigationState state, dynamic a) {
+  if (a is RemoveLocation) {
+    return state.copyWith(
+      selectedCableIds: {},
+      selectedHoistChannelIds: {},
+      selectedHoistIds: {},
+    );
+  }
+
   if (a is SetImportedFixtureData) {
     return state.copyWith(
         importManagerStep: const NavigationState.initial().importManagerStep);
   }
-  
+
+  if (a is SetSelectedHoistOutlets) {
+    return state.copyWith(
+      selectedHoistIds: a.value,
+    );
+  }
+
+  if (a is AppendSelectedHoistChannelId) {
+    return state.copyWith(selectedHoistChannelIds: {
+      ...state.selectedHoistChannelIds,
+      a.value,
+    });
+  }
+
+  if (a is SetSelectedHoistChannelIds) {
+    return state.copyWith(
+      selectedHoistChannelIds: a.value,
+    );
+  }
+
   if (a is SetSelectedLoomOutlets) {
     return state.copyWith(
       selectedLoomOutlets: a.value,

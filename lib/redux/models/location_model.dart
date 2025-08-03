@@ -25,6 +25,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
   final String delimiter;
   final Set<String> hybridIds;
   final LocationOverrideModel overrides;
+  final bool isRiggingOnlyLocation;
 
   static const Color noColor = Color.fromARGB(0, 0, 0, 0);
 
@@ -36,6 +37,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
     this.delimiter = '.',
     this.hybridIds = const {},
     this.overrides = const LocationOverrideModel.none(),
+    this.isRiggingOnlyLocation = false,
   });
 
   const LocationModel.none()
@@ -45,7 +47,8 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
         color = const LabelColorModel.none(),
         delimiter = '',
         hybridIds = const {},
-        overrides = const LocationOverrideModel.none();
+        overrides = const LocationOverrideModel.none(),
+        isRiggingOnlyLocation = false;
 
   bool get isHybrid => hybridIds.isNotEmpty;
 
@@ -61,6 +64,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
     String? delimiter,
     Set<String>? hybridIds,
     LocationOverrideModel? overrides,
+    bool? isRiggingOnlyLocation,
   }) {
     return LocationModel(
       uid: uid ?? this.uid,
@@ -70,6 +74,8 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       delimiter: delimiter ?? this.delimiter,
       hybridIds: hybridIds ?? this.hybridIds,
       overrides: overrides ?? this.overrides,
+      isRiggingOnlyLocation:
+          isRiggingOnlyLocation ?? this.isRiggingOnlyLocation,
     );
   }
 
@@ -131,6 +137,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       'delimiter': delimiter,
       'hybridIds': hybridIds.toList(),
       'overrides': overrides.toMap(),
+      'isRiggingOnlyLocation': isRiggingOnlyLocation,
     };
   }
 
@@ -151,6 +158,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       overrides: map['overrides'] == null
           ? const LocationOverrideModel.none()
           : LocationOverrideModel.fromMap(map['overrides']),
+      isRiggingOnlyLocation: map['isRiggingOnlyLocation'] ?? false,
     );
   }
 

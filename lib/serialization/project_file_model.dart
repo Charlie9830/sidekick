@@ -7,6 +7,8 @@ import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
+import 'package:sidekick/redux/models/hoist_controller_model.dart';
+import 'package:sidekick/redux/models/hoist_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_stock_model.dart';
@@ -28,6 +30,8 @@ class ProjectFileModel {
   final CableType defaultPowerMulti;
   final List<LoomStockModel> loomStock;
   final List<FixtureTypeModel> fixtureTypes;
+  final List<HoistModel> hoists;
+  final List<HoistControllerModel> hoistControllers;
 
   ProjectFileModel({
     required this.metadata,
@@ -43,6 +47,8 @@ class ProjectFileModel {
     required this.defaultPowerMulti,
     required this.loomStock,
     required this.fixtureTypes,
+    required this.hoists,
+    required this.hoistControllers,
   });
 
   ProjectFileModel copyWith({
@@ -59,6 +65,8 @@ class ProjectFileModel {
     CableType? defaultPowerMulti,
     List<LoomStockModel>? loomStock,
     List<FixtureTypeModel>? fixtureTypes,
+    List<HoistModel>? hoists,
+    List<HoistControllerModel>? hoistControllers,
   }) {
     return ProjectFileModel(
       metadata: metadata ?? this.metadata,
@@ -74,6 +82,8 @@ class ProjectFileModel {
       defaultPowerMulti: defaultPowerMulti ?? this.defaultPowerMulti,
       loomStock: loomStock ?? this.loomStock,
       fixtureTypes: fixtureTypes ?? this.fixtureTypes,
+      hoists: hoists ?? this.hoists,
+      hoistControllers: hoistControllers ?? this.hoistControllers,
     );
   }
 
@@ -92,61 +102,73 @@ class ProjectFileModel {
       'defaultPowerMulti': defaultPowerMulti.name,
       'loomStock': loomStock.map((x) => x.toMap()).toList(),
       'fixtureTypes': fixtureTypes.map((x) => x.toMap()).toList(),
+      'hoists': hoists.map((x) => x.toMap()).toList(),
+      'hoistControllers': hoistControllers.map((x) => x.toMap()).toList(),
     };
   }
 
   factory ProjectFileModel.fromMap(Map<String, dynamic> map) {
     return ProjectFileModel(
-        metadata: ProjectFileMetadataModel.fromMap(
-            map['metadata'] as Map<String, dynamic>),
-        fixtures: List<FixtureModel>.from(
-          (map['fixtures'] as List<dynamic>).map<FixtureModel>(
-            (x) => FixtureModel.fromMap(x as Map<String, dynamic>),
-          ),
+      metadata: ProjectFileMetadataModel.fromMap(
+          map['metadata'] as Map<String, dynamic>),
+      fixtures: List<FixtureModel>.from(
+        (map['fixtures'] as List<dynamic>).map<FixtureModel>(
+          (x) => FixtureModel.fromMap(x as Map<String, dynamic>),
         ),
-        powerMultiOutlets: List<PowerMultiOutletModel>.from(
-          (map['powerMultiOutlets'] as List<dynamic>)
-              .map<PowerMultiOutletModel>(
-            (x) => PowerMultiOutletModel.fromMap(x as Map<String, dynamic>),
-          ),
+      ),
+      powerMultiOutlets: List<PowerMultiOutletModel>.from(
+        (map['powerMultiOutlets'] as List<dynamic>).map<PowerMultiOutletModel>(
+          (x) => PowerMultiOutletModel.fromMap(x as Map<String, dynamic>),
         ),
-        dataMultis: List<DataMultiModel>.from(
-          (map['dataMultis'] as List<dynamic>).map<DataMultiModel>(
-            (x) => DataMultiModel.fromMap(x as Map<String, dynamic>),
-          ),
+      ),
+      dataMultis: List<DataMultiModel>.from(
+        (map['dataMultis'] as List<dynamic>).map<DataMultiModel>(
+          (x) => DataMultiModel.fromMap(x as Map<String, dynamic>),
         ),
-        dataPatches: List<DataPatchModel>.from(
-          (map['dataPatches'] as List<dynamic>).map<DataPatchModel>(
-            (x) => DataPatchModel.fromMap(x as Map<String, dynamic>),
-          ),
+      ),
+      dataPatches: List<DataPatchModel>.from(
+        (map['dataPatches'] as List<dynamic>).map<DataPatchModel>(
+          (x) => DataPatchModel.fromMap(x as Map<String, dynamic>),
         ),
-        locations: List<LocationModel>.from(
-          (map['locations'] as List<dynamic>).map<LocationModel>(
-            (x) => LocationModel.fromMap(x as Map<String, dynamic>),
-          ),
+      ),
+      locations: List<LocationModel>.from(
+        (map['locations'] as List<dynamic>).map<LocationModel>(
+          (x) => LocationModel.fromMap(x as Map<String, dynamic>),
         ),
-        looms: List<LoomModel>.from(
-          (map['looms'] as List<dynamic>).map<LoomModel>(
-            (x) => LoomModel.fromMap(x as Map<String, dynamic>),
-          ),
+      ),
+      looms: List<LoomModel>.from(
+        (map['looms'] as List<dynamic>).map<LoomModel>(
+          (x) => LoomModel.fromMap(x as Map<String, dynamic>),
         ),
-        cables: List<CableModel>.from(
-          (map['cables'] ?? []).map<CableModel>(
-            (x) => CableModel.fromMap(x as Map<String, dynamic>),
-          ),
+      ),
+      cables: List<CableModel>.from(
+        (map['cables'] ?? []).map<CableModel>(
+          (x) => CableModel.fromMap(x as Map<String, dynamic>),
         ),
-        maxSequenceBreak: (map['maxSequenceBreak'] ?? 0) as int,
-        balanceTolerance: (map['balanceTolerance'] ?? 0.0) as double,
-        defaultPowerMulti:
-            CableType.values.byName(map['type'] ?? CableType.socapex.name),
-        loomStock: List<LoomStockModel>.from(
-          (map['loomStock'] ?? []).map<LoomStockModel>(
-            (x) => LoomStockModel.fromMap(x as Map<String, dynamic>),
-          ),
+      ),
+      maxSequenceBreak: (map['maxSequenceBreak'] ?? 0) as int,
+      balanceTolerance: (map['balanceTolerance'] ?? 0.0) as double,
+      defaultPowerMulti:
+          CableType.values.byName(map['type'] ?? CableType.socapex.name),
+      loomStock: List<LoomStockModel>.from(
+        (map['loomStock'] ?? []).map<LoomStockModel>(
+          (x) => LoomStockModel.fromMap(x as Map<String, dynamic>),
         ),
-        fixtureTypes: List<FixtureTypeModel>.from((map['fixtureTypes'] ?? [])
-            .map<FixtureTypeModel>(
-                (x) => FixtureTypeModel.fromMap(x as Map<String, dynamic>))));
+      ),
+      fixtureTypes: List<FixtureTypeModel>.from((map['fixtureTypes'] ?? [])
+          .map<FixtureTypeModel>(
+              (x) => FixtureTypeModel.fromMap(x as Map<String, dynamic>))),
+      hoists: List<HoistModel>.from(
+        (map['hoists'] ?? []).map<HoistModel>(
+          (x) => HoistModel.fromMap(x as Map<String, dynamic>),
+        ),
+      ),
+      hoistControllers: List<HoistControllerModel>.from(
+        (map['hoistControllers'] ?? []).map<HoistControllerModel>(
+          (x) => HoistControllerModel.fromMap(x as Map<String, dynamic>),
+        ),
+      ),
+    );
   }
 
   String toJson() => json.encode(toMap());
@@ -168,6 +190,8 @@ class ProjectFileModel {
       cables: cables.toModelMap(),
       defaultPowerMulti: defaultPowerMulti,
       loomStock: loomStock.toModelMap(),
+      hoists: hoists.toModelMap(),
+      hoistControllers: hoistControllers.toModelMap(),
     );
   }
 }

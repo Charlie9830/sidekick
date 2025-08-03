@@ -3,6 +3,7 @@ import 'package:sidekick/containers/export_container.dart';
 import 'package:sidekick/containers/file_container.dart';
 import 'package:sidekick/containers/fixture_table_container.dart';
 import 'package:sidekick/containers/fixture_types_container.dart';
+import 'package:sidekick/containers/hoists_container.dart';
 import 'package:sidekick/containers/locations_container.dart';
 import 'package:sidekick/containers/diffing_screen_container.dart';
 import 'package:sidekick/containers/looms_container.dart';
@@ -33,7 +34,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return DefaultTabController(
       animationDuration: Duration.zero,
-      length: 9,
+      length: 10,
       initialIndex: 0,
       child: Scaffold(
         key: homeScaffoldKey,
@@ -56,6 +57,10 @@ class _HomeState extends State<Home> {
                 Tab(
                   icon: Icon(Icons.electric_bolt),
                   child: Text('Patch'),
+                ),
+                Tab(
+                  icon: Icon(Icons.construction),
+                  child: Text('Hoists'),
                 ),
                 Tab(
                   icon: Icon(Icons.cable),
@@ -89,6 +94,7 @@ class _HomeState extends State<Home> {
             FileContainer(),
             FixtureTableContainer(),
             PowerPatchContainer(),
+            HoistsContainer(),
             LoomsContainer(),
             LocationsContainer(),
             FixtureTypesContainer(),

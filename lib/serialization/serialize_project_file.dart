@@ -33,6 +33,8 @@ Future<ProjectFileMetadataModel> serializeProjectFile(
     defaultPowerMulti: state.fixtureState.defaultPowerMulti,
     loomStock: state.fixtureState.loomStock.values.toList(),
     fixtureTypes: state.fixtureState.fixtureTypes.values.toList(),
+    hoists: state.fixtureState.hoists.values.toList(),
+    hoistControllers: state.fixtureState.hoistControllers.values.toList(),
   );
 
   final json = projectFile.toJson();

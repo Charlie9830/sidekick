@@ -14,6 +14,34 @@ import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
+  if (a is RemoveLocation) {
+    return state.copyWith(
+        locations: state.locations.clone()..remove(a.location.uid),
+        hoists: state.hoists.clone()
+          ..removeWhere((id, hoist) => a.hoistIds.contains(id)));
+  }
+
+  if (a is SetHoists) {
+    return state.copyWith(hoists: a.value);
+  }
+
+  if (a is SetHoistControllers) {
+    return state.copyWith(hoistControllers: a.value);
+  }
+
+  if (a is UpdateHoistControllerName) {
+    return state.copyWith(
+        hoistControllers: state.hoistControllers.clone()
+          ..update(a.hoistId,
+              (existing) => existing.copyWith(name: a.value.trim())));
+  }
+
+  if (a is UpdateHoistControllerWayCount) {
+    return state.copyWith(
+        hoistControllers: state.hoistControllers.clone()
+          ..update(a.hoistId, (existing) => existing.copyWith(ways: a.value)));
+  }
+
   if (a is SetImportedFixtureData) {
     final powerPatch = performPowerPatch(
       fixtures: a.fixtures,
