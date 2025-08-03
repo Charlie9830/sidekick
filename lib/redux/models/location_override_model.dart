@@ -43,8 +43,7 @@ class LocationOverrideModel {
     return LocationOverrideModel(
       maxSequenceBreak:
           OptionalInt.fromMap(map['maxSequenceBreak'] as Map<String, dynamic>),
-      maxPairings: Map<String, int>.from((map['maxPairings'] ??
-          const <Map<String, int>>{}) as Map<String, int>),
+      maxPairings: Map<String, int>.from(map['maxPairings'] ?? <String, int>{}),
     );
   }
 
