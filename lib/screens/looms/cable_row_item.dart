@@ -135,6 +135,10 @@ class CableRowItem extends StatelessWidget {
                                     : Icons.subdirectory_arrow_right,
                                 size: 16,
                                 color: Colors.grey),
+                            CableType.hoist => const Icon(Icons.construction,
+                                size: 16, color: Colors.grey),
+                            CableType.hoistMulti =>
+                              const Icon(Icons.view_module_outlined),
                             CableType.unknown => const SizedBox(),
                           },
                           const SizedBox(width: 8),
@@ -167,7 +171,8 @@ class CableRowItem extends StatelessWidget {
                         const Tooltip(
                             message:
                                 'Detached Outlet:\nThis cable will not appear on the patch sheet',
-                            child: Icon(Icons.info, color: Colors.grey, size: 20)),
+                            child:
+                                Icon(Icons.info, color: Colors.grey, size: 20)),
                       if (cable.upstreamId.isNotEmpty)
                         missingUpstreamCable
                             ? const _MissingUpstreamCableIcon()

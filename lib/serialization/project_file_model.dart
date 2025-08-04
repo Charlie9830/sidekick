@@ -9,6 +9,7 @@ import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/hoist_controller_model.dart';
 import 'package:sidekick/redux/models/hoist_model.dart';
+import 'package:sidekick/redux/models/hoist_multi_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_stock_model.dart';
@@ -32,6 +33,7 @@ class ProjectFileModel {
   final List<FixtureTypeModel> fixtureTypes;
   final List<HoistModel> hoists;
   final List<HoistControllerModel> hoistControllers;
+  final List<HoistMultiModel> hoistMultis;
 
   ProjectFileModel({
     required this.metadata,
@@ -49,6 +51,7 @@ class ProjectFileModel {
     required this.fixtureTypes,
     required this.hoists,
     required this.hoistControllers,
+    required this.hoistMultis,
   });
 
   ProjectFileModel copyWith({
@@ -67,6 +70,7 @@ class ProjectFileModel {
     List<FixtureTypeModel>? fixtureTypes,
     List<HoistModel>? hoists,
     List<HoistControllerModel>? hoistControllers,
+    List<HoistMultiModel>? hoistMultis,
   }) {
     return ProjectFileModel(
       metadata: metadata ?? this.metadata,
@@ -84,6 +88,7 @@ class ProjectFileModel {
       fixtureTypes: fixtureTypes ?? this.fixtureTypes,
       hoists: hoists ?? this.hoists,
       hoistControllers: hoistControllers ?? this.hoistControllers,
+      hoistMultis: hoistMultis ?? this.hoistMultis,
     );
   }
 
@@ -104,6 +109,7 @@ class ProjectFileModel {
       'fixtureTypes': fixtureTypes.map((x) => x.toMap()).toList(),
       'hoists': hoists.map((x) => x.toMap()).toList(),
       'hoistControllers': hoistControllers.map((x) => x.toMap()).toList(),
+      'hoistMultis': hoistMultis.map((x) => x.toMap()).toList(),
     };
   }
 
@@ -168,6 +174,11 @@ class ProjectFileModel {
           (x) => HoistControllerModel.fromMap(x as Map<String, dynamic>),
         ),
       ),
+      hoistMultis: List<HoistMultiModel>.from(
+        (map['hoistMultis'] ?? []).map<HoistMultiModel>(
+          (x) => HoistMultiModel.fromMap(x as Map<String, dynamic>),
+        ),
+      ),
     );
   }
 
@@ -192,6 +203,7 @@ class ProjectFileModel {
       loomStock: loomStock.toModelMap(),
       hoists: hoists.toModelMap(),
       hoistControllers: hoistControllers.toModelMap(),
+      hoistMultis: hoistMultis.toModelMap(),
     );
   }
 }

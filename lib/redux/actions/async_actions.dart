@@ -39,7 +39,7 @@ import 'package:sidekick/file_type_groups.dart';
 import 'package:sidekick/generic_dialog/show_generic_dialog.dart';
 import 'package:sidekick/global_keys.dart';
 import 'package:sidekick/helpers/apply_cable_action_modifiers.dart';
-import 'package:sidekick/helpers/combine_dmx_into_sneak.dart';
+import 'package:sidekick/helpers/cable_combiners.dart';
 import 'package:sidekick/helpers/convert_to_permanent_loom.dart';
 import 'package:sidekick/helpers/determine_default_loom_name.dart';
 import 'package:sidekick/helpers/extract_locations_from_outlets.dart';
@@ -393,7 +393,10 @@ ThunkAction<AppState> deleteHoist(String hoistId) {
     }
 
     store.dispatch(
-        SetHoists(store.state.fixtureState.hoists.clone()..remove(hoistId)));
+      SetHoists(
+        store.state.fixtureState.hoists.clone()..remove(hoistId),
+      ),
+    );
   };
 }
 
@@ -414,7 +417,7 @@ ThunkAction<AppState> addHoist(String locationId) {
       name: HoistModel.getDefaultName(
           otherHoistsInLocation: existingHoistsInLocation, location: location),
       locationId: locationId,
-      locationIndex: existingHoistsInLocation.length,
+      number: existingHoistsInLocation.length,
       parentController: const HoistControllerChannelAssignment.unassigned(),
     );
 
@@ -799,21 +802,26 @@ ThunkAction<AppState> splitSelectedSneakIntoDmx(BuildContext context) {
   };
 }
 
-ThunkAction<AppState> combineSelectedDataCablesIntoSneak(BuildContext context) {
+ThunkAction<AppState> combineSelectedCablesIntoMultis(BuildContext context) {
   return (Store<AppState> store) async {
     final validCables = store.state.navstate.selectedCableIds
         .map((id) => store.state.fixtureState.cables[id])
         .nonNulls
-        .where((cable) => cable.type == CableType.dmx)
+        .where((cable) =>
+            cable.type == CableType.dmx || cable.type == CableType.hoist)
         .toList();
 
-    final combinationResult = combineDmxIntoSneak(
+    final allOutlets = [
+      ...store.state.fixtureState.dataMultis.values,
+      ...store.state.fixtureState.powerMultiOutlets.values,
+      ...store.state.fixtureState.dataPatches.values,
+      ...store.state.fixtureState.hoists.values,
+      ...store.state.fixtureState.hoistMultis.values,
+    ].toModelMap();
+
+    final sneakCombinationResult = combineDmxIntoSneak(
         cables: validCables,
-        outlets: [
-          ...store.state.fixtureState.dataMultis.values,
-          ...store.state.fixtureState.powerMultiOutlets.values,
-          ...store.state.fixtureState.dataPatches.values,
-        ].toModelMap(),
+        outlets: allOutlets,
         existingLocations: store.state.fixtureState.locations,
         reusableSneaks: validCables
             .map((cable) => cable.parentMultiId)
@@ -821,25 +829,44 @@ ThunkAction<AppState> combineSelectedDataCablesIntoSneak(BuildContext context) {
             .nonNulls
             .toList());
 
+    final hoistMultiCombinationResult = combineHoistsIntoMulti(
+        cables: validCables,
+        outlets: allOutlets,
+        existingLocations: store.state.fixtureState.locations.clone()
+          ..addAll([sneakCombinationResult.location].toModelMap()));
+
     store.dispatch(SetLocations(store.state.fixtureState.locations.clone()
-      ..addAll([combinationResult.location].toModelMap())));
+      ..addAll([
+        sneakCombinationResult.location,
+        hoistMultiCombinationResult.location
+      ].toModelMap())));
 
     store.dispatch(SetDataMultis(store.state.fixtureState.dataMultis.clone()
-      ..addAll(combinationResult.newDataMultis.toModelMap())));
+      ..addAll(sneakCombinationResult.newDataMultis.toModelMap())));
 
-    final cableIdsToRemove =
-        combinationResult.cablesToDelete.map((cable) => cable.uid).toSet();
+    store.dispatch(SetHoistMultis(store.state.fixtureState.hoistMultis.clone()
+      ..addAll(hoistMultiCombinationResult.newHoistMultis.toModelMap())));
+
+    final cableIdsToRemove = [
+      ...sneakCombinationResult.cablesToDelete,
+      ...hoistMultiCombinationResult.cablesToDelete,
+    ].map((cable) => cable.uid).toSet();
+
+    print("Doot");
 
     store.dispatch(
       SetCables(
         store.state.fixtureState.cables.clone()
-          ..addAll(combinationResult.cables.toModelMap())
+          ..addAll([
+            ...sneakCombinationResult.cables,
+            ...hoistMultiCombinationResult.cables
+          ].toModelMap())
           ..removeWhere((key, value) => cableIdsToRemove.contains(key)),
       ),
     );
 
     store.dispatch(SetSelectedCableIds(
-        combinationResult.cables.map((cable) => cable.uid).toSet()));
+        sneakCombinationResult.cables.map((cable) => cable.uid).toSet()));
   };
 }
 
@@ -858,9 +885,11 @@ ThunkAction<AppState> createNewFeederLoom(
     final powerMultiOutlets = outletIds
         .map((id) => store.state.fixtureState.powerMultiOutlets[id])
         .nonNulls;
+    final hoistOutlets =
+        outletIds.map((id) => store.state.fixtureState.hoists[id]).nonNulls;
 
     final associatedLocations = extractLocationsFromOutlets(
-        [...dataOutlets, ...powerMultiOutlets],
+        [...dataOutlets, ...powerMultiOutlets, ...hoistOutlets],
         store.state.fixtureState.locations);
 
     final targetLength = associatedLocations
@@ -883,6 +912,12 @@ ThunkAction<AppState> createNewFeederLoom(
           type: CableType.dmx,
           length: targetLength,
           loomId: newLoomId)),
+      ...hoistOutlets.map((outlet) => CableModel(
+          uid: getUid(),
+          outletId: outlet.uid,
+          type: CableType.hoist,
+          length: targetLength,
+          loomId: newLoomId))
     ];
 
     final newLoom = LoomModel(
@@ -900,12 +935,15 @@ ThunkAction<AppState> createNewFeederLoom(
       modifiers: modifiers,
       cables: newCables.toModelMap(),
       dataMultis: store.state.fixtureState.dataMultis,
+      hoistMultis: store.state.fixtureState.hoistMultis,
       locations: store.state.fixtureState.locations,
       loom: newLoom,
       outlets: [
         ...store.state.fixtureState.powerMultiOutlets.values,
         ...store.state.fixtureState.dataMultis.values,
-        ...store.state.fixtureState.dataPatches.values
+        ...store.state.fixtureState.dataPatches.values,
+        ...store.state.fixtureState.hoists.values,
+        ...store.state.fixtureState.hoistMultis.values,
       ].toModelMap(),
     );
 
@@ -1023,6 +1061,7 @@ ThunkAction<AppState> createNewExtensionLoom(BuildContext context,
       cables: store.state.fixtureState.cables.clone()
         ..addAll(clonedCables.toModelMap()),
       dataMultis: store.state.fixtureState.dataMultis,
+      hoistMultis: store.state.fixtureState.hoistMultis,
       locations: store.state.fixtureState.locations,
       loom: newLoom,
       outlets: [
@@ -1479,6 +1518,13 @@ ThunkAction<AppState> addOutletsToLoom(
             length: loom.type.length,
             loomId: loom.uid,
           )),
+      ...outlets.hoistOutlets.map((outlet) => CableModel(
+            uid: getUid(),
+            outletId: outlet.uid,
+            type: CableType.hoist,
+            length: loom.type.length,
+            loomId: loom.uid,
+          ))
     ];
 
     store.dispatch(SetCables(store.state.fixtureState.cables.clone()

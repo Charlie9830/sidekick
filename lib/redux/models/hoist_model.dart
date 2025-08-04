@@ -1,38 +1,34 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
-
-import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/redux/models/outlet.dart';
 
-class HoistModel implements ModelCollectionMember {
-  @override
-  final String uid;
-  final String name;
-  final String locationId;
-  final int locationIndex;
+class HoistModel extends Outlet {
   final HoistControllerChannelAssignment parentController;
 
   HoistModel({
-    required this.uid,
-    required this.name,
-    required this.locationId,
-    required this.locationIndex,
+    required super.uid,
+    required super.name,
+    required super.locationId,
     required this.parentController,
+    required super.number,
   });
 
+  @override
   HoistModel copyWith({
     String? uid,
     String? name,
     String? locationId,
     int? locationIndex,
     HoistControllerChannelAssignment? parentController,
+    int? number,
   }) {
     return HoistModel(
       uid: uid ?? this.uid,
       name: name ?? this.name,
       locationId: locationId ?? this.locationId,
-      locationIndex: locationIndex ?? this.locationIndex,
       parentController: parentController ?? this.parentController,
+      number: number ?? this.number,
     );
   }
 
@@ -41,8 +37,8 @@ class HoistModel implements ModelCollectionMember {
       'uid': uid,
       'name': name,
       'locationId': locationId,
-      'locationIndex': locationIndex,
       'parentController': parentController.toMap(),
+      'number': number,
     };
   }
 
@@ -51,9 +47,9 @@ class HoistModel implements ModelCollectionMember {
       uid: (map['uid'] ?? '') as String,
       name: (map['name'] ?? '') as String,
       locationId: (map['locationId'] ?? '') as String,
-      locationIndex: (map['locationIndex'] ?? 0) as int,
       parentController: HoistControllerChannelAssignment.fromMap(
           map['parentController'] as Map<String, dynamic>),
+      number: map['number'] ?? 0,
     );
   }
 

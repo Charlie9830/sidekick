@@ -6,6 +6,7 @@ import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/hoist_controller_model.dart';
 import 'package:sidekick/redux/models/hoist_model.dart';
+import 'package:sidekick/redux/models/hoist_multi_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_stock_model.dart';
@@ -26,6 +27,7 @@ class FixtureState {
   final Map<String, LoomStockModel> loomStock;
   final Map<String, HoistModel> hoists;
   final Map<String, HoistControllerModel> hoistControllers;
+  final Map<String, HoistMultiModel> hoistMultis;
 
   FixtureState({
     required this.fixtures,
@@ -42,6 +44,7 @@ class FixtureState {
     required this.loomStock,
     required this.hoists,
     required this.hoistControllers,
+    required this.hoistMultis,
   });
 
   const FixtureState.initial()
@@ -58,7 +61,8 @@ class FixtureState {
         defaultPowerMulti = CableType.socapex,
         loomStock = const {},
         hoists = const {},
-        hoistControllers = const {};
+        hoistControllers = const {},
+        hoistMultis = const {};
 
   FixtureState copyWith({
     Map<String, FixtureModel>? fixtures,
@@ -75,6 +79,7 @@ class FixtureState {
     Map<String, LoomStockModel>? loomStock,
     Map<String, HoistModel>? hoists,
     Map<String, HoistControllerModel>? hoistControllers,
+    Map<String, HoistMultiModel>? hoistMultis,
   }) {
     return FixtureState(
       fixtures: fixtures ?? this.fixtures,
@@ -91,6 +96,7 @@ class FixtureState {
       loomStock: loomStock ?? this.loomStock,
       hoists: hoists ?? this.hoists,
       hoistControllers: hoistControllers ?? this.hoistControllers,
+      hoistMultis: hoistMultis ?? this.hoistMultis,
     );
   }
 }

@@ -31,6 +31,8 @@ class OutletListTile extends StatelessWidget {
       PowerMultiOutletViewModel _ =>
         const Icon(Icons.bolt, color: Colors.yellowAccent),
       DataOutletViewModel _ => const Icon(Icons.settings_input_svideo),
+      HoistOutletViewModel _ =>
+        const Icon(Icons.construction, color: Colors.blueAccent),
       _ => const SizedBox.shrink(),
     };
   }
@@ -39,6 +41,7 @@ class OutletListTile extends StatelessWidget {
     return switch (vm) {
       PowerMultiOutletViewModel vm => vm.outlet.name,
       DataOutletViewModel vm => vm.outlet.name,
+      HoistOutletViewModel vm => vm.outlet.name,
       _ => throw UnimplementedError('Unhandled OutletViewModel type'),
     };
   }

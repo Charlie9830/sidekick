@@ -41,7 +41,7 @@ class NewLoomDropTargetOverlay extends StatelessWidget {
               ? const CreateAsPermanentLoomInfoTag()
               : null,
           trailingInfoTag: mapCableActionModifierKeys(keysDown)
-                  .contains(CableActionModifier.combineIntoSneaks)
+                  .contains(CableActionModifier.combineIntoMultis)
               ? const CombineIntoSneakInfoTag()
               : null,
         ),
@@ -60,7 +60,7 @@ class NewLoomDropTargetOverlay extends StatelessWidget {
               ? const CreateAsPermanentLoomInfoTag()
               : null,
           trailingInfoTag: mapCableActionModifierKeys(keysDown)
-                  .contains(CableActionModifier.combineIntoSneaks)
+                  .contains(CableActionModifier.combineIntoMultis)
               ? const CombineIntoSneakInfoTag()
               : null,
         ),

@@ -1,6 +1,8 @@
 import 'package:collection/collection.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
+import 'package:sidekick/redux/models/hoist_model.dart';
+import 'package:sidekick/redux/models/hoist_multi_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
@@ -33,6 +35,8 @@ Outlet _updateOutletNameAndNumber(Outlet outlet, String name, int number) {
     PowerMultiOutletModel o => o.copyWith(name: name, number: number),
     DataPatchModel o => o.copyWith(name: name, number: number),
     DataMultiModel o => o.copyWith(name: name, number: number),
+    HoistModel o => o.copyWith(name: name, number: number),
+    HoistMultiModel o => o.copyWith(name: name, number: number),
     _ => throw UnimplementedError('No handling for Type ${outlet.runtimeType}')
   };
 }

@@ -16,3 +16,5 @@ abstract class Outlet extends ModelCollectionMember {
 
   Outlet copyWith();
 }
+
+

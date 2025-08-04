@@ -5,7 +5,7 @@ Set<CableActionModifier> mapCableActionModifierKeys(
     Set<LogicalKeyboardKey> keysDown) {
   return {
     if (keysDown.contains(LogicalKeyboardKey.shiftLeft))
-      CableActionModifier.combineIntoSneaks,
+      CableActionModifier.combineIntoMultis,
     if (keysDown.contains(LogicalKeyboardKey.controlLeft))
       CableActionModifier.convertToPermanent
   };

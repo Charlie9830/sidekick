@@ -23,19 +23,19 @@ import 'package:sidekick/view_models/loom_view_model.dart';
 import 'package:sidekick/view_models/looms_view_model.dart';
 import 'package:sidekick/widgets/toolbar.dart';
 
-class LoomsV2 extends StatefulWidget {
+class Looms extends StatefulWidget {
   final LoomsViewModel vm;
 
-  const LoomsV2({
+  const Looms({
     super.key,
     required this.vm,
   });
 
   @override
-  State<LoomsV2> createState() => _LoomsV2State();
+  State<Looms> createState() => _LoomsState();
 }
 
-class _LoomsV2State extends State<LoomsV2> {
+class _LoomsState extends State<Looms> {
   @override
   Widget build(BuildContext context) {
     return ModifierKeyProvider(

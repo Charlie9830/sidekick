@@ -10,6 +10,8 @@ enum CableType {
   wieland6way,
   sneak,
   dmx,
+  hoist,
+  hoistMulti,
 }
 
 enum CableClass {
@@ -25,6 +27,8 @@ const _ranking = {
   CableType.sneak: 2,
   CableType.dmx: 3,
   CableType.unknown: 4,
+  CableType.hoist: 5,
+  CableType.hoistMulti: 6,
 };
 
 class CableModel extends ModelCollectionMember {

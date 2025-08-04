@@ -1,7 +1,7 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
-import 'package:sidekick/assert_data_multi_and_patch_state.dart';
+import 'package:sidekick/multi_outlet_asserts.dart';
 import 'package:sidekick/classes/universe_span.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';

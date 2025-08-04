@@ -6,7 +6,7 @@ import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 
-Map<String, DataMultiModel> assertDataMultiState(
+Map<String, DataMultiModel> assertDataMultiOutletState(
     {required Map<String, DataMultiModel> multiOutlets,
     required Map<String, LocationModel> locations,
     required Map<String, CableModel> cables}) {
@@ -25,6 +25,7 @@ Map<String, DataMultiModel> assertDataMultiState(
   // Extract and set the isRoot flag.
   final detachedMultiIds =
       _extractDetachedMultiIds(cables, withAssertedNameAndNumbers);
+
   return withAssertedNameAndNumbers.values
       .map((multi) => multi.copyWith(
             isDetached: detachedMultiIds.contains(multi.uid),
@@ -37,9 +38,9 @@ Map<String, DataMultiModel> assertDataMultiState(
 /// an extension Sneak that is combining two or more other sneaks together.
 ///
 Set<String> _extractDetachedMultiIds(
-    Map<String, CableModel> cables, Map<String, DataMultiModel> dataMultis) {
+    Map<String, CableModel> cables, Map<String, DataMultiModel> multiOutlets) {
   // Collect some helper maps
-  final sneaksByMultiId = cables.values
+  final multiCablesByMultiId = cables.values
       .where((cable) => cable.type == CableType.sneak)
       .groupListsBy((cable) => cable.outletId);
   final childrenByParentMultiId = cables.values
@@ -47,16 +48,16 @@ Set<String> _extractDetachedMultiIds(
       .groupListsBy((cable) => cable.parentMultiId);
 
   // Iterrate through the dataMultis and extract the associated sneaks and all of the children associated with those sneaks.
-  return dataMultis.values
+  return multiOutlets.values
       .where((multi) {
-        final associatedSneaks = sneaksByMultiId[multi.uid];
+        final associatedMultiCables = multiCablesByMultiId[multi.uid];
 
-        if (associatedSneaks == null || associatedSneaks.isEmpty) {
+        if (associatedMultiCables == null || associatedMultiCables.isEmpty) {
           return false;
         }
 
-        final allAssociatedChildCables = associatedSneaks
-            .map((sneak) => childrenByParentMultiId[sneak.uid] ?? [])
+        final allAssociatedChildCables = associatedMultiCables
+            .map((parent) => childrenByParentMultiId[parent.uid] ?? [])
             .flattened
             .toList();
 

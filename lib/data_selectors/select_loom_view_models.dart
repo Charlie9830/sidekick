@@ -26,7 +26,6 @@ List<LoomViewModel> selectLoomViewModels(
   // Wrapper Function to wrap multiple similiar calls to Cable VM creation.
   CableViewModel wrapCableVm(CableModel cable, int localNumber) {
     final associatedLocation = selectCableLocation(cable, store);
-  
 
     return CableViewModel(
         cable: cable,
@@ -42,9 +41,12 @@ List<LoomViewModel> selectLoomViewModels(
           powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
           dataPatches: store.state.fixtureState.dataPatches,
           dataMultis: store.state.fixtureState.dataMultis,
+          hoistMultis: store.state.fixtureState.hoistMultis,
+          hoistOutlets: store.state.fixtureState.hoists,
           cable: cable,
         ),
-        isDetached: selectCableDetachedState(dataMultis: store.state.fixtureState.dataMultis, cable: cable),
+        isDetached: selectCableDetachedState(
+            dataMultis: store.state.fixtureState.dataMultis, cable: cable),
         typeLabel: _getTypeLabel(
           cable.type,
           localNumber,
@@ -67,6 +69,8 @@ List<LoomViewModel> selectLoomViewModels(
       CableType.wieland6way: 0,
       CableType.sneak: 0,
       CableType.dmx: 0,
+      CableType.hoist: 0,
+      CableType.hoistMulti: 0,
     };
 
     return (CableType type) {
@@ -212,6 +216,8 @@ String _getTypeLabel(CableType type, int localNumber,
     CableType.socapex => 'Soca $localNumber',
     CableType.sneak => 'Sneak $localNumber',
     CableType.wieland6way => '6way $localNumber',
+    CableType.hoist => 'Motor $localNumber',
+    CableType.hoistMulti => 'Motor Multi $localNumber',
     CableType.unknown => "Unknown",
   };
 }

@@ -8,10 +8,11 @@ import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
+import 'package:sidekick/redux/models/hoist_model.dart';
 import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
-import 'package:sidekick/screens/looms/looms_v2.dart';
+import 'package:sidekick/screens/looms/looms.dart';
 import 'package:sidekick/view_models/looms_view_model.dart';
 
 class LoomsContainer extends StatelessWidget {
@@ -21,7 +22,7 @@ class LoomsContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, LoomsViewModel>(
         builder: (context, viewModel) {
-      return LoomsV2(
+      return Looms(
         vm: viewModel,
       );
     }, converter: (Store<AppState> store) {
@@ -59,7 +60,7 @@ class LoomsContainer extends StatelessWidget {
           onDefaultPowerMultiTypeChanged: (newValue) =>
               store.dispatch(SetDefaultPowerMulti(newValue)),
           onCombineSelectedDataCablesIntoSneak: () =>
-              store.dispatch(combineSelectedDataCablesIntoSneak(context)),
+              store.dispatch(combineSelectedCablesIntoMultis(context)),
           onSplitSneakIntoDmxPressed: () =>
               store.dispatch(splitSelectedSneakIntoDmx(context)),
           onCreateNewFeederLoom: (outletIds, insertIndex, modifiers) => store.dispatch(
@@ -101,12 +102,15 @@ class LoomsContainer extends StatelessWidget {
     final dataPatchOutletsByLocation = store
         .state.fixtureState.dataPatches.values
         .groupListsBy((element) => element.locationId);
+    final hoistOutletsByLocation = store.state.fixtureState.hoists.values
+        .groupListsBy((element) => element.locationId);
 
     return store.state.fixtureState.locations.values
         .map((location) {
           final allOutletsInLocation = [
             ...powerMultiOutletsByLocation[location.uid] ?? [],
             ...dataPatchOutletsByLocation[location.uid] ?? [],
+            ...hoistOutletsByLocation[location.uid] ?? [],
           ];
 
           return [
@@ -117,6 +121,10 @@ class LoomsContainer extends StatelessWidget {
                       outlet: outlet,
                       assigned: assignedOutletIds.contains(outlet.uid)),
                   DataPatchModel outlet => DataOutletViewModel(
+                      uid: outlet.uid,
+                      outlet: outlet,
+                      assigned: assignedOutletIds.contains(outlet.uid)),
+                  HoistModel outlet => HoistOutletViewModel(
                       uid: outlet.uid,
                       outlet: outlet,
                       assigned: assignedOutletIds.contains(outlet.uid)),

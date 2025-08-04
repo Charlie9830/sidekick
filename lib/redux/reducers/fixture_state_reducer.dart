@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:sidekick/assert_data_multi_and_patch_state.dart';
+import 'package:sidekick/multi_outlet_asserts.dart';
 import 'package:sidekick/assert_outlet_name_and_number.dart';
 import 'package:sidekick/extension_methods/clone_map.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
@@ -10,6 +10,8 @@ import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/hoist_model.dart';
+import 'package:sidekick/redux/models/hoist_multi_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
@@ -18,7 +20,9 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     return state.copyWith(
         locations: state.locations.clone()..remove(a.location.uid),
         hoists: state.hoists.clone()
-          ..removeWhere((id, hoist) => a.hoistIds.contains(id)));
+          ..removeWhere((id, hoist) => a.hoistIds.contains(id)),
+        cables: state.cables.clone()
+          ..removeWhere((id, cable) => a.hoistIds.contains(cable.outletId)));
   }
 
   if (a is SetHoists) {
@@ -99,20 +103,26 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
     return state.copyWith(
       cables: _assertCableOrderings(
-          cables: updatedCables,
-          powerMultiOutlets: state.powerMultiOutlets,
-          dataMultis: state.dataMultis,
-          dataPatches: state.dataPatches),
+        cables: updatedCables,
+        powerMultiOutlets: state.powerMultiOutlets,
+        dataMultis: state.dataMultis,
+        dataPatches: state.dataPatches,
+        hoistMultis: state.hoistMultis,
+        hoistOutlets: state.hoists,
+      ),
     );
   }
 
   if (a is ToggleCableDropperStateByLoom) {
     return state.copyWith(
         cables: _assertCableOrderings(
-            cables: _toggleCableDropperState(a.loomId, state.cables),
-            powerMultiOutlets: state.powerMultiOutlets,
-            dataMultis: state.dataMultis,
-            dataPatches: state.dataPatches));
+      cables: _toggleCableDropperState(a.loomId, state.cables),
+      powerMultiOutlets: state.powerMultiOutlets,
+      dataMultis: state.dataMultis,
+      dataPatches: state.dataPatches,
+      hoistMultis: state.hoistMultis,
+      hoistOutlets: state.hoists,
+    ));
   }
 
   if (a is SetCables) {
@@ -121,11 +131,13 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       powerMultiOutlets: state.powerMultiOutlets,
       dataMultis: state.dataMultis,
       dataPatches: state.dataPatches,
+      hoistMultis: state.hoistMultis,
+      hoistOutlets: state.hoists,
     );
 
     return state.copyWith(
       cables: cables,
-      dataMultis: assertDataMultiState(
+      dataMultis: assertHoistMultiState(
           multiOutlets: state.dataMultis,
           locations: state.locations,
           cables: cables),
@@ -142,12 +154,14 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       powerMultiOutlets: state.powerMultiOutlets,
       dataMultis: state.dataMultis,
       dataPatches: state.dataPatches,
+      hoistMultis: state.hoistMultis,
+      hoistOutlets: state.hoists,
     );
 
     return state.copyWith(
       cables: cables,
       looms: a.looms,
-      dataMultis: assertDataMultiState(
+      dataMultis: assertHoistMultiState(
           multiOutlets: state.dataMultis,
           locations: state.locations,
           cables: cables),
@@ -224,7 +238,17 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is SetDataMultis) {
     return state.copyWith(
-      dataMultis: assertDataMultiState(
+      dataMultis: assertDataMultiOutletState(
+        multiOutlets: a.multis,
+        locations: state.locations,
+        cables: state.cables,
+      ),
+    );
+  }
+
+  if (a is SetHoistMultis) {
+    return state.copyWith(
+      dataMultis: assertHoistMultiState(
         multiOutlets: a.multis,
         locations: state.locations,
         cables: state.cables,
@@ -386,10 +410,13 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
             existing.copyWith(type: existing.type.copyWith(length: newLength)),
       ),
     cables: _assertCableOrderings(
-        cables: updatedCables,
-        powerMultiOutlets: state.powerMultiOutlets,
-        dataMultis: state.dataMultis,
-        dataPatches: state.dataPatches),
+      cables: updatedCables,
+      powerMultiOutlets: state.powerMultiOutlets,
+      dataMultis: state.dataMultis,
+      dataPatches: state.dataPatches,
+      hoistMultis: state.hoistMultis,
+      hoistOutlets: state.hoists,
+    ),
   );
 }
 
@@ -398,12 +425,17 @@ Map<String, CableModel> _assertCableOrderings({
   required Map<String, PowerMultiOutletModel> powerMultiOutlets,
   required Map<String, DataMultiModel> dataMultis,
   required Map<String, DataPatchModel> dataPatches,
+  required Map<String, HoistModel> hoistOutlets,
+  required Map<String, HoistMultiModel> hoistMultis,
 }) {
   final cablesByOutletId = cables.values.groupListsBy((item) => item.outletId);
   final orderedOutletIds = [
     ...powerMultiOutlets.keys,
     ...dataMultis.keys,
     ...dataPatches.keys,
+    ...hoistOutlets.keys,
+    ...hoistMultis.keys,
+
     '', // Spare cables will have an empty outletId field. Therefore we need to include an empty string here, otherwise
     // the spares will get inadvertantly filltered out.
   ];

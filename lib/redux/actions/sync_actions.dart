@@ -7,6 +7,7 @@ import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/hoist_controller_model.dart';
 import 'package:sidekick/redux/models/hoist_model.dart';
+import 'package:sidekick/redux/models/hoist_multi_model.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
@@ -353,6 +354,12 @@ class SetDataMultis {
   final Map<String, DataMultiModel> multis;
 
   SetDataMultis(this.multis);
+}
+
+class SetHoistMultis {
+  final Map<String, HoistMultiModel> multis;
+
+  SetHoistMultis(this.multis);
 }
 
 class SetSelectedMultiOutlet {

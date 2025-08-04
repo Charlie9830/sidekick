@@ -12,6 +12,10 @@ LocationModel? selectCableLocation(CableModel cable, Store<AppState> store) {
       store.state.fixtureState.powerMultiOutlets[cable.outletId]?.locationId,
     CableType.sneak =>
       store.state.fixtureState.dataMultis[cable.outletId]?.locationId,
+    CableType.hoist =>
+      store.state.fixtureState.hoists[cable.outletId]?.locationId,
+    CableType.hoistMulti =>
+      store.state.fixtureState.hoistMultis[cable.outletId]?.locationId,
     CableType.unknown => throw UnimplementedError(),
   };
 
