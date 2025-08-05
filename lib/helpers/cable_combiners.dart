@@ -216,6 +216,7 @@ CombineIntoMultiResult combineHoistsIntoMulti({
                   .map((child) => child.copyWith(parentMultiId: multi.uid))
                   .toList();
 
+
               final withSparesFilled = [
                 ...updatedChildren,
                 ...List<CableModel>.generate(

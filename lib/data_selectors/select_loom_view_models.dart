@@ -50,7 +50,7 @@ List<LoomViewModel> selectLoomViewModels(
         typeLabel: _getTypeLabel(
           cable.type,
           localNumber,
-          isSneakChild: cable.parentMultiId.isNotEmpty,
+          isMultiChild: cable.parentMultiId.isNotEmpty,
         ),
         onLengthChanged: (newValue) =>
             store.dispatch(UpdateCableLength(cable.uid, newValue)),
@@ -81,14 +81,14 @@ List<LoomViewModel> selectLoomViewModels(
 
   final loomVms = orderedLooms.mapIndexed(
     (index, loom) {
-      final childCables = store.state.fixtureState.cables.values
+      final topLevelCables = store.state.fixtureState.cables.values
           .where((cable) =>
               cable.loomId == loom.uid && cable.parentMultiId.isEmpty)
           .toList();
 
       final getCount = localNumberCounterClosure();
 
-      final loomedCableVms = childCables
+      final loomedCableVms = topLevelCables
           .sorted((a, b) => CableModel.compareByType(a, b))
           .map((cable) {
             return [
@@ -108,12 +108,12 @@ List<LoomViewModel> selectLoomViewModels(
           loom: loom,
           loomsOnlyIndex: index,
           hasVariedLengthChildren:
-              childCables.map((cable) => cable.length).toSet().length > 1,
+              topLevelCables.map((cable) => cable.length).toSet().length > 1,
           name: _getLoomName(loom, store),
           addOutletsToLoom: (loomId, outletIds) =>
               store.dispatch(addOutletsToLoom(context!, loomId, outletIds)),
           isValidComposition: loom.type.type == LoomType.permanent
-              ? loom.type.checkIsValid(childCables)
+              ? loom.type.checkIsValid(topLevelCables)
               : true,
           children: loomedCableVms,
           onRepairCompositionButtonPressed: () =>
@@ -143,11 +143,11 @@ List<LoomViewModel> selectLoomViewModels(
           permCompEntries: _getPermCompEntries(
               context,
               loom,
-              childCables
+              topLevelCables
                   .where((cable) => cable.parentMultiId.isEmpty)
                   .toList()),
-          onChangeToSpecificComposition: (newComposition) => store
-              .dispatch(changeToSpecificComposition(context!, loom.uid, newComposition)));
+          onChangeToSpecificComposition: (newComposition) =>
+              store.dispatch(changeToSpecificComposition(context!, loom.uid, newComposition)));
     },
   ).toList();
 
@@ -206,9 +206,14 @@ List<DropdownMenuEntry<PermanentCompositionSelection>> _getPermCompEntries(
 }
 
 String _getTypeLabel(CableType type, int localNumber,
-    {bool isSneakChild = false}) {
-  if (isSneakChild) {
-    return 'Data $localNumber';
+    {bool isMultiChild = false}) {
+  if (isMultiChild) {
+    return switch (type) {
+      CableType.dmx => 'Data $localNumber',
+      CableType.hoist => 'Line $localNumber',
+      _ => throw ArgumentError(
+          'Invalid multi child, the argument [isMultiChild] has not been set correctly.'),
+    };
   }
 
   return switch (type) {

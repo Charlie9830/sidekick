@@ -119,8 +119,10 @@ class CableModel extends ModelCollectionMember {
     );
   }
 
-  bool get isMultiCable =>
-      switch (type) { CableType.sneak => true, _ => false };
+  bool get isMultiCable => switch (type) {
+        CableType.sneak || CableType.hoistMulti => true,
+        _ => false
+      };
 
   bool get isExtension => upstreamId.isNotEmpty;
 
@@ -137,7 +139,7 @@ class CableModel extends ModelCollectionMember {
 
   @override
   String toString() {
-    return '    $type    $loomId';
+    return '    $type    $uid';
   }
 
   String toJson() => json.encode(toMap());

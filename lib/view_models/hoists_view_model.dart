@@ -39,6 +39,8 @@ class HoistViewModel extends HoistItemBase implements ModelCollectionMember {
   final String locationName;
   final bool selected;
   final bool assigned;
+  final String multi;
+  final String patch;
 
   @override
   String get uid => hoist.uid;
@@ -50,6 +52,8 @@ class HoistViewModel extends HoistItemBase implements ModelCollectionMember {
     required this.locationName,
     required this.selected,
     required this.assigned,
+    required this.multi,
+    required this.patch,
   });
 }
 

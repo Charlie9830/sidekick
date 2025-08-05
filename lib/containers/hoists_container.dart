@@ -6,6 +6,7 @@ import 'package:sidekick/extension_methods/greater_of.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
+import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/hoist_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/hoists/hoists.dart';
@@ -24,7 +25,16 @@ class HoistsContainer extends StatelessWidget {
         );
       },
       converter: (Store<AppState> store) {
-        final hoistVmMap = _mapHoistViewModels(store);
+        final cablesByOutletId = store.state.fixtureState.cables.values
+            .where((cable) =>
+                cable.type == CableType.hoist ||
+                cable.type == CableType.hoistMulti)
+            .groupListsBy((cable) => cable.outletId);
+        final hoistVmMap = _mapHoistViewModels(
+          store: store,
+          cablesByOutletId: cablesByOutletId,
+        );
+
         final selectedHoistChannelVmMap =
             _mapSelectedHoistChannelViewModels(store, hoistVmMap);
 
@@ -41,8 +51,10 @@ class HoistsContainer extends StatelessWidget {
                 store.dispatch(selectHoistOutlets(type, items)),
             onSelectedHoistChannelsChanged: (type, items) =>
                 store.dispatch(selectHoistControllerChannels(type, items)),
-            hoistControllers:
-                _selectHoistControllers(store, selectedHoistChannelVmMap),
+            hoistControllers: _selectHoistControllers(
+                store: store,
+                selectedHoistChannelViewModelMap: selectedHoistChannelVmMap,
+                cablesByHoistId: cablesByOutletId),
             selectedHoistChannelViewModels: selectedHoistChannelVmMap,
             onAddMotorController: (wayNumber) =>
                 store.dispatch(addHoistController(wayNumber)),
@@ -63,8 +75,11 @@ class HoistsContainer extends StatelessWidget {
         .map((vm) => MapEntry(vm.uid, vm)));
   }
 
-  List<HoistControllerViewModel> _selectHoistControllers(Store<AppState> store,
-      Map<String, HoistViewModel> selectedHoistChannelViewModelMap) {
+  List<HoistControllerViewModel> _selectHoistControllers({
+    required Store<AppState> store,
+    required Map<String, HoistViewModel> selectedHoistChannelViewModelMap,
+    required Map<String, List<CableModel>> cablesByHoistId,
+  }) {
     final hoistsByControllerId = store.state.fixtureState.hoists.values
         .groupListsBy((hoist) => hoist.parentController.controllerId);
 
@@ -97,7 +112,10 @@ class HoistsContainer extends StatelessWidget {
                     : () {},
                 hoist: hoist == null
                     ? null
-                    : _selectHoistViewModel(hoist: hoist, store: store),
+                    : _selectHoistViewModel(
+                        hoist: hoist,
+                        store: store,
+                        cablesByOutletId: cablesByHoistId),
                 onHoistsLanded: (hoistIds) => store.dispatch(
                     assignHoistsToController(
                         movingOrIncomingHoistIds: hoistIds,
@@ -113,21 +131,56 @@ class HoistsContainer extends StatelessWidget {
     }).toList();
   }
 
-  Map<String, HoistViewModel> _mapHoistViewModels(Store<AppState> store) {
+  Map<String, HoistViewModel> _mapHoistViewModels(
+      {required Store<AppState> store,
+      required Map<String, List<CableModel>> cablesByOutletId}) {
     return store.state.fixtureState.hoists.values
         .map(
           (hoist) => _selectHoistViewModel(
             hoist: hoist,
             store: store,
+            cablesByOutletId: cablesByOutletId,
           ),
         )
         .toModelMap();
   }
 
   HoistViewModel _selectHoistViewModel(
-      {required HoistModel hoist, required Store<AppState> store}) {
+      {required HoistModel hoist,
+      required Store<AppState> store,
+      required Map<String, List<CableModel>> cablesByOutletId}) {
+    final associatedRootHoistCable = cablesByOutletId[hoist.uid]
+        ?.firstWhereOrNull((cable) => cable.upstreamId.isEmpty);
+    final associatedMultiOutlet = store.state.fixtureState.hoistMultis[store
+        .state
+        .fixtureState
+        .cables[associatedRootHoistCable?.parentMultiId]
+        ?.outletId];
+    final associatedRootMultiCable =
+        cablesByOutletId[associatedMultiOutlet?.uid]
+            ?.firstWhereOrNull((cable) => cable.upstreamId.isEmpty);
+
+    final associatedChildCables = associatedRootMultiCable != null
+        ? store.state.fixtureState.cables.values
+            .where(
+                (cable) => cable.parentMultiId == associatedRootMultiCable.uid)
+            .toList()
+        : <CableModel>[];
+
+    final childIndex = associatedRootHoistCable != null
+        ? associatedChildCables.indexOf(associatedRootHoistCable)
+        : -1;
+
     return HoistViewModel(
       hoist: hoist,
+      patch: associatedRootHoistCable == null
+          ? ''
+          : associatedRootHoistCable.parentMultiId.isEmpty
+              ? hoist.name.toString()
+              : childIndex == -1
+                  ? ''
+                  : (childIndex + 1).toString(),
+      multi: associatedMultiOutlet != null ? associatedMultiOutlet.name : '-',
       locationName:
           store.state.fixtureState.locations[hoist.locationId]?.name ?? '',
       onDelete: () => store.dispatch(deleteHoist(hoist.uid)),

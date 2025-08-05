@@ -4,6 +4,7 @@ import 'package:sidekick/editable_text_field.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
 import 'package:sidekick/screens/hoists/hoists.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
+import 'package:sidekick/widgets/hover_region.dart';
 
 class HoistController extends StatefulWidget {
   static const List<double> columnWidths = [
@@ -31,43 +32,58 @@ class _HoistControllerState extends State<HoistController> {
       padding: const EdgeInsets.all(8.0),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              SizedBox(
-                width: 200,
-                child: EditableTextField(
-                  onChanged: (newValue) =>
-                      widget.viewModel.onNameChanged(newValue),
-                  value: widget.viewModel.controller.name,
-                  style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                      color:
-                          widget.viewModel.hasOverflowed ? Colors.amber : null),
-                ),
-              ),
-              PopupMenuButton<int>(
-                  onSelected: (value) => widget.viewModel.onControllerWaysChanged(value),
-                  initialValue: widget.viewModel.controller.ways,
-                  icon: Text(
-                    '${widget.viewModel.controller.ways}way',
-                    style: Theme.of(context).textTheme.titleSmall,
+          HoverRegionBuilder(builder: (context, isHovering) {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SizedBox(
+                  width: 200,
+                  child: EditableTextField(
+                    onChanged: (newValue) =>
+                        widget.viewModel.onNameChanged(newValue),
+                    value: widget.viewModel.controller.name,
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                        color: widget.viewModel.hasOverflowed
+                            ? Colors.amber
+                            : null),
                   ),
-                  itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 8,
-                          child: Text('8way'),
+                ),
+                PopupMenuButton<int>(
+                    tooltip: 'Change controller type',
+                    onSelected: (value) =>
+                        widget.viewModel.onControllerWaysChanged(value),
+                    initialValue: widget.viewModel.controller.ways,
+                    icon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 8,
+                      children: [
+                        if (isHovering)
+                          Icon(Icons.edit,
+                              size: 16,
+                              color: Theme.of(context).indicatorColor),
+                        Text(
+                          '${widget.viewModel.controller.ways}way',
+                          style: Theme.of(context).textTheme.titleSmall,
                         ),
-                        const PopupMenuItem(
-                          value: 16,
-                          child: Text('16way'),
-                        ),
-                        const PopupMenuItem(
-                          value: 32,
-                          child: Text('32way'),
-                        ),
-                      ]),
-            ],
-          ),
+                      ],
+                    ),
+                    itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 8,
+                            child: Text('8way'),
+                          ),
+                          const PopupMenuItem(
+                            value: 16,
+                            child: Text('16way'),
+                          ),
+                          const PopupMenuItem(
+                            value: 32,
+                            child: Text('32way'),
+                          ),
+                        ]),
+              ],
+            );
+          }),
           const SizedBox(height: 8),
           DefaultTextStyle(
             style: Theme.of(context).textTheme.labelSmall!,
@@ -271,20 +287,17 @@ class _HoistChannelContents extends StatelessWidget {
             width: HoistController.columnWidths[1],
             child: Text(viewModel.hoist.name)),
         const VerticalDivider(),
-
         SizedBox(
             width: HoistController.columnWidths[2],
             child: Text(viewModel.locationName)),
         const VerticalDivider(),
-
         SizedBox(
             width: HoistController.columnWidths[3],
-            child: Text("R1")), // TODO: Plumb me.
+            child: Text(viewModel.multi)),
         const VerticalDivider(),
-
         SizedBox(
             width: HoistController.columnWidths[4],
-            child: Text("1")), // TODO: Plumb me,
+            child: Text(viewModel.patch)),
       ],
     );
   }
