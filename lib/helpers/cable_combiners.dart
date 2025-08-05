@@ -12,7 +12,7 @@ import 'package:sidekick/utils/get_uid.dart';
 /// [newDataMultis] Represent the new Multi outlets that have been created to back the Sneaks.
 class CombineIntoMultiResult {
   final List<CableModel> cables;
-  final LocationModel location;
+  final LocationModel? location;
   final List<DataMultiModel> newDataMultis;
   final List<HoistMultiModel> newHoistMultis;
   final List<CableModel> cablesToDelete;
@@ -24,6 +24,13 @@ class CombineIntoMultiResult {
     required this.newHoistMultis,
     required this.cablesToDelete,
   });
+
+  const CombineIntoMultiResult.nothingToCombine()
+      : cables = const [],
+        location = null,
+        newDataMultis = const [],
+        newHoistMultis = const [],
+        cablesToDelete = const [];
 }
 
 CombineIntoMultiResult combineDmxIntoSneak({
@@ -37,6 +44,10 @@ CombineIntoMultiResult combineDmxIntoSneak({
   final validCables = cables
       .where((cable) => cable.type == CableType.dmx && cable.isSpare == false)
       .toList();
+
+  if (validCables.isEmpty) {
+    return const CombineIntoMultiResult.nothingToCombine();
+  }
 
   // Find the Outlets associated with these cables.
   final associatedOutlets =
@@ -153,6 +164,10 @@ CombineIntoMultiResult combineHoistsIntoMulti({
       .where((cable) => cable.type == CableType.hoist && cable.isSpare == false)
       .toList();
 
+  if (validCables.isEmpty) {
+    return const CombineIntoMultiResult.nothingToCombine();
+  }
+
   // Find the Outlets associated with these cables.
   final associatedOutlets =
       validCables.map((cable) => outlets[cable.outletId]).nonNulls.toList();
@@ -215,7 +230,6 @@ CombineIntoMultiResult combineHoistsIntoMulti({
               final updatedChildren = slice
                   .map((child) => child.copyWith(parentMultiId: multi.uid))
                   .toList();
-
 
               final withSparesFilled = [
                 ...updatedChildren,

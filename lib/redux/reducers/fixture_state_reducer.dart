@@ -303,6 +303,12 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       dataPatches: assertOutletNameAndNumbers<DataPatchModel>(
               state.dataPatches.values, a.locations)
           .toModelMap(),
+      hoists: assertOutletNameAndNumbers<HoistModel>(
+              state.hoists.values, a.locations)
+          .toModelMap(),
+      hoistMultis: assertOutletNameAndNumbers<HoistMultiModel>(
+              state.hoistMultis.values, a.locations)
+          .toModelMap(),
     );
   }
 

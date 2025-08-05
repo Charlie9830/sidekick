@@ -8,6 +8,7 @@ import 'package:sidekick/classes/named_colors.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
+import 'package:sidekick/redux/models/hoist_model.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/location_override_model.dart';
 import 'package:sidekick/redux/models/named_color_model.dart';
@@ -83,10 +84,22 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       PowerMultiOutletModel _ => getPrefixedPowerMulti(number),
       DataPatchModel _ => getPrefixedDataPatch(number),
       DataMultiModel _ => getPrefixedDataMultiPatch(number),
+      HoistModel _ => getPrefixedHoistPatch(number),
       HoistMultiModel _ => getPrefixedHoistMultiPatch(number),
       _ => throw UnimplementedError(
           'No handling for outlet Type ${outlet.runtimeType}'),
     };
+  }
+
+  String getPrefixedHoistPatch(int? patchNumber) {
+    if (this == const LocationModel.none()) {
+      return 'No Location';
+    }
+
+    if (patchNumber == null) {
+      return multiPrefix;
+    }
+    return '$multiPrefix$delimiter$patchNumber';
   }
 
   String getPrefixedDataPatch(int? patchNumber, {String? parentMultiName}) {

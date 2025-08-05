@@ -839,7 +839,10 @@ ThunkAction<AppState> combineSelectedCablesIntoMultis(BuildContext context) {
         cables: validCables,
         outlets: allOutlets,
         existingLocations: store.state.fixtureState.locations.clone()
-          ..addAll([sneakCombinationResult.location].toModelMap()),
+          ..addAll([
+            if (sneakCombinationResult.location != null)
+              sneakCombinationResult.location!
+          ].toModelMap()),
         reusableMultis: validCables
             .map((cable) => cable.parentMultiId)
             .map((sneakId) => store.state.fixtureState.cables[sneakId])
@@ -849,8 +852,10 @@ ThunkAction<AppState> combineSelectedCablesIntoMultis(BuildContext context) {
 
     store.dispatch(SetLocations(store.state.fixtureState.locations.clone()
       ..addAll([
-        sneakCombinationResult.location,
-        hoistMultiCombinationResult.location
+        if (sneakCombinationResult.location != null)
+          sneakCombinationResult.location!,
+        if (hoistMultiCombinationResult.location != null)
+          hoistMultiCombinationResult.location!
       ].toModelMap())));
 
     store.dispatch(SetDataMultis(store.state.fixtureState.dataMultis.clone()
