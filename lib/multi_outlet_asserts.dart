@@ -2,12 +2,12 @@ import 'package:collection/collection.dart';
 import 'package:sidekick/assert_outlet_name_and_number.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
-import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/redux/models/outlet.dart';
 
-Map<String, DataMultiModel> assertDataMultiOutletState(
-    {required Map<String, DataMultiModel> multiOutlets,
+Map<String, T> assertMultiOutletState<T extends MultiOutlet>(
+    {required Map<String, T> multiOutlets,
     required Map<String, LocationModel> locations,
     required Map<String, CableModel> cables}) {
   final outletsByLocationId =
@@ -19,8 +19,7 @@ Map<String, DataMultiModel> assertDataMultiOutletState(
       .flattened;
 
   final withAssertedNameAndNumbers =
-      assertOutletNameAndNumbers<DataMultiModel>(sortedOutlets, locations)
-          .toModelMap();
+      assertOutletNameAndNumbers<T>(sortedOutlets, locations).toModelMap();
 
   // Extract and set the isRoot flag.
   final detachedMultiIds =
@@ -29,7 +28,7 @@ Map<String, DataMultiModel> assertDataMultiOutletState(
   return withAssertedNameAndNumbers.values
       .map((multi) => multi.copyWith(
             isDetached: detachedMultiIds.contains(multi.uid),
-          ))
+          ) as T)
       .toModelMap();
 }
 
@@ -38,7 +37,7 @@ Map<String, DataMultiModel> assertDataMultiOutletState(
 /// an extension Sneak that is combining two or more other sneaks together.
 ///
 Set<String> _extractDetachedMultiIds(
-    Map<String, CableModel> cables, Map<String, DataMultiModel> multiOutlets) {
+    Map<String, CableModel> cables, Map<String, MultiOutlet> multiOutlets) {
   // Collect some helper maps
   final multiCablesByMultiId = cables.values
       .where((cable) => cable.type == CableType.sneak)

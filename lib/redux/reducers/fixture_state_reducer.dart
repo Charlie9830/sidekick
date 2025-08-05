@@ -7,11 +7,10 @@ import 'package:sidekick/perform_data_patch.dart';
 import 'package:sidekick/perform_power_patch.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
-import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/hoist_model.dart';
-import 'package:sidekick/redux/models/hoist_multi_model.dart';
+import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
@@ -137,8 +136,12 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
     return state.copyWith(
       cables: cables,
-      dataMultis: assertHoistMultiState(
+      dataMultis: assertMultiOutletState<DataMultiModel>(
           multiOutlets: state.dataMultis,
+          locations: state.locations,
+          cables: cables),
+      hoistMultis: assertMultiOutletState<HoistMultiModel>(
+          multiOutlets: state.hoistMultis,
           locations: state.locations,
           cables: cables),
     );
@@ -159,13 +162,16 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     );
 
     return state.copyWith(
-      cables: cables,
-      looms: a.looms,
-      dataMultis: assertHoistMultiState(
-          multiOutlets: state.dataMultis,
-          locations: state.locations,
-          cables: cables),
-    );
+        cables: cables,
+        looms: a.looms,
+        dataMultis: assertMultiOutletState<DataMultiModel>(
+            multiOutlets: state.dataMultis,
+            locations: state.locations,
+            cables: cables),
+        hoistMultis: assertMultiOutletState<HoistMultiModel>(
+            multiOutlets: state.hoistMultis,
+            locations: state.locations,
+            cables: cables));
   }
 
   if (a is SetLoomStock) {
@@ -238,7 +244,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is SetDataMultis) {
     return state.copyWith(
-      dataMultis: assertDataMultiOutletState(
+      dataMultis: assertMultiOutletState<DataMultiModel>(
         multiOutlets: a.multis,
         locations: state.locations,
         cables: state.cables,
@@ -248,7 +254,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is SetHoistMultis) {
     return state.copyWith(
-      dataMultis: assertHoistMultiState(
+      hoistMultis: assertMultiOutletState<HoistMultiModel>(
         multiOutlets: a.multis,
         locations: state.locations,
         cables: state.cables,

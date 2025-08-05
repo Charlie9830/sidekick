@@ -1,8 +1,6 @@
 import 'package:collection/collection.dart';
-import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/hoist_model.dart';
-import 'package:sidekick/redux/models/hoist_multi_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';

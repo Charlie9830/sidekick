@@ -3,16 +3,15 @@ import 'dart:convert';
 
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
-import 'package:sidekick/redux/models/data_multi_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/hoist_controller_model.dart';
 import 'package:sidekick/redux/models/hoist_model.dart';
-import 'package:sidekick/redux/models/hoist_multi_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_stock_model.dart';
+import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';

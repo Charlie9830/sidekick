@@ -111,7 +111,7 @@ class CableRowItem extends StatelessWidget {
 
               // Cable Type
               SizedBox(
-                width: 120,
+                width: 128,
                 child: DiffStateOverlay(
                   diff: cableDelta?.properties
                       .lookup(PropertyDeltaName.cableType),
@@ -137,8 +137,9 @@ class CableRowItem extends StatelessWidget {
                                 color: Colors.grey),
                             CableType.hoist => const Icon(Icons.construction,
                                 size: 16, color: Colors.grey),
-                            CableType.hoistMulti =>
-                              const Icon(Icons.view_module_outlined),
+                            CableType.hoistMulti => const Icon(
+                                Icons.view_module_outlined,
+                                color: Colors.grey),
                             CableType.unknown => const SizedBox(),
                           },
                           const SizedBox(width: 8),

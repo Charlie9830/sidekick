@@ -482,9 +482,10 @@ class _ImportManagerState extends State<ImportManager> {
       }),
 
       // Marry with Existing Hybrid Locations.
-      // TODO: This will likely need to be smarter about how it marries in hybrid locations. For example, there should be some sort of handling 
+      // TODO: This will likely need to be smarter about how it marries in hybrid locations. For example, there should be some sort of handling
       // for when incoming locations does not contain a location that one of these Hybrids points to.
-      ...widget.vm.existingLocations.values.where((location) => location.isHybrid)
+      ...widget.vm.existingLocations.values
+          .where((location) => location.isHybrid)
     ];
 
     final existingInUseFixtureTypes = widget.vm.existingFixtures.values

@@ -2,8 +2,6 @@ import 'dart:collection';
 
 import 'package:collection/collection.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
-import 'package:sidekick/redux/models/data_multi_model.dart';
-import 'package:sidekick/redux/models/hoist_multi_model.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
