@@ -47,9 +47,9 @@ class _LoomsState extends State<Looms> {
             Toolbar(
                 child: LoomsToolbarContents(
               onDeleteSelectedCables: widget.vm.onDeleteSelectedCables,
-              onCombineIntoSneakPressed:
+              onCombineIntoMultiButtonPressed:
                   widget.vm.onCombineSelectedDataCablesIntoSneak,
-              onSplitSneakIntoDmxPressed: widget.vm.onSplitSneakIntoDmxPressed,
+              onSplitMultiButtonPressed: widget.vm.onSplitSneakIntoDmxPressed,
               defaultPowerMultiType: widget.vm.defaultPowerMultiType,
               onDefaultPowerMultiTypeChanged:
                   widget.vm.onDefaultPowerMultiTypeChanged,

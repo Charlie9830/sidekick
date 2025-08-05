@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 
 class LoomsToolbarContents extends StatelessWidget {
-  final void Function() onCombineIntoSneakPressed;
-  final void Function() onSplitSneakIntoDmxPressed;
+  final void Function() onCombineIntoMultiButtonPressed;
+  final void Function() onSplitMultiButtonPressed;
   final void Function()? onDeleteSelectedCables;
   final void Function(CableType type) onDefaultPowerMultiTypeChanged;
   final void Function()? onChangePowerMultiTypeOfSelectedCables;
@@ -14,8 +14,8 @@ class LoomsToolbarContents extends StatelessWidget {
 
   const LoomsToolbarContents({
     super.key,
-    required this.onCombineIntoSneakPressed,
-    required this.onSplitSneakIntoDmxPressed,
+    required this.onCombineIntoMultiButtonPressed,
+    required this.onSplitMultiButtonPressed,
     required this.onDeleteSelectedCables,
     required this.defaultPowerMultiType,
     required this.onDefaultPowerMultiTypeChanged,
@@ -39,16 +39,16 @@ class LoomsToolbarContents extends StatelessWidget {
         const VerticalDivider(),
         spacer,
         Tooltip(
-          message: 'Combine DMX into Sneak',
+          message: 'Combine DMX or Motor cable into Sneak/Motor Multi',
           child: IconButton.filled(
-              onPressed: onCombineIntoSneakPressed,
+              onPressed: onCombineIntoMultiButtonPressed,
               icon: const Icon(Icons.merge)),
         ),
         spacer,
         Tooltip(
-          message: 'Split Sneak into DMX',
+          message: 'Split Sneak or Motor Multi',
           child: IconButton.filled(
-              onPressed: onSplitSneakIntoDmxPressed,
+              onPressed: onSplitMultiButtonPressed,
               icon: const Icon(Icons.call_split)),
         ),
         spacer,

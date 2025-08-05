@@ -767,37 +767,42 @@ ThunkAction<AppState> moveCablesIntoLoom(
   };
 }
 
-ThunkAction<AppState> splitSelectedSneakIntoDmx(BuildContext context) {
+ThunkAction<AppState> splitSelectedMultis(BuildContext context) {
   return (Store<AppState> store) async {
-    final sneakCables = store.state.navstate.selectedCableIds
+    final multiCables = store.state.navstate.selectedCableIds
         .map((id) => store.state.fixtureState.cables[id])
         .nonNulls
-        .where((cable) => cable.type == CableType.sneak);
+        .where(
+          (cable) => cable.isMultiCable,
+        );
 
-    if (sneakCables.isEmpty) {
+    if (multiCables.isEmpty) {
       return;
     }
 
-    // Determine if we need to remove any Data Multis. This should only be the case where we are splitting a Feeder Sneak.
-    final dataMultisToRemove = sneakCables
+    // Determine if we need to remove any Multi Outlets. This should only be the case when we are removing a Feeder multi.
+    final multiIdsToRemove = multiCables
         .where((cable) => cable.upstreamId.isEmpty)
         .map((cable) => cable.outletId)
         .toSet();
 
-    final sneakIds = sneakCables.map((cable) => cable.uid).toSet();
+    final multiIds = multiCables.map((cable) => cable.uid).toSet();
 
     final associatedChildren = store.state.fixtureState.cables.values
-        .where((cable) => sneakIds.contains(cable.parentMultiId));
+        .where((cable) => multiIds.contains(cable.parentMultiId));
 
     store.dispatch(SetCables(store.state.fixtureState.cables.clone()
       ..addAll(associatedChildren
           .map((child) => child.copyWith(parentMultiId: ''))
           .toModelMap())
-      ..removeWhere((key, value) => sneakIds.contains(key))));
+      ..removeWhere((key, value) => multiIds.contains(key))));
 
-    if (dataMultisToRemove.isNotEmpty) {
+    if (multiIdsToRemove.isNotEmpty) {
       store.dispatch(SetDataMultis(store.state.fixtureState.dataMultis.clone()
-        ..removeWhere((key, _) => dataMultisToRemove.contains(key))));
+        ..removeWhere((key, _) => multiIdsToRemove.contains(key))));
+
+      store.dispatch(SetHoistMultis(store.state.fixtureState.hoistMultis.clone()
+        ..removeWhere((key, _) => multiIdsToRemove.contains(key))));
     }
   };
 }

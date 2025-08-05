@@ -62,7 +62,7 @@ class LoomsContainer extends StatelessWidget {
           onCombineSelectedDataCablesIntoSneak: () =>
               store.dispatch(combineSelectedCablesIntoMultis(context)),
           onSplitSneakIntoDmxPressed: () =>
-              store.dispatch(splitSelectedSneakIntoDmx(context)),
+              store.dispatch(splitSelectedMultis(context)),
           onCreateNewFeederLoom: (outletIds, insertIndex, modifiers) => store.dispatch(
               createNewFeederLoom(context, outletIds, insertIndex, modifiers)),
           onCreateNewExtensionLoom: (cableIds, insertIndex, modifiers) =>
