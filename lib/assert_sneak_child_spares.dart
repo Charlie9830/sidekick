@@ -6,13 +6,13 @@ import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
-Map<String, CableModel> assertSneakChildSpares(Map<String, CableModel> cables) {
-  final childrenBySneakId = cables.values
+Map<String, CableModel> assertMultiChildSpares(Map<String, CableModel> cables) {
+  final childrenByMultiId = cables.values
       .where((cable) => cable.parentMultiId.isNotEmpty)
       .groupListsBy((cable) => cable.parentMultiId);
 
   final invalidQtyEntries =
-      childrenBySneakId.entries.where((entry) => entry.value.length < 4);
+      childrenByMultiId.entries.where((entry) => entry.value.length < 4);
 
   if (invalidQtyEntries.isEmpty) {
     return cables;
@@ -23,9 +23,9 @@ Map<String, CableModel> assertSneakChildSpares(Map<String, CableModel> cables) {
         final parentMultiId = entry.key;
         final existingChildren = entry.value;
 
-        final parentSneak = cables[parentMultiId];
+        final parentMulti = cables[parentMultiId];
 
-        if (parentSneak == null) {
+        if (parentMulti == null) {
           return <CableModel>[];
         }
 
@@ -34,11 +34,13 @@ Map<String, CableModel> assertSneakChildSpares(Map<String, CableModel> cables) {
             (index) => CableModel(
                   uid: getUid(),
                   isSpare: true,
-                  length: parentSneak.length,
-                  isDropper: parentSneak.isDropper,
-                  loomId: parentSneak.loomId,
+                  length: parentMulti.length,
+                  isDropper: parentMulti.isDropper,
+                  loomId: parentMulti.loomId,
                   parentMultiId: parentMultiId,
-                  type: CableType.dmx,
+                  type: parentMulti.type == CableType.sneak
+                      ? CableType.dmx
+                      : CableType.hoist,
                 ));
 
         return [

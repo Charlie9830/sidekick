@@ -8,5 +8,7 @@ Map<String, Outlet> selectAllOutlets(Store<AppState> store) {
     ...store.state.fixtureState.powerMultiOutlets.values,
     ...store.state.fixtureState.dataMultis.values,
     ...store.state.fixtureState.dataPatches.values,
+    ...store.state.fixtureState.hoists.values,
+    ...store.state.fixtureState.hoistMultis.values,
   ].toModelMap();
 }

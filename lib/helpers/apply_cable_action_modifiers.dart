@@ -112,7 +112,7 @@ CableActionModifierResult _applyCombineIntoMultisAction(
     CableActionModifierResult incoming) {
   final multiActions = [
     _applyCombineIntoSneaksAction,
-    _applyCombineIntoHoistMultisAction
+    _applyCombineIntoHoistMultisAction,
   ];
 
   return multiActions.fold(incoming, (prev, modifier) => modifier(prev));
@@ -154,6 +154,7 @@ CableActionModifierResult _applyCombineIntoHoistMultisAction(
 
   final cableIdsToDelete =
       hoistCombinationResult.cablesToDelete.map((cable) => cable.uid).toSet();
+
 
   return incoming.copyWith(
     cables: incoming.cables.clone()

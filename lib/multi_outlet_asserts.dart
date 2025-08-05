@@ -40,13 +40,12 @@ Set<String> _extractDetachedMultiIds(
     Map<String, CableModel> cables, Map<String, MultiOutlet> multiOutlets) {
   // Collect some helper maps
   final multiCablesByMultiId = cables.values
-      .where((cable) => cable.type == CableType.sneak)
+      .where((cable) => cable.isMultiCable)
       .groupListsBy((cable) => cable.outletId);
-  final childrenByParentMultiId = cables.values
-      .where((cable) => cable.type == CableType.dmx)
-      .groupListsBy((cable) => cable.parentMultiId);
+  final childrenByParentMultiId =
+      cables.values.groupListsBy((cable) => cable.parentMultiId);
 
-  // Iterrate through the dataMultis and extract the associated sneaks and all of the children associated with those sneaks.
+  // Iterrate through the Multi Outlets and extract the associated Parent Cables and all of the children associated with those parent cables.
   return multiOutlets.values
       .where((multi) {
         final associatedMultiCables = multiCablesByMultiId[multi.uid];
@@ -60,7 +59,7 @@ Set<String> _extractDetachedMultiIds(
             .flattened
             .toList();
 
-        // Check if all assoicated child cables are either an extension, or a spare.
+        // Check if all associated child cables are either an extension, or a spare.
         return allAssociatedChildCables
             .every((cable) => cable.isExtension || cable.isSpare);
       })

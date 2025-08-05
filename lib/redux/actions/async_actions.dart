@@ -965,6 +965,8 @@ ThunkAction<AppState> createNewFeederLoom(
     _performPostCableActionModifierDispatches(
         context, store, actionModifierResult);
 
+    print('Stop');
+
     store.dispatch(SetCablesAndLooms(
       store.state.fixtureState.cables.clone()
         ..addAll(actionModifierResult.cables),
@@ -992,6 +994,11 @@ void _performPostCableActionModifierDispatches(BuildContext context,
 
   if (store.state.fixtureState.dataMultis != actionModifierResult.dataMultis) {
     store.dispatch(SetDataMultis(actionModifierResult.dataMultis));
+  }
+
+  if (store.state.fixtureState.hoistMultis !=
+      actionModifierResult.hoistMultis) {
+    store.dispatch(SetHoistMultis(actionModifierResult.hoistMultis));
   }
 }
 
@@ -1082,7 +1089,9 @@ ThunkAction<AppState> createNewExtensionLoom(BuildContext context,
       outlets: [
         ...store.state.fixtureState.powerMultiOutlets.values,
         ...store.state.fixtureState.dataMultis.values,
-        ...store.state.fixtureState.dataPatches.values
+        ...store.state.fixtureState.dataPatches.values,
+        ...store.state.fixtureState.hoists.values,
+        ...store.state.fixtureState.hoistMultis.values,
       ].toModelMap(),
     );
 
@@ -1387,7 +1396,7 @@ ThunkAction<AppState> deleteSelectedCables(BuildContext context) {
         .nonNulls
         .toSet();
 
-    store.dispatch(SetCables(assertSneakChildSpares(
+    store.dispatch(SetCables(assertMultiChildSpares(
         store.state.fixtureState.cables.clone()
           ..removeWhere((key, value) => cableIdsToRemove.contains(key)))));
 
