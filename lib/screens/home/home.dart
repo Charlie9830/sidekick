@@ -39,7 +39,7 @@ class _HomeState extends State<Home> {
       child: Scaffold(
         key: homeScaffoldKey,
         appBar: AppBar(
-          title: const Text("It's Just a Phase!"),
+          title: Text("Phase", style: Theme.of(context).textTheme.headlineMedium!.copyWith(fontFamily: "Orbitron", fontWeight: FontWeight.bold)),
           primary: true,
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           bottom: const TabBar(

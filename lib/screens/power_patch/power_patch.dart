@@ -53,7 +53,7 @@ class _PowerPatchState extends State<PowerPatch> {
           ),
           const SizedBox(width: 16),
           SizedBox(
-              width: 124,
+              width: 132,
               child: PropertyField(
                 textAlign: TextAlign.center,
                 label: 'Max Piggyback Break',

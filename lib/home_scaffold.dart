@@ -11,8 +11,14 @@ class HomeScaffold extends StatelessWidget {
         title: "It's just a Phase!",
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
+          fontFamily: 'OpenSans',
+          textTheme: const TextTheme(
+              titleMedium: TextStyle(fontWeight: FontWeight.w500)),
           colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.indigoAccent, brightness: Brightness.dark),
+              dynamicSchemeVariant: DynamicSchemeVariant.content,
+              contrastLevel: 0.2,
+              seedColor: Colors.blue.shade700,
+              brightness: Brightness.dark),
           useMaterial3: true,
           visualDensity: VisualDensity.compact,
           dropdownMenuTheme: const DropdownMenuThemeData(
@@ -24,8 +30,6 @@ class HomeScaffold extends StatelessWidget {
               contentPadding: EdgeInsets.only(left: 8),
               isDense: true,
               filled: false,
-              
-              
             ),
           ),
         ),
