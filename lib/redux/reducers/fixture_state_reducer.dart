@@ -24,6 +24,14 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
           ..removeWhere((id, cable) => a.hoistIds.contains(cable.outletId)));
   }
 
+  if (a is UpdateHoistNote) {
+    return state.copyWith(
+      hoists: state.hoists.clone()
+        ..update(a.id,
+            (existing) => existing.copyWith(controllerNote: a.value.trim())),
+    );
+  }
+
   if (a is SetHoists) {
     return state.copyWith(
         hoists: a.value,

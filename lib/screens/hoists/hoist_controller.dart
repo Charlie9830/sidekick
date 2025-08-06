@@ -13,6 +13,7 @@ class HoistController extends StatefulWidget {
     200, // Location
     100, // Multi
     100, // Patch
+    300, // Notes
   ];
 
   final HoistControllerViewModel viewModel;
@@ -123,6 +124,12 @@ class _HoistControllerState extends State<HoistController> {
                     width: HoistController.columnWidths[4],
                     child: const Text("Patch"),
                   ),
+                  const VerticalDivider(
+                    color: Colors.transparent,
+                  ),
+                  SizedBox(
+                      width: HoistController.columnWidths[5],
+                      child: const Text('Notes'))
                 ],
               ),
             ),
@@ -298,6 +305,17 @@ class _HoistChannelContents extends StatelessWidget {
         SizedBox(
             width: HoistController.columnWidths[4],
             child: Text(viewModel.patch)),
+        const VerticalDivider(),
+        SizedBox(
+            width: HoistController.columnWidths[5],
+            child: EditableTextField(
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium!
+                  .copyWith(fontStyle: FontStyle.italic),
+              value: viewModel.hoist.controllerNote,
+              onChanged: (newValue) => viewModel.onNoteChanged(newValue),
+            ))
       ],
     );
   }

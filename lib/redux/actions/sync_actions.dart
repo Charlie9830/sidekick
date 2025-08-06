@@ -209,6 +209,13 @@ class UpdateCableLength {
   UpdateCableLength(this.uid, this.newLength);
 }
 
+class UpdateHoistNote {
+  final String id;
+  final String value;
+
+  UpdateHoistNote(this.id, this.value);
+}
+
 class UpdateCablesAndDataMultis {
   final Map<String, CableModel> cables;
   final Map<String, DataMultiModel> dataMultis;

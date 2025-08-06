@@ -457,6 +457,7 @@ ThunkAction<AppState> addHoist(String locationId) {
       locationId: locationId,
       number: existingHoistsInLocation.length,
       parentController: const HoistControllerChannelAssignment.unassigned(),
+      controllerNote: '',
     );
 
     store.dispatch(SetHoists(store.state.fixtureState.hoists.clone()

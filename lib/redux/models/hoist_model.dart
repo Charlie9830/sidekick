@@ -5,6 +5,7 @@ import 'package:sidekick/redux/models/outlet.dart';
 
 class HoistModel extends Outlet {
   final HoistControllerChannelAssignment parentController;
+  final String controllerNote;
 
   HoistModel({
     required super.uid,
@@ -12,6 +13,7 @@ class HoistModel extends Outlet {
     required super.locationId,
     required this.parentController,
     required super.number,
+    required this.controllerNote,
   });
 
   @override
@@ -22,6 +24,7 @@ class HoistModel extends Outlet {
     int? locationIndex,
     HoistControllerChannelAssignment? parentController,
     int? number,
+    String? controllerNote,
   }) {
     return HoistModel(
       uid: uid ?? this.uid,
@@ -29,6 +32,7 @@ class HoistModel extends Outlet {
       locationId: locationId ?? this.locationId,
       parentController: parentController ?? this.parentController,
       number: number ?? this.number,
+      controllerNote: controllerNote ?? this.controllerNote,
     );
   }
 
@@ -39,6 +43,7 @@ class HoistModel extends Outlet {
       'locationId': locationId,
       'parentController': parentController.toMap(),
       'number': number,
+      'controllerNote': controllerNote,
     };
   }
 
@@ -50,6 +55,7 @@ class HoistModel extends Outlet {
       parentController: HoistControllerChannelAssignment.fromMap(
           map['parentController'] as Map<String, dynamic>),
       number: map['number'] ?? 0,
+      controllerNote: map['controllerNote'] ?? '',
     );
   }
 

@@ -197,6 +197,7 @@ class HoistsContainer extends StatelessWidget {
           store.dispatch(updateHoistName(hoist.uid, value)),
       selected: store.state.navstate.selectedHoistIds.contains(hoist.uid),
       assigned: hoist.parentController.isAssigned,
+      onNoteChanged: (value) => store.dispatch(UpdateHoistNote(hoist.uid, value)),
     );
   }
 

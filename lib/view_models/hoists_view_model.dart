@@ -38,6 +38,7 @@ class HoistViewModel extends HoistItemBase implements ModelCollectionMember {
   final HoistModel hoist;
   final void Function() onDelete;
   final void Function(String value) onNameChanged;
+  final void Function(String value) onNoteChanged;
   final String locationName;
   final bool selected;
   final bool assigned;
@@ -56,6 +57,7 @@ class HoistViewModel extends HoistItemBase implements ModelCollectionMember {
     required this.assigned,
     required this.multi,
     required this.patch,
+    required this.onNoteChanged,
   });
 }
 
