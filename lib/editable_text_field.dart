@@ -6,6 +6,7 @@ class EditableTextField extends StatefulWidget {
   final String value;
   final String? hintText;
   final TextStyle? style;
+  final TextStyle? hintStyle;
   final String? prefix;
   final String? suffix;
   final TextAlign? textAlign;
@@ -28,6 +29,7 @@ class EditableTextField extends StatefulWidget {
     this.selectAllOnFocus = false,
     this.inputFormatters = const [],
     this.enabled = true,
+    this.hintStyle,
   });
 
   @override
@@ -71,7 +73,11 @@ class _EditableTextFieldState extends State<EditableTextField> {
         decoration: InputDecoration(
           isDense: true,
           hintText: widget.hintText,
-          hintStyle: Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.grey),
+          hintStyle: widget.hintStyle?.copyWith(color: Colors.grey) ??
+              Theme.of(context)
+                  .textTheme
+                  .bodyLarge!
+                  .copyWith(color: Colors.grey),
           enabledBorder: InputBorder.none,
           prefixText: widget.prefix,
           suffixText: widget.suffix,
