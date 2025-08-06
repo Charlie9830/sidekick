@@ -25,7 +25,15 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetHoists) {
-    return state.copyWith(hoists: a.value);
+    return state.copyWith(
+        hoists: a.value,
+        cables: _assertCableOrderings(
+            cables: state.cables,
+            powerMultiOutlets: state.powerMultiOutlets,
+            dataMultis: state.dataMultis,
+            dataPatches: state.dataPatches,
+            hoistOutlets: a.value,
+            hoistMultis: state.hoistMultis));
   }
 
   if (a is SetHoistControllers) {
@@ -303,9 +311,9 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       dataPatches: assertOutletNameAndNumbers<DataPatchModel>(
               state.dataPatches.values, a.locations)
           .toModelMap(),
-      hoists: assertOutletNameAndNumbers<HoistModel>(
-              state.hoists.values, a.locations)
-          .toModelMap(),
+      // Don't Assert hoist Outlet Names and Numbers here.
+      // Because we let the User customize the name of Hoists,
+      // Asserting it will bork what they have entered.
       hoistMultis: assertOutletNameAndNumbers<HoistMultiModel>(
               state.hoistMultis.values, a.locations)
           .toModelMap(),

@@ -16,6 +16,7 @@ class HoistsViewModel {
       onSelectedHoistChannelsChanged;
   final void Function() onDeleteSelectedHoistChannels;
   final void Function() onAddLocationButtonPressed;
+  final void Function(int oldIndex, int newIndex) onHoistReorder;
 
   HoistsViewModel({
     required this.hoistItems,
@@ -27,6 +28,7 @@ class HoistsViewModel {
     required this.onSelectedHoistChannelsChanged,
     required this.onDeleteSelectedHoistChannels,
     required this.onAddLocationButtonPressed,
+    required this.onHoistReorder,
   });
 }
 

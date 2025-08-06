@@ -134,7 +134,7 @@ class _Sidebar extends StatelessWidget {
         child: Card(
           child: ReorderableListView.builder(
               buildDefaultDragHandles: false,
-              onReorder: (oldIndex, newIndex) {},
+              onReorder: (oldIndex, newIndex) => viewModel.onHoistReorder(oldIndex, newIndex),
               itemCount: viewModel.hoistItems.length,
               itemBuilder: (context, index) {
                 final item = viewModel.hoistItems[index];

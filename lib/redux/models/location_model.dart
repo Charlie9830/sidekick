@@ -79,13 +79,20 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
     );
   }
 
-  String getPrefixedNameByType(Outlet outlet, int number) {
+  String getPrefixedNameByType(
+      Outlet outlet, int number, List<Outlet> outletsInLocationOfSameType) {
+    // For Multi Labels, if it is the only multi of that type in the location, we don't want to needlessly append a number to the end.
+    // This behavior is a bit wishy washy in real life, Maybe it's relevant for Motor Multi, but not really relevant for Socapex/Wieland..
+    // I dunno... Anyway, if you decide to change this in the future its just below. We make multiNumber null if we don't want the number to
+    // get appended.
+    final multiNumber = outletsInLocationOfSameType.length == 1 ? null : number;
+
     return switch (outlet) {
-      PowerMultiOutletModel _ => getPrefixedPowerMulti(number),
+      PowerMultiOutletModel _ => getPrefixedPowerMulti(multiNumber),
       DataPatchModel _ => getPrefixedDataPatch(number),
       DataMultiModel _ => getPrefixedDataMultiPatch(number),
       HoistModel _ => getPrefixedHoistPatch(number),
-      HoistMultiModel _ => getPrefixedHoistMultiPatch(number),
+      HoistMultiModel _ => getPrefixedHoistMultiPatch(multiNumber),
       _ => throw UnimplementedError(
           'No handling for outlet Type ${outlet.runtimeType}'),
     };

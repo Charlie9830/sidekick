@@ -19,9 +19,16 @@ List<T> assertOutletNameAndNumbers<T extends Outlet>(
         final location = locations[locationId]!;
         final outletsInLocation = entry.value;
 
-        return outletsInLocation.mapIndexed((index, outlet) =>
-            _updateOutletNameAndNumber(outlet,
-                location.getPrefixedNameByType(outlet, index + 1), index + 1));
+        final outletsInLocationByType =
+            outletsInLocation.groupListsBy((outlet) => outlet.runtimeType);
+
+        return outletsInLocation
+            .mapIndexed((index, outlet) => _updateOutletNameAndNumber(
+                  outlet,
+                  location.getPrefixedNameByType(outlet, index + 1,
+                      outletsInLocationByType[outlet.runtimeType] ?? [] ),
+                  index + 1,
+                ));
       })
       .flattened
       .toList()

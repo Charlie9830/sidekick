@@ -10,9 +10,8 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
-import 'package:sidekick/classes/named_colors.dart';
-import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/screens/hoists/add_rigging_location.dart';
+import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:sidekick/assert_sneak_child_spares.dart';
@@ -75,6 +74,45 @@ import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/import_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
+
+ThunkAction<AppState> reorderHoists(int oldIndex, int newIndex,
+    List<HoistItemBase> hoistItems, BuildContext context) {
+  return (Store<AppState> store) async {
+    if (_validateAndNotifyHoistMove(oldIndex, newIndex, hoistItems, context) ==
+        false) {
+      return;
+    }
+
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+
+    final itemVms = hoistItems.toList();
+
+    final item = itemVms.removeAt(oldIndex);
+    itemVms.insert(newIndex, item);
+
+    final hoists = itemVms.whereType<HoistViewModel>().map((vm) => vm.hoist);
+
+    store.dispatch(SetHoists(hoists.toModelMap()));
+  };
+}
+
+class LocationSpan {
+  final LocationModel location;
+  final int startingIndex;
+  int? endingIndex;
+
+  LocationSpan({
+    required this.location,
+    required this.startingIndex,
+  });
+
+  bool get isClosed => endingIndex != null;
+
+  bool containsIndex(int index) =>
+      index >= startingIndex && endingIndex != null && index <= endingIndex!;
+}
 
 ThunkAction<AppState> deleteLocation(BuildContext context, String locationId) {
   return (Store<AppState> store) async {
@@ -2070,4 +2108,65 @@ int _findNextAvailableSequenceNumber(List<int> sequenceNumbers) {
   }
 
   return sortedSequenceNumbers.last + 1;
+}
+
+/// Validates if we are moving a Hoist from one location to another (Currently disallowed).
+/// Will notify the user that is is disallowed and return false, otherwise returns true.
+bool _validateAndNotifyHoistMove(int oldIndex, int newIndex,
+    List<HoistItemBase> hoistItems, BuildContext context) {
+  // We currently shouldn't support moving a Hoist from one location into another, this could cause a lot of headaches with having to
+  // update Hybrid positions. So therefore we need to make sure we arent moving from one location to another.
+  // To do that, we need to gather a list of [LocationSpan]. This is the starting and ending index of each location,
+  // with that information we can determine if the hoist that is reordeing, is crossing a location boundary.
+  final locationIndexSpans = hoistItems.foldIndexed<List<LocationSpan>>([],
+      (index, accum, value) {
+    if (value is! HoistLocationViewModel) {
+      return accum;
+    }
+
+    // Collect the current Span. This will be the last item in the accumulator, or if there are no items, then create a new span
+    // starting at this point.
+    LocationSpan currentSpan = accum.lastOrNull ??
+        LocationSpan(location: value.location, startingIndex: index);
+
+    // If the current Location does not match the current Span, close off that span and start a new one.
+    if (value.location.uid != currentSpan.location.uid) {
+      // Close the current Span and start a new one.
+      currentSpan.endingIndex = index;
+      return [
+        ...accum,
+        LocationSpan(location: value.location, startingIndex: index)
+      ];
+    } else {
+      return [
+        ...accum,
+        if (accum.isEmpty || accum.last != currentSpan) currentSpan,
+      ];
+    }
+  })
+    ..lastOrNull?.endingIndex = hoistItems.isNotEmpty
+        ? hoistItems.length
+        : null; // Close off the very last Span.
+
+  final currentHoist = (hoistItems[oldIndex] as HoistViewModel).hoist;
+  final currentSpan = locationIndexSpans
+      .firstWhereOrNull((span) => span.location.uid == currentHoist.locationId);
+  final targetSpan = locationIndexSpans
+      .firstWhereOrNull((span) => span.containsIndex(newIndex));
+
+  if (currentSpan == null || targetSpan == null) {
+    throw ArgumentError(
+        'Either currentSpan or targetSpan were null. This is an error');
+  }
+
+  if (currentSpan.location.uid != targetSpan.location.uid) {
+    ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
+        context: context,
+        message:
+            'You cannot move a hoist from one location to another... yet'));
+
+    return false;
+  }
+
+  return true;
 }

@@ -38,9 +38,11 @@ class HoistsContainer extends StatelessWidget {
         final selectedHoistChannelVmMap =
             _mapSelectedHoistChannelViewModels(store, hoistVmMap);
 
+        final hoistItems = _selectLocationHoistItems(
+            context: context, hoistViewModels: hoistVmMap, store: store);
+
         return HoistsViewModel(
-            hoistItems: _selectLocationHoistItems(
-                context: context, hoistViewModels: hoistVmMap, store: store),
+            hoistItems: hoistItems,
             selectedHoistViewModels: Map<String, HoistViewModel>.fromEntries(
               store.state.navstate.selectedHoistIds
                   .map((id) => hoistVmMap[id])
@@ -61,7 +63,14 @@ class HoistsContainer extends StatelessWidget {
             onDeleteSelectedHoistChannels: () =>
                 store.dispatch(deleteSelectedHoistChannels()),
             onAddLocationButtonPressed: () =>
-                store.dispatch(addRiggingLocation(context)));
+                store.dispatch(addRiggingLocation(context)),
+            onHoistReorder: (oldIndex, newIndex) =>
+                store.dispatch(reorderHoists(
+                  oldIndex,
+                  newIndex,
+                  hoistItems,
+                  context,
+                )));
       },
     );
   }
