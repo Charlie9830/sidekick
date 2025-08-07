@@ -28,11 +28,9 @@ class SetHoistsAndControllers {
 
 class RemoveLocation {
   final LocationModel location;
-  final Set<String> hoistIds;
 
   RemoveLocation({
     required this.location,
-    required this.hoistIds,
   });
 }
 

@@ -110,8 +110,7 @@ class HoistControllerChannelAssignment {
   final String controllerId;
   final int channel;
 
-  bool get isAssigned =>
-      this != const HoistControllerChannelAssignment.unassigned();
+  bool get isAssigned => channel != 0 && controllerId.isNotEmpty;
 
   HoistControllerChannelAssignment({
     required this.controllerId,

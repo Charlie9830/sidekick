@@ -10,6 +10,7 @@ import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/hoist_model.dart';
+import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
@@ -23,12 +24,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is RemoveLocation) {
-    return state.copyWith(
-        locations: state.locations.clone()..remove(a.location.uid),
-        hoists: state.hoists.clone()
-          ..removeWhere((id, hoist) => a.hoistIds.contains(id)),
-        cables: state.cables.clone()
-          ..removeWhere((id, cable) => a.hoistIds.contains(cable.outletId)));
+    return _removeLocation(state, a.location);
   }
 
   if (a is UpdateHoistNote) {
@@ -42,7 +38,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   if (a is SetHoists) {
     return state.copyWith(
         hoists: a.value,
-        cables: _assertCableOrderings(
+        cables: _assertCableState(
             cables: state.cables,
             powerMultiOutlets: state.powerMultiOutlets,
             dataMultis: state.dataMultis,
@@ -124,7 +120,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
               length: double.tryParse(a.newLength.trim()) ?? existing.length));
 
     return state.copyWith(
-      cables: _assertCableOrderings(
+      cables: _assertCableState(
         cables: updatedCables,
         powerMultiOutlets: state.powerMultiOutlets,
         dataMultis: state.dataMultis,
@@ -137,7 +133,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
 
   if (a is ToggleCableDropperStateByLoom) {
     return state.copyWith(
-        cables: _assertCableOrderings(
+        cables: _assertCableState(
       cables: _toggleCableDropperState(a.loomId, state.cables),
       powerMultiOutlets: state.powerMultiOutlets,
       dataMultis: state.dataMultis,
@@ -148,7 +144,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetCables) {
-    final cables = _assertCableOrderings(
+    final cables = _assertCableState(
       cables: a.cables,
       powerMultiOutlets: state.powerMultiOutlets,
       dataMultis: state.dataMultis,
@@ -175,7 +171,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   }
 
   if (a is SetCablesAndLooms) {
-    final cables = _assertCableOrderings(
+    final cables = _assertCableState(
       cables: a.cables,
       powerMultiOutlets: state.powerMultiOutlets,
       dataMultis: state.dataMultis,
@@ -399,6 +395,113 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
   return state;
 }
 
+FixtureState _removeLocation(FixtureState state, LocationModel location) {
+  if (location.isRiggingOnlyLocation == false) {
+    // Only perform this action on Rigging Only locations.. God help us if we tried to do this to a non rigging location.
+    return state;
+  }
+
+  // Determine if we have any Hybrid locations that contain this location and only 1 other location.
+  // If that is the case, The other locationId needs to be cherry picked out of the Hybrid location, and any
+  // items referencing the hybrid location need to be re-referenced to the proper location.
+  final hybridLocationsToRemove = state.locations.values
+      .where((item) => item.isHybrid)
+      .where((item) => item.hybridIds.contains(location.uid))
+      .where((item) => item.hybridIds.length == 2)
+      .toList();
+
+  Map<String, DataMultiModel> updatedDataMultis = state.dataMultis;
+  Map<String, HoistMultiModel> updatedHoistMultis = state.hoistMultis;
+  if (hybridLocationsToRemove.isNotEmpty) {
+    /// Create a list of [LocationIDReferenceMove] objects that store the Old ID and the new ID.
+    final idMoves = hybridLocationsToRemove.map((location) =>
+        LocationIDReferenceMove(
+            oldId: location.uid,
+            newId: location.hybridIds.firstWhere((id) => id != location.uid)));
+
+    // Iterate through the list of [LocationIDReferenceMove]. If an ID move needs to occur, perform it then
+    // assign that changed Multi to its respective updated map.
+    for (final idMove in idMoves) {
+      final updatedDataMulti = state.dataMultis.values
+          .firstWhereOrNull((multi) => multi.locationId == idMove.oldId)
+          ?.copyWith(locationId: idMove.newId);
+      if (updatedDataMulti != null) {
+        updatedDataMultis.addAll({updatedDataMulti.uid: updatedDataMulti});
+      }
+
+      final updatedHoistMulti = state.hoistMultis.values
+          .firstWhereOrNull((multi) => multi.locationId == idMove.oldId)
+          ?.copyWith(locationId: idMove.newId);
+      if (updatedHoistMulti != null) {
+        updatedHoistMultis.addAll({updatedHoistMulti.uid: updatedHoistMulti});
+      }
+    }
+  }
+
+  final hybridLocationIdsToRemove =
+      hybridLocationsToRemove.map((location) => location.uid).toSet();
+
+  final hoistIdsToRemove = state.hoists.values
+      .where((hoist) => hoist.locationId == location.uid)
+      .map((hoist) => hoist.uid)
+      .toSet();
+  final hoistMultisToRemove = state.hoists.values
+      .where((multi) => multi.locationId == location.uid)
+      .map((multi) => multi.uid)
+      .toSet();
+
+  final dataMultis = state.dataMultis.clone()
+    ..addAll(
+        updatedDataMultis); // Data Multis may have an updated locationId if it was previously pointing to a hybrid location that we removed.
+
+  final hoistOutlets = state.hoists.clone()
+    ..removeWhere((id, _) => hoistIdsToRemove.contains(id))
+    ..values;
+
+  final hoistMultis = state.hoistMultis.clone()
+    ..addAll(updatedHoistMultis)
+    ..removeWhere((id, _) => hoistMultisToRemove.contains(id));
+
+  final cables = _assertCableState(
+    cables: state.cables,
+    powerMultiOutlets: state.powerMultiOutlets,
+    dataMultis: dataMultis,
+    dataPatches: state.dataPatches,
+    hoistMultis: hoistMultis,
+    hoistOutlets: hoistOutlets,
+  );
+
+  final locations = state.locations.clone()
+    ..removeWhere((id, location) => hybridLocationIdsToRemove.contains(
+        id)) // Remove any Hybrid Locations that no longer need to be hybrid.
+    ..updateAll((id,
+            existing) => // Remove the reference to the location from any existing Hybrid Locations.
+        existing.isHybrid && existing.hybridIds.contains(location.uid)
+            ? existing.copyWith(
+                hybridIds: existing.hybridIds.toSet()..remove(location.uid))
+            : existing)
+    ..remove(location.uid); // Remove the actual Location.
+
+  return state.copyWith(
+    locations: locations,
+    cables: cables,
+    dataMultis: assertMultiOutletState<DataMultiModel>(
+        multiOutlets: dataMultis, locations: locations, cables: cables),
+    hoistMultis: assertMultiOutletState<HoistMultiModel>(
+        multiOutlets: hoistMultis, locations: locations, cables: cables),
+  );
+}
+
+class LocationIDReferenceMove {
+  final String oldId;
+  final String newId;
+
+  LocationIDReferenceMove({
+    required this.oldId,
+    required this.newId,
+  });
+}
+
 double _convertBalanceTolerance(String newValue, double existingValue) {
   final asInt = int.tryParse(newValue.trim());
 
@@ -444,7 +547,7 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
         (existing) =>
             existing.copyWith(type: existing.type.copyWith(length: newLength)),
       ),
-    cables: _assertCableOrderings(
+    cables: _assertCableState(
       cables: updatedCables,
       powerMultiOutlets: state.powerMultiOutlets,
       dataMultis: state.dataMultis,
@@ -455,7 +558,7 @@ FixtureState _updateLoomLength(FixtureState state, UpdateLoomLength a) {
   );
 }
 
-Map<String, CableModel> _assertCableOrderings({
+Map<String, CableModel> _assertCableState({
   required Map<String, CableModel> cables,
   required Map<String, PowerMultiOutletModel> powerMultiOutlets,
   required Map<String, DataMultiModel> dataMultis,

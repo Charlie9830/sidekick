@@ -180,14 +180,9 @@ ThunkAction<AppState> deleteLocation(BuildContext context, String locationId) {
         declineText: 'Cancel');
 
     if (result == true) {
-      final associatedHoists = store.state.fixtureState.hoists.values
-          .where((hoist) => hoist.locationId == locationId)
-          .toList();
-
-      // TODO: Delete associated cables.
       store.dispatch(RemoveLocation(
-          location: location,
-          hoistIds: associatedHoists.map((hoist) => hoist.uid).toSet()));
+        location: location,
+      ));
     }
   };
 }

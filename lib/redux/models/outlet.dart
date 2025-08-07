@@ -124,7 +124,7 @@ class HoistMultiModel extends MultiOutlet
   }
 
   @override
-  MultiOutlet copyWith({
+  HoistMultiModel copyWith({
     String? uid,
     String? locationId,
     String? name,
