@@ -65,11 +65,13 @@ class HoistLocationViewModel extends HoistItemBase {
   final LocationModel location;
   final void Function() onAddHoistButtonPressed;
   final void Function() onDeleteLocation;
+  final void Function() onEditLocation;
 
   HoistLocationViewModel({
     required this.location,
     required this.onAddHoistButtonPressed,
     required this.onDeleteLocation,
+    required this.onEditLocation,
   });
 }
 

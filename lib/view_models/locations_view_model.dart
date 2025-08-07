@@ -25,6 +25,7 @@ class LocationItemViewModel {
   final int motorCount;
   final List<String> otherLocationNames;
   final void Function() onDelete;
+  final void Function() onEditName;
 
   LocationItemViewModel({
     required this.location,
@@ -34,5 +35,6 @@ class LocationItemViewModel {
     required this.otherLocationNames,
     required this.motorCount,
     required this.onDelete,
+    required this.onEditName,
   });
 }

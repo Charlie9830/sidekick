@@ -10,7 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
-import 'package:sidekick/screens/hoists/add_rigging_location.dart';
+import 'package:sidekick/screens/hoists/add_or_edit_rigging_location.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -143,10 +143,37 @@ ThunkAction<AppState> deleteLocation(BuildContext context, String locationId) {
   };
 }
 
+ThunkAction<AppState> editRiggingLocation(
+    BuildContext context, LocationModel location) {
+  return (Store<AppState> store) async {
+    if (location.isRiggingOnlyLocation == false) {
+      return;
+    }
+
+    final result = await showModalBottomSheet(
+        context: context,
+        builder: (context) => AddOrEditRiggingLocation(
+              existingLocation: location,
+            ));
+
+    if (result is AddRiggingLocationDialogResult) {
+      final updatedLocation = location.copyWith(
+        color: result.labelColor,
+        name: result.name,
+        multiPrefix: result.prefix,
+        delimiter: result.delimiter,
+      );
+
+      store.dispatch(SetLocations(store.state.fixtureState.locations.clone()
+        ..update(location.uid, (_) => updatedLocation)));
+    }
+  };
+}
+
 ThunkAction<AppState> addRiggingLocation(BuildContext context) {
   return (Store<AppState> store) async {
     final result = await showModalBottomSheet(
-        context: context, builder: (context) => const AddRiggingLocation());
+        context: context, builder: (context) => const AddOrEditRiggingLocation());
 
     if (result is AddRiggingLocationDialogResult) {
       final newLocation = LocationModel(
@@ -154,7 +181,7 @@ ThunkAction<AppState> addRiggingLocation(BuildContext context) {
         color: result.labelColor,
         name: result.name,
         multiPrefix: result.prefix,
-        delimiter: '',
+        delimiter: result.delimiter,
         isRiggingOnlyLocation: true,
       );
 

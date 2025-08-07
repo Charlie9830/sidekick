@@ -39,7 +39,7 @@ class Locations extends StatelessWidget {
               ),
             ),
             DataColumn(
-              label: Text('Info'),
+              label: Text('Actions'),
             )
           ],
           rows: vm.itemVms.map((item) {
@@ -114,8 +114,14 @@ class Locations extends StatelessWidget {
 
               // More
               DataCell(PopupMenuButton<String>(
+                enabled: item.location.isRiggingOnlyLocation,
                 icon: const Icon(Icons.more_vert),
                 itemBuilder: (context) => [
+                  PopupMenuItem(
+                    enabled: item.location.isRiggingOnlyLocation,
+                    onTap: () => item.onEditName(),
+                    child: const Text('Edit name'),
+                  ),
                   PopupMenuItem(
                     enabled: item.location.isRiggingOnlyLocation,
                     onTap: () => item.onDelete(),

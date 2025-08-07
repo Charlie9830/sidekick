@@ -218,7 +218,7 @@ class HoistsContainer extends StatelessWidget {
                   onDeleteLocation: () =>
                       store.dispatch(deleteLocation(context, location.uid)),
                   onAddHoistButtonPressed: () =>
-                      store.dispatch(addHoist(location.uid))),
+                      store.dispatch(addHoist(location.uid)), onEditLocation: () => store.dispatch(editRiggingLocation(context, location))),
               ...hoistViewModelsByLocationId[location.uid]?.map((vm) => vm) ??
                   <HoistViewModel>[],
             ])

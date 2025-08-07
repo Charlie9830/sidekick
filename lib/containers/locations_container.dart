@@ -60,8 +60,9 @@ class LocationsContainer extends StatelessWidget {
                   .map((location) => location.name)
                   .toList()
               : const [],
-          onDelete: () =>
-              store.dispatch(deleteLocation(context, location.uid)));
+          onDelete: () => store.dispatch(deleteLocation(context, location.uid)),
+          onEditName: () =>
+              store.dispatch(editRiggingLocation(context, location)));
     }).toList();
   }
 }

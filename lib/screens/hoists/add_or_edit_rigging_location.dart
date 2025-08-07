@@ -1,22 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
+import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/screens/locations/color_select_dialog.dart';
 import 'package:sidekick/screens/locations/multi_color_chit.dart';
 import 'package:sidekick/widgets/property_field.dart';
 
-class AddRiggingLocation extends StatefulWidget {
-  const AddRiggingLocation({super.key});
+class AddOrEditRiggingLocation extends StatefulWidget {
+  final LocationModel? existingLocation;
+  const AddOrEditRiggingLocation({super.key, this.existingLocation});
 
   @override
-  State<AddRiggingLocation> createState() => _AddRiggingLocationState();
+  State<AddOrEditRiggingLocation> createState() => _AddOrEditRiggingLocationState();
 }
 
-class _AddRiggingLocationState extends State<AddRiggingLocation> {
-  LabelColorModel _labelColor = const LabelColorModel.none();
+class _AddOrEditRiggingLocationState extends State<AddOrEditRiggingLocation> {
+  late LabelColorModel _labelColor;
 
-  final _nameController = TextEditingController(text: '');
-  final _prefixController = TextEditingController();
+  late final TextEditingController _nameController;
+  late final TextEditingController _prefixController;
+  late final TextEditingController _delimiterController;
+
+  @override
+  void initState() {
+    _labelColor =
+        widget.existingLocation?.color ?? const LabelColorModel.none();
+
+    _nameController =
+        TextEditingController(text: widget.existingLocation?.name ?? '');
+    _prefixController =
+        TextEditingController(text: widget.existingLocation?.multiPrefix ?? '');
+
+    _delimiterController =
+        TextEditingController(text: widget.existingLocation?.delimiter ?? '');
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +68,13 @@ class _AddRiggingLocationState extends State<AddRiggingLocation> {
                     ),
                   ),
                   SizedBox(
+                    width: 120,
+                    child: PropertyField(
+                      label: 'Cable Delimiter',
+                      controller: _delimiterController,
+                    ),
+                  ),
+                  SizedBox(
                       width: 100,
                       child: InkWell(
                         onTap: _handleColorSelect,
@@ -64,7 +90,8 @@ class _AddRiggingLocationState extends State<AddRiggingLocation> {
                 children: [
                   ElevatedButton.icon(
                     icon: const Icon(Icons.check_circle, color: Colors.green),
-                    label: const Text('Create'),
+                    label: Text(
+                        widget.existingLocation == null ? 'Create' : 'Update'),
                     onPressed: onSubmit,
                   ),
                 ],
@@ -97,6 +124,7 @@ class _AddRiggingLocationState extends State<AddRiggingLocation> {
       name: _nameController.text,
       prefix: _prefixController.text,
       labelColor: _labelColor,
+      delimiter: _delimiterController.text,
     ));
   }
 }
@@ -105,10 +133,12 @@ class AddRiggingLocationDialogResult {
   final String name;
   final String prefix;
   final LabelColorModel labelColor;
+  final String delimiter;
 
   AddRiggingLocationDialogResult({
     required this.name,
     required this.prefix,
     required this.labelColor,
+    required this.delimiter,
   });
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sidekick/screens/locations/multi_color_chit.dart';
 import 'package:sidekick/screens/locations/rigging_only_tag.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';
@@ -26,10 +27,19 @@ class HoistLocationItem extends StatelessWidget {
                 Row(
                   children: [
                     if (isHovering)
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        iconSize: 20,
-                        onPressed: vm.onDeleteLocation,
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            iconSize: 20,
+                            onPressed: vm.onDeleteLocation,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.edit),
+                            iconSize: 20,
+                            onPressed: vm.onEditLocation,
+                          ),
+                        ],
                       ),
                     const RiggingOnlyTag(),
                   ],
