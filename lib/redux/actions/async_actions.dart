@@ -11,6 +11,7 @@ import 'package:path/path.dart' as p;
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:sidekick/screens/hoists/add_or_edit_rigging_location.dart';
+import 'package:sidekick/screens/hoists/hoist_controller.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -74,6 +75,23 @@ import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
 import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/import_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
+
+ThunkAction<AppState> unpatchHoist(
+    HoistControllerModel controller, HoistModel? hoist) {
+  return (Store<AppState> store) async {
+    if (hoist == null) {
+      return;
+    }
+
+    store.dispatch(SetHoists(store.state.fixtureState.hoists.clone()
+      ..update(
+          (hoist.uid),
+          (existing) => existing.copyWith(
+                parentController:
+                    const HoistControllerChannelAssignment.unassigned(),
+              ))));
+  };
+}
 
 ThunkAction<AppState> reorderHoists(int oldIndex, int newIndex,
     List<HoistItemBase> hoistItems, BuildContext context) {
@@ -173,7 +191,8 @@ ThunkAction<AppState> editRiggingLocation(
 ThunkAction<AppState> addRiggingLocation(BuildContext context) {
   return (Store<AppState> store) async {
     final result = await showModalBottomSheet(
-        context: context, builder: (context) => const AddOrEditRiggingLocation());
+        context: context,
+        builder: (context) => const AddOrEditRiggingLocation());
 
     if (result is AddRiggingLocationDialogResult) {
       final newLocation = LocationModel(

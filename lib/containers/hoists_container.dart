@@ -113,29 +113,30 @@ class HoistsContainer extends StatelessWidget {
             final hoist = childHoistsByChannel[channel];
 
             return HoistChannelViewModel(
-                number: channel,
-                isOverflowing: channel > controller.ways,
-                onDragStarted: hoist != null
-                    ? () =>
-                        store.dispatch(AppendSelectedHoistChannelId(hoist.uid))
-                    : () {},
-                hoist: hoist == null
-                    ? null
-                    : _selectHoistViewModel(
-                        hoist: hoist,
-                        store: store,
-                        cablesByOutletId: cablesByHoistId),
-                onHoistsLanded: (hoistIds) => store.dispatch(
-                    assignHoistsToController(
-                        movingOrIncomingHoistIds: hoistIds,
-                        startingChannelNumber: channel,
-                        targetControllerId: controller.uid)),
-                selected: hoist == null
-                    ? false
-                    : store.state.navstate.selectedHoistChannelIds
-                        .contains(hoist.uid),
-                selectedHoistChannelViewModels:
-                    selectedHoistChannelViewModelMap);
+              number: channel,
+              isOverflowing: channel > controller.ways,
+              onDragStarted: hoist != null
+                  ? () =>
+                      store.dispatch(AppendSelectedHoistChannelId(hoist.uid))
+                  : () {},
+              hoist: hoist == null
+                  ? null
+                  : _selectHoistViewModel(
+                      hoist: hoist,
+                      store: store,
+                      cablesByOutletId: cablesByHoistId),
+              onHoistsLanded: (hoistIds) => store.dispatch(
+                  assignHoistsToController(
+                      movingOrIncomingHoistIds: hoistIds,
+                      startingChannelNumber: channel,
+                      targetControllerId: controller.uid)),
+              selected: hoist == null
+                  ? false
+                  : store.state.navstate.selectedHoistChannelIds
+                      .contains(hoist.uid),
+              selectedHoistChannelViewModels: selectedHoistChannelViewModelMap,
+              onUnpatchHoist: () => store.dispatch(unpatchHoist(controller, hoist))
+            );
           }));
     }).toList();
   }
@@ -197,7 +198,8 @@ class HoistsContainer extends StatelessWidget {
           store.dispatch(updateHoistName(hoist.uid, value)),
       selected: store.state.navstate.selectedHoistIds.contains(hoist.uid),
       assigned: hoist.parentController.isAssigned,
-      onNoteChanged: (value) => store.dispatch(UpdateHoistNote(hoist.uid, value)),
+      onNoteChanged: (value) =>
+          store.dispatch(UpdateHoistNote(hoist.uid, value)),
     );
   }
 
@@ -218,7 +220,9 @@ class HoistsContainer extends StatelessWidget {
                   onDeleteLocation: () =>
                       store.dispatch(deleteLocation(context, location.uid)),
                   onAddHoistButtonPressed: () =>
-                      store.dispatch(addHoist(location.uid)), onEditLocation: () => store.dispatch(editRiggingLocation(context, location))),
+                      store.dispatch(addHoist(location.uid)),
+                  onEditLocation: () =>
+                      store.dispatch(editRiggingLocation(context, location))),
               ...hoistViewModelsByLocationId[location.uid]?.map((vm) => vm) ??
                   <HoistViewModel>[],
             ])

@@ -99,6 +99,7 @@ class HoistChannelViewModel {
   final Map<String, HoistViewModel> selectedHoistChannelViewModels;
   final bool isOverflowing;
   final void Function() onDragStarted;
+  final void Function() onUnpatchHoist;
 
   HoistChannelViewModel({
     required this.number,
@@ -108,5 +109,6 @@ class HoistChannelViewModel {
     required this.selectedHoistChannelViewModels,
     required this.isOverflowing,
     required this.onDragStarted,
+    required this.onUnpatchHoist,
   });
 }

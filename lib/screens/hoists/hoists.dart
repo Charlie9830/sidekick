@@ -29,9 +29,9 @@ class _HoistsState extends State<Hoists> {
               child: Row(
             children: [
               Tooltip(
-                message: 'Delete selected Motor Control channels',
+                message: 'Unpatch selected Motor Control channels',
                 child: IconButton.outlined(
-                  icon: const Icon(Icons.delete),
+                  icon: const Icon(Icons.clear),
                   onPressed:
                       widget.viewModel.selectedHoistChannelViewModels.isNotEmpty
                           ? widget.viewModel.onDeleteSelectedHoistChannels
@@ -134,7 +134,8 @@ class _Sidebar extends StatelessWidget {
         child: Card(
           child: ReorderableListView.builder(
               buildDefaultDragHandles: false,
-              onReorder: (oldIndex, newIndex) => viewModel.onHoistReorder(oldIndex, newIndex),
+              onReorder: (oldIndex, newIndex) =>
+                  viewModel.onHoistReorder(oldIndex, newIndex),
               itemCount: viewModel.hoistItems.length,
               itemBuilder: (context, index) {
                 final item = viewModel.hoistItems[index];

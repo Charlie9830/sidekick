@@ -33,66 +33,63 @@ class _HoistControllerState extends State<HoistController> {
       padding: const EdgeInsets.all(8.0),
       child: Column(
         children: [
+          // Controller Header
           HoverRegionBuilder(builder: (context, isHovering) {
-            return Column(
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(
-                      width: 200,
-                      child: EditableTextField(
-                        onChanged: (newValue) =>
-                            widget.viewModel.onNameChanged(newValue),
-                        value: widget.viewModel.controller.name,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium!
-                            .copyWith(
-                                color: widget.viewModel.hasOverflowed
-                                    ? Colors.amber
-                                    : null),
-                      ),
-                    ),
-                    PopupMenuButton<int>(
-                        tooltip: 'Change controller type',
-                        onSelected: (value) =>
-                            widget.viewModel.onControllerWaysChanged(value),
-                        initialValue: widget.viewModel.controller.ways,
-                        icon: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          spacing: 8,
-                          children: [
-                            if (isHovering)
-                              Icon(Icons.edit,
-                                  size: 16,
-                                  color: Theme.of(context).indicatorColor),
-                            Text(
-                              '${widget.viewModel.controller.ways}way',
-                              style: Theme.of(context).textTheme.titleSmall,
-                            ),
-                          ],
-                        ),
-                        itemBuilder: (context) => [
-                              const PopupMenuItem(
-                                value: 8,
-                                child: Text('8way'),
-                              ),
-                              const PopupMenuItem(
-                                value: 16,
-                                child: Text('16way'),
-                              ),
-                              const PopupMenuItem(
-                                value: 32,
-                                child: Text('32way'),
-                              ),
-                            ]),
-                  ],
+                SizedBox(
+                  width: 200,
+                  child: EditableTextField(
+                    onChanged: (newValue) =>
+                        widget.viewModel.onNameChanged(newValue),
+                    value: widget.viewModel.controller.name,
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                        color: widget.viewModel.hasOverflowed
+                            ? Colors.amber
+                            : null),
+                  ),
                 ),
+                PopupMenuButton<int>(
+                    tooltip: 'Change controller type',
+                    onSelected: (value) =>
+                        widget.viewModel.onControllerWaysChanged(value),
+                    initialValue: widget.viewModel.controller.ways,
+                    icon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 8,
+                      children: [
+                        if (isHovering)
+                          Icon(Icons.edit,
+                              size: 16,
+                              color: Theme.of(context).indicatorColor),
+                        Text(
+                          '${widget.viewModel.controller.ways}way',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                      ],
+                    ),
+                    itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 8,
+                            child: Text('8way'),
+                          ),
+                          const PopupMenuItem(
+                            value: 16,
+                            child: Text('16way'),
+                          ),
+                          const PopupMenuItem(
+                            value: 32,
+                            child: Text('32way'),
+                          ),
+                        ]),
               ],
             );
           }),
+
           const SizedBox(height: 8),
+
+          // Controller Content
           DefaultTextStyle(
             style: Theme.of(context).textTheme.labelSmall!,
             child: SizedBox(
@@ -239,13 +236,17 @@ class _HoistChannel extends StatelessWidget {
                         ),
                       )),
                   const VerticalDivider(),
-                  viewModel.hoist == null
-                      ? const SizedBox()
-                      : _wrapDragProxy(
-                          child: _HoistChannelContents(
-                              viewModel: viewModel.hoist!),
-                          viewModel: viewModel,
-                        ),
+                  Expanded(
+                    child: viewModel.hoist == null
+                        ? const SizedBox()
+                        : _wrapDragProxy(
+                            child: _HoistChannelContents(
+                              viewModel: viewModel.hoist!,
+                              onClearButtonPressed: viewModel.onUnpatchHoist,
+                            ),
+                            viewModel: viewModel,
+                          ),
+                  ),
                 ],
               ),
             );
@@ -281,7 +282,10 @@ class _HoistChannel extends StatelessWidget {
               child: Column(
             mainAxisSize: MainAxisSize.min,
             children: viewModel.selectedHoistChannelViewModels.values
-                .map((itemVm) => _HoistChannelContents(viewModel: itemVm))
+                .map((itemVm) => _HoistChannelContents(
+                      viewModel: itemVm,
+                      onClearButtonPressed: () {},
+                    ))
                 .toList(),
           ))),
       child: child,
@@ -291,39 +295,61 @@ class _HoistChannel extends StatelessWidget {
 
 class _HoistChannelContents extends StatelessWidget {
   final HoistViewModel viewModel;
-  const _HoistChannelContents({super.key, required this.viewModel});
+  final void Function() onClearButtonPressed;
+  const _HoistChannelContents({
+    super.key,
+    required this.viewModel,
+    required this.onClearButtonPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SizedBox(
-            width: HoistController.columnWidths[1],
-            child: Text(viewModel.hoist.name)),
-        const VerticalDivider(),
-        SizedBox(
-            width: HoistController.columnWidths[2],
-            child: Text(viewModel.locationName)),
-        const VerticalDivider(),
-        SizedBox(
-            width: HoistController.columnWidths[3],
-            child: Text(viewModel.multi)),
-        const VerticalDivider(),
-        SizedBox(
-            width: HoistController.columnWidths[4],
-            child: Text(viewModel.patch)),
-        const VerticalDivider(),
-        SizedBox(
-            width: HoistController.columnWidths[5],
-            child: EditableTextField(
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium!
-                  .copyWith(fontStyle: FontStyle.italic),
-              value: viewModel.hoist.controllerNote,
-              onChanged: (newValue) => viewModel.onNoteChanged(newValue),
-            ))
-      ],
-    );
+    return HoverRegionBuilder(builder: (context, isHovering) {
+      return Row(
+        children: [
+          SizedBox(
+              width: HoistController.columnWidths[1],
+              child: Text(viewModel.hoist.name)),
+          const VerticalDivider(),
+          SizedBox(
+              width: HoistController.columnWidths[2],
+              child: Text(viewModel.locationName)),
+          const VerticalDivider(),
+          SizedBox(
+              width: HoistController.columnWidths[3],
+              child: Text(viewModel.multi)),
+          const VerticalDivider(),
+          SizedBox(
+              width: HoistController.columnWidths[4],
+              child: Text(viewModel.patch)),
+          const VerticalDivider(),
+          SizedBox(
+              width: HoistController.columnWidths[5],
+              child: EditableTextField(
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium!
+                    .copyWith(fontStyle: FontStyle.italic),
+                value: viewModel.hoist.controllerNote,
+                onChanged: (newValue) => viewModel.onNoteChanged(newValue),
+              )),
+          if (isHovering)
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Tooltip(
+                  message: 'Unpatch motor',
+                  child: IconButton(
+                    icon: const Icon(Icons.clear),
+                    iconSize: 20,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: onClearButtonPressed,
+                  ),
+                ),
+              ),
+            )
+        ],
+      );
+    });
   }
 }
