@@ -76,6 +76,37 @@ import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
 import 'package:sidekick/snack_bars/import_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
+ThunkAction<AppState> deleteHoistController(
+    BuildContext context, HoistControllerModel controller) {
+  return (Store<AppState> store) async {
+    final dialogResult = await showGenericDialog(
+        context: context,
+        title: 'Delete Motor Controller',
+        message: 'Are you sure you want to delete ${controller.name}?',
+        affirmativeText: 'Delete',
+        declineText: 'Cancel');
+
+    if (dialogResult == true) {
+      final associatedHoists = store.state.fixtureState.hoists.values.where(
+          (hoist) => hoist.parentController.controllerId == controller.uid);
+
+      store.dispatch(SetHoistsAndControllers(
+          hoistControllers: store.state.fixtureState.hoistControllers.clone()
+            ..remove(controller.uid),
+          hoists: store.state.fixtureState.hoists.clone()
+            ..addAll(
+              associatedHoists
+                  .map((hoist) => hoist.copyWith(
+                      parentController:
+                          const HoistControllerChannelAssignment.unassigned()))
+                  .toModelMap(),
+            )));
+
+      store.dispatch(SetSelectedHoistChannelIds({}));
+    }
+  };
+}
+
 ThunkAction<AppState> unpatchHoist(
     HoistControllerModel controller, HoistModel? hoist) {
   return (Store<AppState> store) async {

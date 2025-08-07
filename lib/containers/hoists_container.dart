@@ -54,6 +54,7 @@ class HoistsContainer extends StatelessWidget {
             onSelectedHoistChannelsChanged: (type, items) =>
                 store.dispatch(selectHoistControllerChannels(type, items)),
             hoistControllers: _selectHoistControllers(
+                context: context,
                 store: store,
                 selectedHoistChannelViewModelMap: selectedHoistChannelVmMap,
                 cablesByHoistId: cablesByOutletId),
@@ -85,6 +86,7 @@ class HoistsContainer extends StatelessWidget {
   }
 
   List<HoistControllerViewModel> _selectHoistControllers({
+    BuildContext? context,
     required Store<AppState> store,
     required Map<String, HoistViewModel> selectedHoistChannelViewModelMap,
     required Map<String, List<CableModel>> cablesByHoistId,
@@ -108,35 +110,38 @@ class HoistsContainer extends StatelessWidget {
           onControllerWaysChanged: (newValue) => store.dispatch(
               UpdateHoistControllerWayCount(
                   hoistId: controller.uid, value: newValue)),
+          onDelete: () =>
+              store.dispatch(deleteHoistController(context!, controller)),
           channels: List.generate(channelCount, (index) {
             final channel = index + 1;
             final hoist = childHoistsByChannel[channel];
 
             return HoistChannelViewModel(
-              number: channel,
-              isOverflowing: channel > controller.ways,
-              onDragStarted: hoist != null
-                  ? () =>
-                      store.dispatch(AppendSelectedHoistChannelId(hoist.uid))
-                  : () {},
-              hoist: hoist == null
-                  ? null
-                  : _selectHoistViewModel(
-                      hoist: hoist,
-                      store: store,
-                      cablesByOutletId: cablesByHoistId),
-              onHoistsLanded: (hoistIds) => store.dispatch(
-                  assignHoistsToController(
-                      movingOrIncomingHoistIds: hoistIds,
-                      startingChannelNumber: channel,
-                      targetControllerId: controller.uid)),
-              selected: hoist == null
-                  ? false
-                  : store.state.navstate.selectedHoistChannelIds
-                      .contains(hoist.uid),
-              selectedHoistChannelViewModels: selectedHoistChannelViewModelMap,
-              onUnpatchHoist: () => store.dispatch(unpatchHoist(controller, hoist))
-            );
+                number: channel,
+                isOverflowing: channel > controller.ways,
+                onDragStarted: hoist != null
+                    ? () =>
+                        store.dispatch(AppendSelectedHoistChannelId(hoist.uid))
+                    : () {},
+                hoist: hoist == null
+                    ? null
+                    : _selectHoistViewModel(
+                        hoist: hoist,
+                        store: store,
+                        cablesByOutletId: cablesByHoistId),
+                onHoistsLanded: (hoistIds) => store.dispatch(
+                    assignHoistsToController(
+                        movingOrIncomingHoistIds: hoistIds,
+                        startingChannelNumber: channel,
+                        targetControllerId: controller.uid)),
+                selected: hoist == null
+                    ? false
+                    : store.state.navstate.selectedHoistChannelIds
+                        .contains(hoist.uid),
+                selectedHoistChannelViewModels:
+                    selectedHoistChannelViewModelMap,
+                onUnpatchHoist: () =>
+                    store.dispatch(unpatchHoist(controller, hoist)));
           }));
     }).toList();
   }

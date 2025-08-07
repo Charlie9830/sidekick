@@ -39,7 +39,7 @@ class _HoistControllerState extends State<HoistController> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 SizedBox(
-                  width: 200,
+                  width: 360,
                   child: EditableTextField(
                     onChanged: (newValue) =>
                         widget.viewModel.onNameChanged(newValue),
@@ -50,6 +50,16 @@ class _HoistControllerState extends State<HoistController> {
                             : null),
                   ),
                 ),
+                const Spacer(),
+                if (isHovering)
+                  if (isHovering)
+                    Tooltip(
+                      message: "Delete controller",
+                      child: IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: widget.viewModel.onDelete,
+                      ),
+                    ),
                 PopupMenuButton<int>(
                     tooltip: 'Change controller type',
                     onSelected: (value) =>

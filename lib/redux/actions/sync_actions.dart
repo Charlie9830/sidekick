@@ -16,6 +16,16 @@ import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
 
+class SetHoistsAndControllers {
+  final Map<String, HoistControllerModel> hoistControllers;
+  final Map<String, HoistModel> hoists;
+
+  SetHoistsAndControllers({
+    required this.hoistControllers,
+    required this.hoists,
+  });
+}
+
 class RemoveLocation {
   final LocationModel location;
   final Set<String> hoistIds;

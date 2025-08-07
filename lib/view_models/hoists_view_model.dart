@@ -81,6 +81,7 @@ class HoistControllerViewModel {
   final bool hasOverflowed;
   final void Function(String newValue) onNameChanged;
   final void Function(int newValue) onControllerWaysChanged;
+  final void Function() onDelete;
 
   HoistControllerViewModel({
     required this.controller,
@@ -88,6 +89,7 @@ class HoistControllerViewModel {
     required this.hasOverflowed,
     required this.onNameChanged,
     required this.onControllerWaysChanged,
+    required this.onDelete,
   });
 }
 

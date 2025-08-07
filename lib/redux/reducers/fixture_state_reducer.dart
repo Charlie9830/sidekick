@@ -15,6 +15,13 @@ import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
+  if (a is SetHoistsAndControllers) {
+    return state.copyWith(
+      hoists: a.hoists,
+      hoistControllers: a.hoistControllers,
+    );
+  }
+
   if (a is RemoveLocation) {
     return state.copyWith(
         locations: state.locations.clone()..remove(a.location.uid),
