@@ -22,7 +22,8 @@ String determineDefaultLoomName({
           otherCables: existingCables);
 
   final hasOtherSimiliarLoomsInLocation =
-      (otherLoomsInLocationByCableClass[currentLoomCableClass]?.length ?? 0) > 0;
+      (otherLoomsInLocationByCableClass[currentLoomCableClass]?.length ?? 0) >
+          0;
 
   final loomNumber =
       (otherLoomsInLocationByCableClass[currentLoomCableClass]?.length ?? 0) +
@@ -35,7 +36,13 @@ String determineDefaultLoomName({
     return 'Untitled Loom';
   }
 
-  return '$locationSlug $loomCableClassSlug ${hasOtherSimiliarLoomsInLocation ? loomNumber : ''}'.trim();
+  final motorSlug = children.every((cable) =>
+          cable.type == CableType.hoist || cable.type == CableType.hoistMulti)
+      ? ' Motor'
+      : '';
+
+  return '$locationSlug$motorSlug $loomCableClassSlug ${hasOtherSimiliarLoomsInLocation ? loomNumber : ''}'
+      .trim();
 }
 
 String _convertCableClassToString(CableClass cableClass) {
