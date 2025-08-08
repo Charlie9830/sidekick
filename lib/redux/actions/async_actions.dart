@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
+import 'package:sidekick/excel/create_hoist_patch_sheet.dart';
 import 'package:sidekick/screens/hoists/add_or_edit_rigging_location.dart';
 import 'package:sidekick/screens/hoists/hoist_controller.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
@@ -2034,12 +2035,29 @@ ThunkAction<AppState> export(BuildContext context) {
 
     loomsExcel.delete('Sheet1');
 
+    final addressingExcel = Excel.createExcel();
+
+    createFixtureAddressingSheet(
+      fixtures: store.state.fixtureState.fixtures.values.toList(),
+      locations: store.state.fixtureState.locations,
+      fixtureTypes: store.state.fixtureState.fixtureTypes,
+      excel: addressingExcel,
+      projectName: store.state.fileState.projectMetadata.projectName,
+    );
+
+    final hoistPatchExcel = Excel.createExcel();
+
+    createHoistPatchSheet(excel: hoistPatchExcel, store: store);
+    hoistPatchExcel.delete('Sheet1');
+
     final referenceDataBytes = referenceDataExcel.save();
     final loomsBytes = loomsExcel.save();
     final powerPatchTemplateBytes =
         await rootBundle.load('assets/excel/prg_power_patch.xlsx');
     final dataPatchTemplateBytes =
         await rootBundle.load('assets/excel/prg_data_patch.xlsx');
+    final addressingBytes = addressingExcel.save();
+    final hoistPatchBytes = hoistPatchExcel.save();
 
     if (referenceDataBytes == null) {
       if (context.mounted) {
@@ -2059,17 +2077,14 @@ ThunkAction<AppState> export(BuildContext context) {
       return;
     }
 
-    final addressingExcel = Excel.createExcel();
+    if (hoistPatchBytes == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(fileErrorSnackBar(
+            context, 'An error occured writing Hoist patch excel'));
+      }
 
-    createFixtureAddressingSheet(
-      fixtures: store.state.fixtureState.fixtures.values.toList(),
-      locations: store.state.fixtureState.locations,
-      fixtureTypes: store.state.fixtureState.fixtureTypes,
-      excel: addressingExcel,
-      projectName: store.state.fileState.projectMetadata.projectName,
-    );
-
-    final addressingBytes = addressingExcel.save();
+      return;
+    }
 
     if (addressingBytes == null) {
       if (context.mounted) {
@@ -2088,6 +2103,7 @@ ThunkAction<AppState> export(BuildContext context) {
       File(outputPaths.dataPatchPath)
           .writeAsBytes(dataPatchTemplateBytes.buffer.asUint8List()),
       File(outputPaths.addressesPath).writeAsBytes(addressingBytes),
+      File(outputPaths.hoistPatchPath).writeAsBytes(hoistPatchBytes),
     ];
 
     try {
@@ -2111,6 +2127,7 @@ ThunkAction<AppState> export(BuildContext context) {
       await launchUrl(Uri.file(outputPaths.dataPatchPath));
       await launchUrl(Uri.file(outputPaths.loomsPath));
       await launchUrl(Uri.file(outputPaths.addressesPath));
+      await launchUrl(Uri.file(outputPaths.hoistPatchPath));
     }
   };
 }
