@@ -51,6 +51,9 @@ class DiffingToolbar extends StatelessWidget {
                   icon: const Icon(Icons.cable, size: tabIconSize),
                   child: Text('Looms', style: tabLabelTextStyle),
                 ),
+                Tab(
+                    icon: const Icon(Icons.construction, size: tabIconSize),
+                    child: Text('Hoists', style: tabLabelTextStyle))
               ],
             ),
           ],

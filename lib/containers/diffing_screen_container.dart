@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
+import 'package:sidekick/containers/hoist_selectors.dart';
 import 'package:sidekick/containers/select_power_patch_view_models.dart';
 import 'package:sidekick/data_selectors/select_fixture_view_models.dart';
 import 'package:sidekick/data_selectors/select_loom_view_models.dart';
@@ -17,6 +18,8 @@ import 'package:sidekick/view_models/cable_view_model.dart';
 import 'package:sidekick/view_models/diff_app_state_view_model.dart';
 import 'package:sidekick/view_models/fixture_diffing_item_view_model.dart';
 import 'package:sidekick/view_models/fixture_table_view_model.dart';
+import 'package:sidekick/view_models/hoist_controller_diffing_view_model.dart';
+import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:sidekick/view_models/loom_diffing_item_view_model.dart';
 import 'package:sidekick/view_models/diffing_screen_view_model.dart';
 import 'package:sidekick/view_models/loom_view_model.dart';
@@ -36,6 +39,7 @@ class DiffingScreenContainer extends StatelessWidget {
             return DiffingScreen(viewModel: viewModel);
           },
           converter: (Store<AppState> store) {
+            final cablesByOutletId = selectCablesByOutletId(store);
             return DiffingScreenViewModel(
                 onFileSelectedForCompare: (path) {
                   store.dispatch(SetComparisonFilePath(path));
@@ -58,20 +62,42 @@ class DiffingScreenContainer extends StatelessWidget {
                   currentFixtureVms:
                       selectFixtureRowViewModels(store).toModelMap(),
                   originalFixtureVms: diffViewModel.originalFixtureViewModels,
+                ),
+                hoistControllerVms: _getHoistControllerDiffs(
+                  currentControllerVms: selectHoistControllers(
+                          store: store,
+                          selectedHoistChannelViewModelMap: {},
+                          cablesByHoistId: cablesByOutletId,
+                          isDiffing: true)
+                      .toModelMap(),
+                  originalControllerVms:
+                      diffViewModel.originalHoistControllerViewModels,
+                  currentHoistVms: mapHoistViewModels(
+                      store: store, cablesByOutletId: cablesByOutletId),
+                  originalHoistVms: diffViewModel.hoistViewModels,
                 ));
           },
         );
       },
       converter: (Store<DiffAppState> diffStore) {
+        final cablesByOutletId = selectCablesByOutletId(diffStore);
         return DiffAppStateViewModel(
-          originalLoomViewModels: selectLoomViewModels(diffStore).toModelMap(),
-          onFileSelectedForCompare: (path) =>
-              diffStore.dispatch(openProjectFile(context, false, path)),
-          originalPatchViewModels:
-              selectPowerPatchViewModels(context, diffStore).toModelMap(),
-          originalFixtureViewModels:
-              selectFixtureRowViewModels(diffStore).toModelMap(),
-        );
+            originalLoomViewModels:
+                selectLoomViewModels(diffStore).toModelMap(),
+            onFileSelectedForCompare: (path) =>
+                diffStore.dispatch(openProjectFile(context, false, path)),
+            originalPatchViewModels:
+                selectPowerPatchViewModels(context, diffStore).toModelMap(),
+            originalFixtureViewModels:
+                selectFixtureRowViewModels(diffStore).toModelMap(),
+            originalHoistControllerViewModels: selectHoistControllers(
+                    store: diffStore,
+                    selectedHoistChannelViewModelMap: {},
+                    cablesByHoistId: cablesByOutletId,
+                    isDiffing: true)
+                .toModelMap(),
+            hoistViewModels: mapHoistViewModels(
+                store: diffStore, cablesByOutletId: cablesByOutletId));
       },
     );
   }
@@ -232,6 +258,102 @@ class DiffingScreenContainer extends StatelessWidget {
     return [];
   }
 
+  Map<String, HoistDelta> _getHoistDeltas({
+    required Map<String, HoistViewModel> originalHoists,
+    required Map<String, HoistViewModel> currentHoists,
+  }) {
+    final allIds = {
+      ...originalHoists.keys,
+      ...currentHoists.keys,
+    };
+
+    final diffs = allIds.map((hoistId) {
+      if (originalHoists.containsKey(hoistId) == true &&
+          currentHoists.containsKey(hoistId) == false) {
+        // Hoist Deleted
+        return HoistDelta(
+            uid: hoistId,
+            overallDiff: DiffState.deleted,
+            properties: const PropertyDeltaSet.empty());
+      }
+
+      if (originalHoists.containsKey(hoistId) == false &&
+          currentHoists.containsKey(hoistId) == true) {
+        // Hoist Added
+        return HoistDelta(
+            uid: hoistId,
+            overallDiff: DiffState.added,
+            properties: const PropertyDeltaSet.empty());
+      } else {
+        return HoistDelta(
+            uid: hoistId,
+            overallDiff: DiffState.unchanged,
+            properties: originalHoists[hoistId]!
+                .calculateDeltas(currentHoists[hoistId]!));
+      }
+    });
+
+    return diffs.toModelMap();
+  }
+
+  Map<String, HoistChannelDelta> _getHoistChannelDeltas({
+    required Map<String, HoistChannelViewModel> originalChannels,
+    required Map<String, HoistChannelViewModel> currentChannels,
+    required Map<String, HoistDelta> hoistDeltas,
+  }) {
+    final allCompoundChannelIds = {
+      ...originalChannels.keys,
+      ...currentChannels.keys,
+    };
+
+    final diffs = allCompoundChannelIds.map((channelId) {
+      if (originalChannels.containsKey(channelId) == true &&
+          currentChannels.containsKey(channelId) == false) {
+        // Channel has been Deleted.
+        return HoistChannelDelta(
+            uid: channelId,
+            overallDiff: DiffState.deleted,
+            channelProperties: const PropertyDeltaSet.empty(),
+            hoistDelta: HoistDelta(
+                uid: '',
+                overallDiff: DiffState.deleted,
+                properties: const PropertyDeltaSet.empty()));
+      }
+
+      if (currentChannels.containsKey(channelId) == true &&
+          originalChannels.containsKey(channelId) == false) {
+        final hoistId = currentChannels[channelId]!.hoist?.uid ?? '';
+
+        // Channel has been Added.
+        return HoistChannelDelta(
+            uid: channelId,
+            overallDiff: DiffState.added,
+            channelProperties: const PropertyDeltaSet.empty(),
+            hoistDelta: hoistDeltas[hoistId] ??
+                HoistDelta(
+                    uid: '',
+                    overallDiff: DiffState.unchanged,
+                    properties: const PropertyDeltaSet.empty()));
+      }
+
+      if (currentChannels.containsKey(channelId) == true &&
+          originalChannels.containsKey(channelId) == true) {}
+
+      return HoistChannelDelta(
+          uid: channelId,
+          overallDiff: DiffState.unchanged,
+          channelProperties: currentChannels[channelId]!
+              .calculateDeltas(originalChannels[channelId]!),
+          hoistDelta: hoistDeltas[currentChannels[channelId]?.hoist?.uid] ??
+              HoistDelta(
+                  uid: '',
+                  overallDiff: DiffState.unchanged,
+                  properties: const PropertyDeltaSet.empty()));
+    });
+
+    return diffs.toModelMap();
+  }
+
   Map<String, CableDelta> _getCableDeltas(Map<String, CableViewModel> original,
       Map<String, CableViewModel> current) {
     final allIds = {
@@ -266,6 +388,69 @@ class DiffingScreenContainer extends StatelessWidget {
 
     return diffs.toModelMap();
   }
+
+  List<HoistControllerDiffingViewModel> _getHoistControllerDiffs({
+    required Map<String, HoistControllerViewModel> currentControllerVms,
+    required Map<String, HoistControllerViewModel> originalControllerVms,
+    required Map<String, HoistViewModel> currentHoistVms,
+    required Map<String, HoistViewModel> originalHoistVms,
+  }) {
+    final allIds = {
+      ...currentControllerVms.values.map((vm) => vm.controller.uid),
+      ...originalControllerVms.values.map((vm) => vm.controller.uid),
+    };
+
+    final hoistDeltas = _getHoistDeltas(
+        originalHoists: originalHoistVms, currentHoists: currentHoistVms);
+
+    return allIds.map((controllerId) {
+      final current = currentControllerVms[controllerId];
+      final original = originalControllerVms[controllerId];
+
+      final originalChannelVms = original?.channels.toModelMap() ?? {};
+      final currentChannelVms = current?.channels.toModelMap() ?? {};
+
+      if (original != null && current == null) {
+        return HoistControllerDiffingViewModel(
+          current: null,
+          original: original,
+          deltas: const PropertyDeltaSet.empty(),
+          overallDiff: DiffState.deleted,
+          channelDeltas: _getHoistChannelDeltas(
+            originalChannels: originalChannelVms,
+            currentChannels: currentChannelVms,
+            hoistDeltas: hoistDeltas,
+          ),
+        );
+      }
+
+      if (current != null && original == null) {
+        return HoistControllerDiffingViewModel(
+          current: current,
+          original: original,
+          deltas: const PropertyDeltaSet.empty(),
+          overallDiff: DiffState.added,
+          channelDeltas: _getHoistChannelDeltas(
+            originalChannels: originalChannelVms,
+            currentChannels: currentChannelVms,
+            hoistDeltas: hoistDeltas,
+          ),
+        );
+      }
+
+      return HoistControllerDiffingViewModel(
+        current: current,
+        original: original,
+        deltas: current!.calculateDeltas(original!),
+        overallDiff: DiffState.unchanged,
+        channelDeltas: _getHoistChannelDeltas(
+          originalChannels: originalChannelVms,
+          currentChannels: currentChannelVms,
+          hoistDeltas: hoistDeltas,
+        ),
+      );
+    }).toList();
+  }
 }
 
 class CableDelta implements ModelCollectionMember {
@@ -287,6 +472,34 @@ class OutletDelta {
 
   OutletDelta({
     required this.multiPatchIndex,
+    required this.properties,
+  });
+}
+
+class HoistChannelDelta implements ModelCollectionMember {
+  @override
+  final String uid;
+  final DiffState overallDiff;
+  final PropertyDeltaSet channelProperties;
+  final HoistDelta hoistDelta;
+
+  HoistChannelDelta({
+    required this.uid,
+    required this.overallDiff,
+    required this.channelProperties,
+    required this.hoistDelta,
+  });
+}
+
+class HoistDelta implements ModelCollectionMember {
+  @override
+  final String uid;
+  final DiffState overallDiff;
+  final PropertyDeltaSet properties;
+
+  HoistDelta({
+    required this.uid,
+    required this.overallDiff,
     required this.properties,
   });
 }

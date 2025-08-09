@@ -1,8 +1,10 @@
+import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/hoist_controller_model.dart';
 import 'package:sidekick/redux/models/hoist_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/screens/diffing/property_delta.dart';
 
 class HoistsViewModel {
   final List<HoistItemBase> hoistItems;
@@ -34,7 +36,9 @@ class HoistsViewModel {
 
 sealed class HoistItemBase {}
 
-class HoistViewModel extends HoistItemBase implements ModelCollectionMember {
+class HoistViewModel extends HoistItemBase
+    with DiffComparable
+    implements ModelCollectionMember {
   final HoistModel hoist;
   final void Function() onDelete;
   final void Function(String value) onNameChanged;
@@ -61,9 +65,20 @@ class HoistViewModel extends HoistItemBase implements ModelCollectionMember {
     required this.onNoteChanged,
     required this.hasRootCable,
   });
+
+  @override
+  Map<PropertyDeltaName, Object> getDiffValues() {
+    return {
+      PropertyDeltaName.locationName: locationName,
+      PropertyDeltaName.hoistMultiName: multi,
+      PropertyDeltaName.hoistPatch: patch,
+      PropertyDeltaName.hoistName: hoist.name,
+      PropertyDeltaName.hoistNote: hoist.controllerNote,
+    };
+  }
 }
 
-class HoistLocationViewModel extends HoistItemBase {
+class HoistLocationViewModel extends HoistItemBase with DiffComparable {
   final LocationModel location;
   final void Function() onAddHoistButtonPressed;
   final void Function() onDeleteLocation;
@@ -75,9 +90,18 @@ class HoistLocationViewModel extends HoistItemBase {
     required this.onDeleteLocation,
     required this.onEditLocation,
   });
+
+  @override
+  Map<PropertyDeltaName, Object> getDiffValues() {
+    return {
+      PropertyDeltaName.locationName: location.name,
+    };
+  }
 }
 
-class HoistControllerViewModel {
+class HoistControllerViewModel
+    with DiffComparable
+    implements ModelCollectionMember {
   final HoistControllerModel controller;
   final List<HoistChannelViewModel> channels;
   final bool hasOverflowed;
@@ -93,10 +117,24 @@ class HoistControllerViewModel {
     required this.onControllerWaysChanged,
     required this.onDelete,
   });
+
+  @override
+  String get uid => controller.uid;
+
+  @override
+  Map<PropertyDeltaName, Object> getDiffValues() {
+    return {
+      PropertyDeltaName.hoistControllerName: controller.name,
+      PropertyDeltaName.hoistControllerWays: controller.ways,
+    };
+  }
 }
 
-class HoistChannelViewModel {
+class HoistChannelViewModel
+    with DiffComparable
+    implements ModelCollectionMember {
   final int number;
+  final String parentControllerId;
   final HoistViewModel? hoist;
   final void Function(Set<String> hoistIds) onHoistsLanded;
   final bool selected;
@@ -107,6 +145,7 @@ class HoistChannelViewModel {
 
   HoistChannelViewModel({
     required this.number,
+    required this.parentControllerId,
     required this.hoist,
     required this.onHoistsLanded,
     required this.selected,
@@ -115,4 +154,15 @@ class HoistChannelViewModel {
     required this.onDragStarted,
     required this.onUnpatchHoist,
   });
+
+  @override
+  String get uid => '$number-$parentControllerId'; // Compound UID
+
+  @override
+  Map<PropertyDeltaName, Object> getDiffValues() {
+    return {
+      PropertyDeltaName.assignedHoistId: hoist?.uid ?? '',
+      PropertyDeltaName.hoistChannelNumber: number,
+    };
+  }
 }

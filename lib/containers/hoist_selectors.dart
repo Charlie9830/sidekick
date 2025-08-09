@@ -15,6 +15,7 @@ List<HoistControllerViewModel> selectHoistControllers({
   required Store<AppState> store,
   required Map<String, HoistViewModel> selectedHoistChannelViewModelMap,
   required Map<String, List<CableModel>> cablesByHoistId,
+  bool isDiffing = false,
 }) {
   final hoistsByControllerId = store.state.fixtureState.hoists.values
       .groupListsBy((hoist) => hoist.parentController.controllerId);
@@ -43,6 +44,7 @@ List<HoistControllerViewModel> selectHoistControllers({
 
           return HoistChannelViewModel(
               number: channel,
+              parentControllerId: controller.uid,
               isOverflowing: channel > controller.ways,
               onDragStarted: hoist != null
                   ? () =>
@@ -59,7 +61,7 @@ List<HoistControllerViewModel> selectHoistControllers({
                       movingOrIncomingHoistIds: hoistIds,
                       startingChannelNumber: channel,
                       targetControllerId: controller.uid)),
-              selected: hoist == null
+              selected: hoist == null || isDiffing == true
                   ? false
                   : store.state.navstate.selectedHoistChannelIds
                       .contains(hoist.uid),
@@ -166,6 +168,7 @@ List<HoistItemBase> selectLocationHoistItems(
                 <HoistViewModel>[],
           ])
       .flattened
+      .cast<HoistItemBase>()
       .toList();
 
   return value;

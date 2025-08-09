@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/screens/diffing/diffing_toolbar.dart';
 import 'package:sidekick/screens/diffing/fixture_diffing.dart';
+import 'package:sidekick/screens/diffing/hoist_diffing.dart';
 import 'package:sidekick/screens/diffing/loom_diffing.dart';
 import 'package:sidekick/screens/diffing/patch_diffing.dart';
 import 'package:sidekick/view_models/diffing_screen_view_model.dart';
@@ -23,7 +24,7 @@ class _DiffingScreenState extends State<DiffingScreen>
   @override
   void initState() {
     _tabController = TabController(
-        length: 3, vsync: this, animationDuration: const Duration());
+        length: 4, vsync: this, animationDuration: const Duration());
     super.initState();
   }
 
@@ -47,6 +48,9 @@ class _DiffingScreenState extends State<DiffingScreen>
               LoomDiffing(
                 itemVms: widget.viewModel.loomItemVms,
               ),
+              HoistDiffing(
+                itemVms: widget.viewModel.hoistControllerVms,
+              )
             ],
           ),
         )

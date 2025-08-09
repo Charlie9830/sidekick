@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:sidekick/containers/diffing_screen_container.dart';
+import 'package:sidekick/diff_state_overlay.dart';
+import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/drag_proxy/drag_proxy.dart';
 import 'package:sidekick/editable_text_field.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
+import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/screens/hoists/hoists.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';
@@ -17,7 +21,14 @@ class HoistController extends StatefulWidget {
   ];
 
   final HoistControllerViewModel viewModel;
-  const HoistController({super.key, required this.viewModel});
+  final PropertyDeltaSet? deltas;
+  final Map<String, HoistChannelDelta> channelDeltas;
+
+  const HoistController(
+      {super.key,
+      required this.viewModel,
+      this.deltas,
+      this.channelDeltas = const {}});
 
   @override
   State<HoistController> createState() => _HoistControllerState();
@@ -40,14 +51,18 @@ class _HoistControllerState extends State<HoistController> {
               children: [
                 SizedBox(
                   width: 360,
-                  child: EditableTextField(
-                    onChanged: (newValue) =>
-                        widget.viewModel.onNameChanged(newValue),
-                    value: widget.viewModel.controller.name,
-                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                        color: widget.viewModel.hasOverflowed
-                            ? Colors.amber
-                            : null),
+                  child: DiffStateOverlay(
+                    diff: widget.deltas
+                        ?.lookup(PropertyDeltaName.hoistControllerName),
+                    child: EditableTextField(
+                      onChanged: (newValue) =>
+                          widget.viewModel.onNameChanged(newValue),
+                      value: widget.viewModel.controller.name,
+                      style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                          color: widget.viewModel.hasOverflowed
+                              ? Colors.amber
+                              : null),
+                    ),
                   ),
                 ),
                 const Spacer(),
@@ -60,39 +75,43 @@ class _HoistControllerState extends State<HoistController> {
                         onPressed: widget.viewModel.onDelete,
                       ),
                     ),
-                PopupMenuButton<int>(
-                    tooltip: 'Change controller type',
-                    onSelected: (value) =>
-                        widget.viewModel.onControllerWaysChanged(value),
-                    initialValue: widget.viewModel.controller.ways,
-                    icon: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      spacing: 8,
-                      children: [
-                        if (isHovering)
-                          Icon(Icons.edit,
-                              size: 16,
-                              color: Theme.of(context).indicatorColor),
-                        Text(
-                          '${widget.viewModel.controller.ways}way',
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                      ],
-                    ),
-                    itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 8,
-                            child: Text('8way'),
+                DiffStateOverlay(
+                  diff: widget.deltas
+                      ?.lookup(PropertyDeltaName.hoistControllerWays),
+                  child: PopupMenuButton<int>(
+                      tooltip: 'Change controller type',
+                      onSelected: (value) =>
+                          widget.viewModel.onControllerWaysChanged(value),
+                      initialValue: widget.viewModel.controller.ways,
+                      icon: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 8,
+                        children: [
+                          if (isHovering)
+                            Icon(Icons.edit,
+                                size: 16,
+                                color: Theme.of(context).indicatorColor),
+                          Text(
+                            '${widget.viewModel.controller.ways}way',
+                            style: Theme.of(context).textTheme.titleSmall,
                           ),
-                          const PopupMenuItem(
-                            value: 16,
-                            child: Text('16way'),
-                          ),
-                          const PopupMenuItem(
-                            value: 32,
-                            child: Text('32way'),
-                          ),
-                        ]),
+                        ],
+                      ),
+                      itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 8,
+                              child: Text('8way'),
+                            ),
+                            const PopupMenuItem(
+                              value: 16,
+                              child: Text('16way'),
+                            ),
+                            const PopupMenuItem(
+                              value: 32,
+                              child: Text('32way'),
+                            ),
+                          ]),
+                ),
               ],
             );
           }),
@@ -154,9 +173,9 @@ class _HoistControllerState extends State<HoistController> {
             itemCount: widget.viewModel.channels.length,
             itemBuilder: (context, index) {
               final channel = widget.viewModel.channels[index];
-
               return _HoistChannel(
                 viewModel: channel,
+                hoistChannelDelta: widget.channelDeltas[channel.uid],
                 showLandingZone: _hoveredOverRows.contains(index),
                 onHoveringOver: (count) =>
                     _handleHoverOverChannel(index, count),
@@ -188,6 +207,7 @@ class _HoistChannel extends StatelessWidget {
   final HoistChannelViewModel viewModel;
   final void Function(int count) onHoveringOver;
   final void Function() onHoverLeave;
+  final HoistChannelDelta? hoistChannelDelta;
 
   final bool showLandingZone;
 
@@ -197,6 +217,7 @@ class _HoistChannel extends StatelessWidget {
     required this.onHoveringOver,
     required this.onHoverLeave,
     required this.showLandingZone,
+    this.hoistChannelDelta,
   });
 
   @override
@@ -206,61 +227,71 @@ class _HoistChannel extends StatelessWidget {
       width: 1,
     );
 
-    return _wrapSelectionListener(
-      viewModel: viewModel,
-      child: DragTargetProxy<HoistDragData>(
-          onWillAcceptWithDetails: (details) {
-            onHoveringOver(details.data.viewModels.length);
-            return true;
-          },
-          onAcceptWithDetails: (details) {
-            viewModel.onHoistsLanded(
-                details.data.viewModels.map((vm) => vm.uid).toSet());
-            onHoverLeave();
-          },
-          onLeave: (_) => onHoverLeave(),
-          builder: (context, candidateData, rejectedData) {
-            return Container(
-              color: viewModel.selected ? Theme.of(context).focusColor : null,
-              foregroundDecoration: BoxDecoration(
-                border: showLandingZone
-                    ? const Border.fromBorderSide(hoveringBorderSide)
-                    : Border(
-                        bottom:
-                            BorderSide(width: 1, color: Colors.grey.shade800)),
-              ),
-              height: height,
-              child: Row(
-                children: [
-                  SizedBox(
-                      width: 48,
-                      child: Center(
-                        child: Text(
-                          viewModel.number.toString(),
-                          style:
-                              Theme.of(context).textTheme.labelLarge!.copyWith(
+    return DiffStateOverlay(
+      diff: hoistChannelDelta?.overallDiff,
+      child: _wrapSelectionListener(
+        viewModel: viewModel,
+        child: DragTargetProxy<HoistDragData>(
+            onWillAcceptWithDetails: (details) {
+              onHoveringOver(details.data.viewModels.length);
+              return true;
+            },
+            onAcceptWithDetails: (details) {
+              viewModel.onHoistsLanded(
+                  details.data.viewModels.map((vm) => vm.uid).toSet());
+              onHoverLeave();
+            },
+            onLeave: (_) => onHoverLeave(),
+            builder: (context, candidateData, rejectedData) {
+              return Container(
+                color: viewModel.selected ? Theme.of(context).focusColor : null,
+                foregroundDecoration: BoxDecoration(
+                  border: showLandingZone
+                      ? const Border.fromBorderSide(hoveringBorderSide)
+                      : Border(
+                          bottom: BorderSide(
+                              width: 1, color: Colors.grey.shade800)),
+                ),
+                height: height,
+                child: Row(
+                  children: [
+                    DiffStateOverlay(
+                      diff: hoistChannelDelta?.channelProperties
+                          .lookup(PropertyDeltaName.assignedHoistId),
+                      child: SizedBox(
+                          width: 48,
+                          child: Center(
+                            child: Text(
+                              viewModel.number.toString(),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge!
+                                  .copyWith(
                                     color: viewModel.isOverflowing
                                         ? Colors.amber
                                         : null,
                                   ),
-                        ),
-                      )),
-                  const VerticalDivider(),
-                  Expanded(
-                    child: viewModel.hoist == null
-                        ? const SizedBox()
-                        : _wrapDragProxy(
-                            child: _HoistChannelContents(
-                              viewModel: viewModel.hoist!,
-                              onClearButtonPressed: viewModel.onUnpatchHoist,
                             ),
-                            viewModel: viewModel,
-                          ),
-                  ),
-                ],
-              ),
-            );
-          }),
+                          )),
+                    ),
+                    const VerticalDivider(),
+                    Expanded(
+                      child: viewModel.hoist == null
+                          ? const SizedBox()
+                          : _wrapDragProxy(
+                              child: _HoistChannelContents(
+                                  viewModel: viewModel.hoist!,
+                                  onClearButtonPressed:
+                                      viewModel.onUnpatchHoist,
+                                  delta: hoistChannelDelta?.hoistDelta),
+                              viewModel: viewModel,
+                            ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+      ),
     );
   }
 
@@ -305,11 +336,13 @@ class _HoistChannel extends StatelessWidget {
 
 class _HoistChannelContents extends StatelessWidget {
   final HoistViewModel viewModel;
+  final HoistDelta? delta;
   final void Function() onClearButtonPressed;
   const _HoistChannelContents({
     super.key,
     required this.viewModel,
     required this.onClearButtonPressed,
+    this.delta,
   });
 
   @override
@@ -317,47 +350,62 @@ class _HoistChannelContents extends StatelessWidget {
     return HoverRegionBuilder(builder: (context, isHovering) {
       return Row(
         children: [
-          SizedBox(
-              width: HoistController.columnWidths[1],
-              child: Text(viewModel.hoist.name)),
+          DiffStateOverlay(
+            diff: delta?.properties.lookup(PropertyDeltaName.hoistName),
+            child: SizedBox(
+                width: HoistController.columnWidths[1],
+                child: Text(viewModel.hoist.name)),
+          ),
           const VerticalDivider(),
-          SizedBox(
-              width: HoistController.columnWidths[2],
-              child: Text(viewModel.locationName)),
+          DiffStateOverlay(
+            diff: delta?.properties.lookup(PropertyDeltaName.locationName),
+            child: SizedBox(
+                width: HoistController.columnWidths[2],
+                child: Text(viewModel.locationName)),
+          ),
           const VerticalDivider(),
-          SizedBox(
-              width: HoistController.columnWidths[3],
-              child: Text(viewModel.multi)),
+          DiffStateOverlay(
+            diff: delta?.properties.lookup(PropertyDeltaName.hoistMultiName),
+            child: SizedBox(
+                width: HoistController.columnWidths[3],
+                child: Text(viewModel.multi)),
+          ),
           const VerticalDivider(),
-          SizedBox(
-              width: HoistController.columnWidths[4],
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(viewModel.patch),
-                  if (viewModel.hasRootCable == false)
-                    const Tooltip(
-                      message:
-                          'Root cable missing:\nThere is no root cable (ie a feeder) existing for this channel.\nEnsure you have created a feeder cable for this outlet.',
-                      child: Icon(
-                        Icons.error,
-                        size: 20,
-                        color: Colors.orange,
-                      ),
-                    )
-                ],
-              )),
+          DiffStateOverlay(
+            diff: delta?.properties.lookup(PropertyDeltaName.hoistPatch),
+            child: SizedBox(
+                width: HoistController.columnWidths[4],
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(viewModel.patch),
+                    if (viewModel.hasRootCable == false)
+                      const Tooltip(
+                        message:
+                            'Root cable missing:\nThere is no root cable (ie a feeder) existing for this channel.\nEnsure you have created a feeder cable for this outlet.',
+                        child: Icon(
+                          Icons.error,
+                          size: 20,
+                          color: Colors.orange,
+                        ),
+                      )
+                  ],
+                )),
+          ),
           const VerticalDivider(),
-          SizedBox(
-              width: HoistController.columnWidths[5],
-              child: EditableTextField(
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium!
-                    .copyWith(fontStyle: FontStyle.italic),
-                value: viewModel.hoist.controllerNote,
-                onChanged: (newValue) => viewModel.onNoteChanged(newValue),
-              )),
+          DiffStateOverlay(
+            diff: delta?.properties.lookup(PropertyDeltaName.hoistNote),
+            child: SizedBox(
+                width: HoistController.columnWidths[5],
+                child: EditableTextField(
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium!
+                      .copyWith(fontStyle: FontStyle.italic),
+                  value: viewModel.hoist.controllerNote,
+                  onChanged: (newValue) => viewModel.onNoteChanged(newValue),
+                )),
+          ),
           if (isHovering)
             Expanded(
               child: Align(

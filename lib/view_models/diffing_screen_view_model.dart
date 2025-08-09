@@ -1,4 +1,5 @@
 import 'package:sidekick/view_models/fixture_diffing_item_view_model.dart';
+import 'package:sidekick/view_models/hoist_controller_diffing_view_model.dart';
 import 'package:sidekick/view_models/loom_diffing_item_view_model.dart';
 import 'package:sidekick/view_models/patch_diffing_item_view_model.dart';
 
@@ -9,6 +10,7 @@ class DiffingScreenViewModel {
   final List<FixtureDiffingItemViewModel> fixtureItemVms;
   final String comparisonFilePath;
   final String initialDirectory;
+  final List<HoistControllerDiffingViewModel> hoistControllerVms;
 
   DiffingScreenViewModel({
     required this.loomItemVms,
@@ -17,5 +19,6 @@ class DiffingScreenViewModel {
     required this.comparisonFilePath,
     required this.initialDirectory,
     required this.fixtureItemVms,
+    required this.hoistControllerVms,
   });
 }
