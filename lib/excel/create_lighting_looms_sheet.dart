@@ -8,16 +8,16 @@ import 'package:sidekick/excel/write_cable_row.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 
-void createLightingLoomsSheet({
+void createLoomsSheet({
   required Excel excel,
   required Store<AppState> store,
 }) {
   final loomVms = selectLoomViewModels(store, forExcel: true);
 
-  final sheet = excel['Lighting Looms'];
+  final sheet = excel['Looms'];
   final pointer = SheetIndexer();
 
-  excel.setDefaultSheet('Lighting Looms');
+  excel.setDefaultSheet('Looms');
 
   for (final loomVm in loomVms) {
     ///
@@ -84,8 +84,10 @@ void createLightingLoomsSheet({
     sheet.updateCell(
       pointer.current,
       TextCellValue(switch (loomVm.loom.type.type) {
-        LoomType.custom => "Custom",
-        LoomType.permanent => "Permanent"
+        LoomType.custom =>
+          "${loomVm.containsMotorCables ? 'Motor ' : ''}Custom",
+        LoomType.permanent =>
+          "${loomVm.containsMotorCables ? 'Motor ' : ''}Permanent"
       }),
       cellStyle: loomHeaderStyle.copyWith(
         horizontalAlignVal: HorizontalAlign.Right,

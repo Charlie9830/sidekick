@@ -72,6 +72,11 @@ class LoomHeader extends StatelessWidget {
                       const SizedBox(width: 8),
                     ],
                   ),
+                if (loomVm.containsMotorCables)
+                  const SizedBox(
+                    height: 28,
+                    child: CableFlag(text: 'Motor', color: Colors.deepPurple),
+                  ),
                 if (loomVm.loom.type.type == LoomType.permanent)
                   DiffStateOverlay(
                     diff: deltas?.lookup(PropertyDeltaName.loomType),

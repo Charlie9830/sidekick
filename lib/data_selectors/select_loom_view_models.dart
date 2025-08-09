@@ -107,6 +107,9 @@ List<LoomViewModel> selectLoomViewModels(
       return LoomViewModel(
           loom: loom,
           loomsOnlyIndex: index,
+          containsMotorCables: topLevelCables.any((cable) =>
+              cable.type == CableType.hoist ||
+              cable.type == CableType.hoistMulti),
           hasVariedLengthChildren:
               topLevelCables.map((cable) => cable.length).toSet().length > 1,
           name: _getLoomName(loom, store),

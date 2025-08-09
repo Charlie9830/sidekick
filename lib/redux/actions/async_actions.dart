@@ -2028,7 +2028,7 @@ ThunkAction<AppState> export(BuildContext context) {
 
     final loomsExcel = Excel.createExcel();
 
-    createLightingLoomsSheet(
+    createLoomsSheet(
       excel: loomsExcel,
       store: store,
     );
