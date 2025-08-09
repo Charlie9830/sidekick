@@ -93,6 +93,7 @@ HoistViewModel selectHoistViewModel(
 
   return HoistViewModel(
     hoist: hoist,
+    hasRootCable: associatedRootHoistCable != null,
     patch: associatedRootHoistCable == null
         ? ''
         : associatedRootHoistCable.parentMultiId.isEmpty

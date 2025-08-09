@@ -44,6 +44,7 @@ class HoistViewModel extends HoistItemBase implements ModelCollectionMember {
   final bool assigned;
   final String multi;
   final String patch;
+  final bool hasRootCable;
 
   @override
   String get uid => hoist.uid;
@@ -58,6 +59,7 @@ class HoistViewModel extends HoistItemBase implements ModelCollectionMember {
     required this.multi,
     required this.patch,
     required this.onNoteChanged,
+    required this.hasRootCable,
   });
 }
 

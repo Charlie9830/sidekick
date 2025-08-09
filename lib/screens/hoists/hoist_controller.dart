@@ -331,7 +331,22 @@ class _HoistChannelContents extends StatelessWidget {
           const VerticalDivider(),
           SizedBox(
               width: HoistController.columnWidths[4],
-              child: Text(viewModel.patch)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(viewModel.patch),
+                  if (viewModel.hasRootCable == false)
+                    const Tooltip(
+                      message:
+                          'Root cable missing:\nThere is no root cable (ie a feeder) existing for this channel.\nEnsure you have created a feeder cable for this outlet.',
+                      child: Icon(
+                        Icons.error,
+                        size: 20,
+                        color: Colors.orange,
+                      ),
+                    )
+                ],
+              )),
           const VerticalDivider(),
           SizedBox(
               width: HoistController.columnWidths[5],
