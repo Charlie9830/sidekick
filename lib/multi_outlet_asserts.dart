@@ -15,7 +15,7 @@ Map<String, T> assertMultiOutletState<T extends MultiOutlet>(
 
   final sortedOutlets = locations.values
       .map((location) => (outletsByLocationId[location.uid] ?? [])
-          .sorted((a, b) => b.number - a.number))
+          .sorted((a, b) => a.number - b.number))
       .flattened;
 
   final withAssertedNameAndNumbers =

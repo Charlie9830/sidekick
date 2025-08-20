@@ -74,7 +74,7 @@ CombineIntoMultiResult combineDmxIntoSneak({
                 cablesInLoom.isNotEmpty ? cablesInLoom.first.length : 0.0;
 
             final childSlices = cablesInLoom.slices(4);
-            return childSlices.map((slice) {
+            return childSlices.mapIndexed((index, slice) {
               if (slice.every((child) => child.isSpare)) {
                 throw 'Unable to combine into Sneak. Every child in this slice of at least 4 is a spare, meaning it does not have a parent outletId. Without that we cannot query for a locationId';
               }
@@ -91,9 +91,11 @@ CombineIntoMultiResult combineDmxIntoSneak({
                   ? DataMultiModel(
                       uid: getUid(),
                       locationId: targetLocationModel.uid,
+                      number: index + 1,
                     )
                   : reusableMultiOutlet.copyWith(
                       locationId: targetLocationModel.uid,
+                      number: index + 1,
                     );
 
               final sneak = reusableSneak?.copyWith(
@@ -193,7 +195,7 @@ CombineIntoMultiResult combineHoistsIntoMulti({
                 cablesInLoom.isNotEmpty ? cablesInLoom.first.length : 0.0;
 
             final childSlices = cablesInLoom.slices(4);
-            return childSlices.map((slice) {
+            return childSlices.mapIndexed((index, slice) {
               if (slice.every((child) => child.isSpare)) {
                 throw 'Unable to combine into Motor Multi. Every child in this slice of at least 4 is a spare, meaning it does not have a parent outletId. Without that we cannot query for a locationId';
               }
@@ -210,9 +212,11 @@ CombineIntoMultiResult combineHoistsIntoMulti({
                   ? HoistMultiModel(
                       uid: getUid(),
                       locationId: targetLocationModel.uid,
+                      number: index + 1,
                     )
                   : reusableMultiOutlet.copyWith(
                       locationId: targetLocationModel.uid,
+                      number: index + 1,
                     ));
 
               final multi = resuableMulti?.copyWith(
@@ -259,7 +263,6 @@ CombineIntoMultiResult combineHoistsIntoMulti({
       newMultisWithOutletsAndChildren.map((item) => item.$2).toList();
   final updatedChildren =
       newMultisWithOutletsAndChildren.map((item) => item.$3).flattened.toList();
-
 
   return CombineIntoMultiResult(
       cables: [...newMultis, ...updatedChildren],
