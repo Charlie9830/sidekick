@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sidekick/containers/diagnostics_container.dart';
 import 'package:sidekick/containers/export_container.dart';
 import 'package:sidekick/containers/file_container.dart';
 import 'package:sidekick/containers/fixture_table_container.dart';
@@ -34,12 +35,14 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return DefaultTabController(
       animationDuration: Duration.zero,
-      length: 10,
+      length: 11,
       initialIndex: 0,
       child: Scaffold(
         key: homeScaffoldKey,
         appBar: AppBar(
-          title: Text("Phase", style: Theme.of(context).textTheme.headlineMedium!.copyWith(fontFamily: "Orbitron", fontWeight: FontWeight.bold)),
+          title: Text("Phase",
+              style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                  fontFamily: "Orbitron", fontWeight: FontWeight.bold)),
           primary: true,
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           bottom: const TabBar(
@@ -85,6 +88,10 @@ class _HomeState extends State<Home> {
                 Tab(
                   icon: Icon(Icons.build),
                   child: Text('Lab'),
+                ),
+                Tab(
+                  icon: Icon(Icons.bug_report),
+                  child: Text("Diagnostics"),
                 )
               ]),
         ),
@@ -101,6 +108,7 @@ class _HomeState extends State<Home> {
             ExportContainer(),
             DiffingScreenContainer(),
             TheLab(),
+            DiagnosticsContainer(),
           ],
         ),
       ),
