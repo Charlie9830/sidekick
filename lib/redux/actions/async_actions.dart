@@ -1721,6 +1721,17 @@ ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
         .map((cable) => cable.outletId)
         .toSet();
 
+    // As Above we need to remove any Hoist Multis.
+    final hoistMultiIdsToRemove = allChildCables
+        .where((cable) =>
+            cable.type == CableType.hoistMulti &&
+            store.state.fixtureState.cables.values
+                .where((other) =>
+                    other.outletId == cable.outletId && other.uid != cable.uid)
+                .isEmpty)
+        .map((cable) => cable.outletId)
+        .toSet();
+
     final cableIdsToRemove = allChildCables.map((cable) => cable.uid).toSet();
 
     // Delete Cables and Loom
@@ -1734,6 +1745,12 @@ ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
     if (dataMultiIdsToRemove.isNotEmpty) {
       store.dispatch(SetDataMultis(store.state.fixtureState.dataMultis.clone()
         ..removeWhere((key, value) => dataMultiIdsToRemove.contains(key))));
+    }
+
+    // Optionally remove any corresponding Hoist Multi outlets.
+    if (hoistMultiIdsToRemove.isNotEmpty) {
+      store.dispatch(SetHoistMultis(store.state.fixtureState.hoistMultis.clone()
+        ..removeWhere((key, __) => hoistMultiIdsToRemove.contains(key))));
     }
 
     store.dispatch(SetSelectedCableIds({}));
