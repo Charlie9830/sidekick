@@ -1759,9 +1759,7 @@ ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
 
 ThunkAction<AppState> debugButtonPressed() {
   return (Store<AppState> store) async {
-    print("Debug Button Pressed");
-
-    store.dispatch(SetFixtures(store.state.fixtureState.fixtures));
+    print("No Action Performed");
   };
 }
 

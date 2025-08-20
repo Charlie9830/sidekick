@@ -9,22 +9,30 @@ class DiagnosticsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          children: [
-            TitledCard(
-              title: 'Hoist Multi Outlets',
-              child: Column(
-                children: vm.appState.fixtureState.hoistMultis.values
-                    .map((multi) => Text(
-                        '${multi.name}:   ${multi.number},   ${multi.locationId}'))
-                    .toList(),
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ElevatedButton(onPressed: vm.onDebugAction, child: Text("Debug Action")),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Row(
+                children: [
+                  TitledCard(
+                    title: 'Hoist Multi Outlets',
+                    child: Column(
+                      children: vm.appState.fixtureState.hoistMultis.values
+                          .map((multi) => Text(
+                              '${multi.name}:   ${multi.number},   ${multi.locationId}'))
+                          .toList(),
+                    ),
+                  )
+                ],
               ),
-            )
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
