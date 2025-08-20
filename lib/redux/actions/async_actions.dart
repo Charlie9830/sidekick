@@ -1486,10 +1486,15 @@ ThunkAction<AppState> deleteSelectedCables(BuildContext context) {
     final sneaks =
         selectedCables.where((cable) => cable.type == CableType.sneak);
 
+    final hoistMultis =
+        selectedCables.where((cable) => cable.type == CableType.hoistMulti);
+
     final selectedCablesWithChildren = [
       ...selectedCables,
       ...sneaks.expand((sneak) => store.state.fixtureState.cables.values
           .where((cable) => cable.parentMultiId == sneak.uid)),
+      ...hoistMultis.expand((multi) => store.state.fixtureState.cables.values
+          .where((cable) => cable.parentMultiId == multi.uid))
     ];
 
     final cableIdsToRemove =
@@ -1508,6 +1513,19 @@ ThunkAction<AppState> deleteSelectedCables(BuildContext context) {
         .nonNulls
         .toSet();
 
+    // Select Hoist Multi Outlets Ids to remove. We predicate this on if their are no other cables (ie extensions) that are
+    // dependenent on that outlet.
+    final hoistMultiIdsToRemove = hoistMultis
+        .map((multi) {
+          final otherHoistMultisWithSameOutlet =
+              store.state.fixtureState.cables.values.where((cable) =>
+                  cable.outletId == multi.outletId && cable.uid != multi.uid);
+
+          return otherHoistMultisWithSameOutlet.isEmpty ? multi.outletId : null;
+        })
+        .nonNulls
+        .toSet();
+
     store.dispatch(SetCables(assertMultiChildSpares(
         store.state.fixtureState.cables.clone()
           ..removeWhere((key, value) => cableIdsToRemove.contains(key)))));
@@ -1515,6 +1533,11 @@ ThunkAction<AppState> deleteSelectedCables(BuildContext context) {
     if (dataMultiIdsToRemove.isNotEmpty) {
       store.dispatch(SetDataMultis(store.state.fixtureState.dataMultis.clone()
         ..removeWhere((key, __) => dataMultiIdsToRemove.contains(key))));
+    }
+
+    if (hoistMultiIdsToRemove.isNotEmpty) {
+      store.dispatch(SetHoistMultis(store.state.fixtureState.hoistMultis.clone()
+        ..removeWhere((key, _) => hoistMultiIdsToRemove.contains(key))));
     }
   };
 }
