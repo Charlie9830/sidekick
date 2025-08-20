@@ -6,9 +6,10 @@ enum LoomsDraggingState {
 }
 
 enum ImportManagerStep {
-  fileSelect(1),
-  fixtureMapping(2),
-  viewData(3);
+  fileSelect(0),
+  fixtureMapping(1),
+  viewData(2),
+  mergeData(3);
 
   final int stepNumber;
   const ImportManagerStep(this.stepNumber);
@@ -18,6 +19,7 @@ enum ImportManagerStep {
     ImportManagerStep.fixtureMapping.stepNumber:
         ImportManagerStep.fixtureMapping,
     ImportManagerStep.viewData.stepNumber: ImportManagerStep.viewData,
+    ImportManagerStep.mergeData.stepNumber: ImportManagerStep.mergeData,
   };
 }
 

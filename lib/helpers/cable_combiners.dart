@@ -213,7 +213,7 @@ CombineIntoMultiResult combineHoistsIntoMulti({
                     )
                   : reusableMultiOutlet.copyWith(
                       locationId: targetLocationModel.uid,
-                    )) as HoistMultiModel;
+                    ));
 
               final multi = resuableMulti?.copyWith(
                     length: inheritedLength,
@@ -256,9 +256,10 @@ CombineIntoMultiResult combineHoistsIntoMulti({
   // Destructure each Multi, Outlet and children collections.
   final newMultis = newMultisWithOutletsAndChildren.map((item) => item.$1);
   final newMultiOutlets =
-      newMultisWithOutletsAndChildren.map((item) => item.$2);
+      newMultisWithOutletsAndChildren.map((item) => item.$2).toList();
   final updatedChildren =
       newMultisWithOutletsAndChildren.map((item) => item.$3).flattened.toList();
+
 
   return CombineIntoMultiResult(
       cables: [...newMultis, ...updatedChildren],

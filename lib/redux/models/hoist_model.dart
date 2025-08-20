@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
 
-class HoistModel extends Outlet {
+class HoistModel extends Outlet implements Comparable<HoistModel> {
   final HoistControllerChannelAssignment parentController;
   final String controllerNote;
 
@@ -21,7 +21,6 @@ class HoistModel extends Outlet {
     String? uid,
     String? name,
     String? locationId,
-    int? locationIndex,
     HoistControllerChannelAssignment? parentController,
     int? number,
     String? controllerNote,
@@ -103,6 +102,11 @@ class HoistModel extends Outlet {
     } else {
       return '$multiPrefix ${countWithoutPicks + 1}';
     }
+  }
+
+  @override
+  int compareTo(HoistModel other) {
+    return number - other.number;
   }
 }
 

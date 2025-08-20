@@ -15,6 +15,7 @@ import 'package:sidekick/screens/file/import_module/fixture_mapping_view_model.d
 import 'package:sidekick/screens/file/import_module/import_manager_result.dart';
 import 'package:sidekick/screens/file/import_module/incoming_fixture_item_view_model.dart';
 import 'package:sidekick/screens/file/import_module/map_fixture_types.dart';
+import 'package:sidekick/screens/file/import_module/merge_data_step.dart';
 
 import 'package:sidekick/screens/file/import_module/mvr_import_settings.dart';
 import 'package:sidekick/screens/file/import_module/patch_import_settings.dart';
@@ -48,6 +49,7 @@ class _ImportManagerState extends State<ImportManager> {
   bool _isFixtureDatabasePathValid = false;
   List<RawFixtureModel> _incomingFixtures = const [];
   List<RawLocationModel> _incomingLocations = const [];
+  Map<String, String> _locationMapping = {};
 
   @override
   void initState() {
@@ -147,6 +149,16 @@ class _ImportManagerState extends State<ImportManager> {
                         _fixtureTypeMapping,
                       ),
                     ),
+                  ImportManagerStep.mergeData => MergeDataStep(
+                      locationMapping: _locationMapping,
+                      existingLocations: widget.vm.existingLocations,
+                      incomingLocations:
+                          Map<String, RawLocationModel>.fromEntries(
+                              _incomingLocations.map(
+                                  (loc) => MapEntry(loc.generatedId, loc))),
+                      onLocationMappingUpdated: (mapping) =>
+                          setState(() => _locationMapping = mapping),
+                    )
                 },
               ),
             ],
@@ -199,6 +211,7 @@ class _ImportManagerState extends State<ImportManager> {
             .map((mapping) => mapping.existsInDatabase)
             .every((item) => item == true),
       ImportManagerStep.viewData => true,
+      ImportManagerStep.mergeData => true
     };
   }
 
@@ -399,16 +412,25 @@ class _ImportManagerState extends State<ImportManager> {
       case ImportManagerStep.fixtureMapping:
         _loadFixtureMappingStep();
       case ImportManagerStep.viewData:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        return;
+      case ImportManagerStep.mergeData:
+        return;
     }
   }
 
   void _loadViewDataStep() async {}
 
+  void _loadMergeDataStep() async {}
+
   void _handleNextButtonPressed() async {
-    final nextStep =
+    ImportManagerStep? nextStep =
         ImportManagerStep.byStepNumber[widget.vm.step.stepNumber + 1];
+
+    if (nextStep == ImportManagerStep.mergeData &&
+        _importSettings.source == PatchSource.mvr) {
+      // The next step is to resolve data conflicts, however we only need to do this if we aren't importing from MVR.
+      nextStep = null;
+    }
 
     if (nextStep == null) {
       _handleFinish();
@@ -424,6 +446,8 @@ class _ImportManagerState extends State<ImportManager> {
         _loadFixtureMappingStep();
       case ImportManagerStep.viewData:
         _loadViewDataStep();
+      case ImportManagerStep.mergeData:
+        _loadMergeDataStep();
     }
   }
 
@@ -461,15 +485,27 @@ class _ImportManagerState extends State<ImportManager> {
     final locations = [
       // Process incoming Locations and Merge with Existing Locations if applicable.
       ..._incomingLocations.map((incomingLocation) {
-        final existingLocation =
+        final existingMvrLocation =
             widget.vm.existingLocations[incomingLocation.mvrId];
 
-        if (existingLocation != null) {
-          return existingLocation.copyWith(
+        if (existingMvrLocation != null) {
+          // Matching MVR Location found, Merge properties from the incoming location in, nominally only name.
+          return existingMvrLocation.copyWith(
             name: incomingLocation.name,
           );
         }
 
+        final existingMappedLocation = widget.vm
+            .existingLocations[_locationMapping[incomingLocation.generatedId]];
+
+        if (existingMappedLocation != null) {
+          // Found a matching location (That was manually Mapped by the user)
+          return existingMappedLocation.copyWith(
+            name: incomingLocation.name,
+          );
+        }
+
+        // Nothing existing. Create a new one.
         return LocationModel(
             uid: incomingLocation.mvrId.isNotEmpty
                 ? incomingLocation.mvrId
@@ -485,7 +521,11 @@ class _ImportManagerState extends State<ImportManager> {
       // TODO: This will likely need to be smarter about how it marries in hybrid locations. For example, there should be some sort of handling
       // for when incoming locations does not contain a location that one of these Hybrids points to.
       ...widget.vm.existingLocations.values
-          .where((location) => location.isHybrid)
+          .where((location) => location.isHybrid),
+
+      // Marry with existing Rigging Only Locations.
+      ...widget.vm.existingLocations.values
+          .where((location) => location.isRiggingOnlyLocation),
     ];
 
     final existingInUseFixtureTypes = widget.vm.existingFixtures.values

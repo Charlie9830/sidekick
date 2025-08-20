@@ -567,12 +567,39 @@ Map<String, CableModel> _assertCableState({
   required Map<String, HoistMultiModel> hoistMultis,
 }) {
   final cablesByOutletId = cables.values.groupListsBy((item) => item.outletId);
+
+  final powerMultisByLocationId =
+      powerMultiOutlets.values.groupListsBy((element) => element.locationId);
+  final dataMultisByLocationId =
+      dataMultis.values.groupListsBy((element) => element.locationId);
+  final dataPatchesByLocationId =
+      dataPatches.values.groupListsBy((element) => element.locationId);
+  final hoistOutletsByLocationId =
+      hoistOutlets.values.groupListsBy((element) => element.locationId);
+  final hoistMultisByLocationId =
+      hoistMultis.values.groupListsBy((element) => element.locationId);
+
   final orderedOutletIds = [
-    ...powerMultiOutlets.keys,
-    ...dataMultis.keys,
-    ...dataPatches.keys,
-    ...hoistOutlets.keys,
-    ...hoistMultis.keys,
+    ...powerMultisByLocationId.values
+        .map((outletsInLocation) => outletsInLocation.sorted())
+        .flattened
+        .map((item) => item.uid),
+    ...dataMultisByLocationId.values
+        .map((outletsInLocation) => outletsInLocation.sorted())
+        .flattened
+        .map((item) => item.uid),
+    ...dataPatchesByLocationId.values
+        .map((outletsInLocation) => outletsInLocation.sorted())
+        .flattened
+        .map((item) => item.uid),
+    ...hoistMultisByLocationId.values
+        .map((outletsInLocation) => outletsInLocation.sorted())
+        .flattened
+        .map((item) => item.uid),
+    ...hoistOutletsByLocationId.values
+        .map((outletsInLocation) => outletsInLocation.sorted())
+        .flattened
+        .map((item) => item.uid),
 
     '', // Spare cables will have an empty outletId field. Therefore we need to include an empty string here, otherwise
     // the spares will get inadvertantly filltered out.
