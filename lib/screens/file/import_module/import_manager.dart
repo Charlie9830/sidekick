@@ -455,7 +455,8 @@ class _ImportManagerState extends State<ImportManager> {
     final fixtureTypesByShortName =
         _getFixtureDatabaseEntriesByShortName(_fixtureTypes);
 
-    final fixtures = _incomingFixtures.mapIndexed((index, incomingFixture) {
+    List<FixtureModel> fixtures =
+        _incomingFixtures.mapIndexed((index, incomingFixture) {
       final incomingId = incomingFixture.mvrId.isNotEmpty
           ? incomingFixture.mvrId
           : incomingFixture.generatedId;
@@ -482,6 +483,8 @@ class _ImportManagerState extends State<ImportManager> {
       );
     }).toList();
 
+    final locationIdRemappings = <_LocationIdRemapping>[];
+
     final locations = [
       // Process incoming Locations and Merge with Existing Locations if applicable.
       ..._incomingLocations.map((incomingLocation) {
@@ -499,6 +502,12 @@ class _ImportManagerState extends State<ImportManager> {
             .existingLocations[_locationMapping[incomingLocation.generatedId]];
 
         if (existingMappedLocation != null) {
+          // Keep track of remapping to existing locations as we need to update the reference the fixture has later.
+          // TODO: This is bad practice, Side affect from a pure function.
+          locationIdRemappings.add(_LocationIdRemapping(
+              generatedIncomingLocationId: incomingLocation.generatedId,
+              mappedId: existingMappedLocation.uid));
+
           // Found a matching location (That was manually Mapped by the user)
           return existingMappedLocation.copyWith(
             name: incomingLocation.name,
@@ -527,6 +536,19 @@ class _ImportManagerState extends State<ImportManager> {
       ...widget.vm.existingLocations.values
           .where((location) => location.isRiggingOnlyLocation),
     ];
+
+    // Adjust each incoming fixtures locationId to match any remappings we made.
+    // TODO: This is probably Big O notation terrible.
+    if (locationIdRemappings.isNotEmpty) {
+      for (final remapping in locationIdRemappings) {
+        fixtures = fixtures
+            .map((fixture) =>
+                fixture.locationId == remapping.generatedIncomingLocationId
+                    ? fixture.copyWith(locationId: remapping.mappedId)
+                    : fixture)
+            .toList();
+      }
+    }
 
     final existingInUseFixtureTypes = widget.vm.existingFixtures.values
         .map((fixture) => fixture.typeId)
@@ -623,3 +645,13 @@ const _kPatchSourceToMappingFlavour = {
   PatchSource.grandMA2XML: MappingFlavour.ma2,
   PatchSource.mvr: MappingFlavour.mvr,
 };
+
+class _LocationIdRemapping {
+  final String generatedIncomingLocationId;
+  final String mappedId;
+
+  _LocationIdRemapping({
+    required this.generatedIncomingLocationId,
+    required this.mappedId,
+  });
+}

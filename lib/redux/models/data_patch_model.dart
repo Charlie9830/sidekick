@@ -27,6 +27,8 @@ class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
 
   String get nameWithUniverse => '$name $universeLabel';
 
+  String get universeWithName => '$universeLabel  ($name)';
+
   String get universeLabel => 'U$universe';
 
   @override

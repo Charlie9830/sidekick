@@ -159,7 +159,7 @@ class CableRowItem extends StatelessWidget {
 
               // Label
               SizedBox(
-                width: 164,
+                width: 264,
                 child: DiffStateOverlay(
                   diff: cableDelta?.properties.lookup(PropertyDeltaName.label),
                   child: Row(
