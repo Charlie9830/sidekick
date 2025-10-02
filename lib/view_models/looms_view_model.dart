@@ -18,6 +18,8 @@ class LoomsViewModel {
       onLoomsDraggingStateChanged;
   final void Function(List<String> outletIds, int insertIndex,
       Set<CableActionModifier> modifiers) onCreateNewFeederLoom;
+  final void Function(List<String> cableIds, int insertIndex,
+      Set<CableActionModifier> modifiers) onCreateNewLoomFromExistingCables;
   final List<LoomViewModel> loomVms;
   final Set<String> selectedCableIds;
   final void Function(Set<String> ids) onSelectCables;
@@ -58,6 +60,7 @@ class LoomsViewModel {
     required this.availabilityDrawOpen,
     required this.stockVms,
     required this.onSetupQuantiesDrawerButtonPressed,
+    required this.onCreateNewLoomFromExistingCables,
   });
 }
 

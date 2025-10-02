@@ -14,11 +14,15 @@ class NewLoomDropTargetOverlay extends StatelessWidget {
       onDropAsFeeder;
   final void Function(List<String> cableIds, Set<CableActionModifier> modifiers)
       onDropAsExtension;
+  final void Function(List<String> cableIds, Set<CableActionModifier> modifiers)
+      onDropAsMoveCablesToNewLoom;
 
-  const NewLoomDropTargetOverlay(
-      {super.key,
-      required this.onDropAsFeeder,
-      required this.onDropAsExtension});
+  const NewLoomDropTargetOverlay({
+    super.key,
+    required this.onDropAsFeeder,
+    required this.onDropAsExtension,
+    required this.onDropAsMoveCablesToNewLoom,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,8 +38,14 @@ class NewLoomDropTargetOverlay extends StatelessWidget {
               onDropAsFeeder(data.outletVms.toList(),
                   mapCableActionModifierKeys(keysDown));
             }
+
+            if (data is CableDragData) {
+              onDropAsMoveCablesToNewLoom(
+                  data.cableIds.toList(), mapCableActionModifierKeys(keysDown));
+            }
           },
-          onWillAccept: (data) => data is OutletDragData,
+          onWillAccept: (data) =>
+              data is OutletDragData || data is CableDragData,
           leadingInfoTag: mapCableActionModifierKeys(keysDown)
                   .contains(CableActionModifier.convertToPermanent)
               ? const CreateAsPermanentLoomInfoTag()

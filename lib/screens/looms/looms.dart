@@ -221,12 +221,15 @@ class _LoomsState extends State<Looms> {
       bool expand = false,
     }) =>
         LoomItemDivider(
-            expand: expand,
-            onDropAsFeeder: (outletVms, modifier) =>
-                _handleCreateNewFeederLoom(outletVms, dividerIndex, modifier),
-            onDropAsExtension: (cableIds, modifier) =>
-                _handleCreateNewExtensionLoom(
-                    cableIds, dividerIndex, modifier));
+          expand: expand,
+          onDropAsFeeder: (outletVms, modifier) =>
+              _handleCreateNewFeederLoom(outletVms, dividerIndex, modifier),
+          onDropAsExtension: (cableIds, modifier) =>
+              _handleCreateNewExtensionLoom(cableIds, dividerIndex, modifier),
+          onDropAsMoveCablesToNewLoom: (cableIds, modifier) =>
+              _handleCreateNewLoomFromExistingCables(
+                  cableIds, dividerIndex, modifier),
+        );
 
     return Padding(
       key: Key(loomVm.loom.uid),
@@ -283,6 +286,12 @@ class _LoomsState extends State<Looms> {
       int dividerIndex, Set<CableActionModifier> modifiers) {
     widget.vm.onCreateNewFeederLoom(
         droppedVms.map((item) => item.uid).toList(), dividerIndex, modifiers);
+  }
+
+  void _handleCreateNewLoomFromExistingCables(List<String> cableIds,
+      int dividerIndex, Set<CableActionModifier> modifiers) {
+    widget.vm
+        .onCreateNewLoomFromExistingCables(cableIds, dividerIndex, modifiers);
   }
 
   void _handleCreateNewExtensionLoom(List<String> cableIds, int dividerIndex,

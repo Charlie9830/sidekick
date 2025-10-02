@@ -14,6 +14,7 @@ class LoomItemDivider extends StatefulWidget {
     super.key,
     required this.onDropAsFeeder,
     required this.onDropAsExtension,
+    required this.onDropAsMoveCablesToNewLoom,
     this.expand = false,
   });
 
@@ -22,6 +23,8 @@ class LoomItemDivider extends StatefulWidget {
       onDropAsFeeder;
   final void Function(List<String> cableIds, Set<CableActionModifier> modifiers)
       onDropAsExtension;
+  final void Function(List<String> cableIds, Set<CableActionModifier> modifiers)
+      onDropAsMoveCablesToNewLoom;
 
   @override
   State<LoomItemDivider> createState() => _LoomItemDividerState();
@@ -90,6 +93,8 @@ class _LoomItemDividerState extends State<LoomItemDivider>
                       ? NewLoomDropTargetOverlay(
                           onDropAsFeeder: widget.onDropAsFeeder,
                           onDropAsExtension: widget.onDropAsExtension,
+                          onDropAsMoveCablesToNewLoom:
+                              widget.onDropAsMoveCablesToNewLoom,
                         )
                       : const SizedBox.shrink())),
         ));

@@ -29,6 +29,8 @@ class _NoLoomsHoverFallbackState extends State<NoLoomsHoverFallback> {
         if (DragProxyMessenger.of(context)!.isDragging)
           NewLoomDropTargetOverlay(
             onDropAsFeeder: widget.onCreateNewLoom,
+            onDropAsMoveCablesToNewLoom: (_,
+                __) {}, // Stubbed because the user shouldn't be able to drag cables into a loom if no looms exist yet.,
             onDropAsExtension: (_,
                 __) {}, // Stubbed because the user shouldn't be able to create an extension loom when no looms exist.
           )

@@ -11,6 +11,7 @@ import 'package:path/path.dart' as p;
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:sidekick/excel/create_hoist_patch_sheet.dart';
+import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/screens/hoists/add_or_edit_rigging_location.dart';
 import 'package:sidekick/screens/hoists/hoist_controller.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
@@ -997,6 +998,86 @@ ThunkAction<AppState> combineSelectedCablesIntoMultis(BuildContext context) {
   };
 }
 
+ThunkAction<AppState> createNewLoomFromExistingCables(
+    BuildContext context,
+    List<String> cableIds,
+    int insertIndex,
+    Set<CableActionModifier> modifiers) {
+  return (Store<AppState> store) async {
+    final newLoomId = getUid();
+
+    final updatedCables = cableIds
+        .map((id) => store.state.fixtureState.cables[id])
+        .nonNulls
+        .map((cable) => cable.copyWith(
+              loomId: newLoomId,
+            ))
+        .toList();
+
+    if (updatedCables.isEmpty) {
+      return;
+    }
+
+    final associatedLocations = extractLocationsFromOutlets(
+        updatedCables
+            .map((cable) => cable.outletId)
+            .map((outletId) => [
+                  store.state.fixtureState.powerMultiOutlets[outletId],
+                  store.state.fixtureState.dataMultis[outletId],
+                  store.state.fixtureState.dataPatches[outletId],
+                  store.state.fixtureState.hoists[outletId],
+                  store.state.fixtureState.hoistMultis[outletId],
+                ])
+            .flattened
+            .nonNulls
+            .toList(),
+        store.state.fixtureState.locations);
+
+    final newLoom = LoomModel(
+      uid: newLoomId,
+      type: LoomTypeModel(
+          length: updatedCables.first.length, type: LoomType.custom),
+      name: determineDefaultLoomName(
+          associatedPrimaryLocation: associatedLocations.first,
+          children: updatedCables,
+          existingLooms: store.state.fixtureState.looms,
+          existingOutlets: selectAllOutlets(store),
+          existingCables: store.state.fixtureState.cables),
+    );
+
+    final actionModifierResult = applyCableActionModifiers(
+      modifiers: modifiers,
+      cables: updatedCables.toModelMap(),
+      dataMultis: store.state.fixtureState.dataMultis,
+      hoistMultis: store.state.fixtureState.hoistMultis,
+      locations: store.state.fixtureState.locations,
+      loom: newLoom,
+      outlets: [
+        ...store.state.fixtureState.powerMultiOutlets.values,
+        ...store.state.fixtureState.dataMultis.values,
+        ...store.state.fixtureState.dataPatches.values,
+        ...store.state.fixtureState.hoists.values,
+        ...store.state.fixtureState.hoistMultis.values,
+      ].toModelMap(),
+    );
+
+    _performPostCableActionModifierDispatches(
+        context, store, actionModifierResult);
+
+    store.dispatch(SetCablesAndLooms(
+      store.state.fixtureState.cables.clone()
+        ..addAll(actionModifierResult.cables),
+      store.state.fixtureState.looms.copyWithInsertedEntry(
+          (insertIndex - 1).clamp(0, 99999),
+          convertToMapEntry(actionModifierResult.loom)),
+    ));
+
+    store.dispatch(SetSelectedCableIds(
+      updatedCables.map((cable) => cable.uid).toSet(),
+    ));
+  };
+}
+
 ThunkAction<AppState> createNewFeederLoom(
     BuildContext context,
     List<String> outletIds,
@@ -1076,8 +1157,6 @@ ThunkAction<AppState> createNewFeederLoom(
 
     _performPostCableActionModifierDispatches(
         context, store, actionModifierResult);
-
-    print('Stop');
 
     store.dispatch(SetCablesAndLooms(
       store.state.fixtureState.cables.clone()

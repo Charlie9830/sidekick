@@ -65,6 +65,7 @@ class LoomsContainer extends StatelessWidget {
               store.dispatch(splitSelectedMultis(context)),
           onCreateNewFeederLoom: (outletIds, insertIndex, modifiers) => store.dispatch(
               createNewFeederLoom(context, outletIds, insertIndex, modifiers)),
+          onCreateNewLoomFromExistingCables: (cableIds, insertindex, modifiers) => store.dispatch(createNewLoomFromExistingCables(context, cableIds, insertindex, modifiers)),
           onCreateNewExtensionLoom: (cableIds, insertIndex, modifiers) =>
               store.dispatch(
                   createNewExtensionLoom(context, cableIds, insertIndex, modifiers)),
