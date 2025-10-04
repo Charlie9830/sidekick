@@ -420,16 +420,48 @@ class _ImportManagerState extends State<ImportManager> {
 
   void _loadViewDataStep() async {}
 
-  void _loadMergeDataStep() async {}
+  void _loadMergeDataStep() async {
+    // Attempt to Map existing Locations to incoming locations as a starting point.
+    final existingLocationsByName = widget.vm.existingLocations.values
+        .groupListsBy((location) => location.name)
+        .map((name, locations) => MapEntry(name, locations.first));
+
+    final incomingLocationsByName = Map<String, RawLocationModel>.fromEntries(
+        _incomingLocations
+            .map((incoming) => MapEntry(incoming.name, incoming)));
+
+    final locationMappings = Map<String, String>.fromEntries(
+        existingLocationsByName
+            .entries
+            .map((existingLocationEntry) =>
+                incomingLocationsByName.keys.contains(existingLocationEntry.key)
+                    ? MapEntry(
+                        incomingLocationsByName[existingLocationEntry.key]!
+                            .generatedId,
+                        existingLocationEntry.value.uid)
+                    : null)
+            .nonNulls);
+
+    setState(() {
+      _locationMapping = locationMappings;
+    });
+  }
 
   void _handleNextButtonPressed() async {
     ImportManagerStep? nextStep =
         ImportManagerStep.byStepNumber[widget.vm.step.stepNumber + 1];
 
-    if (nextStep == ImportManagerStep.mergeData &&
-        _importSettings.source == PatchSource.mvr) {
-      // The next step is to resolve data conflicts, however we only need to do this if we aren't importing from MVR.
-      nextStep = null;
+    // Guard against needlessly entering into the Grandma2 Patch Location Merging workflow.
+    if (nextStep == ImportManagerStep.mergeData) {
+      if (_importSettings.source == PatchSource.mvr) {
+        // No need to enter merge step if we are coming from MVR.
+        nextStep = null;
+      }
+
+      if (widget.vm.existingLocations.isEmpty) {
+        // No need to enter merge step if we don't have any existing locations to merge with.
+        nextStep = null;
+      }
     }
 
     if (nextStep == null) {
