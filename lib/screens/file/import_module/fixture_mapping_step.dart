@@ -58,7 +58,7 @@ class FixtureMappingStep extends StatelessWidget {
 }
 
 const double _kLeadingColumnWidth = 48;
-const double _kSourceWidth = 300;
+const double _kSourceWidth = 332;
 const double _kMappedWidth = 200;
 const double _kMapsToIconWidth = 100;
 
@@ -101,11 +101,9 @@ class _FixtureMappingItem extends StatelessWidget {
                 children: [
                   _Value(
                     vm.mapping.sourceFixtureType,
-                    alignment: MainAxisAlignment.end,
                   ),
                   _Value(
                     vm.mapping.sourceFixtureMode,
-                    alignment: MainAxisAlignment.end,
                   ),
                 ],
               ),
@@ -131,11 +129,9 @@ class _FixtureMappingItem extends StatelessWidget {
                 children: [
                   _Value(
                     vm.mapping.mappedFixtureType,
-                    alignment: MainAxisAlignment.start,
                   ),
                   _Value(
                     vm.mapping.mappedFixtureMode,
-                    alignment: MainAxisAlignment.start,
                   ),
                 ],
               ),
@@ -237,18 +233,18 @@ class _MappingErrorDisplay extends StatelessWidget {
 
 class _Value extends StatelessWidget {
   final String value;
-  final MainAxisAlignment alignment;
 
-  const _Value(
-    this.value, {
-    this.alignment = MainAxisAlignment.start,
-  });
+  const _Value(this.value);
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: alignment,
-      children: [Text(value)],
+    return Tooltip(
+      message: value,
+      waitDuration: const Duration(milliseconds: 500),
+      child: Text(
+        value,
+        overflow: TextOverflow.ellipsis,
+      ),
     );
   }
 }
