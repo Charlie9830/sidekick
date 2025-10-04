@@ -100,7 +100,7 @@ class HoistModel extends Outlet implements Comparable<HoistModel> {
     if (lastMultiPrefixCharacter.contains(RegExp(r'[0-9]'))) {
       return '$multiPrefix.${countWithoutPicks + 1}';
     } else {
-      return '$multiPrefix ${countWithoutPicks + 1}';
+      return '$multiPrefix${countWithoutPicks + 1}';
     }
   }
 
