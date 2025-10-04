@@ -11,7 +11,8 @@ class AddOrEditRiggingLocation extends StatefulWidget {
   const AddOrEditRiggingLocation({super.key, this.existingLocation});
 
   @override
-  State<AddOrEditRiggingLocation> createState() => _AddOrEditRiggingLocationState();
+  State<AddOrEditRiggingLocation> createState() =>
+      _AddOrEditRiggingLocationState();
 }
 
 class _AddOrEditRiggingLocationState extends State<AddOrEditRiggingLocation> {
@@ -120,12 +121,14 @@ class _AddOrEditRiggingLocationState extends State<AddOrEditRiggingLocation> {
   }
 
   void onSubmit() {
-    Navigator.of(context).pop(AddRiggingLocationDialogResult(
-      name: _nameController.text,
-      prefix: _prefixController.text,
-      labelColor: _labelColor,
-      delimiter: _delimiterController.text,
-    ));
+    if (Navigator.of(context).canPop() == true) {
+      Navigator.of(context).pop(AddRiggingLocationDialogResult(
+        name: _nameController.text,
+        prefix: _prefixController.text,
+        labelColor: _labelColor,
+        delimiter: _delimiterController.text,
+      ));
+    }
   }
 }
 
