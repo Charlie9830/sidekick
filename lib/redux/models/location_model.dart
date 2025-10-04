@@ -281,9 +281,9 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       RegExp('purple', caseSensitive: false): 'P',
 
       // Locations
-      RegExp('Front', caseSensitive: false): 'FRT ',
-      RegExp('Mid', caseSensitive: false): 'MID ',
-      RegExp('Back', caseSensitive: false): 'BACK ',
+      RegExp('Front', caseSensitive: false): 'FRT',
+      RegExp('Mid', caseSensitive: false): 'MID',
+      RegExp('Back', caseSensitive: false): 'BACK',
 
       // LX's
       RegExp('LX1', caseSensitive: false): 'LX1',
