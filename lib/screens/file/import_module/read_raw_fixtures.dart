@@ -113,33 +113,26 @@ Future<ImportRawFixturesResult> _readMvrPatch(
 
   final rawFixtures = mvrReader.generalSceneDescription.layers
       .map(
-        (layer) => layer.fixtures.map(
-          (fixture) => RawFixtureModel(
-            generatedId: getUid(),
-            mvrId: fixture.uuid,
-            mvrLayerId: layer.uuid,
-            fixtureId: int.tryParse(fixture.fixtureId) ?? 0,
-            fixtureIdString: fixture.fixtureId,
-            fixtureMode: fixture.gdtfMode,
-            fixtureType: fixture.gdtfSpec,
-            address: DMXAddressModel.fromGlobal(
-                fixture.addresses.singleGlobalAddress ?? 0),
-            mvrLocationId: switch (settings.mvrLocationDataSource) {
-              MvrLocationDataSource.layers => layer.uuid,
-              // TODO: Handle this case.
-              MvrLocationDataSource.classes => throw UnimplementedError(),
-              // TODO: Handle this case.
-              MvrLocationDataSource.position => throw UnimplementedError(),
-            },
-            locationName: switch (settings.mvrLocationDataSource) {
-              MvrLocationDataSource.layers => layer.name,
-              MvrLocationDataSource.classes => fixture.classing,
-              MvrLocationDataSource.position => fixture.position,
-            },
-          ),
-        ),
+        (layer) =>
+            layer.children.map((graphicObject) => switch (graphicObject) {
+                  MVRFixture o => [
+                      _mapFixture(
+                        fixture: o,
+                        locationSource: settings.mvrLocationDataSource,
+                        parentLayer: layer,
+                      )
+                    ],
+                  MVRGroupObject g => g.fixtures.map((fixture) => _mapFixture(
+                        fixture: fixture,
+                        locationSource: settings.mvrLocationDataSource,
+                        parentLayer: layer,
+                        parentGroup: g,
+                      ))
+                }),
       )
-      .flattened;
+      .flattened
+      .flattened
+      .toList();
 
   final locations = Map<String, RawLocationModel>.fromEntries(
       rawFixtures.map((fixture) => MapEntry(
@@ -154,6 +147,39 @@ Future<ImportRawFixturesResult> _readMvrPatch(
       fixtures: rawFixtures.toList(),
       error: null,
       locations: locations.values.toList());
+}
+
+RawFixtureModel _mapFixture({
+  required MVRFixture fixture,
+  required MVRLayer parentLayer,
+  required MvrLocationDataSource locationSource,
+  MVRGroupObject? parentGroup,
+}) {
+  return RawFixtureModel(
+    generatedId: getUid(),
+    mvrId: fixture.uuid,
+    mvrLayerId: parentLayer.uuid,
+    fixtureId: int.tryParse(fixture.fixtureId) ?? 0,
+    fixtureIdString: fixture.fixtureId,
+    fixtureMode: fixture.gdtfMode,
+    fixtureType: fixture.gdtfSpec,
+    address:
+        DMXAddressModel.fromGlobal(fixture.addresses.singleGlobalAddress ?? 0),
+    mvrLocationId: switch (locationSource) {
+      MvrLocationDataSource.layers => parentLayer.uuid,
+      MvrLocationDataSource.grouping => parentGroup?.uuid ?? '',
+      // TODO: Handle this case.
+      MvrLocationDataSource.classes => throw UnimplementedError(),
+      // TODO: Handle this case.
+      MvrLocationDataSource.position => throw UnimplementedError(),
+    },
+    locationName: switch (locationSource) {
+      MvrLocationDataSource.layers => parentLayer.name,
+      MvrLocationDataSource.classes => fixture.classing,
+      MvrLocationDataSource.position => fixture.position,
+      MvrLocationDataSource.grouping => parentGroup?.name ?? '',
+    },
+  );
 }
 
 DMXAddressModel _extractMa2DmxAddress(XmlElement fixtureElement) {

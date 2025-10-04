@@ -2,6 +2,7 @@ enum MvrLocationDataSource {
   layers,
   classes,
   position,
+  grouping,
 }
 
 class MvrImportSettings {

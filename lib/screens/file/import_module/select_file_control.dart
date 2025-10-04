@@ -141,6 +141,8 @@ class SelectFileControl extends StatelessWidget {
                 DropdownMenuEntry(
                     value: MvrLocationDataSource.layers, label: 'Layers'),
                 DropdownMenuEntry(
+                    value: MvrLocationDataSource.grouping, label: 'Grouping'),
+                DropdownMenuEntry(
                     value: MvrLocationDataSource.classes, label: 'Classes'),
                 DropdownMenuEntry(
                     value: MvrLocationDataSource.position,
