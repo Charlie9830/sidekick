@@ -69,7 +69,7 @@ class MergeDataStep extends StatelessWidget {
                           onClearAssignment: () {
                             onLocationMappingUpdated(
                                 Map<String, String>.from(locationMapping)
-                                  ..remove(incoming..generatedId));
+                                  ..remove(incoming.generatedId));
                           });
                     }).toList(),
                   )),
