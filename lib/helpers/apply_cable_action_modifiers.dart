@@ -138,10 +138,7 @@ CableActionModifierResult _applyCombineIntoSneaksAction(
     dataMultis: incoming.dataMultis.clone()
       ..addAll(sneakCombinationResult.newDataMultis.toModelMap()),
     locations: incoming.locations.clone()
-      ..addAll([
-        if (sneakCombinationResult.location != null)
-          sneakCombinationResult.location!
-      ].toModelMap()),
+      ..addAll(sneakCombinationResult.locations.toModelMap()),
   );
 }
 
@@ -155,7 +152,6 @@ CableActionModifierResult _applyCombineIntoHoistMultisAction(
   final cableIdsToDelete =
       hoistCombinationResult.cablesToDelete.map((cable) => cable.uid).toSet();
 
-
   return incoming.copyWith(
     cables: incoming.cables.clone()
       ..addAll(hoistCombinationResult.cables.toModelMap())
@@ -166,9 +162,6 @@ CableActionModifierResult _applyCombineIntoHoistMultisAction(
     hoistMultis: incoming.hoistMultis.clone()
       ..addAll(hoistCombinationResult.newHoistMultis.toModelMap()),
     locations: incoming.locations.clone()
-      ..addAll([
-        if (hoistCombinationResult.location != null)
-          hoistCombinationResult.location!
-      ].toModelMap()),
+      ..addAll(hoistCombinationResult.locations.toModelMap()),
   );
 }
