@@ -40,11 +40,15 @@ class LocationOverrideModel {
   }
 
   factory LocationOverrideModel.fromMap(Map<String, dynamic> map) {
-    return LocationOverrideModel(
+    final raw = LocationOverrideModel(
       maxSequenceBreak:
           OptionalInt.fromMap(map['maxSequenceBreak'] as Map<String, dynamic>),
       maxPairings: Map<String, int>.from(map['maxPairings'] ?? <String, int>{}),
     );
+
+    return raw.maxSequenceBreak.value == null && raw.maxPairings.isEmpty
+        ? const LocationOverrideModel.none()
+        : raw;
   }
 
   String toJson() => json.encode(toMap());
