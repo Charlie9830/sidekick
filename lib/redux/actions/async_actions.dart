@@ -210,8 +210,22 @@ ThunkAction<AppState> editRiggingLocation(
         delimiter: result.delimiter,
       );
 
-      store.dispatch(SetLocations(store.state.fixtureState.locations.clone()
-        ..update(location.uid, (_) => updatedLocation)));
+      final updatedPrimaryLocations = store.state.fixtureState.locations.clone()
+        ..update(location.uid, (_) => updatedLocation);
+
+      final associatedHybridLocations =
+          store.state.fixtureState.locations.values.where(
+              (item) => item.isHybrid && item.hybridIds.contains(location.uid));
+
+      final updatedHybridLocations = associatedHybridLocations.map(
+          (hybridLoc) => hybridLoc.copyWith(
+              name: LocationModel.getHybridLocationName(hybridLoc.hybridIds
+                  .map((id) => updatedPrimaryLocations[id])
+                  .nonNulls
+                  .toList())));
+
+      store.dispatch(SetLocations(updatedPrimaryLocations
+        ..addAll(updatedHybridLocations.toModelMap())));
     }
   };
 }

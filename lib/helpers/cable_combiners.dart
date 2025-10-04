@@ -296,18 +296,18 @@ LocationModel resolveTargetLocation(
 
   // Check if we already have a matching Hybrid Location, otherwise create a new one.
   return existingLocations.values.firstWhere(
-      (location) =>
-          location.isHybrid && location.matchesHybridLocation(locationIds),
-      orElse: () => LocationModel(
-          uid: getUid(),
-          color: LabelColorModel.combine(
-            locationIds
-                .map((id) => existingLocations[id]?.color)
-                .nonNulls
-                .toList(),
-          ),
-          hybridIds: locationIds,
-          name: locationIds
-              .map((id) => existingLocations[id]?.name ?? '')
-              .join(', ')));
+    (location) =>
+        location.isHybrid && location.matchesHybridLocation(locationIds),
+    orElse: () => LocationModel(
+        uid: getUid(),
+        color: LabelColorModel.combine(
+          locationIds
+              .map((id) => existingLocations[id]?.color)
+              .nonNulls
+              .toList(),
+        ),
+        hybridIds: locationIds,
+        name: LocationModel.getHybridLocationName(
+            locationIds.map((id) => existingLocations[id]).nonNulls.toList())),
+  );
 }

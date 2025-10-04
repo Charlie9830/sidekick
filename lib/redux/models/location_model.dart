@@ -56,6 +56,10 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
     return hybridIds.difference(locationIds).isEmpty;
   }
 
+  static String getHybridLocationName(List<LocationModel> associatedLocations) {
+    return associatedLocations.map((loc) => loc.name).join(',');
+  }
+
   LocationModel copyWith({
     String? uid,
     String? name,
