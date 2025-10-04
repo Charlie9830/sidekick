@@ -70,11 +70,23 @@ class _ImportManagerState extends State<ImportManager> {
       appBar: AppBar(
         elevation: 1,
         title: const Text('Import Manager'),
+        leading: Tooltip(
+          message: 'Cancel',
+          child: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ),
         actions: [
           const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _handleRefreshButtonPressed,
+          Tooltip(
+            message: 'Refresh',
+            child: IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: _handleRefreshButtonPressed,
+            ),
           ),
         ],
       ),
@@ -171,10 +183,13 @@ class _ImportManagerState extends State<ImportManager> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (widget.vm.step != ImportManagerStep.fileSelect)
-            FloatingActionButton.small(
-              backgroundColor: Colors.indigo,
-              onPressed: _handleBackButtonPressed,
-              child: const Icon(Icons.arrow_back),
+            Tooltip(
+              message: 'Previous Step',
+              child: FloatingActionButton.small(
+                backgroundColor: Colors.indigo,
+                onPressed: _handleBackButtonPressed,
+                child: const Icon(Icons.arrow_back),
+              ),
             ),
           FloatingActionButton.extended(
               onPressed: canProgress ? _handleNextButtonPressed : null,
