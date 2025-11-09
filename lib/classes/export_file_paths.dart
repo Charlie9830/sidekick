@@ -32,6 +32,9 @@ class ExportFilePaths {
   String get addressesPath =>
       '${p.join(directoryPath, _appendSlug('DMX_Addressing'))}$excelFileExtension';
 
+  String get fixtureInfoPath =>
+      '${p.join(directoryPath, _appendSlug('Fixture_Info'))}$excelFileExtension';
+
   String get hoistPatchPath =>
       '${p.join(directoryPath, _appendSlug('Motor_Patch'))}$excelFileExtension';
 
@@ -48,6 +51,7 @@ class ExportFilePaths {
       checkExistsDelegate(dataPatchPath),
       checkExistsDelegate(loomsPath),
       checkExistsDelegate(addressesPath),
+      checkExistsDelegate(fixtureInfoPath),
       checkExistsDelegate(hoistPatchPath),
     ];
 

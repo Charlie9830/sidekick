@@ -60,6 +60,7 @@ dev_dependencies:
   flutter_lints: ^2.0.0
   flutter_test:
     sdk: flutter
+  msix: ^3.16.12
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -120,7 +121,7 @@ msix_config:
   display_name: It's Just a Phase
   publisher_display_name: Charlie Hall
   identity_name: com.charliehall.phase
-  msix_version: 1.0.0
+  msix_version: 1.0.0.0
   logo_path: ./windows_resources/msix_logo_512px.png
   trim_logo: false
   signtool_options: /sha1 3526b5fc655d9e858cf5c3488a645e60c856fb5b /fd sha256 /tr

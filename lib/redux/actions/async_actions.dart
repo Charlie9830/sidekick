@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
+import 'package:sidekick/excel/create_fixture_info_sheet.dart';
 import 'package:sidekick/excel/create_hoist_patch_sheet.dart';
 import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/screens/hoists/add_or_edit_rigging_location.dart';
@@ -2171,6 +2172,16 @@ ThunkAction<AppState> export(BuildContext context) {
       projectName: store.state.fileState.projectMetadata.projectName,
     );
 
+    final fixtureInfoExcel = Excel.createExcel();
+
+    createFixtureInfoSheet(
+      fixtures: store.state.fixtureState.fixtures.values.toList(),
+      locations: store.state.fixtureState.locations,
+      fixtureTypes: store.state.fixtureState.fixtureTypes,
+      excel: fixtureInfoExcel,
+      projectName: store.state.fileState.projectMetadata.projectName,
+    );
+
     final hoistPatchExcel = Excel.createExcel();
 
     createHoistPatchSheet(excel: hoistPatchExcel, store: store);
@@ -2183,6 +2194,7 @@ ThunkAction<AppState> export(BuildContext context) {
     final dataPatchTemplateBytes =
         await rootBundle.load('assets/excel/prg_data_patch.xlsx');
     final addressingBytes = addressingExcel.save();
+    final fixtureInfoBytes = fixtureInfoExcel.save();
     final hoistPatchBytes = hoistPatchExcel.save();
 
     if (referenceDataBytes == null) {
@@ -2221,6 +2233,15 @@ ThunkAction<AppState> export(BuildContext context) {
       return;
     }
 
+    if (fixtureInfoBytes == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(fileErrorSnackBar(
+            context, 'An error occured writing the Fixture Info sheet'));
+      }
+
+      return;
+    }
+
     final fileWrites = [
       File(outputPaths.referenceDataPath).writeAsBytes(referenceDataBytes),
       File(outputPaths.loomsPath).writeAsBytes(loomsBytes),
@@ -2229,6 +2250,7 @@ ThunkAction<AppState> export(BuildContext context) {
       File(outputPaths.dataPatchPath)
           .writeAsBytes(dataPatchTemplateBytes.buffer.asUint8List()),
       File(outputPaths.addressesPath).writeAsBytes(addressingBytes),
+      File(outputPaths.fixtureInfoPath).writeAsBytes(fixtureInfoBytes),
       File(outputPaths.hoistPatchPath).writeAsBytes(hoistPatchBytes),
     ];
 
