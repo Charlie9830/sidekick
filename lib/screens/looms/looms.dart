@@ -133,7 +133,7 @@ class _LoomsState extends State<Looms> {
                             onReorder: widget.vm.onLoomReorder,
                             itemCount: widget.vm.loomVms.length,
                             itemBuilder: (BuildContext context, int index) {
-                              return _buildRow(
+                              return _buildLoomRow(
                                 loomVm: widget.vm.loomVms[index],
                                 index: index,
                                 isLastRow:
@@ -213,7 +213,7 @@ class _LoomsState extends State<Looms> {
         .mapIndexed((index, id) => MapEntry(id, index)));
   }
 
-  Widget _buildRow({
+  Widget _buildLoomRow({
     required LoomViewModel loomVm,
     required int index,
     required bool isLastRow,

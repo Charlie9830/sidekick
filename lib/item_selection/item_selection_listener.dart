@@ -25,11 +25,11 @@ class ItemSelectionListener<T> extends StatelessWidget {
     return Listener(
       behavior: HitTestBehavior.deferToChild,
       onPointerUp: enabled && activationType == ActivationType.pointerUp
-          ? (e) => ItemSelectionMessenger.of<T>(context)
+          ? (e) => ItemSelectionMessenger.maybeOf<T>(context)
               ?.onItemPointerEvent(e, value)
           : null,
       onPointerDown: enabled && activationType == ActivationType.pointerDown
-          ? (e) => ItemSelectionMessenger.of<T>(context)
+          ? (e) => ItemSelectionMessenger.maybeOf<T>(context)
               ?.onItemPointerEvent(e, value)
           : null,
       child: child,

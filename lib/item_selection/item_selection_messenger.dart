@@ -9,7 +9,11 @@ class ItemSelectionMessenger<T> extends InheritedWidget {
     required this.onItemPointerEvent,
   }) : super(child: child);
 
-  static ItemSelectionMessenger? of<T>(BuildContext context) {
+  static ItemSelectionMessenger? maybeOf<T>(BuildContext context) {
+    if (context.mounted == false) {
+      return null;
+    }
+
     return context
         .dependOnInheritedWidgetOfExactType<ItemSelectionMessenger<T>>();
   }
