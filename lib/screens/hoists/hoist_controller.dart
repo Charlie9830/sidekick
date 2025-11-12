@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:sidekick/containers/diffing_screen_container.dart';
 import 'package:sidekick/diff_state_overlay.dart';
@@ -168,20 +169,18 @@ class _HoistControllerState extends State<HoistController> {
             ),
           ),
           const SizedBox(height: 8),
-          ListView.builder(
-            shrinkWrap: true,
-            itemCount: widget.viewModel.channels.length,
-            itemBuilder: (context, index) {
-              final channel = widget.viewModel.channels[index];
-              return _HoistChannel(
-                viewModel: channel,
-                hoistChannelDelta: widget.channelDeltas[channel.uid],
-                showLandingZone: _hoveredOverRows.contains(index),
-                onHoveringOver: (count) =>
-                    _handleHoverOverChannel(index, count),
-                onHoverLeave: () => _handleHoverLeave(),
-              );
-            },
+
+          Column(
+            children: widget.viewModel.channels
+                .mapIndexed((index, channel) => _HoistChannel(
+                      viewModel: channel,
+                      hoistChannelDelta: widget.channelDeltas[channel.uid],
+                      showLandingZone: _hoveredOverRows.contains(index),
+                      onHoveringOver: (count) =>
+                          _handleHoverOverChannel(index, count),
+                      onHoverLeave: () => _handleHoverLeave(),
+                    ))
+                .toList(),
           )
         ],
       ),

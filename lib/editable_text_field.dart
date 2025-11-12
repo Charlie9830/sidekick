@@ -15,6 +15,7 @@ class EditableTextField extends StatefulWidget {
   final void Function(String newValue)? onChanged;
   final List<TextInputFormatter> inputFormatters;
   final bool enabled;
+  final ScrollController? scrollController;
 
   const EditableTextField({
     super.key,
@@ -30,6 +31,7 @@ class EditableTextField extends StatefulWidget {
     this.inputFormatters = const [],
     this.enabled = true,
     this.hintStyle,
+    this.scrollController,
   });
 
   @override
@@ -38,10 +40,18 @@ class EditableTextField extends StatefulWidget {
 
 class _EditableTextFieldState extends State<EditableTextField> {
   late final TextEditingController _controller;
+  late final ScrollController _scrollController;
 
   @override
   void initState() {
     _controller = TextEditingController(text: widget.value);
+
+    _scrollController = widget.scrollController ??
+        ScrollController(
+            keepScrollOffset:
+                false); // Stops the TextField trying to re establish it's scroll position from an ancestor PageStorage.
+                // When this happens, it triggers funky animations.
+
     super.initState();
   }
 
@@ -50,6 +60,7 @@ class _EditableTextFieldState extends State<EditableTextField> {
     if (widget.value != oldWidget.value) {
       _controller.text = widget.value;
     }
+
     super.didUpdateWidget(oldWidget);
   }
 
@@ -67,6 +78,7 @@ class _EditableTextFieldState extends State<EditableTextField> {
         key: widget.key,
         enabled: widget.enabled,
         controller: _controller,
+        scrollController: _scrollController,
         textAlign: widget.textAlign ?? TextAlign.start,
         style: widget.style,
         inputFormatters: widget.inputFormatters,

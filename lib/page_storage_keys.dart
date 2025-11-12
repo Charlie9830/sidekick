@@ -30,3 +30,6 @@ const PageStorageKey loomDiffingPageStorageKey = PageStorageKey('loom_diffing');
 
 const PageStorageKey hoistDiffingPageStorageKey =
     PageStorageKey('hoist_diffing');
+
+const PageStorageKey loomQuantitiesPageStorageKey =
+    PageStorageKey('loom_qauntities');

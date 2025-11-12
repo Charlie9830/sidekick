@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/screens/looms/composition_item.dart';
 import 'package:sidekick/view_models/looms_view_model.dart';
 
@@ -52,6 +53,7 @@ class QuantatiesDrawer extends StatelessWidget {
             const Divider(),
             Expanded(
               child: ListView.builder(
+                  key: loomQuantitiesPageStorageKey,
                   itemCount: itemVms.length,
                   itemBuilder: (context, index) =>
                       CompositionItem(vm: itemVms[index])),
