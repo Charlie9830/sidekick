@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/diff_state_overlay.dart';
+import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/screens/home/fixture_table/fixture_table_header.dart';
 import 'package:sidekick/screens/home/fixture_table/fixture_table_row.dart';
 import 'package:sidekick/view_models/fixture_diffing_item_view_model.dart';
@@ -16,6 +17,7 @@ class FixtureDiffing extends StatelessWidget {
     const double dividerWidth = 8;
 
     return SingleChildScrollView(
+      key: fixtureDiffingPageStorageKey,
       scrollDirection: Axis.horizontal,
       child: Column(
         children: [

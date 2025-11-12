@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/builders/build_cable_row_item.dart';
 import 'package:sidekick/diff_state_overlay.dart';
+import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/screens/looms/loom_row_item.dart';
 import 'package:sidekick/view_models/loom_diffing_item_view_model.dart';
 
@@ -17,6 +18,7 @@ class LoomDiffing extends StatelessWidget {
       children: [
         Expanded(
           child: ListView.separated(
+              key: loomDiffingPageStorageKey,
               separatorBuilder: (context, index) => const Divider(height: 48),
               itemCount: itemVms.length,
               itemBuilder: (context, index) {

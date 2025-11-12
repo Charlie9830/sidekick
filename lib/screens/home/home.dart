@@ -22,6 +22,8 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
+final PageStorageBucket _pageStorageBucket = PageStorageBucket();
+
 class _HomeState extends State<Home> {
   @override
   void initState() {
@@ -33,83 +35,86 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      animationDuration: Duration.zero,
-      length: 11,
-      initialIndex: 0,
-      child: Scaffold(
-        key: homeScaffoldKey,
-        appBar: AppBar(
-          title: Text("Phase",
-              style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                  fontFamily: "Orbitron", fontWeight: FontWeight.bold)),
-          primary: true,
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          bottom: const TabBar(
-              isScrollable: true,
-              tabAlignment: TabAlignment.start,
-              tabs: [
-                Tab(
-                  icon: Icon(Icons.folder),
-                  child: Text('File'),
-                ),
-                Tab(
-                  icon: Icon(Icons.lightbulb),
-                  child: Text('Fixtures'),
-                ),
-                Tab(
-                  icon: Icon(Icons.electric_bolt),
-                  child: Text('Patch'),
-                ),
-                Tab(
-                  icon: Icon(Icons.construction),
-                  child: Text('Hoists'),
-                ),
-                Tab(
-                  icon: Icon(Icons.cable),
-                  child: Text('Looms'),
-                ),
-                Tab(
-                  icon: Icon(Icons.location_pin),
-                  child: Text('Locations'),
-                ),
-                Tab(
-                  icon: Icon(Icons.light),
-                  child: Text('Fixture Types'),
-                ),
-                Tab(
-                  icon: Icon(Icons.save_alt),
-                  child: Text('Export'),
-                ),
-                Tab(
-                  icon: Icon(Icons.difference),
-                  child: Text('Diff'),
-                ),
-                Tab(
-                  icon: Icon(Icons.build),
-                  child: Text('Lab'),
-                ),
-                Tab(
-                  icon: Icon(Icons.bug_report),
-                  child: Text("Diagnostics"),
-                )
-              ]),
-        ),
-        body: const TabBarView(
-          physics: NeverScrollableScrollPhysics(),
-          children: [
-            FileContainer(),
-            FixtureTableContainer(),
-            PowerPatchContainer(),
-            HoistsContainer(),
-            LoomsContainer(),
-            LocationsContainer(),
-            FixtureTypesContainer(),
-            ExportContainer(),
-            DiffingScreenContainer(),
-            TheLab(),
-            DiagnosticsContainer(),
-          ],
+    return PageStorage(
+      bucket: _pageStorageBucket,
+      child: DefaultTabController(
+        animationDuration: Duration.zero,
+        length: 11,
+        initialIndex: 0,
+        child: Scaffold(
+          key: homeScaffoldKey,
+          appBar: AppBar(
+            title: Text("Phase",
+                style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                    fontFamily: "Orbitron", fontWeight: FontWeight.bold)),
+            primary: true,
+            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+            bottom: const TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                tabs: [
+                  Tab(
+                    icon: Icon(Icons.folder),
+                    child: Text('File'),
+                  ),
+                  Tab(
+                    icon: Icon(Icons.lightbulb),
+                    child: Text('Fixtures'),
+                  ),
+                  Tab(
+                    icon: Icon(Icons.electric_bolt),
+                    child: Text('Patch'),
+                  ),
+                  Tab(
+                    icon: Icon(Icons.construction),
+                    child: Text('Hoists'),
+                  ),
+                  Tab(
+                    icon: Icon(Icons.cable),
+                    child: Text('Looms'),
+                  ),
+                  Tab(
+                    icon: Icon(Icons.location_pin),
+                    child: Text('Locations'),
+                  ),
+                  Tab(
+                    icon: Icon(Icons.light),
+                    child: Text('Fixture Types'),
+                  ),
+                  Tab(
+                    icon: Icon(Icons.save_alt),
+                    child: Text('Export'),
+                  ),
+                  Tab(
+                    icon: Icon(Icons.difference),
+                    child: Text('Diff'),
+                  ),
+                  Tab(
+                    icon: Icon(Icons.build),
+                    child: Text('Lab'),
+                  ),
+                  Tab(
+                    icon: Icon(Icons.bug_report),
+                    child: Text("Diagnostics"),
+                  )
+                ]),
+          ),
+          body: const TabBarView(
+            physics: NeverScrollableScrollPhysics(),
+            children: [
+              FileContainer(),
+              FixtureTableContainer(),
+              PowerPatchContainer(),
+              HoistsContainer(),
+              LoomsContainer(),
+              LocationsContainer(),
+              FixtureTypesContainer(),
+              ExportContainer(),
+              DiffingScreenContainer(),
+              TheLab(),
+              DiagnosticsContainer(),
+            ],
+          ),
         ),
       ),
     );

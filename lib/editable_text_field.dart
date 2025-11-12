@@ -64,6 +64,7 @@ class _EditableTextFieldState extends State<EditableTextField> {
         }
       },
       child: TextField(
+        key: widget.key,
         enabled: widget.enabled,
         controller: _controller,
         textAlign: widget.textAlign ?? TextAlign.start,

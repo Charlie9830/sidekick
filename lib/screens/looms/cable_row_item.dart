@@ -86,6 +86,8 @@ class CableRowItem extends StatelessWidget {
                             SizedBox(
                               width: length.length >= 3 ? 42 : 36,
                               child: EditableTextField(
+                                key: const PageStorageKey(
+                                    ''), // Stops strange animation behaviour when using a PageStorage anccestor widget.
                                 onChanged: (newValue) =>
                                     onLengthChanged?.call(newValue),
                                 selectAllOnFocus: true,
@@ -221,6 +223,8 @@ class CableRowItem extends StatelessWidget {
                     children: [
                       Expanded(
                           child: EditableTextField(
+                        key: const PageStorageKey(
+                            ''), // Stops strange animation behaviour when using a PageStorage anccestor widget.
                         value: cable.notes,
                         style: Theme.of(context).textTheme.bodySmall,
                         onChanged: (newValue) => onNotesChanged(newValue),

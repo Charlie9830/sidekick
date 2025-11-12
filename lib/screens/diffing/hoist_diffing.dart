@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/diff_state_overlay.dart';
+import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/screens/hoists/hoist_controller.dart';
 import 'package:sidekick/view_models/hoist_controller_diffing_view_model.dart';
 
@@ -22,6 +23,7 @@ class HoistDiffing extends StatelessWidget {
             child: SizedBox(
               width: 2200,
               child: ListView.builder(
+                  key: hoistDiffingPageStorageKey,
                   itemCount: itemVms.length,
                   itemBuilder: (context, index) {
                     final vm = itemVms[index];

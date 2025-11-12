@@ -8,6 +8,7 @@ import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
 import 'package:sidekick/modifier_key_provider.dart';
+import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/screens/looms/cable_row_item.dart';
 import 'package:sidekick/screens/looms/drag_data.dart';
 import 'package:sidekick/screens/looms/drop_target_overlays/modify_existing_loom_drop_targets.dart';
@@ -76,6 +77,7 @@ class _LoomsState extends State<Looms> {
                           widget.vm.onSelectedLoomOutletsChanged,
                       mode: SelectionMode.multi,
                       child: ListView.builder(
+                          key: loomOutletsPageStorageKey,
                           itemCount: widget.vm.outlets.length,
                           itemBuilder: (context, index) {
                             final outletVm = widget.vm.outlets[index];
@@ -123,6 +125,7 @@ class _LoomsState extends State<Looms> {
                     itemIndicies: _buildCableIndices(),
                     child: widget.vm.loomVms.isNotEmpty
                         ? ReorderableListView.builder(
+                            key: loomsPageStorageKey,
                             buildDefaultDragHandles: false,
                             footer: const SizedBox(height: 56),
                             // Use the proxy Decorator to return a simplified version of a Loom Row Item.

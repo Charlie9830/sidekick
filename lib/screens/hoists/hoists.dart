@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sidekick/drag_proxy/drag_proxy.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
+import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/screens/hoists/hoist_controller.dart';
 import 'package:sidekick/screens/hoists/hoist_item.dart';
 import 'package:sidekick/screens/hoists/hoist_location_item.dart';
@@ -73,7 +74,9 @@ class _MotorControllerAssignment extends StatelessWidget {
           .where((channel) => channel.hoist != null)
           .mapIndexed((index, channel) => MapEntry(channel.hoist!.uid, index))),
       onSelectionUpdated: viewModel.onSelectedHoistChannelsChanged,
-      child: ListView(children: [
+      child: ListView(
+        key: motorControllersPageStorageKey,
+        children: [
         ...viewModel.hoistControllers
             .map((vm) => HoistController(viewModel: vm))
             .toList(),
@@ -133,6 +136,7 @@ class _Sidebar extends StatelessWidget {
         width: _kSidebarWidth,
         child: Card(
           child: ReorderableListView.builder(
+              key: hoistOutletPageStorageKey,
               buildDefaultDragHandles: false,
               onReorder: (oldIndex, newIndex) =>
                   viewModel.onHoistReorder(oldIndex, newIndex),

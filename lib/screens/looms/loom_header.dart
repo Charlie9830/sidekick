@@ -41,6 +41,8 @@ class LoomHeader extends StatelessWidget {
                   child: SizedBox(
                     width: 400,
                     child: EditableTextField(
+                      key: const PageStorageKey(
+                          ''), // Stops strange animation behaviour when using a PageStorage anccestor widget.
                       enabled: deltas == null,
                       value: loomVm.name,
                       style: Theme.of(context).textTheme.titleMedium,
@@ -111,6 +113,8 @@ class LoomHeader extends StatelessWidget {
                   child: SizedBox(
                     width: 42,
                     child: EditableTextField(
+                      key: const PageStorageKey(
+                          ''), // Stops strange animation behaviour when using a PageStorage anccestor widget.
                       enabled: deltas == null,
                       value: loomVm.loom.type.length.toStringAsFixed(0),
                       onChanged: (newValue) {
@@ -138,6 +142,7 @@ class LoomHeader extends StatelessWidget {
                       ),
                     LoomType.permanent =>
                       DropdownMenu<PermanentCompositionSelection>(
+                        key: const PageStorageKey(''), // Stops strange animation behaviour when using a PageStorage anccestor widget.
                         enabled: deltas == null,
                         onSelected: (newValue) =>
                             loomVm.onChangeToSpecificComposition(newValue!),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sidekick/containers/diffing_screen_container.dart';
 import 'package:sidekick/diff_state_overlay.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
+import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/screens/power_patch/location_row.dart';
 import 'package:sidekick/screens/power_patch/multi_outlet_row.dart';
 import 'package:sidekick/view_models/patch_diffing_item_view_model.dart';
@@ -20,6 +21,7 @@ class PatchDiffing extends StatelessWidget {
       children: [
         Expanded(
           child: ListView.builder(
+            key: patchDiffingPageStorageKey,
               itemCount: itemVms.length,
               itemBuilder: (context, index) {
                 final item = itemVms[index];

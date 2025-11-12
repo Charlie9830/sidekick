@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' hide TableRow;
 import 'package:flutter/services.dart';
+import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/screens/home/fixture_table/fixture_table_header.dart';
 import 'package:sidekick/screens/home/fixture_table/fixture_table_row.dart';
 import 'package:sidekick/view_models/fixture_table_view_model.dart';
@@ -64,6 +65,7 @@ class _FixtureTableState extends State<FixtureTable> {
           ),
           Expanded(
             child: ListView.builder(
+                key: fixturesTablePageStorageKey,
                 itemCount: rowVms.length,
                 itemBuilder: (context, index) => FixtureTableRow(
                       vm: rowVms[index],

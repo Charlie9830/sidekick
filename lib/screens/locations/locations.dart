@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/screens/locations/color_select_dialog.dart';
 import 'package:sidekick/screens/locations/hybrid_tag.dart';
@@ -15,6 +16,7 @@ class Locations extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      key: locationsPageStorageKey,
       child: DataTable(
           columns: const [
             DataColumn(label: Text('Name')),

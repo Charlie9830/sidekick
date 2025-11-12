@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/screens/fixture_types/fixture_type_data_table.dart';
 import 'package:sidekick/view_models/fixture_types_view_model.dart';
 import 'package:sidekick/widgets/toolbar.dart';
@@ -32,6 +33,7 @@ class FixtureTypes extends StatelessWidget {
         )),
         Expanded(
           child: SingleChildScrollView(
+            key: fixtureTypesPageStorageKey,
             child: FixtureTypeDataTable(
               items: vm.itemVms,
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/screens/power_patch/balance_gauge.dart';
 import 'package:sidekick/screens/power_patch/location_row.dart';
 import 'package:sidekick/screens/power_patch/multi_outlet_row.dart';
@@ -76,6 +77,7 @@ class _PowerPatchState extends State<PowerPatch> {
       )),
       Expanded(
         child: ListView.builder(
+          key: powerPatchPageStorageKey,
           itemCount: widget.vm.rows.length,
           itemBuilder: (context, index) => _buildRow(
             context,
