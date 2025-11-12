@@ -1,13 +1,8 @@
-import 'package:collection/collection.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
-import 'package:sidekick/drag_proxy/drag_proxy.dart';
-import 'package:sidekick/extension_methods/to_model_map.dart';
-import 'package:sidekick/redux/models/label_color_model.dart';
-import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
-import 'package:sidekick/widgets/hover_region.dart';
 
 class TheLab extends StatefulWidget {
   const TheLab({super.key});
