@@ -25,6 +25,7 @@ CableRowItem buildCableRowItem({
     showTopBorder: selectShowCableTopBorder(index, rowVms),
     dmxUniverse: vm.universe,
     label: vm.label,
+    labelHint: vm.labelHint,
     onLengthChanged: (newValue) {
       vm.onLengthChanged(newValue);
     },

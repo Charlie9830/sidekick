@@ -23,6 +23,11 @@ class LoomHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final loomNameTextStyle = textTheme.bodyLarge;
+    final loomLengthTextStyle = textTheme.bodyMedium;
+    final loomCompositionTextStyle = textTheme.bodyMedium;
+
     return HoverRegionBuilder(builder: (context, isHovering) {
       return Container(
         padding: const EdgeInsets.only(left: 8, right: 8),
@@ -43,7 +48,7 @@ class LoomHeader extends StatelessWidget {
                     child: EditableTextField(
                       enabled: deltas == null,
                       value: loomVm.name,
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: loomNameTextStyle,
                       onChanged: (newValue) => loomVm.onNameChanged(newValue),
                     ),
                   ),
@@ -105,6 +110,7 @@ class LoomHeader extends StatelessWidget {
               ],
             ),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 DiffStateOverlay(
                   diff: deltas?.lookup(PropertyDeltaName.loomLength),
@@ -117,8 +123,9 @@ class LoomHeader extends StatelessWidget {
                         loomVm.onLengthChanged(newValue);
                       },
                       suffix: 'm',
+                      hintStyle: loomLengthTextStyle,
                       textAlign: TextAlign.end,
-                      style: Theme.of(context).textTheme.titleSmall,
+                      style: loomLengthTextStyle,
                     ),
                   ),
                 ),
@@ -134,17 +141,18 @@ class LoomHeader extends StatelessWidget {
                             loomVm.hasVariedLengthChildren
                                 ? 'Staggered Custom'
                                 : 'Custom',
-                            style: Theme.of(context).textTheme.titleSmall),
+                            style: loomCompositionTextStyle),
                       ),
                     LoomType.permanent =>
                       DropdownMenu<PermanentCompositionSelection>(
-                        key: const PageStorageKey(''), // Stops strange animation behaviour when using a PageStorage anccestor widget.
+                        key: const PageStorageKey(
+                            ''), // Stops strange animation behaviour when using a PageStorage anccestor widget.
                         enabled: deltas == null,
                         onSelected: (newValue) =>
                             loomVm.onChangeToSpecificComposition(newValue!),
                         enableFilter: false,
                         enableSearch: false,
-                        textStyle: Theme.of(context).textTheme.titleSmall,
+                        textStyle: loomCompositionTextStyle,
                         initialSelection:
                             PermanentCompositionSelection.asValueSentinel(
                                 loomVm.loom.type.permanentComposition),

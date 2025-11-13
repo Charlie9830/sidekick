@@ -39,7 +39,7 @@ enum PropertyDeltaName {
   hoistControllerName,
   hoistControllerWays,
   hoistChannelNumber,
-  assignedHoistId, hoistName, hoistNote,
+  assignedHoistId, hoistName, hoistNote, labelHint,
 }
 
 enum DiffState {

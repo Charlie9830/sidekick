@@ -11,6 +11,7 @@ class CableViewModel with DiffComparable implements ModelCollectionMember {
   final bool isExtension;
   final int universe;
   final String label;
+  final String labelHint;
   final bool missingUpstreamCable;
   final String typeLabel;
   final void Function(String newValue) onLengthChanged;
@@ -24,6 +25,7 @@ class CableViewModel with DiffComparable implements ModelCollectionMember {
     required this.isExtension,
     required this.universe,
     required this.label,
+    required this.labelHint,
     required this.onLengthChanged,
     required this.missingUpstreamCable,
     required this.typeLabel,
@@ -49,5 +51,6 @@ class CableViewModel with DiffComparable implements ModelCollectionMember {
         PropertyDeltaName.color: labelColor,
         PropertyDeltaName.universe: universe,
         PropertyDeltaName.isDetached: isDetached,
+        PropertyDeltaName.labelHint: labelHint,
       };
 }

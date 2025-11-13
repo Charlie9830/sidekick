@@ -19,6 +19,7 @@ class CableRowItem extends StatelessWidget {
   final bool disableLength;
   final int dmxUniverse;
   final String label;
+  final String labelHint;
   final bool missingUpstreamCable;
   final void Function(String newValue)? onLengthChanged;
   final void Function(String newValue) onNotesChanged;
@@ -36,6 +37,7 @@ class CableRowItem extends StatelessWidget {
     this.disableLength = false,
     this.dmxUniverse = 0,
     this.label = '',
+    this.labelHint = '',
     this.onLengthChanged,
     this.missingUpstreamCable = false,
     required this.onNotesChanged,
@@ -89,7 +91,10 @@ class CableRowItem extends StatelessWidget {
                                 onChanged: (newValue) =>
                                     onLengthChanged?.call(newValue),
                                 selectAllOnFocus: true,
-                                style: Theme.of(context).textTheme.bodyMedium,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium!
+                                    .copyWith(color: Colors.grey.shade400),
                                 value: cable.length.floor().toString(),
                                 suffix: 'm',
                               ),
@@ -145,8 +150,14 @@ class CableRowItem extends StatelessWidget {
                           const SizedBox(width: 8),
                           Text(typeLabel,
                               style: cable.parentMultiId.isNotEmpty
-                                  ? Theme.of(context).textTheme.bodySmall
-                                  : null),
+                                  ? Theme.of(context)
+                                      .textTheme
+                                      .bodySmall!
+                                      .copyWith(color: Colors.grey.shade200)
+                                  : Theme.of(context)
+                                      .textTheme
+                                      .bodySmall!
+                                      .copyWith(color: Colors.grey.shade200)),
                         ],
                       ),
                     ],
@@ -160,37 +171,52 @@ class CableRowItem extends StatelessWidget {
               // Label
               SizedBox(
                 width: 264,
-                child: DiffStateOverlay(
-                  diff: cableDelta?.properties.lookup(PropertyDeltaName.label),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(label),
-                      const Spacer(),
-                      if (isDetached)
-                        const Tooltip(
-                            message:
-                                'Detached Outlet:\nThis cable will not appear on the patch sheet',
-                            child:
-                                Icon(Icons.info, color: Colors.grey, size: 20)),
-                      if (cable.upstreamId.isNotEmpty)
-                        missingUpstreamCable
-                            ? const _MissingUpstreamCableIcon()
-                            : cable.isDropper
-                                ? const CableFlag(
-                                    text: 'Drop', color: Colors.green)
-                                : const CableFlag(
-                                    text: 'Ext',
-                                    color: Colors.blueAccent,
-                                  ),
-                      if (cable.isSpare)
-                        const CableFlag(
-                          text: 'SP',
-                          color: Colors.pink,
-                        ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    DiffStateOverlay(
+                        diff: cableDelta?.properties
+                            .lookup(PropertyDeltaName.label),
+                        child: Text(label,
+                            style: Theme.of(context).textTheme.bodySmall)),
+                    if (labelHint.isNotEmpty) ...[
+                      const SizedBox(width: 24),
+                      DiffStateOverlay(
+                        diff: cableDelta?.properties
+                            .lookup(PropertyDeltaName.labelHint),
+                        child: Text(labelHint,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall!
+                                .copyWith(
+                                    fontStyle: FontStyle.italic,
+                                    color: Colors.grey)),
+                      ),
                     ],
-                  ),
+                    const Spacer(),
+                    if (isDetached)
+                      const Tooltip(
+                          message:
+                              'Detached Outlet:\nThis cable will not appear on the patch sheet',
+                          child:
+                              Icon(Icons.info, color: Colors.grey, size: 20)),
+                    if (cable.upstreamId.isNotEmpty)
+                      missingUpstreamCable
+                          ? const _MissingUpstreamCableIcon()
+                          : cable.isDropper
+                              ? const CableFlag(
+                                  text: 'Drop', color: Colors.green)
+                              : const CableFlag(
+                                  text: 'Ext',
+                                  color: Colors.blueAccent,
+                                ),
+                    if (cable.isSpare)
+                      const CableFlag(
+                        text: 'SP',
+                        color: Colors.pink,
+                      ),
+                  ],
                 ),
               ),
               VerticalDivider(

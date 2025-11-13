@@ -4,6 +4,7 @@ import 'package:redux/redux.dart';
 import 'package:sidekick/classes/permanent_composition_selection.dart';
 import 'package:sidekick/data_selectors/select_cable_detached_state.dart';
 import 'package:sidekick/data_selectors/select_cable_label.dart';
+import 'package:sidekick/data_selectors/select_cable_label_hint.dart';
 import 'package:sidekick/data_selectors/select_cable_location.dart';
 import 'package:sidekick/data_selectors/select_child_cables.dart';
 import 'package:sidekick/data_selectors/select_dmx_universe.dart';
@@ -38,6 +39,14 @@ List<LoomViewModel> selectLoomViewModels(
                 false
             : false,
         label: selectCableLabel(
+          powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
+          dataPatches: store.state.fixtureState.dataPatches,
+          dataMultis: store.state.fixtureState.dataMultis,
+          hoistMultis: store.state.fixtureState.hoistMultis,
+          hoistOutlets: store.state.fixtureState.hoists,
+          cable: cable,
+        ),
+        labelHint: selectCableLabelHint(
           powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
           dataPatches: store.state.fixtureState.dataPatches,
           dataMultis: store.state.fixtureState.dataMultis,
