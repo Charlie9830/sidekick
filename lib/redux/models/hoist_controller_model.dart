@@ -2,7 +2,6 @@
 import 'dart:convert';
 
 import 'package:sidekick/model_collection/model_collection_member.dart';
-import 'package:sidekick/redux/models/hoist_model.dart';
 
 class HoistControllerModel extends ModelCollectionMember {
   @override

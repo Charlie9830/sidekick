@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sidekick/screens/locations/multi_color_chit.dart';
 import 'package:sidekick/screens/locations/rigging_only_tag.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';

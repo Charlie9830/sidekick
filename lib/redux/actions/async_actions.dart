@@ -391,7 +391,6 @@ ThunkAction<AppState> assignHoistsToController(
             )))
         .nonNulls
         .toList();
-    ;
 
     store.dispatch(
       SetHoists(

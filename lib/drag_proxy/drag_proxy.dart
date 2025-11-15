@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 /// Provided a Controller class that coordinates the [isDragging] state to child widgets.

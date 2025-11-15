@@ -62,7 +62,7 @@ class _HoistsState extends State<Hoists> {
 
 class _MotorControllerAssignment extends StatelessWidget {
   final HoistsViewModel viewModel;
-  const _MotorControllerAssignment({super.key, required this.viewModel});
+  const _MotorControllerAssignment({required this.viewModel});
 
   @override
   Widget build(BuildContext context) {
@@ -74,9 +74,7 @@ class _MotorControllerAssignment extends StatelessWidget {
           .where((channel) => channel.hoist != null)
           .mapIndexed((index, channel) => MapEntry(channel.hoist!.uid, index))),
       onSelectionUpdated: viewModel.onSelectedHoistChannelsChanged,
-      child: ListView(
-        key: motorControllersPageStorageKey,
-        children: [
+      child: ListView(key: motorControllersPageStorageKey, children: [
         ...viewModel.hoistControllers
             .map((vm) => HoistController(viewModel: vm))
             .toList(),
@@ -122,7 +120,7 @@ const double _kSidebarWidth = 360;
 
 class _Sidebar extends StatelessWidget {
   final HoistsViewModel viewModel;
-  const _Sidebar({super.key, required this.viewModel});
+  const _Sidebar({required this.viewModel});
 
   @override
   Widget build(BuildContext context) {
@@ -162,8 +160,8 @@ class _Sidebar extends StatelessWidget {
               },
               footer: Center(
                   child: TextButton.icon(
-                icon: Icon(Icons.add_circle),
-                label: Text('Add Rigging Location'),
+                icon: const Icon(Icons.add_circle),
+                label: const Text('Add Rigging Location'),
                 onPressed: viewModel.onAddLocationButtonPressed,
               ))),
         ),
@@ -209,7 +207,6 @@ class _HoistControllerListTrailer extends StatelessWidget {
   final void Function() onAddButtonPressed;
 
   const _HoistControllerListTrailer({
-    super.key,
     required this.onAddButtonPressed,
   });
 

@@ -102,7 +102,6 @@ class _ExistingLocation extends StatelessWidget {
   final void Function()? onClearAssignment;
 
   const _ExistingLocation({
-    super.key,
     required this.value,
     required this.isAssigned,
     this.isBeingDraggedOver = false,
@@ -166,7 +165,6 @@ class _MatcherRow extends StatelessWidget {
   final void Function()? onClearAssignment;
 
   const _MatcherRow({
-    super.key,
     required this.incoming,
     required this.existing,
     required this.onLocationLanded,

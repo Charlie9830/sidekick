@@ -14,7 +14,8 @@ class DiagnosticsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ElevatedButton(onPressed: vm.onDebugAction, child: Text("Debug Action")),
+          ElevatedButton(
+              onPressed: vm.onDebugAction, child: const Text("Debug Action")),
           Expanded(
             child: SingleChildScrollView(
               child: Row(

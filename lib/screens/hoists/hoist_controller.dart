@@ -211,7 +211,6 @@ class _HoistChannel extends StatelessWidget {
   final bool showLandingZone;
 
   const _HoistChannel({
-    super.key,
     required this.viewModel,
     required this.onHoveringOver,
     required this.onHoverLeave,
@@ -338,7 +337,6 @@ class _HoistChannelContents extends StatelessWidget {
   final HoistDelta? delta;
   final void Function() onClearButtonPressed;
   const _HoistChannelContents({
-    super.key,
     required this.viewModel,
     required this.onClearButtonPressed,
     this.delta,
