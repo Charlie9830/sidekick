@@ -12,9 +12,7 @@ import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:sidekick/excel/create_fixture_info_sheet.dart';
 import 'package:sidekick/excel/create_hoist_patch_sheet.dart';
-import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/screens/hoists/add_or_edit_rigging_location.dart';
-import 'package:sidekick/screens/hoists/hoist_controller.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
