@@ -15,6 +15,7 @@ class PropertyField extends StatefulWidget {
   final TextEditingController? controller;
   final FocusNode? focusNode;
   final String? hintText;
+  final ScrollController? scrollController;
   final bool enabled;
 
   const PropertyField({
@@ -30,6 +31,7 @@ class PropertyField extends StatefulWidget {
     this.focusNode,
     this.hintText,
     this.enabled = true,
+    this.scrollController,
   }) : super(key: key);
 
   @override
@@ -38,12 +40,19 @@ class PropertyField extends StatefulWidget {
 
 class PropertyFieldState extends State<PropertyField> {
   late TextEditingController _controller;
+  late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
     _controller =
         widget.controller ?? TextEditingController(text: widget.value);
+
+    _scrollController = _scrollController = widget.scrollController ??
+        ScrollController(
+            keepScrollOffset:
+                false); // Stops the TextField trying to re establish it's scroll position from an ancestor PageStorage.
+    // When this happens, it triggers funky animations.
   }
 
   @override
@@ -61,6 +70,7 @@ class PropertyFieldState extends State<PropertyField> {
       child: BlurListener(
         onBlur: () => widget.onBlur?.call(_controller.text),
         child: TextField(
+          scrollController: _scrollController,
           enabled: widget.enabled,
           focusNode: widget.focusNode,
           autofocus: widget.autofocus,
@@ -83,6 +93,11 @@ class PropertyFieldState extends State<PropertyField> {
     if (widget.controller == null) {
       _controller.dispose();
     }
+
+    if (widget.scrollController == null) {
+      _scrollController.dispose();
+    }
+
     super.dispose();
   }
 }

@@ -50,7 +50,7 @@ class _EditableTextFieldState extends State<EditableTextField> {
         ScrollController(
             keepScrollOffset:
                 false); // Stops the TextField trying to re establish it's scroll position from an ancestor PageStorage.
-                // When this happens, it triggers funky animations.
+    // When this happens, it triggers funky animations.
 
     super.initState();
   }
@@ -102,6 +102,11 @@ class _EditableTextFieldState extends State<EditableTextField> {
   @override
   void dispose() {
     _controller.dispose();
+
+    if (widget.scrollController == null) {
+      // Only dispose of the Scroll controller if it has not been provided externally.
+      _scrollController.dispose();
+    }
     super.dispose();
   }
 }
