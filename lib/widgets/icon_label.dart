@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 class IconLabel extends StatelessWidget {
   final Icon icon;
   final String label;
+  final TextStyle? style;
 
   const IconLabel({
     required this.icon,
     required this.label,
+    this.style,
     super.key,
   });
 
@@ -15,7 +17,10 @@ class IconLabel extends StatelessWidget {
     return Row(children: [
       icon,
       const SizedBox(width: 4),
-      Text(label),
+      Text(
+        label,
+        style: style,
+      ),
     ]);
   }
 }
