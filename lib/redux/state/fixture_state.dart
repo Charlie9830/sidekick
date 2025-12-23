@@ -9,7 +9,9 @@ import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
+import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
+import 'package:sidekick/redux/models/power_system_model.dart';
 
 class FixtureState {
   final Map<String, FixtureModel> fixtures;
@@ -27,24 +29,28 @@ class FixtureState {
   final Map<String, HoistModel> hoists;
   final Map<String, HoistControllerModel> hoistControllers;
   final Map<String, HoistMultiModel> hoistMultis;
+  final Map<String, PowerSystemModel> powerSystems;
+  final Map<String, PowerFeedModel> powerFeeds;
 
-  FixtureState({
-    required this.fixtures,
-    required this.powerMultiOutlets,
-    required this.balanceTolerance,
-    required this.maxSequenceBreak,
-    required this.locations,
-    required this.dataMultis,
-    required this.dataPatches,
-    required this.looms,
-    required this.fixtureTypes,
-    required this.cables,
-    required this.defaultPowerMulti,
-    required this.loomStock,
-    required this.hoists,
-    required this.hoistControllers,
-    required this.hoistMultis,
-  });
+  FixtureState(
+      {required this.fixtures,
+      required this.powerMultiOutlets,
+      required this.balanceTolerance,
+      required this.maxSequenceBreak,
+      required this.locations,
+      required this.dataMultis,
+      required this.dataPatches,
+      required this.looms,
+      required this.fixtureTypes,
+      required this.cables,
+      required this.defaultPowerMulti,
+      required this.loomStock,
+      required this.hoists,
+      required this.hoistControllers,
+      required this.hoistMultis,
+      required this.powerSystems,
+      required this.powerFeeds,
+      r});
 
   const FixtureState.initial()
       : fixtures = const {},
@@ -61,7 +67,11 @@ class FixtureState {
         loomStock = const {},
         hoists = const {},
         hoistControllers = const {},
-        hoistMultis = const {};
+        hoistMultis = const {},
+        powerSystems = const {
+          PowerSystemModel.kDefaultUid: PowerSystemModel.defaultSystem(),
+        },
+        powerFeeds = const {};
 
   FixtureState copyWith({
     Map<String, FixtureModel>? fixtures,
@@ -79,6 +89,8 @@ class FixtureState {
     Map<String, HoistModel>? hoists,
     Map<String, HoistControllerModel>? hoistControllers,
     Map<String, HoistMultiModel>? hoistMultis,
+    Map<String, PowerSystemModel>? powerSystems,
+    Map<String, PowerFeedModel>? powerFeeds,
   }) {
     return FixtureState(
       fixtures: fixtures ?? this.fixtures,
@@ -96,6 +108,8 @@ class FixtureState {
       hoists: hoists ?? this.hoists,
       hoistControllers: hoistControllers ?? this.hoistControllers,
       hoistMultis: hoistMultis ?? this.hoistMultis,
+      powerSystems: powerSystems ?? this.powerSystems,
+      powerFeeds: powerFeeds ?? this.powerFeeds,
     );
   }
 }

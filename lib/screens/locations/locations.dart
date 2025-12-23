@@ -4,11 +4,14 @@ import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/screens/locations/color_select_dialog.dart';
 
 import 'package:sidekick/screens/locations/multi_color_chit.dart';
+import 'package:sidekick/screens/locations/power_system_manager.dart';
 
 import 'package:sidekick/view_models/locations_view_model.dart';
 
 import 'package:sidekick/widgets/property_field.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
+
+import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class _Columns {
   static const int name = 0;
@@ -21,6 +24,8 @@ class _Columns {
   static const int powerSystem = 7;
   static const int actions = 8;
 }
+
+const String _kNewPowerSystemValue = "new-power-system";
 
 class Locations extends StatefulWidget {
   final LocationsViewModel vm;
@@ -98,7 +103,26 @@ class _LocationsState extends State<Locations> {
       _Columns.data => Align(
           alignment: Alignment.center,
           child: Text('${item.dataMultiCount} (${item.dataPatchCount})')),
-      _Columns.powerSystem => const Text('TODO System Select'),
+      _Columns.powerSystem => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: shad.Select<String>(
+              canUnselect: false,
+              itemBuilder: (context, item) => Text(item),
+              onChanged: (value) =>
+                  _handlePowerSystemValueChanged(context, value),
+              value: 'System A',
+              popup: shad.SelectPopup<String>(
+                  items: shad.SelectItemList(children: [
+                ...widget.vm.powerSystemVms
+                    .map((systemItem) => shad.SelectItemButton(
+                          value: systemItem.system.uid,
+                          child: Text(systemItem.system.name),
+                        )),
+                const Divider(),
+                const shad.SelectItemButton(
+                    value: _kNewPowerSystemValue, child: Text('Manage...'))
+              ]))),
+        ),
       _Columns.actions => Align(
           alignment: Alignment.centerRight,
           child: PopupMenuButton<String>(
@@ -119,6 +143,23 @@ class _LocationsState extends State<Locations> {
         ),
       _ => throw "Unexpected Vicinity $vicinity",
     });
+  }
+
+  void _handlePowerSystemValueChanged(
+      BuildContext context, String? value) async {
+    if (value == null) {
+      return;
+    }
+
+    if (value == _kNewPowerSystemValue) {
+      await shad.openSheet(
+          context: context,
+          builder: (context) => PowerSystemManager(
+              existingSystems:
+                  widget.vm.powerSystemVms.map((vm) => vm.system).toList()),
+          position: shad.OverlayPosition.right);
+      return;
+    }
   }
 
   TableViewCell _buildHeaderCell(BuildContext context, int columnIndex) {

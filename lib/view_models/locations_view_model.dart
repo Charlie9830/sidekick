@@ -1,5 +1,7 @@
 import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/redux/models/power_system_model.dart';
+import 'package:sidekick/view_models/power_system_view_model.dart';
 
 class LocationsViewModel {
   final List<LocationItemViewModel> itemVms;
@@ -8,12 +10,14 @@ class LocationsViewModel {
       onLocationColorChanged;
   final void Function(String locationId, String newValue)
       onLocationDelimiterChanged;
+  final List<PowerSystemViewModel> powerSystemVms;
 
   LocationsViewModel({
     required this.itemVms,
     required this.onMultiPrefixChanged,
     required this.onLocationColorChanged,
     required this.onLocationDelimiterChanged,
+    required this.powerSystemVms,
   });
 }
 
