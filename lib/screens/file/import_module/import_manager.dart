@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:easy_stepper/easy_stepper.dart';
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/excel/read_fixture_type_database.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
@@ -24,7 +24,8 @@ import 'package:sidekick/screens/file/import_module/raw_location_model.dart';
 import 'package:sidekick/screens/file/import_module/read_raw_fixtures.dart';
 import 'package:sidekick/screens/file/import_module/select_file_control.dart';
 import 'package:sidekick/screens/file/import_module/view_data_step.dart';
-import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
+import 'package:sidekick/simple_tooltip.dart';
+import 'package:sidekick/toasts.dart';
 import 'package:sidekick/view_models/fixture_table_view_model.dart';
 import 'package:sidekick/view_models/import_manager_view_model.dart';
 
@@ -67,35 +68,64 @@ class _ImportManagerState extends State<ImportManager> {
   Widget build(BuildContext context) {
     final canProgress = _canProgress();
     return Scaffold(
-      appBar: AppBar(
-        elevation: 1,
-        title: const Text('Import Manager'),
-        leading: Tooltip(
-          message: 'Cancel',
-          child: IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ),
-        actions: [
-          const SizedBox(width: 8),
-          Tooltip(
-            message: 'Refresh',
-            child: IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: _handleRefreshButtonPressed,
+      headers: [
+        AppBar(
+          title: const Text('Import Manager'),
+          leading: [
+            SimpleTooltip(
+              message: 'Cancel',
+              child: IconButton.secondary(
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            )
+          ],
+          trailing: [
+            const SizedBox(width: 8),
+            SimpleTooltip(
+              message: 'Refresh',
+              child: IconButton.ghost(
+                icon: const Icon(Icons.refresh),
+                onPressed: _handleRefreshButtonPressed,
+              ),
             ),
+          ],
+        ),
+      ],
+      floatingFooter: true,
+      footers: [
+        Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Row(
+            spacing: 16,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (widget.vm.step != ImportManagerStep.fileSelect)
+                SimpleTooltip(
+                    message: 'Previous Step',
+                    child: IconButton.outline(
+                        density: ButtonDensity.iconComfortable,
+                        icon: const Icon(Icons.arrow_circle_left),
+                        onPressed: _handleBackButtonPressed)),
+              SimpleTooltip(
+                  message:
+                      canProgress == false ? _getProgressHaltedText() : null,
+                  child: PrimaryButton(
+                      density: ButtonDensity.iconComfortable,
+                      trailing: const Icon(Icons.arrow_circle_right),
+                      onPressed: canProgress ? _handleNextButtonPressed : null,
+                      child: const Text('Next')))
+            ],
           ),
-        ],
-      ),
-      body: Row(
+        )
+      ],
+      child: Row(
         children: [
           SizedBox(
               width: 120,
               child: Card(
-                elevation: 2,
                 child: EasyStepper(
                   lineStyle: const LineStyle(
                     lineType: LineType.normal,
@@ -107,12 +137,12 @@ class _ImportManagerState extends State<ImportManager> {
                   defaultStepBorderType: BorderType.normal,
                   stepRadius: 24,
                   activeStepBackgroundColor:
-                      Theme.of(context).colorScheme.primaryContainer,
+                      Theme.of(context).colorScheme.background,
                   finishedStepBackgroundColor:
-                      Theme.of(context).colorScheme.secondaryContainer,
+                      Theme.of(context).colorScheme.muted,
                   showStepBorder: true,
                   borderThickness: 2,
-                  unreachedStepBorderColor: Colors.grey.shade800,
+                  unreachedStepBorderColor: Colors.gray,
                   steps: const [
                     EasyStep(icon: Icon(Icons.file_open)),
                     EasyStep(
@@ -175,27 +205,6 @@ class _ImportManagerState extends State<ImportManager> {
               ),
             ],
           )),
-        ],
-      ),
-      floatingActionButton: Column(
-        spacing: 8,
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (widget.vm.step != ImportManagerStep.fileSelect)
-            Tooltip(
-              message: 'Previous Step',
-              child: FloatingActionButton.small(
-                backgroundColor: Colors.indigo,
-                onPressed: _handleBackButtonPressed,
-                child: const Icon(Icons.arrow_back),
-              ),
-            ),
-          FloatingActionButton.extended(
-              onPressed: canProgress ? _handleNextButtonPressed : null,
-              tooltip: canProgress == false ? _getProgressHaltedText() : null,
-              label: const Text('Next'),
-              icon: const Icon(Icons.arrow_circle_right)),
         ],
       ),
     );
@@ -314,18 +323,20 @@ class _ImportManagerState extends State<ImportManager> {
         _isFixtureDatabasePathValid = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
+      showGenericErrorToast(
           context: context,
-          message: 'Invalid Path to Fixture Database. Provided path is empty'));
+          title: 'Empty Path',
+          subtitle: "Invalid Path to Fixture Database. Provided path is empty");
 
       return null;
     }
 
     if (await File(path).exists() == false && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
-          context: context,
-          message:
-              "Fixture Database file was not found at the path provided."));
+      showGenericErrorToast(
+        context: context,
+        title: 'Missing Database File',
+        subtitle: "Fixture Database file was not found at the path provided.",
+      );
 
       setState(() {
         _isFixtureDatabasePathValid = false;
@@ -337,10 +348,11 @@ class _ImportManagerState extends State<ImportManager> {
     final fixtureDatabaseReadResult = await readFixtureTypeDatabase(path);
 
     if (fixtureDatabaseReadResult.errorMessage != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
+      showGenericErrorToast(
           context: context,
-          message:
-              "An error occurred reading the Fixture Database. ${fixtureDatabaseReadResult.errorMessage}"));
+          title: 'Fixture Database Error',
+          subtitle:
+              "An error occurred reading the Fixture Database. ${fixtureDatabaseReadResult.errorMessage}");
 
       setState(() => _isFixtureDatabasePathValid = false);
 
@@ -363,10 +375,11 @@ class _ImportManagerState extends State<ImportManager> {
         _isFixtureMappingPathValid = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
+      showGenericErrorToast(
           context: context,
-          message:
-              'Invalid Path to Fixture Mapping file. Provided path is empty'));
+          title: 'Empty Path',
+          subtitle:
+              "Invalid Path to Fixture Mapping file. Provided path is empty");
 
       return null;
     }
@@ -374,9 +387,10 @@ class _ImportManagerState extends State<ImportManager> {
     final file = File(path);
 
     if (await file.exists() == false && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
+      showGenericErrorToast(
           context: context,
-          message: "Fixture mapping file was not found at the path provided."));
+          title: 'Missing File',
+          subtitle: "Fixture mapping file was not found at the path provided.");
 
       setState(() {
         _isFixtureMappingPathValid = false;
@@ -392,23 +406,23 @@ class _ImportManagerState extends State<ImportManager> {
       fixtureMatchers = await parser.parseMappingFile(file);
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          genericErrorSnackBar(
+        showGenericErrorToast(
             context: context,
-            message: "An error occurred reading the Fixture Mapping File:",
-            extendedMessage: error.toString(),
-          ),
-        );
+            title: 'Fixture Mapping File Error',
+            subtitle: 'An Error occured reading the Fixture Mapping File.',
+            extendedMessage: error.toString());
       }
       setState(() => _isFixtureMappingPathValid = false);
       return null;
     }
 
     if (fixtureMatchers.isEmpty && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
+      showGenericErrorToast(
           context: context,
-          message:
-              "Invalid File format, ensure the provided file meets the correct Fixture Mapping file schema. No Fixture match rules were found."));
+          title: 'Fixture Mapping File Error',
+          subtitle:
+              "Invalid File format, ensure the provided file meets the correct Fixture Mapping file schema. No Fixture match rules were found.");
+
       setState(() => _isFixtureMappingPathValid = false);
       return null;
     }
@@ -644,9 +658,11 @@ class _ImportManagerState extends State<ImportManager> {
         settings: _importSettings, patchFilePath: _fixturePatchFilePath);
 
     if (fixtureReadResult.error != null && mounted) {
-      // Something went wrong reading the patch data. Bail.
-      ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
-          context: context, message: fixtureReadResult.error!));
+      // Something went wrong reading the patch data. Bail
+      showGenericErrorToast(
+          context: context,
+          title: "Patch Data Error",
+          subtitle: fixtureReadResult.error!);
       return;
     }
 

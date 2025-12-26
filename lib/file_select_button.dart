@@ -1,6 +1,6 @@
 import 'package:desktop_drop/desktop_drop.dart';
-import 'package:flutter/material.dart';
-import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/toasts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path/path.dart' as p;
 
@@ -41,19 +41,19 @@ class _FileSelectButtonState extends State<FileSelectButton> {
                 child: Text(widget.path.isEmpty ? 'Select' : 'Change'),
               ),
             if (widget.showOpenButton == true && widget.path.isNotEmpty)
-              IconButton(
+              IconButton.ghost(
                 onPressed: () => _handleOpenButtonPressed(context),
                 icon: const Icon(Icons.open_in_new),
               ),
             const SizedBox(width: 16),
             if (widget.path.isNotEmpty)
-              Text(widget.path, style: Theme.of(context).textTheme.bodySmall),
+              Text(widget.path, style: Theme.of(context).typography.xSmall),
             if (widget.path.isEmpty && widget.hintText != null)
               Text(widget.hintText!,
                   style: Theme.of(context)
-                      .textTheme
-                      .bodySmall!
-                      .copyWith(color: Theme.of(context).hintColor))
+                      .typography
+                      .xSmall
+                      .copyWith(color: Theme.of(context).colorScheme.muted))
           ],
         ));
   }
@@ -81,16 +81,20 @@ class _FileSelectButtonState extends State<FileSelectButton> {
           mode: LaunchMode.externalApplication);
 
       if (result == false && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
-            context: context,
-            message: 'Unable to open file ${p.basename(widget.path)}'));
+        showGenericErrorToast(
+          context: context,
+          title: "Unable to open file",
+          subtitle: p.basename(widget.path),
+        );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
-            context: context,
-            message: "Unable to open file ${p.basename(widget.path)}",
-            extendedMessage: e.toString()));
+        showGenericErrorToast(
+          context: context,
+          title: "Unable to open file",
+          subtitle: p.basename(widget.path),
+          extendedMessage: e.toString(),
+        );
       }
     }
   }
@@ -113,12 +117,12 @@ class _Hovering extends StatelessWidget {
         children: [
           const SizedBox(width: 8),
           Icon(Icons.file_download,
-              color: Theme.of(context).colorScheme.tertiary),
+              color: Theme.of(context).colorScheme.primary),
           Text(hoveringName,
               style: Theme.of(context)
-                  .textTheme
-                  .titleSmall!
-                  .copyWith(color: Theme.of(context).colorScheme.tertiary)),
+                  .typography
+                  .large
+                  .copyWith(color: Theme.of(context).colorScheme.primary)),
         ],
       ),
     );

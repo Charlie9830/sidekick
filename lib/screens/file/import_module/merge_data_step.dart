@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/drag_proxy/drag_proxy.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/screens/file/import_module/raw_location_model.dart';
@@ -31,12 +31,12 @@ class MergeDataStep extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text('Incoming Locations',
-                      style: Theme.of(context).textTheme.labelLarge),
+                      style: Theme.of(context).typography.lead),
                 ),
                 SizedBox(
                     width: rightSidebarWidth,
                     child: Text('Existing Locations',
-                        style: Theme.of(context).textTheme.labelLarge))
+                        style: Theme.of(context).typography.lead))
               ],
             ),
             const SizedBox(height: 16),
@@ -110,24 +110,22 @@ class _ExistingLocation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dragContents = Card(
-      color: isBeingDraggedOver
-          ? Colors.blueGrey.shade500
-          : Colors.blueGrey.shade900,
-      elevation: 10,
+    final dragContents = SurfaceCard(
+      filled: true,
+      fillColor:
+          isBeingDraggedOver ? Colors.blue.shade500 : Colors.blue.shade900,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: HoverRegionBuilder(builder: (context, isHovering) {
           return Row(
             children: [
-              const Icon(Icons.location_on, size: 16, color: Colors.grey),
+              const Icon(Icons.location_on, size: 16, color: Colors.gray),
               const SizedBox(width: 8),
               Text(value.name),
               const Spacer(),
               if (isHovering && onClearAssignment != null)
-                IconButton(
+                IconButton.destructive(
                   icon: const Icon(Icons.clear, size: 16),
-                  visualDensity: VisualDensity.compact,
                   onPressed: onClearAssignment,
                 ),
               switch (isAssigned) {
@@ -183,7 +181,7 @@ class _MatcherRow extends StatelessWidget {
               Expanded(
                   child: Row(
                 children: [
-                  const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                  const Icon(Icons.location_on, size: 16, color: Colors.gray),
                   const SizedBox(width: 8),
                   Text(incoming.name),
                 ],
@@ -202,15 +200,16 @@ class _MatcherRow extends StatelessWidget {
                               onClearAssignment: onClearAssignment);
                         }
 
-                        return Card(
-                          color: candidateData.isEmpty
-                              ? Colors.blueGrey.shade800
-                              : Colors.blueGrey.shade500,
+                        return SurfaceCard(
+                          filled: true,
+                          fillColor: candidateData.isEmpty
+                              ? Colors.blue.shade800
+                              : Colors.blue.shade500,
                           child: Container(
                             padding: const EdgeInsets.all(4),
                             alignment: Alignment.centerLeft,
                             child: Text('Unassigned',
-                                style: Theme.of(context).textTheme.bodySmall),
+                                style: Theme.of(context).typography.xSmall),
                           ),
                         );
                       }))

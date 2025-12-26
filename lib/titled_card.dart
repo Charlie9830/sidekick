@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class TitledCard extends StatelessWidget {
   final String title;
@@ -17,7 +17,7 @@ class TitledCard extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Text(title, style: Theme.of(context).textTheme.labelLarge),
+          child: Text(title).h4,
         ),
         Card(
           child: Padding(

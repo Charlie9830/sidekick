@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:material_table_view/material_table_view.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/diff_state_overlay.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/screens/file/import_module/incoming_fixture_item_view_model.dart';
@@ -21,7 +21,7 @@ class ViewDataStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final headerTextStyle = Theme.of(context).textTheme.titleSmall;
+    final headerTextStyle = Theme.of(context).typography.medium;
 
     Widget wrapColumn(Widget child, {Widget? overhead}) => Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -37,7 +37,7 @@ class ViewDataStep extends StatelessWidget {
           text,
           overflow: TextOverflow.visible,
           maxLines: 1,
-          style: Theme.of(context).textTheme.titleMedium,
+          style: Theme.of(context).typography.lead,
         );
 
     final headers = {
@@ -59,7 +59,7 @@ class ViewDataStep extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: DefaultTextStyle(
-        style: Theme.of(context).textTheme.bodyMedium!,
+        style: Theme.of(context).typography.normal,
         child: TableView.builder(
             headerHeight: 64,
             headerBuilder: (context, builder) =>

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class FileValidIcon extends StatelessWidget {
   final bool isValid;
@@ -8,6 +8,6 @@ class FileValidIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return isValid
         ? const Icon(Icons.check_circle, color: Colors.green)
-        : const Icon(Icons.clear_rounded, color: Colors.redAccent);
+        : const Icon(Icons.clear_rounded, color: Colors.red);
   }
 }
