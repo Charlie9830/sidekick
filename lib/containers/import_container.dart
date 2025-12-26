@@ -20,9 +20,8 @@ class ImportContainer extends StatelessWidget {
       converter: (Store<AppState> store) {
         return ImportViewModel(
           importFilePath: store.state.fileState.fixturePatchImportPath,
-          onFileSelected: (path) =>
-              store.dispatch(setImportPath(context, path)),
-          onImportManagerButtonPressed: () => store.dispatch(showImportManager(context)),
+          onImportManagerButtonPressed: () =>
+              store.dispatch(showImportManager(context)),
         );
       },
     );

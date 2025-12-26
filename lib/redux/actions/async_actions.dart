@@ -13,6 +13,7 @@ import 'package:redux_thunk/redux_thunk.dart';
 import 'package:sidekick/excel/create_fixture_info_sheet.dart';
 import 'package:sidekick/excel/create_hoist_patch_sheet.dart';
 import 'package:sidekick/screens/hoists/add_or_edit_rigging_location.dart';
+import 'package:sidekick/toasts.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -814,13 +815,10 @@ ThunkAction<AppState> switchLoomType(BuildContext context, String loomId) {
 }
 
 void _showFailedPermanentLoomErrorMessage(BuildContext context, String error) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    genericErrorSnackBar(
+  showGenericErrorToast(
       context: context,
-      message: 'Unable to match suitable Permanent loom.',
-      extendedMessage: error,
-    ),
-  );
+      title: 'Unable to match suitable Permanent loom',
+      extendedMessage: error);
 }
 
 (List<CableModel> updatedCables, LoomModel updatedLoom) _convertToCustomLoom(
@@ -1325,73 +1323,11 @@ ThunkAction<AppState> showImportManager(BuildContext context) {
           fixtureTypes: result.fixtureTypes.toModelMap()));
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(importSuccessSnackBar(context));
+        showGenericSuccessToast(context: context, title: "Patch imported.");
       }
     } else {
       store.dispatch(SetImportManagerStep(ImportManagerStep.fileSelect));
     }
-  };
-}
-
-ThunkAction<AppState> setImportPath(BuildContext context, String importPath) {
-  return (Store<AppState> store) async {
-    final sourceFile = File(importPath);
-    final fileExtension = p.extension(importPath);
-
-    if (await sourceFile.exists() == false && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
-          context: context,
-          message: 'File cannot be found.',
-          extendedMessage: 'Could not find file at location:\n$importPath'));
-      return;
-    }
-
-    final extensionRegex = RegExp(r'.xlsx|.xls');
-
-    if (extensionRegex.hasMatch(fileExtension) == false) {
-      ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
-        context: context,
-        message: 'Invalid file format. Only excel files are supported.',
-      ));
-      return;
-    }
-
-    late final Uint8List bytes;
-    try {
-      bytes = await sourceFile.readAsBytes();
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
-          context: context,
-          message:
-              'Unable to read file. Ensure the file is not currently open in Excel',
-          error: e,
-        ));
-      }
-      return;
-    }
-
-    late final Excel excel;
-    try {
-      excel = Excel.decodeBytes(bytes);
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
-          context: context,
-          message: 'Unable to decode Excel file.',
-          extendedMessage: e.toString(),
-          error: e,
-        ));
-      }
-
-      return;
-    }
-
-    store.dispatch(
-        SetExcelSheetNames(excel.sheets.keys.toSet(), excel.getDefaultSheet()));
-    store.dispatch(SetPatchImportFilePath(importPath));
-    store.dispatch(SetImportExcelDocument(excel));
   };
 }
 
@@ -1493,9 +1429,12 @@ ThunkAction<AppState> repairLoomComposition(
 
     if (homeScaffoldKey.currentContext != null &&
         homeScaffoldKey.currentContext!.mounted) {
-      ScaffoldMessenger.of(homeScaffoldKey.currentContext!).showSnackBar(
-          compositionRepairSnackBar(context,
-              'Unable to auto repair composition. Try combining DMX into Sneak or convert to a custom loom. Provided reason: ${firstRunCompositionResult.error}'));
+      showGenericErrorToast(
+          context: context,
+          title: "Composition repair failed",
+          subtitle:
+              "Unable to auto repair composition. Try combining DMX into Sneak or convert to a custom loom",
+          extendedMessage: firstRunCompositionResult.error);
     }
   };
 }
@@ -1942,16 +1881,15 @@ ThunkAction<AppState> saveProjectFile(BuildContext context, SaveType saveType) {
       store.dispatch(SetProjectFilePath(targetFilePath));
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(fileSaveSuccessSnackBar(context));
+        showFileSaveSuccessToast(context: context);
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
+        showGenericErrorToast(
             context: context,
-            message: 'An error occurred saving the project',
-            error: e,
-            extendedMessage: e.toString()));
+            title: 'An error occured.',
+            subtitle: 'Project saving failed.',
+            extendedMessage: e.toString());
       }
     }
   };
@@ -2086,8 +2024,10 @@ ThunkAction<AppState> export(BuildContext context) {
 
     if (await outputPaths.parentDirectoryExists == false) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(fileErrorSnackBar(context,
-            'Parent directory could not be found. Have you selected a target directory?'));
+        showGenericErrorToast(
+            context: context,
+            title: 'Parent Directory could not be found',
+            subtitle: 'Have you selected an export directory?');
       }
       return;
     }
@@ -2196,8 +2136,10 @@ ThunkAction<AppState> export(BuildContext context) {
 
     if (referenceDataBytes == null) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(fileErrorSnackBar(
-            context, 'An error occured writing reference data excel'));
+        showGenericErrorToast(
+            context: context,
+            title: 'Excel output error',
+            subtitle: 'An error occurred writing reference data');
       }
 
       return;
@@ -2205,8 +2147,10 @@ ThunkAction<AppState> export(BuildContext context) {
 
     if (loomsBytes == null) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(fileErrorSnackBar(
-            context, 'An error occured writing looms data excel'));
+        showGenericErrorToast(
+            context: context,
+            title: 'Excel output error',
+            subtitle: 'An error occurred writing looms data');
       }
 
       return;
@@ -2214,8 +2158,10 @@ ThunkAction<AppState> export(BuildContext context) {
 
     if (hoistPatchBytes == null) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(fileErrorSnackBar(
-            context, 'An error occured writing Hoist patch excel'));
+        showGenericErrorToast(
+            context: context,
+            title: 'Excel output error',
+            subtitle: 'An error occurred writing hoist data');
       }
 
       return;
@@ -2223,8 +2169,10 @@ ThunkAction<AppState> export(BuildContext context) {
 
     if (addressingBytes == null) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(fileErrorSnackBar(
-            context, 'An error occured writing the Fixture Addressing sheet'));
+        showGenericErrorToast(
+            context: context,
+            title: 'Excel output error',
+            subtitle: 'An error occurred writing fixture addressing data');
       }
 
       return;
@@ -2232,8 +2180,10 @@ ThunkAction<AppState> export(BuildContext context) {
 
     if (fixtureInfoBytes == null) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(fileErrorSnackBar(
-            context, 'An error occured writing the Fixture Info sheet'));
+        showGenericErrorToast(
+            context: context,
+            title: 'Excel output error',
+            subtitle: 'An error occurred writing fixture info data');
       }
 
       return;
@@ -2255,16 +2205,18 @@ ThunkAction<AppState> export(BuildContext context) {
       await Future.wait(fileWrites);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(fileErrorSnackBar(
-            context, 'One or more files failed to write to disk'));
+        showGenericErrorToast(
+            context: context,
+            title: 'Export error',
+            subtitle: '1 or more files failed to export');
 
         return;
       }
     }
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(exportSuccessSnackbar(context));
+      showGenericSuccessToast(
+          context: context, title: 'Export finished successfully');
     }
 
     if (store.state.navstate.openAfterExport == true) {
@@ -2395,10 +2347,9 @@ bool _validateAndNotifyHoistMove(int oldIndex, int newIndex,
   }
 
   if (currentSpan.location.uid != targetSpan.location.uid) {
-    ScaffoldMessenger.of(context).showSnackBar(genericErrorSnackBar(
+    showGenericErrorToast(
         context: context,
-        message:
-            'You cannot move a hoist from one location to another... yet'));
+        title: "You cannot move a hoist from one location to another, yet.");
 
     return false;
   }
