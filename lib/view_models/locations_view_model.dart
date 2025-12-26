@@ -1,6 +1,5 @@
 import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
-import 'package:sidekick/redux/models/power_system_model.dart';
 import 'package:sidekick/view_models/power_system_view_model.dart';
 
 class LocationsViewModel {

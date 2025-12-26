@@ -70,12 +70,6 @@ import 'package:sidekick/screens/sequencer_dialog/sequencer_dialog.dart';
 import 'package:sidekick/screens/setup_quantities_dialog/setup_quantities_dialog.dart';
 import 'package:sidekick/serialization/deserialize_project_file.dart';
 import 'package:sidekick/serialization/serialize_project_file.dart';
-import 'package:sidekick/snack_bars/composition_repair_error_snack_bar.dart';
-import 'package:sidekick/snack_bars/export_success_snack_bar.dart';
-import 'package:sidekick/snack_bars/file_error_snack_bar.dart';
-import 'package:sidekick/snack_bars/file_save_success_snack_bar.dart';
-import 'package:sidekick/snack_bars/generic_error_snack_bar.dart';
-import 'package:sidekick/snack_bars/import_success_snack_bar.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
 ThunkAction<AppState> deleteHoistController(
