@@ -1,12 +1,15 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show ReorderableListView;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/drag_proxy/drag_proxy.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
+import 'package:sidekick/open_shad_sheet.dart';
 import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/screens/hoists/hoist_controller.dart';
 import 'package:sidekick/screens/hoists/hoist_item.dart';
 import 'package:sidekick/screens/hoists/hoist_location_item.dart';
+import 'package:sidekick/simple_tooltip.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:sidekick/widgets/toolbar.dart';
 
@@ -29,9 +32,9 @@ class _HoistsState extends State<Hoists> {
           Toolbar(
               child: Row(
             children: [
-              Tooltip(
+              SimpleTooltip(
                 message: 'Unpatch selected Motor Control channels',
-                child: IconButton.outlined(
+                child: IconButton.outline(
                   icon: const Icon(Icons.clear),
                   onPressed:
                       widget.viewModel.selectedHoistChannelViewModels.isNotEmpty
@@ -85,12 +88,17 @@ class _MotorControllerAssignment extends StatelessWidget {
   }
 
   void _handleAddButtonPressed(BuildContext context) async {
-    final int? ways = await showModalBottomSheet(
+    final int? ways = await openShadSheet(
       context: context,
       builder: (context) => Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: const Text('Add Motor Controller').large,
+            ),
             TextButton(
               child: const Text('8 way'),
               onPressed: () => Navigator.of(context).pop(8),
@@ -159,9 +167,9 @@ class _Sidebar extends StatelessWidget {
                 };
               },
               footer: Center(
-                  child: TextButton.icon(
+                  child: IconButton.text(
                 icon: const Icon(Icons.add_circle),
-                label: const Text('Add Rigging Location'),
+                trailing: const Text('Add Rigging Location'),
                 onPressed: viewModel.onAddLocationButtonPressed,
               ))),
         ),
@@ -175,25 +183,23 @@ class _Sidebar extends StatelessWidget {
     }
 
     return LongPressDraggableProxy(
-        data: HoistDragData(
-            viewModels: viewModel.selectedHoistViewModels.values.toList()),
-        feedback: Opacity(
+      data: HoistDragData(
+          viewModels: viewModel.selectedHoistViewModels.values.toList()),
+      feedback: Opacity(
           opacity: 0.25,
-          child: Material(
-              child: SizedBox(
-            width: _kSidebarWidth,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: viewModel.selectedHoistViewModels.values
-                  .map((hoistVm) => HoistItem(
-                        vm: hoistVm,
-                        reorderableIndex: 0,
-                      ))
-                  .toList(),
-            ),
-          )),
-        ),
-        child: child);
+          child: SizedBox(
+              width: _kSidebarWidth,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: viewModel.selectedHoistViewModels.values
+                    .map((hoistVm) => HoistItem(
+                          vm: hoistVm,
+                          reorderableIndex: 0,
+                        ))
+                    .toList(),
+              ))),
+      child: child,
+    );
   }
 }
 
@@ -213,10 +219,10 @@ class _HoistControllerListTrailer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: TextButton.icon(
+      child: IconButton.text(
         onPressed: onAddButtonPressed,
         icon: const Icon(Icons.add),
-        label: const Text('Add Motor Controller'),
+        trailing: const Text('Add Motor Controller'),
       ),
     );
   }

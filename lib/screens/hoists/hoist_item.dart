@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/editable_text_field.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';
@@ -19,7 +19,7 @@ class HoistItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Container(
           height: 40,
-          color: vm.selected ? Theme.of(context).focusColor : null,
+          color: vm.selected ? Theme.of(context).colorScheme.accent : null,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.start,
@@ -30,18 +30,13 @@ class HoistItem extends StatelessWidget {
                   width: 32,
                   child: Center(
                       child: Icon(Icons.drag_handle,
-                          color: Colors.grey, size: 20)),
+                          color: Colors.gray, size: 20)),
                 ),
               ),
               SizedBox(
                 width: 148,
                 child: EditableTextField(
-                  style: vm.assigned
-                      ? Theme.of(context)
-                          .textTheme
-                          .labelLarge!
-                          .copyWith(color: Colors.grey)
-                      : null,
+                  style: vm.assigned ? Theme.of(context).typography.lead : null,
                   value: vm.hoist.name,
                   hintText: 'Hoist name...',
                   onChanged: vm.onNameChanged,
@@ -49,9 +44,9 @@ class HoistItem extends StatelessWidget {
               ),
               const Spacer(),
               if (isHovering)
-                IconButton(
+                IconButton.ghost(
                   icon: const Icon(Icons.delete),
-                  iconSize: 20,
+                  size: ButtonSize.small,
                   onPressed: vm.onDelete,
                 )
             ],

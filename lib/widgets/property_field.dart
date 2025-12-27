@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/widgets/blur_listener.dart';
 
 typedef OnBlurCallback = void Function(String newValue);
@@ -41,6 +41,7 @@ class PropertyField extends StatefulWidget {
 class PropertyFieldState extends State<PropertyField> {
   late TextEditingController _controller;
   late ScrollController _scrollController;
+  late FocusNode _focusNode;
 
   @override
   void initState() {
@@ -53,6 +54,8 @@ class PropertyFieldState extends State<PropertyField> {
             keepScrollOffset:
                 false); // Stops the TextField trying to re establish it's scroll position from an ancestor PageStorage.
     // When this happens, it triggers funky animations.
+
+    _focusNode = widget.focusNode ?? FocusNode();
   }
 
   @override
@@ -66,24 +69,28 @@ class PropertyFieldState extends State<PropertyField> {
   @override
   Widget build(BuildContext context) {
     return layoutInput(
-      context: context,
-      child: BlurListener(
-        onBlur: () => widget.onBlur?.call(_controller.text),
+        context: context,
+        label: widget.label,
         child: TextField(
-          scrollController: _scrollController,
-          enabled: widget.enabled,
-          focusNode: widget.focusNode,
-          autofocus: widget.autofocus,
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
           controller: _controller,
+          scrollController: _scrollController,
+          autocorrect: widget.autofocus,
+          enabled: widget.enabled,
+          autofocus: widget.autofocus,
+          focusNode: _focusNode,
           inputFormatters: widget.inputFormatters,
-          style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 14),
-          textAlignVertical: TextAlignVertical.top,
+          hintText: widget.hintText,
           textAlign: widget.textAlign,
-          decoration: buildInputDecoration(widget.suffix, widget.hintText),
-        ),
-      ),
-      label: widget.label,
-    );
+          onEditingComplete: () => _handleSubmit(),
+          onTapOutside: (e) => _handleSubmit(),
+        ));
+  }
+
+  void _handleSubmit() {
+    widget.onBlur?.call(_controller.text);
+
+    _focusNode.nextFocus();
   }
 
   @override
@@ -94,24 +101,20 @@ class PropertyFieldState extends State<PropertyField> {
       _controller.dispose();
     }
 
+    // Dispose of the controller only when one has not been provided by the option [scrollController] property.
+    // If an external controller has been provided, the responsibility is on the caller to dispose of it.
     if (widget.scrollController == null) {
       _scrollController.dispose();
     }
 
+    // Dispose of the focus node only when one has not been provided by the option [focusNode] property.
+    // If an external controller has been provided, the responsibility is on the caller to dispose of it.
+    if (widget.focusNode == null) {
+      _focusNode.dispose();
+    }
+
     super.dispose();
   }
-}
-
-/// The Styling and layout is shared with [AutocompleteTextField]. Hence the Static Methods.
-InputDecoration buildInputDecoration(String suffix, String? hintText) {
-  return InputDecoration(
-    contentPadding: const EdgeInsets.only(left: 12, right: 12),
-    suffix: Text(suffix),
-    hintText: hintText,
-    border: const OutlineInputBorder(
-      borderSide: BorderSide(),
-    ),
-  );
 }
 
 /// The Styling and layout is shared with [AutocompleteTextField]. Hence the Static Methods.
@@ -121,11 +124,15 @@ Widget layoutInput(
     required String label}) {
   return Column(
     mainAxisAlignment: MainAxisAlignment.center,
-    crossAxisAlignment: CrossAxisAlignment.center,
+    crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      SizedBox(height: 28, child: child),
+      child,
       if (label.isNotEmpty)
-        Text(label, style: Theme.of(context).textTheme.bodySmall)
+        Text(label,
+            style: Theme.of(context)
+                .typography
+                .xSmall
+                .copyWith(color: Colors.gray))
     ],
   );
 }

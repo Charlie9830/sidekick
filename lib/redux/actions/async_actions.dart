@@ -5,13 +5,14 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:excel/excel.dart';
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/excel/create_fixture_info_sheet.dart';
 import 'package:sidekick/excel/create_hoist_patch_sheet.dart';
+import 'package:sidekick/open_shad_sheet.dart';
 import 'package:sidekick/screens/hoists/add_or_edit_rigging_location.dart';
 import 'package:sidekick/toasts.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
@@ -190,7 +191,7 @@ ThunkAction<AppState> editRiggingLocation(
       return;
     }
 
-    final result = await showModalBottomSheet(
+    final result = await openShadSheet(
         context: context,
         builder: (context) => AddOrEditRiggingLocation(
               existingLocation: location,
@@ -226,7 +227,7 @@ ThunkAction<AppState> editRiggingLocation(
 
 ThunkAction<AppState> addRiggingLocation(BuildContext context) {
   return (Store<AppState> store) async {
-    final result = await showModalBottomSheet(
+    final result = await openShadSheet(
         context: context,
         builder: (context) => const AddOrEditRiggingLocation());
 
@@ -1570,9 +1571,7 @@ ThunkAction<AppState> addSpareCablesToLoom(
       return;
     }
 
-    final result = await showModalBottomSheet(
-        barrierColor: Colors.black.withAlpha(64),
-        elevation: 20,
+    final result = await openShadSheet(
         context: context,
         builder: (context) => AddSpareCables(
               defaultPowerMultiType: store.state.fixtureState.defaultPowerMulti,
