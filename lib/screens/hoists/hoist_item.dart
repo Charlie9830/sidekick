@@ -36,7 +36,12 @@ class HoistItem extends StatelessWidget {
               SizedBox(
                 width: 148,
                 child: EditableTextField(
-                  style: vm.assigned ? Theme.of(context).typography.lead : null,
+                  style: vm.assigned
+                      ? Theme.of(context)
+                          .typography
+                          .normal
+                          .copyWith(color: Colors.gray)
+                      : null,
                   value: vm.hoist.name,
                   hintText: 'Hoist name...',
                   onChanged: vm.onNameChanged,

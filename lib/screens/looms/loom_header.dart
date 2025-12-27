@@ -115,7 +115,7 @@ class LoomHeader extends StatelessWidget {
                 DiffStateOverlay(
                   diff: deltas?.lookup(PropertyDeltaName.loomLength),
                   child: SizedBox(
-                    width: 42,
+                    width: 64,
                     child: EditableTextField(
                       enabled: deltas == null,
                       value: loomVm.loom.type.length.toStringAsFixed(0),

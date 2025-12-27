@@ -86,17 +86,19 @@ class CableRowItem extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             SizedBox(
-                              width: length.length >= 3 ? 42 : 36,
-                              child: EditableTextField(
-                                onChanged: (newValue) =>
-                                    onLengthChanged?.call(newValue),
-                                selectAllOnFocus: true,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium!
-                                    .copyWith(color: Colors.grey.shade400),
-                                value: cable.length.floor().toString(),
-                                suffix: 'm',
+                              width: length.length >= 3 ? 48 : 40,
+                              child: Center(
+                                child: EditableTextField(
+                                  onChanged: (newValue) =>
+                                      onLengthChanged?.call(newValue),
+                                  selectAllOnFocus: true,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium!
+                                      .copyWith(color: Colors.grey.shade400),
+                                  value: cable.length.floor().toString(),
+                                  suffix: 'm',
+                                ),
                               ),
                             ),
                             if (cable.length == 0)

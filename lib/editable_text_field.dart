@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/widgets/blur_listener.dart';
 
 class EditableTextField extends StatefulWidget {
@@ -16,6 +16,7 @@ class EditableTextField extends StatefulWidget {
   final List<TextInputFormatter> inputFormatters;
   final bool enabled;
   final ScrollController? scrollController;
+  final FocusNode? focusNode;
 
   const EditableTextField({
     super.key,
@@ -32,6 +33,7 @@ class EditableTextField extends StatefulWidget {
     this.enabled = true,
     this.hintStyle,
     this.scrollController,
+    this.focusNode,
   });
 
   @override
@@ -41,6 +43,7 @@ class EditableTextField extends StatefulWidget {
 class _EditableTextFieldState extends State<EditableTextField> {
   late final TextEditingController _controller;
   late final ScrollController _scrollController;
+  late final FocusNode _focusNode;
 
   @override
   void initState() {
@@ -51,6 +54,8 @@ class _EditableTextFieldState extends State<EditableTextField> {
             keepScrollOffset:
                 false); // Stops the TextField trying to re establish it's scroll position from an ancestor PageStorage.
     // When this happens, it triggers funky animations.
+
+    _focusNode = widget.focusNode ?? FocusNode();
 
     super.initState();
   }
@@ -76,6 +81,7 @@ class _EditableTextFieldState extends State<EditableTextField> {
       },
       child: TextField(
         key: widget.key,
+        focusNode: _focusNode,
         enabled: widget.enabled,
         controller: _controller,
         scrollController: _scrollController,
@@ -83,19 +89,41 @@ class _EditableTextFieldState extends State<EditableTextField> {
         style: widget.style,
         inputFormatters: widget.inputFormatters,
         cursorHeight: widget.cursorHeight,
-        decoration: InputDecoration(
-          isDense: true,
-          hintText: widget.hintText,
-          hintStyle: widget.hintStyle?.copyWith(color: Colors.grey) ??
-              Theme.of(context)
-                  .textTheme
-                  .bodyLarge!
-                  .copyWith(color: Colors.grey),
-          enabledBorder: InputBorder.none,
-          prefixText: widget.prefix,
-          suffixText: widget.suffix,
-        ),
+        hintText: widget.hintText,
+        decoration: _defaultDecoration(),
+        onEditingComplete: () => _focusNode.unfocus(),
+        padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
+        features: [
+          // Prefix
+          if (widget.prefix != null)
+            InputFeature.leading(
+              Text(widget.prefix!,
+                  style: Theme.of(context)
+                      .typography
+                      .normal
+                      .copyWith(color: Colors.gray)),
+              skipFocusTraversal: true,
+              visibility: InputFeatureVisibility.always,
+            ),
+
+          // Suffix
+          if (widget.suffix != null)
+            InputFeature.trailing(
+                Text(widget.suffix!,
+                    style: Theme.of(context)
+                        .typography
+                        .normal
+                        .copyWith(color: Colors.gray)),
+                skipFocusTraversal: true,
+                visibility: InputFeatureVisibility.always)
+        ],
       ),
+    );
+  }
+
+  BoxDecoration _defaultDecoration() {
+    return const BoxDecoration(
+      border: BoxBorder.fromBorderSide(BorderSide.none),
     );
   }
 
@@ -107,6 +135,12 @@ class _EditableTextFieldState extends State<EditableTextField> {
       // Only dispose of the Scroll controller if it has not been provided externally.
       _scrollController.dispose();
     }
+
+    if (widget.focusNode == null) {
+      // Only dispose of the FocusNode if it has not been provided externally.
+      _focusNode.dispose();
+    }
+
     super.dispose();
   }
 }
