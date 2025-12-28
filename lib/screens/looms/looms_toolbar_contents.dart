@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
+import 'package:sidekick/screens/looms/cable_type_select.dart';
+import 'package:sidekick/simple_tooltip.dart';
 
 class LoomsToolbarContents extends StatelessWidget {
   final void Function() onCombineIntoMultiButtonPressed;
@@ -30,59 +32,53 @@ class LoomsToolbarContents extends StatelessWidget {
     const Widget spacer = SizedBox(width: 8);
     return Row(
       children: [
-        Tooltip(
+        SimpleTooltip(
             message: 'Delete selected Cables',
-            child: IconButton.outlined(
+            child: IconButton.destructive(
                 onPressed: onDeleteSelectedCables,
                 icon: const Icon(Icons.delete))),
         spacer,
         const VerticalDivider(),
         spacer,
-        Tooltip(
+        SimpleTooltip(
           message: 'Combine DMX or Motor cable into Sneak/Motor Multi',
-          child: IconButton.filled(
+          child: IconButton.outline(
               onPressed: onCombineIntoMultiButtonPressed,
               icon: const Icon(Icons.merge)),
         ),
         spacer,
-        Tooltip(
+        SimpleTooltip(
           message: 'Split Sneak or Motor Multi',
-          child: IconButton.filled(
+          child: IconButton.outline(
               onPressed: onSplitMultiButtonPressed,
               icon: const Icon(Icons.call_split)),
         ),
         spacer,
         const VerticalDivider(),
         spacer,
-        DropdownMenu<CableType>(
-          initialSelection: defaultPowerMultiType,
-          onSelected: (value) => onDefaultPowerMultiTypeChanged(value!),
-          enableFilter: false,
-          enableSearch: false,
-          dropdownMenuEntries: const [
-            DropdownMenuEntry(value: CableType.socapex, label: 'Socapex'),
-            DropdownMenuEntry(value: CableType.wieland6way, label: '6way'),
-          ],
+        CableTypeSelect(
+          value: defaultPowerMultiType,
+          onChanged: (value) => onDefaultPowerMultiTypeChanged(value),
+          allowedTypes: const {CableType.socapex, CableType.wieland6way},
         ),
-        Tooltip(
+        SimpleTooltip(
             message:
                 'Change Selected Power Multi cables to ${switch (defaultPowerMultiType) {
               CableType.wieland6way => 'Wieland',
               CableType.socapex => 'Socapex',
               _ => '',
             }}',
-            child: IconButton(
+            child: IconButton.ghost(
               icon: const Icon(Icons.change_circle),
               onPressed: onChangePowerMultiTypeOfSelectedCables,
             )),
         const Spacer(),
         if (infoTrailer != null) infoTrailer!,
-        Tooltip(
+        SimpleTooltip(
           message: availabilityDrawOpen
               ? 'Close Availability drawer'
               : 'Open Availability drawer',
-          child: IconButton.filledTonal(
-            isSelected: availabilityDrawOpen,
+          child: IconButton.secondary(
             icon: const Icon(Icons.factory),
             onPressed: () => onShowAvailabilityDrawPressed(),
           ),

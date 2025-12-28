@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class CableFlag extends StatelessWidget {
   final Color? color;
@@ -20,9 +20,7 @@ class CableFlag extends StatelessWidget {
           color: color ?? Colors.teal.shade700,
           borderRadius: BorderRadius.circular(8)),
       alignment: Alignment.center,
-      child: Text(text,
-          style:
-              Theme.of(context).textTheme.labelSmall!.copyWith(fontSize: 10)),
+      child: Text(text, style: Theme.of(context).typography.xSmall),
     );
   }
 }

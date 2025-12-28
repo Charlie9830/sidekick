@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/custom_icons.dart';
 import 'package:sidekick/screens/looms/drag_data.dart';
 import 'package:sidekick/screens/looms/landing_pad.dart';
@@ -19,7 +19,7 @@ class ModifyExistingLoomDropTargets extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Theme.of(context).canvasColor.withAlpha(128),
+      color: Theme.of(context).colorScheme.card.withAlpha(128),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

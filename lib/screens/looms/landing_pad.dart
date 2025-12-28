@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/drag_proxy/drag_proxy.dart';
 import 'package:sidekick/screens/looms/drag_data.dart';
 
@@ -41,8 +41,8 @@ class _LandingPadState extends State<LandingPad> {
           builder: (BuildContext context, List<DragData?> candidateData,
               List<dynamic> rejectedData) {
             return Card(
-              elevation: 10,
-              color: _resolveColor(),
+              filled: true,
+              fillColor: _resolveColor(),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
@@ -97,7 +97,7 @@ class _LandingPadState extends State<LandingPad> {
 
   Color? _resolveColor() {
     return _isHoveringOver && widget.enabled && _isAccepting
-        ? Theme.of(context).buttonTheme.colorScheme!.inversePrimary
-        : Theme.of(context).colorScheme.surfaceContainerHighest;
+        ? Theme.of(context).colorScheme.ring
+        : Theme.of(context).colorScheme.card;
   }
 }

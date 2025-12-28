@@ -14,7 +14,6 @@ class HomeScaffold extends StatelessWidget {
         platform: TargetPlatform.windows,
       ),
       scaling: AdaptiveScaling.desktop,
-      color: Colors.blue,
       title: "It's just a Phase!",
       navigatorKey: navigatorKey,
       home: const HomeContainer(),

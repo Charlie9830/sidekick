@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/screens/looms/composition_item.dart';
 import 'package:sidekick/view_models/looms_view_model.dart';
@@ -14,9 +14,9 @@ class QuantatiesDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final columnHeaderStyle = Theme.of(context).textTheme.labelSmall;
+    final columnHeaderStyle = Theme.of(context).typography.small;
     return SizedBox(
-      width: 380,
+      width: 420,
       child: Card(
           child: Padding(
         padding: const EdgeInsets.all(8),
@@ -25,7 +25,7 @@ class QuantatiesDrawer extends StatelessWidget {
             Row(
               children: [
                 Text('Permanent Loom Usage',
-                    style: Theme.of(context).textTheme.labelLarge),
+                    style: Theme.of(context).typography.large),
                 const Spacer(),
                 TextButton(
                     onPressed: onSetupButtonPressed,
@@ -35,14 +35,11 @@ class QuantatiesDrawer extends StatelessWidget {
             Row(
               children: [
                 Text('Loom', style: columnHeaderStyle),
-
                 const SizedBox(width: 200),
-
                 Text(
                   'In Use',
                   style: columnHeaderStyle,
                 ),
-
                 const SizedBox(width: 20),
                 Text(
                   "Available",

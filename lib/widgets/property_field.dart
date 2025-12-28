@@ -1,8 +1,13 @@
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:sidekick/widgets/blur_listener.dart';
 
 typedef OnBlurCallback = void Function(String newValue);
+
+enum LabelAlign {
+  start,
+  center,
+  end,
+}
 
 class PropertyField extends StatefulWidget {
   final String? value;
@@ -17,6 +22,7 @@ class PropertyField extends StatefulWidget {
   final String? hintText;
   final ScrollController? scrollController;
   final bool enabled;
+  final LabelAlign labelAlign;
 
   const PropertyField({
     Key? key,
@@ -32,6 +38,7 @@ class PropertyField extends StatefulWidget {
     this.hintText,
     this.enabled = true,
     this.scrollController,
+    this.labelAlign = LabelAlign.start,
   }) : super(key: key);
 
   @override
@@ -71,6 +78,7 @@ class PropertyFieldState extends State<PropertyField> {
     return layoutInput(
         context: context,
         label: widget.label,
+        labelPosition: widget.labelAlign,
         child: TextField(
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
           controller: _controller,
@@ -121,10 +129,15 @@ class PropertyFieldState extends State<PropertyField> {
 Widget layoutInput(
     {required BuildContext context,
     required Widget child,
-    required String label}) {
+    required String label,
+    required LabelAlign labelPosition}) {
   return Column(
     mainAxisAlignment: MainAxisAlignment.center,
-    crossAxisAlignment: CrossAxisAlignment.start,
+    crossAxisAlignment: switch (labelPosition) {
+      LabelAlign.start => CrossAxisAlignment.start,
+      LabelAlign.center => CrossAxisAlignment.center,
+      LabelAlign.end => CrossAxisAlignment.end,
+    },
     children: [
       child,
       if (label.isNotEmpty)

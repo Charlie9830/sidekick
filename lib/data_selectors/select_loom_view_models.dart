@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/classes/permanent_composition_selection.dart';
 import 'package:sidekick/data_selectors/select_cable_detached_state.dart';
 import 'package:sidekick/data_selectors/select_cable_label.dart';
@@ -16,6 +16,7 @@ import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/redux/models/permanent_loom_composition.dart';
 import 'package:sidekick/redux/state/app_state.dart';
+import 'package:sidekick/simple_tooltip.dart';
 import 'package:sidekick/view_models/cable_view_model.dart';
 import 'package:sidekick/view_models/loom_view_model.dart';
 
@@ -166,9 +167,9 @@ List<LoomViewModel> selectLoomViewModels(
   return loomVms;
 }
 
-List<DropdownMenuEntry<PermanentCompositionSelection>> _getPermCompEntries(
+List<SelectItemButton<PermanentCompositionSelection>> _getPermCompEntries(
     BuildContext? context, LoomModel loom, List<CableModel> topLevelChildren) {
-  DropdownMenuEntry<PermanentCompositionSelection> mapComp(
+  SelectItemButton<PermanentCompositionSelection> mapComp(
       PermanentLoomComposition comp) {
     final satisfiedOnAllCables = comp.satisfied(topLevelChildren).satisfied;
     final satisfiedOnActiveCablesOnly = comp
@@ -178,31 +179,36 @@ List<DropdownMenuEntry<PermanentCompositionSelection>> _getPermCompEntries(
     final cutSpares =
         satisfiedOnAllCables == false && satisfiedOnActiveCablesOnly == true;
 
-    return DropdownMenuEntry<PermanentCompositionSelection>(
-      label: comp.name,
+    final leading = comp.socaWays > 0
+        ? const Icon(Icons.electric_bolt, size: 16)
+        : const Icon(Icons.power, size: 16);
+    final trailing = cutSpares
+        ? const SimpleTooltip(
+            message: 'Spares will get deleted',
+            child: Icon(Icons.cut, size: 16, color: Colors.pink))
+        : null;
+
+    return SelectItemButton<PermanentCompositionSelection>(
       value:
           PermanentCompositionSelection(name: comp.name, cutSpares: cutSpares),
       enabled: satisfiedOnAllCables || satisfiedOnActiveCablesOnly,
-      leadingIcon: comp.socaWays > 0
-          ? const Icon(Icons.electric_bolt, size: 16)
-          : const Icon(Icons.power, size: 16),
-      trailingIcon: cutSpares
-          ? const Tooltip(
-              message: 'Spares will get deleted',
-              child: Icon(Icons.cut, size: 16, color: Colors.pink))
-          : null,
+      child: Row(
+        children: [
+          leading,
+          const SizedBox(width: 8),
+          Expanded(child: Text(comp.name)),
+          if (trailing != null) trailing,
+        ],
+      ),
     );
   }
 
-  DropdownMenuEntry<PermanentCompositionSelection> buildSubtitle(
+  SelectItemButton<PermanentCompositionSelection> buildSubtitle(
           String subtitle) =>
-      DropdownMenuEntry<PermanentCompositionSelection>(
+      SelectItemButton<PermanentCompositionSelection>(
         value: PermanentCompositionSelection(name: subtitle, cutSpares: false),
-        label: subtitle,
         enabled: false,
-        labelWidget: context == null
-            ? null
-            : Text(subtitle, style: Theme.of(context).textTheme.labelSmall),
+        child: Text(subtitle).small,
       );
 
   return [

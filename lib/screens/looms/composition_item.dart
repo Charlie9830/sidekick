@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/shad_list_item.dart';
 import 'package:sidekick/view_models/looms_view_model.dart';
 
 class CompositionItem extends StatelessWidget {
@@ -11,7 +12,7 @@ class CompositionItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final available = vm.stock.qty - vm.inUse;
-    return ListTile(
+    return ShadListItem(
       enabled: vm.inUse > 0,
       title: Text(
         vm.stock.fullName,
@@ -22,16 +23,16 @@ class CompositionItem extends StatelessWidget {
         children: [
           if (vm.inUse > 0)
             Text(vm.inUse.toString(),
-                style: Theme.of(context).textTheme.labelLarge),
+                style: Theme.of(context).typography.normal),
           const SizedBox(
             width: 60,
           ),
           Text(available.toString(),
-              style: Theme.of(context).textTheme.labelLarge!.copyWith(
+              style: Theme.of(context).typography.normal.copyWith(
                   color: available == 0
-                      ? Colors.orangeAccent
+                      ? Colors.orange
                       : available < 0
-                          ? Colors.redAccent
+                          ? Colors.red
                           : Colors.green)),
         ],
       ),

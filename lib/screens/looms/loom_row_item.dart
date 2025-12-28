@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/screens/looms/loom_header.dart';
 import 'package:sidekick/view_models/loom_view_model.dart';
@@ -19,16 +19,20 @@ class LoomRowItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return SurfaceCard(
+      padding: EdgeInsets.zero,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
-          LoomHeader(
-            loomVm: loomVm,
-            reorderableListViewIndex: reorderableListViewIndex,
-            deltas: deltas,
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: LoomHeader(
+              loomVm: loomVm,
+              reorderableListViewIndex: reorderableListViewIndex,
+              deltas: deltas,
+            ),
           ),
 
           // Child Items

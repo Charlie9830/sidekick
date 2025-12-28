@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/classes/permanent_composition_selection.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
@@ -25,7 +25,7 @@ class LoomViewModel with DiffComparable implements ModelCollectionMember {
   final void Function(String uid, Set<String> ids) onMoveCablesIntoLoom;
   final void Function(String uid, Set<String> ids)
       onAddCablesIntoLoomAsExtensions;
-  final List<DropdownMenuEntry<PermanentCompositionSelection>> permCompEntries;
+  final List<SelectItemButton<PermanentCompositionSelection>> permCompEntries;
   final void Function(PermanentCompositionSelection selection)
       onChangeToSpecificComposition;
 

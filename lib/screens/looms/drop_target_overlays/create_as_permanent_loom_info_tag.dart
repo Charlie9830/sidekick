@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class CreateAsPermanentLoomInfoTag extends StatelessWidget {
   const CreateAsPermanentLoomInfoTag({super.key});
@@ -6,6 +6,6 @@ class CreateAsPermanentLoomInfoTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Icon(Icons.all_inclusive,
-        size: 20, color: Theme.of(context).colorScheme.tertiary);
+        size: 20, color: Theme.of(context).colorScheme.secondary);
   }
 }

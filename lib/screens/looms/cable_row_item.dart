@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/containers/diffing_screen_container.dart';
 import 'package:sidekick/diff_state_overlay.dart';
 import 'package:sidekick/editable_text_field.dart';
@@ -7,6 +7,7 @@ import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/screens/locations/multi_color_chit.dart';
 import 'package:sidekick/screens/looms/cable_flag.dart';
+import 'package:sidekick/simple_tooltip.dart';
 
 const double kCableRowHeight = 26.0;
 
@@ -47,7 +48,18 @@ class CableRowItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String length = cable.length.floor().toString();
-    final Color borderColor = Colors.grey.shade800;
+    final Color borderColor = Colors.gray.shade800;
+
+    final scaling = Theme.of(context).scaling;
+
+    final primaryTypography = Theme.of(context)
+        .typography
+        .light
+        .copyWith(color: Colors.gray.shade300, fontSize: 14 * scaling);
+    final secondaryTypography = Theme.of(context)
+        .typography
+        .light
+        .copyWith(color: Colors.gray.shade400, fontSize: 14 * scaling);
 
     return DiffStateOverlay(
       diff: cableDelta?.overallDiff,
@@ -71,14 +83,9 @@ class CableRowItem extends StatelessWidget {
             children: [
               // Length
               SizedBox(
-                width: 100,
+                width: 72,
                 child: disableLength
-                    ? Center(
-                        child: Text('-',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall!
-                                .copyWith(color: Colors.grey)))
+                    ? Center(child: Text('-', style: secondaryTypography))
                     : DiffStateOverlay(
                         diff: cableDelta?.properties
                             .lookup(PropertyDeltaName.cableLength),
@@ -92,21 +99,17 @@ class CableRowItem extends StatelessWidget {
                                   onChanged: (newValue) =>
                                       onLengthChanged?.call(newValue),
                                   selectAllOnFocus: true,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium!
-                                      .copyWith(color: Colors.grey.shade400),
+                                  style: primaryTypography,
                                   value: cable.length.floor().toString(),
                                   suffix: 'm',
                                 ),
                               ),
                             ),
                             if (cable.length == 0)
-                              const Tooltip(
+                              const SimpleTooltip(
                                 waitDuration: Duration(milliseconds: 500),
                                 message: 'Invalid Length',
-                                child: Icon(Icons.error,
-                                    color: Colors.orangeAccent),
+                                child: Icon(Icons.error, color: Colors.orange),
                               )
                           ],
                         ),
@@ -118,7 +121,7 @@ class CableRowItem extends StatelessWidget {
 
               // Cable Type
               SizedBox(
-                width: 128,
+                width: 184,
                 child: DiffStateOverlay(
                   diff: cableDelta?.properties
                       .lookup(PropertyDeltaName.cableType),
@@ -129,37 +132,33 @@ class CableRowItem extends StatelessWidget {
                         children: [
                           switch (cable.type) {
                             CableType.socapex => const Icon(Icons.bolt,
-                                size: 16, color: Colors.grey),
+                                size: 16, color: Colors.gray),
                             CableType.wieland6way => const Icon(Icons.power,
-                                size: 16, color: Colors.grey),
+                                size: 16, color: Colors.gray),
                             CableType.sneak => const Icon(
                                 Icons.settings_ethernet,
                                 size: 16,
-                                color: Colors.grey),
+                                color: Colors.gray),
                             CableType.dmx => Icon(
                                 cable.parentMultiId.isEmpty
                                     ? Icons.settings_input_svideo
                                     : Icons.subdirectory_arrow_right,
                                 size: 16,
-                                color: Colors.grey),
+                                color: Colors.gray),
                             CableType.hoist => const Icon(Icons.construction,
-                                size: 16, color: Colors.grey),
+                                size: 16, color: Colors.gray),
                             CableType.hoistMulti => const Icon(
                                 Icons.view_module_outlined,
-                                color: Colors.grey),
+                                color: Colors.gray),
                             CableType.unknown => const SizedBox(),
                           },
                           const SizedBox(width: 8),
-                          Text(typeLabel,
-                              style: cable.parentMultiId.isNotEmpty
-                                  ? Theme.of(context)
-                                      .textTheme
-                                      .bodySmall!
-                                      .copyWith(color: Colors.grey.shade200)
-                                  : Theme.of(context)
-                                      .textTheme
-                                      .bodySmall!
-                                      .copyWith(color: Colors.grey.shade200)),
+                          Text(
+                            typeLabel,
+                            style: cable.parentMultiId.isEmpty
+                                ? primaryTypography
+                                : secondaryTypography,
+                          ),
                         ],
                       ),
                     ],
@@ -180,29 +179,22 @@ class CableRowItem extends StatelessWidget {
                     DiffStateOverlay(
                         diff: cableDelta?.properties
                             .lookup(PropertyDeltaName.label),
-                        child: Text(label,
-                            style: Theme.of(context).textTheme.bodySmall)),
+                        child: Text(label, style: primaryTypography)),
                     if (labelHint.isNotEmpty) ...[
                       const SizedBox(width: 24),
                       DiffStateOverlay(
                         diff: cableDelta?.properties
                             .lookup(PropertyDeltaName.labelHint),
-                        child: Text(labelHint,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall!
-                                .copyWith(
-                                    fontStyle: FontStyle.italic,
-                                    color: Colors.grey)),
+                        child: Text(labelHint, style: secondaryTypography),
                       ),
                     ],
                     const Spacer(),
                     if (isDetached)
-                      const Tooltip(
+                      const SimpleTooltip(
                           message:
                               'Detached Outlet:\nThis cable will not appear on the patch sheet',
                           child:
-                              Icon(Icons.info, color: Colors.grey, size: 20)),
+                              Icon(Icons.info, color: Colors.gray, size: 20)),
                     if (cable.upstreamId.isNotEmpty)
                       missingUpstreamCable
                           ? const _MissingUpstreamCableIcon()
@@ -211,7 +203,7 @@ class CableRowItem extends StatelessWidget {
                                   text: 'Drop', color: Colors.green)
                               : const CableFlag(
                                   text: 'Ext',
-                                  color: Colors.blueAccent,
+                                  color: Colors.blue,
                                 ),
                     if (cable.isSpare)
                       const CableFlag(
@@ -250,7 +242,7 @@ class CableRowItem extends StatelessWidget {
                       Expanded(
                           child: EditableTextField(
                         value: cable.notes,
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: primaryTypography,
                         onChanged: (newValue) => onNotesChanged(newValue),
                       )),
                     ],
@@ -266,7 +258,7 @@ class CableRowItem extends StatelessWidget {
 
   Color? _getBackgroundColor(BuildContext context) {
     if (isSelected) {
-      return Theme.of(context).focusColor.withAlpha(60);
+      return Theme.of(context).colorScheme.border;
     }
 
     return null;
@@ -278,9 +270,9 @@ class _MissingUpstreamCableIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Tooltip(
+    return const SimpleTooltip(
         message:
             "The upstream leg of this cable, eg: The feeder, has been deleted.",
-        child: Icon(Icons.link_off, color: Colors.redAccent));
+        child: Icon(Icons.link_off, color: Colors.red));
   }
 }
