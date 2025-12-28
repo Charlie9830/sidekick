@@ -77,11 +77,13 @@ ThunkAction<AppState> deleteHoistController(
     BuildContext context, HoistControllerModel controller) {
   return (Store<AppState> store) async {
     final dialogResult = await showGenericDialog(
-        context: context,
-        title: 'Delete Motor Controller',
-        message: 'Are you sure you want to delete ${controller.name}?',
-        affirmativeText: 'Delete',
-        declineText: 'Cancel');
+      context: context,
+      title: 'Delete Motor Controller',
+      message: 'Are you sure you want to delete ${controller.name}?',
+      affirmativeText: 'Delete',
+      destructiveAffirmative: true,
+      declineText: 'Cancel',
+    );
 
     if (dialogResult == true) {
       final associatedHoists = store.state.fixtureState.hoists.values.where(
@@ -174,6 +176,7 @@ ThunkAction<AppState> deleteLocation(BuildContext context, String locationId) {
         message:
             'Are you sure you want to delete ${location.name}. All motors and cables associated with this location will be deleted as well.',
         affirmativeText: 'Delete',
+        destructiveAffirmative: true,
         declineText: 'Cancel');
 
     if (result == true) {
@@ -2035,6 +2038,7 @@ ThunkAction<AppState> export(BuildContext context) {
           message:
               'If you proceed, the following files will be overwritten.\n${existingFileNames.join('\n')}',
           affirmativeText: 'Overwrite',
+          destructiveAffirmative: true,
           declineText: 'Cancel',
         );
 

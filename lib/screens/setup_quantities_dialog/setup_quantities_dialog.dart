@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/editable_text_field.dart';
 import 'package:sidekick/extension_methods/clone_map.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/permanent_loom_composition.dart';
+import 'package:sidekick/shad_list_item.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
 class SetupQuantitiesDialog extends StatefulWidget {
@@ -37,7 +38,7 @@ class _SetupQuantitiesDialogState extends State<SetupQuantitiesDialog> {
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Cancel'),
           ),
-          TextButton(
+          Button.primary(
             onPressed: () => Navigator.of(context).pop(_items.values
                 .whereType<LoomStockItemViewModel>()
                 .map((vm) => vm.item)
@@ -58,7 +59,7 @@ class _SetupQuantitiesDialogState extends State<SetupQuantitiesDialog> {
                     final itemVm = items[index];
 
                     return switch (itemVm) {
-                      LoomStockItemViewModel v => ListTile(
+                      LoomStockItemViewModel v => ShadListItem(
                           title: Text(v.item.fullName),
                           trailing: SizedBox(
                             width: 200,
@@ -88,8 +89,7 @@ class _SetupQuantitiesDialogState extends State<SetupQuantitiesDialog> {
                                   ),
                                 ),
                                 Text('In Stock',
-                                    style:
-                                        Theme.of(context).textTheme.labelSmall),
+                                    style: Theme.of(context).typography.small),
                               ],
                             ),
                           ),

@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/screens/locations/color_select_dialog.dart';
 
 import 'package:sidekick/screens/locations/multi_color_chit.dart';
 import 'package:sidekick/screens/locations/power_system_manager.dart';
+import 'package:sidekick/simple_tooltip.dart';
 
 import 'package:sidekick/view_models/locations_view_model.dart';
 
@@ -71,8 +72,8 @@ class _LocationsState extends State<Locations> {
         child: switch (vicinity.column) {
       _Columns.name =>
         Align(alignment: Alignment.centerLeft, child: Text(item.location.name)),
-      _Columns.color => InkWell(
-          onTap: () => _showColorPickerDialog(
+      _Columns.color => Button.ghost(
+          onPressed: () => _showColorPickerDialog(
               context, item.location.uid, item.location.color),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -123,24 +124,31 @@ class _LocationsState extends State<Locations> {
                     value: _kNewPowerSystemValue, child: Text('Manage...'))
               ]))),
         ),
-      _Columns.actions => Align(
-          alignment: Alignment.centerRight,
-          child: PopupMenuButton<String>(
-              enabled: item.location.isRiggingOnlyLocation,
-              icon: const Icon(Icons.more_vert),
-              itemBuilder: (context) => [
-                    PopupMenuItem(
-                      enabled: item.location.isRiggingOnlyLocation,
-                      onTap: () => item.onEditName(),
-                      child: const Text('Edit name'),
-                    ),
-                    PopupMenuItem(
-                      enabled: item.location.isRiggingOnlyLocation,
-                      onTap: () => item.onDelete(),
-                      child: const Text('Delete'),
-                    )
-                  ]),
-        ),
+      _Columns.actions => Builder(builder: (context) {
+          return IconButton.ghost(
+            icon: const Icon(Icons.more_vert),
+            onPressed: item.location.isRiggingOnlyLocation
+                ? () => showDropdown(
+                    context: context,
+                    builder: (context) => DropdownMenu(
+                          children: [
+                            MenuButton(
+                              enabled: item.location.isRiggingOnlyLocation,
+                              onPressed: (_) => item.onEditName(),
+                              child: const Text('Edit'),
+                            ),
+                            const MenuDivider(),
+                            MenuButton(
+                              enabled: item.location.isRiggingOnlyLocation,
+                              onPressed: (_) => item.onDelete(),
+                              leading: const Icon(Icons.delete),
+                              child: const Text('Delete'),
+                            )
+                          ],
+                        ))
+                : null,
+          );
+        }),
       _ => throw "Unexpected Vicinity $vicinity",
     });
   }
@@ -211,7 +219,7 @@ class _LocationsState extends State<Locations> {
   }
 
   TableSpan _columnBuilder(int index) {
-    final minorBorder = BorderSide(color: Colors.grey.shade800);
+    final minorBorder = BorderSide(color: Colors.gray.shade800);
     const defaultPadding = SpanPadding(leading: 8.0, trailing: 8.0);
 
     return switch (index) {
@@ -267,9 +275,9 @@ class _LocationsState extends State<Locations> {
       return TableSpan(
         extent: const FixedSpanExtent(56),
         backgroundDecoration: SpanDecoration(
-          color: Theme.of(context).cardColor,
+          color: Theme.of(context).colorScheme.card,
           border: SpanBorder(
-            trailing: BorderSide(color: Theme.of(context).dividerColor),
+            trailing: BorderSide(color: Theme.of(context).colorScheme.border),
           ),
         ),
       );
@@ -305,7 +313,7 @@ class _IconTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
+    return SimpleTooltip(
       message: title,
       child: icon,
     );

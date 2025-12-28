@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/classes/named_colors.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/named_color_model.dart';
@@ -31,72 +31,83 @@ class _ColorSelectDialogState extends State<ColorSelectDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-        scrollable: true,
+    return SizedBox(
+      width: 600,
+      child: AlertDialog(
         title: Row(
           children: [
-            const Expanded(child: Text('Select Colour')),
-            IconButton(
+            const Text('Select Colour'),
+            const Spacer(),
+            IconButton.ghost(
                 onPressed: () => setState(() {
                       _color = _color.copyWith(
                           colors: _color.colors.toList()..removeLast());
                     }),
                 icon: const Icon(Icons.remove_circle)),
-            IconButton(
-                onPressed: () => setState(
-                      () {
-                        _color = _color.copyWith(
-                          colors: _color.colors.toList()..add(NamedColors.none),
-                        );
+            IconButton.ghost(
+                onPressed: () async {
+                  setState(
+                    () {
+                      _color = _color.copyWith(
+                        colors: _color.colors.toList()..add(NamedColors.none),
+                      );
+                    },
+                  );
 
-                        _scrollController.animateTo(1000,
-                            duration: const Duration(milliseconds: 250),
-                            curve: Curves.easeInOut);
-                      },
-                    ),
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _scrollController.animateTo(
+                        _scrollController.position.maxScrollExtent,
+                        duration: const Duration(milliseconds: 125),
+                        curve: Curves.easeOutCubic);
+                  },
+                      debugLabel:
+                          'Post Frame Callback. Animate to end of ListView');
+                },
                 icon: const Icon(Icons.add_circle)),
           ],
         ),
         content: SizedBox(
-            width: 564,
-            height: 200,
-            child: Column(
-              children: [
-                const Divider(),
-                Expanded(
-                  child: ListView(
-                    controller: _scrollController,
-                    children: _color.colors.mapIndexed((index, namedColor) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: _SelectableColorRow(
-                            value: namedColor,
-                            number: index + 1,
-                            onChanged: (newValue) => setState(() {
-                                  final newList = _color.colors.toList();
-                                  newList[index] = newValue;
+          height: 300,
+          child: Column(
+            children: [
+              const Divider(),
+              Expanded(
+                child: ListView(
+                  controller: _scrollController,
+                  children: _color.colors.mapIndexed((index, namedColor) {
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: _SelectableColorRow(
+                          value: namedColor,
+                          number: index + 1,
+                          onChanged: (newValue) => setState(() {
+                                final newList = _color.colors.toList();
+                                newList[index] = newValue;
 
-                                  _color = _color.copyWith(
-                                    colors: newList,
-                                  );
-                                })),
-                      );
-                    }).toList(),
-                  ),
+                                _color = _color.copyWith(
+                                  colors: newList,
+                                );
+                              })),
+                    );
+                  }).toList(),
                 ),
-                const Divider(),
-              ],
-            )),
+              ),
+              const Divider(),
+            ],
+          ),
+        ),
         actions: [
           TextButton(
             child: const Text('Cancel'),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          TextButton(
+          Button.primary(
             child: const Text('Apply'),
             onPressed: () => Navigator.of(context).pop(_color),
           )
-        ]);
+        ],
+      ),
+    );
   }
 
   @override
@@ -122,7 +133,7 @@ class _SelectableColorRow extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Colour $number', style: Theme.of(context).textTheme.labelSmall),
+        Text('Colour $number', style: Theme.of(context).typography.normal),
         Wrap(
           alignment: WrapAlignment.center,
           runAlignment: WrapAlignment.center,

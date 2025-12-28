@@ -110,13 +110,13 @@ class FileScreen extends StatelessWidget {
   Future<bool?> _showSaveChangesDialog(
       {required BuildContext context, required String title}) async {
     return await showGenericDialog(
-      context: context,
-      title: title,
-      message:
-          'Would you like to save the changes to your current project first?',
-      affirmativeText: 'Save',
-      declineText: 'Discard',
-    );
+        context: context,
+        title: title,
+        message:
+            'Would you like to save the changes to your current project first?',
+        affirmativeText: 'Save',
+        declineText: 'Discard',
+        destructiveDecline: true);
   }
 
   void _handleSaveProjectButtonPressed(BuildContext context) async {
