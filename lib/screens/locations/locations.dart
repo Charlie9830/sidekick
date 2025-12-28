@@ -1,4 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/open_shad_sheet.dart';
 import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/screens/locations/color_select_dialog.dart';
@@ -11,8 +12,6 @@ import 'package:sidekick/view_models/locations_view_model.dart';
 
 import 'package:sidekick/widgets/property_field.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
-
-import 'package:shadcn_flutter/shadcn_flutter.dart' as shad;
 
 class _Columns {
   static const int name = 0;
@@ -106,21 +105,21 @@ class _LocationsState extends State<Locations> {
           child: Text('${item.dataMultiCount} (${item.dataPatchCount})')),
       _Columns.powerSystem => Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: shad.Select<String>(
+          child: Select<String>(
               canUnselect: false,
               itemBuilder: (context, item) => Text(item),
               onChanged: (value) =>
                   _handlePowerSystemValueChanged(context, value),
               value: 'System A',
-              popup: shad.SelectPopup<String>(
-                  items: shad.SelectItemList(children: [
+              popup: SelectPopup<String>(
+                  items: SelectItemList(children: [
                 ...widget.vm.powerSystemVms
-                    .map((systemItem) => shad.SelectItemButton(
+                    .map((systemItem) => SelectItemButton(
                           value: systemItem.system.uid,
                           child: Text(systemItem.system.name),
                         )),
                 const Divider(),
-                const shad.SelectItemButton(
+                const SelectItemButton(
                     value: _kNewPowerSystemValue, child: Text('Manage...'))
               ]))),
         ),
@@ -160,12 +159,12 @@ class _LocationsState extends State<Locations> {
     }
 
     if (value == _kNewPowerSystemValue) {
-      await shad.openSheet(
-          context: context,
-          builder: (context) => PowerSystemManager(
-              existingSystems:
-                  widget.vm.powerSystemVms.map((vm) => vm.system).toList()),
-          position: shad.OverlayPosition.right);
+      await openShadSheet(
+        context: context,
+        builder: (context) => PowerSystemManager(
+            existingSystems:
+                widget.vm.powerSystemVms.map((vm) => vm.system).toList()),
+      );
       return;
     }
   }
