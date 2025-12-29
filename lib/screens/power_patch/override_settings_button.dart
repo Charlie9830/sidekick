@@ -1,4 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/simple_tooltip.dart';
 
 class OverrideSettingsButton extends StatelessWidget {
   const OverrideSettingsButton({
@@ -12,20 +13,17 @@ class OverrideSettingsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final button = OutlineButton(
-      onPressed: onPressed,
-      leading: const Icon(
-        Icons.settings,
-      ),
-      child: const Text('Settings'),
+    return SimpleTooltip(
+      message: hasOverrides
+          ? 'Global settings have been overridden for this location'
+          : null,
+      child: OutlineBadge(
+          style: const ButtonStyle.outline(),
+          trailing: hasOverrides
+              ? const Icon(Icons.check_circle, color: Colors.teal)
+              : null,
+          onPressed: onPressed,
+          child: const Text('Settings')),
     );
-
-    if (hasOverrides == false) {
-      return button;
-    }
-
-    return SecondaryBadge(
-        trailing: const Icon(Icons.check, color: Colors.black, size: 12),
-        child: button);
   }
 }

@@ -57,8 +57,11 @@ class FixtureTypeDataTable extends StatelessWidget {
         TableViewCell(child: centerAlign(const Text('Max Piggybacks'))),
       _Columns.fixtureAmps =>
         TableViewCell(child: centerAlign(const Text('Amps'))),
-      _Columns.maxAmps =>
-        TableViewCell(child: centerAlign(const Text('Max Piggybacked Amps'))),
+      _Columns.maxAmps => TableViewCell(
+            child: centerAlign(const Text(
+          'Max Piggybacked Amps',
+          textAlign: TextAlign.center,
+        ))),
       _ =>
         throw UnimplementedError('No handling for Column Index $columnIndex'),
     };
@@ -116,7 +119,7 @@ class FixtureTypeDataTable extends StatelessWidget {
 
     return switch (index) {
       _Columns.make => TableSpan(
-          extent: const FixedSpanExtent(400),
+          extent: const FractionalSpanExtent(0.3),
           padding: defaultPadding,
           foregroundDecoration: TableViewConfig.defaultForegroundDecoration),
       _Columns.shortName => TableSpan(
@@ -132,7 +135,7 @@ class FixtureTypeDataTable extends StatelessWidget {
           padding: defaultPadding,
           foregroundDecoration: TableViewConfig.defaultForegroundDecoration),
       _Columns.fixtureAmps => TableSpan(
-          extent: const FixedSpanExtent(128),
+          extent: const FixedSpanExtent(96),
           padding: defaultPadding,
           foregroundDecoration: TableViewConfig.defaultForegroundDecoration),
       _Columns.maxAmps => TableSpan(

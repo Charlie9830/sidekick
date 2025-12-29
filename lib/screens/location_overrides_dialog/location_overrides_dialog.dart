@@ -1,11 +1,13 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/location_override_model.dart';
 import 'package:sidekick/screens/fixture_types/fixture_type_data_table.dart';
+import 'package:sidekick/shad_list_item.dart';
+import 'package:sidekick/simple_tooltip.dart';
 import 'package:sidekick/view_models/fixture_types_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';
 import 'package:sidekick/widgets/property_field.dart';
@@ -92,43 +94,47 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
             ))
         : <_FixtureOverrideViewModel>[];
 
-    return Dialog.fullscreen(
-      child: Scaffold(
-        appBar: AppBar(
-          elevation: 1,
-          leading: IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () => Navigator.of(context).pop()),
-          title: const Text('Adjust Patch Settings'),
-          actions: [
-            TextButton(
+    return Scaffold(
+      headers: [
+        AppBar(
+          leading: [
+            IconButton.ghost(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop()),
+          ],
+          trailing: [
+            PrimaryButton(
               child: const Text('Save'),
               onPressed: () => Navigator.of(context).pop(_locations),
             )
           ],
-        ),
-        body: Builder(builder: (scaffoldContext) {
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Sidebar
-                SizedBox(
-                  width: 300,
-                  child: Card(
-                      child: ListView.builder(
+          title: const Text('Adjust Patch Settings'),
+        )
+      ],
+      child: Builder(builder: (scaffoldContext) {
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Sidebar
+            SizedBox(
+              width: 240,
+              child: Card(
+                  padding: EdgeInsets.zero,
+                  child: ListView.builder(
                     itemCount: locationsList.length,
                     itemBuilder: (context, index) {
                       final location = locationsList[index];
 
                       return HoverRegionBuilder(builder: (context, isHovering) {
-                        return ListTile(
+                        return ShadListItem(
                           title: Text(location.name),
                           selected: location.uid == _selectedLocationId,
-                          dense: true,
                           onTap: () => setState(
                               () => _selectedLocationId = location.uid),
+                          leading: location.overrides.hasOverrides
+                              ? const Icon(Icons.check_circle,
+                                  size: 12, color: Colors.teal)
+                              : null,
                           trailing: _clipboard != null &&
                                   (isHovering ||
                                       location.uid == _selectedLocationId)
@@ -137,13 +143,13 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
-                                      Tooltip(
+                                      SimpleTooltip(
                                         message: _clipboard != null
                                             ? 'Paste settings from ${_clipboard!.sourceLocationName}.'
                                             : '',
-                                        child: IconButton(
+                                        child: IconButton.ghost(
                                           icon: const Icon(Icons.paste),
-                                          iconSize: 16,
+                                          size: ButtonSize.small,
                                           onPressed: _clipboard == null
                                               ? null
                                               : () =>
@@ -158,18 +164,20 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
                       });
                     },
                   )),
-                ),
+            ),
 
-                // Content
-                Expanded(
-                    child: Column(
+            // Content
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   spacing: 4,
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(selectedLocation?.name ?? 'Location',
-                          style: Theme.of(context).textTheme.titleMedium),
+                          style: Theme.of(context).typography.lead),
                     ),
                     const SizedBox(height: 8),
                     Padding(
@@ -192,19 +200,16 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
                           if (selectedLocation
                                   ?.overrides.maxSequenceBreak.value !=
                               null)
-                            Tooltip(
+                            SimpleTooltip(
                               message: 'Reset override',
-                              child: IconButton(
+                              child: IconButton.ghost(
                                 icon: const Icon(Icons.clear),
-                                iconSize: 16,
-                                color: Theme.of(context).colorScheme.tertiary,
                                 onPressed: _handleMaxSequenceBreakUnset,
                               ),
                             ),
                           const Spacer(),
-                          FilledButton.tonalIcon(
-                            label: const Text('Copy'),
-                            icon: const Icon(Icons.copy),
+                          OutlineButton(
+                            leading: const Icon(Icons.copy),
                             onPressed: selectedLocation == null
                                 ? null
                                 : () {
@@ -216,29 +221,32 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
                                               .copyWith());
                                     });
                                   },
+                            child: const Text('Copy'),
                           ),
                           const SizedBox(width: 8),
-                          FilledButton.tonalIcon(
-                            label: const Text('Paste'),
-                            icon: const Icon(Icons.paste),
+                          OutlineButton(
+                            leading: const Icon(Icons.paste),
                             onPressed: _clipboard != null
                                 ? () => _handlePaste(_selectedLocationId)
                                 : null,
+                            child: const Text('Paste'),
                           )
                         ],
                       ),
                     ),
                     const SizedBox(height: 8),
-                    _FixtureOverrides(
-                      fixtureOverrides: overrideViewModels,
+                    Expanded(
+                      child: _FixtureOverrides(
+                        fixtureOverrides: overrideViewModels,
+                      ),
                     ),
                   ],
-                )),
-              ],
+                ),
+              ),
             ),
-          );
-        }),
-      ),
+          ],
+        );
+      }),
     );
   }
 

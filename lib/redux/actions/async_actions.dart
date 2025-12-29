@@ -555,6 +555,7 @@ ThunkAction<AppState> showLocationOverridesDialog(
   return (Store<AppState> store) async {
     final result = await showDialog(
         context: context,
+        fullScreen: true,
         builder: (context) => LocationOverridesDialog(
             initialLocationId: locationId,
             locations: store.state.fixtureState.locations,
