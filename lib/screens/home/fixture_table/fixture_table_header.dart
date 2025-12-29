@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' hide TableHeader;
 import 'package:sidekick/screens/home/column_widths.dart';
 import 'package:sidekick/screens/home/table_header.dart';
 import 'package:sidekick/widgets/icon_label.dart';

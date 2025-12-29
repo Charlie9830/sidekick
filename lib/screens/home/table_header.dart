@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class TableHeader extends StatelessWidget {
   final bool? hasSelections;
@@ -26,16 +26,26 @@ class TableHeader extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Checkbox(
-                  tristate: true,
-                  value: hasSelections,
-                  onChanged: enabled ? onSelectAll : null,
-                ),
+                    tristate: true,
+                    state: switch (hasSelections) {
+                      null => CheckboxState.indeterminate,
+                      true => CheckboxState.checked,
+                      false => CheckboxState.unchecked,
+                    },
+                    onChanged: enabled
+                        ? (cbState) => onSelectAll(switch (cbState) {
+                              CheckboxState.checked ||
+                              CheckboxState.indeterminate =>
+                                true,
+                              CheckboxState.unchecked => false
+                            })
+                        : null),
                 const SizedBox(width: 16),
                 ...columns.map(
                   (column) => SizedBox(
                     width: column.width,
                     child: DefaultTextStyle(
-                        style: Theme.of(context).textTheme.labelLarge!,
+                        style: Theme.of(context).typography.base,
                         child: column.label),
                   ),
                 )

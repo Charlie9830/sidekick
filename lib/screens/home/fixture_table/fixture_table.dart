@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart' hide TableRow;
 import 'package:flutter/services.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/screens/home/fixture_table/fixture_table_header.dart';
 import 'package:sidekick/screens/home/fixture_table/fixture_table_row.dart';
@@ -49,12 +49,12 @@ class _FixtureTableState extends State<FixtureTable> {
               child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              ElevatedButton.icon(
-                icon: const Icon(Icons.numbers),
-                label: const Text("Set Sequence"),
+              OutlineButton(
+                leading: const Icon(Icons.numbers),
                 onPressed: widget.vm.selectedFixtureIds.isNotEmpty
                     ? widget.vm.onSetSequenceButtonPressed
                     : null,
+                child: const Text("Set Sequence"),
               ),
             ],
           )),

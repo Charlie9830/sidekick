@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' hide TableRow;
+import 'package:shadcn_flutter/shadcn_flutter.dart' hide TableRow;
 import 'package:sidekick/diff_state_overlay.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
@@ -66,26 +66,22 @@ class FixtureTableRow extends StatelessWidget {
   }
 
   Widget _buildDivider(BuildContext context, FixtureRowDividerVM dividerVM) {
-    return InkWell(
-      onTap: () => dividerVM.onSelectFixtures(),
+    return Button(
+      style: const ButtonStyle.menubar(),
+      onPressed: () => dividerVM.onSelectFixtures(),
       child: Column(
         children: [
           const Divider(height: 0),
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(children: [
-              Icon(Icons.location_on,
-                  color: Theme.of(context).colorScheme.primary),
+              const Icon(Icons.location_on, size: 24, color: Colors.gray),
               const SizedBox(width: 8),
-              Text(dividerVM.title,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyLarge!
-                      .copyWith(color: Theme.of(context).colorScheme.primary))
+              Text(dividerVM.title, style: Theme.of(context).typography.xLarge)
             ]),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
           const Divider(height: 0),
         ],
       ),
@@ -108,12 +104,9 @@ class _SequenceNumberCell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(value,
         style: hasSequenceNumberBreak || hasInvalidSequenceNumber
-            ? Theme.of(context).textTheme.bodyMedium!.copyWith(
+            ? Theme.of(context).typography.small.copyWith(
                 color: hasInvalidSequenceNumber ? Colors.red : Colors.orange,
                 fontWeight: FontWeight.bold)
-            : Theme.of(context)
-                .textTheme
-                .bodySmall!
-                .copyWith(color: Colors.grey));
+            : Theme.of(context).typography.small.copyWith(color: Colors.gray));
   }
 }
