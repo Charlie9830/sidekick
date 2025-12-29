@@ -23,6 +23,7 @@ class PropertyField extends StatefulWidget {
   final ScrollController? scrollController;
   final bool enabled;
   final LabelAlign labelAlign;
+  final String? error;
 
   const PropertyField({
     Key? key,
@@ -39,6 +40,7 @@ class PropertyField extends StatefulWidget {
     this.enabled = true,
     this.scrollController,
     this.labelAlign = LabelAlign.start,
+    this.error,
   }) : super(key: key);
 
   @override
@@ -79,6 +81,7 @@ class PropertyFieldState extends State<PropertyField> {
         context: context,
         label: widget.label,
         labelPosition: widget.labelAlign,
+        error: widget.error,
         child: TextField(
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
           controller: _controller,
@@ -90,6 +93,10 @@ class PropertyFieldState extends State<PropertyField> {
           inputFormatters: widget.inputFormatters,
           hintText: widget.hintText,
           textAlign: widget.textAlign,
+          border: widget.error != null
+              ? Border.all(
+                  color: Colors.red, style: BorderStyle.solid, width: 2)
+              : null,
           onEditingComplete: () => _handleSubmit(),
           onTapOutside: (e) => _handleSubmit(),
           features: [
@@ -142,6 +149,7 @@ Widget layoutInput(
     {required BuildContext context,
     required Widget child,
     required String label,
+    required String? error,
     required LabelAlign labelPosition}) {
   return Column(
     mainAxisAlignment: MainAxisAlignment.center,
@@ -157,7 +165,11 @@ Widget layoutInput(
             style: Theme.of(context)
                 .typography
                 .xSmall
-                .copyWith(color: Colors.gray))
+                .copyWith(color: Colors.gray)),
+      if (error != null)
+        Text(error,
+            style:
+                Theme.of(context).typography.xSmall.copyWith(color: Colors.red))
     ],
   );
 }
