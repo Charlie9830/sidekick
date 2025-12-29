@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 const double _kSize = 16;
 
@@ -30,8 +30,8 @@ class PhaseIcon extends StatelessWidget {
         height: _kSize,
         margin: const EdgeInsets.all(12),
         alignment: Alignment.center,
-        decoration: const BoxDecoration(
-          color: Colors.white60,
+        decoration: BoxDecoration(
+          color: Colors.gray.shade100,
           shape: BoxShape.circle,
         ),
       );

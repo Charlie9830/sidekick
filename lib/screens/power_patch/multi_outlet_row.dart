@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/containers/diffing_screen_container.dart';
 import 'package:sidekick/diff_state_overlay.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
@@ -27,58 +27,51 @@ class MultiOutletRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: selected ? Theme.of(context).highlightColor : null,
+      padding: const EdgeInsets.all(8.0),
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Icon(Icons.electric_bolt, color: Colors.yellow, size: 20),
-                const SizedBox(width: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(Icons.electric_bolt, color: Colors.yellow, size: 20),
+              const SizedBox(width: 8),
+              DiffStateOverlay(
+                diff: propertyDeltas?.lookup(PropertyDeltaName.multiName),
+                child: Text(
+                  vm.multiOutlet.name,
+                  style: Theme.of(context).typography.large,
+                ),
+              ),
+              const Spacer(),
+              if (vm.multiOutlet.desiredSpareCircuits > 0 ||
+                  propertyDeltas != null)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 4.0),
-                  child: DiffStateOverlay(
-                    diff: propertyDeltas?.lookup(PropertyDeltaName.multiName),
-                    child: Text(
-                      vm.multiOutlet.name,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                if (vm.multiOutlet.desiredSpareCircuits > 0 ||
-                    propertyDeltas != null)
-                  Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: DiffStateOverlay(
-                        diff: propertyDeltas
-                            ?.lookup(PropertyDeltaName.desiredSpareCircuits),
-                        child: CircleAvatar(
-                          backgroundColor: Colors.blueGrey,
-                          radius: 12,
-                          child: Text(
-                            '${vm.multiOutlet.desiredSpareCircuits}',
-                          ),
-                        ),
-                      )),
-                IconButton(
-                  icon: const Icon(Icons.playlist_add),
-                  onPressed: vm.multiOutlet.desiredSpareCircuits < 6 &&
-                          propertyDeltas == null
-                      ? () => onAddSpareOutlet?.call(vm.multiOutlet.uid)
-                      : null,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.playlist_remove),
-                  onPressed: vm.multiOutlet.desiredSpareCircuits > 0 &&
-                          propertyDeltas == null
-                      ? () => onDeleteSpareOutlet?.call(vm.multiOutlet.uid)
-                      : null,
-                ),
-              ],
-            ),
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: DiffStateOverlay(
+                      diff: propertyDeltas
+                          ?.lookup(PropertyDeltaName.desiredSpareCircuits),
+                      child: Avatar(
+                        backgroundColor: Colors.slate,
+                        initials:
+                            vm.multiOutlet.desiredSpareCircuits.toString(),
+                        size: 24,
+                      ),
+                    )),
+              IconButton.ghost(
+                icon: const Icon(Icons.playlist_add),
+                onPressed: vm.multiOutlet.desiredSpareCircuits < 6 &&
+                        propertyDeltas == null
+                    ? () => onAddSpareOutlet?.call(vm.multiOutlet.uid)
+                    : null,
+              ),
+              IconButton.ghost(
+                icon: const Icon(Icons.playlist_remove),
+                onPressed: vm.multiOutlet.desiredSpareCircuits > 0 &&
+                        propertyDeltas == null
+                    ? () => onDeleteSpareOutlet?.call(vm.multiOutlet.uid)
+                    : null,
+              ),
+            ],
           ),
           OutletTable(outletVM: vm.childOutlets, outletDeltas: outletDeltas),
         ],

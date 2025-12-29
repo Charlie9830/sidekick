@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as mat;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/containers/diffing_screen_container.dart';
 import 'package:sidekick/diff_state_overlay.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
@@ -19,10 +20,10 @@ class OutletTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Table(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: mat.Table(
           border: TableBorder.symmetric(
-              inside: BorderSide(color: Theme.of(context).dividerColor)),
+              inside: BorderSide(color: Theme.of(context).colorScheme.border)),
           defaultVerticalAlignment: TableCellVerticalAlignment.middle,
           columnWidths: const {
             0: FixedColumnWidth(36), // Multi Patch
@@ -34,9 +35,9 @@ class OutletTable extends StatelessWidget {
           children: outletVM.mapIndexed((index, vm) {
             final currentDelta = outletDeltas?.elementAtOrNull(index);
 
-            return TableRow(children: [
+            return mat.TableRow(children: [
               // Multi Patch
-              Center(child: Text(vm.outlet.multiPatch.toString())),
+              Center(child: Text(vm.outlet.multiPatch.toString()).muted),
               // Phase
               PhaseIcon(phaseNumber: vm.outlet.phase),
               // Fixture Name
@@ -68,7 +69,7 @@ class OutletTable extends StatelessWidget {
                 child: Center(
                     child: vm.outlet.load == 0
                         ? const SizedBox()
-                        : Text('${vm.outlet.load.toStringAsFixed(1)}A')),
+                        : Text('${vm.outlet.load.toStringAsFixed(1)}A').muted),
               ),
             ]);
           }).toList()),

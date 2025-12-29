@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/diff_state_overlay.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/redux/models/location_model.dart';
@@ -26,13 +26,13 @@ class LocationHeaderRow extends StatelessWidget {
         children: [
           const Icon(
             Icons.location_on,
-            color: Colors.grey,
+            color: Colors.gray,
           ),
           const SizedBox(width: 8),
           DiffStateOverlay(
               diff: deltas?.lookup(PropertyDeltaName.locationName),
               child: Text(location.name,
-                  style: Theme.of(context).textTheme.titleMedium)),
+                  style: Theme.of(context).typography.xLarge)),
           const Spacer(),
           trailing,
         ],

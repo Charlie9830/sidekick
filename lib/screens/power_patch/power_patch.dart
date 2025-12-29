@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/screens/power_patch/balance_gauge.dart';
 import 'package:sidekick/screens/power_patch/location_row.dart';
@@ -38,9 +38,9 @@ class _PowerPatchState extends State<PowerPatch> {
         children: [
           Text('Global Settings',
               style: Theme.of(context)
-                  .textTheme
-                  .bodySmall!
-                  .copyWith(color: Colors.grey)),
+                  .typography
+                  .small
+                  .copyWith(color: Colors.gray)),
           const SizedBox(width: 8),
           SizedBox(
             width: 110,
@@ -93,15 +93,18 @@ class _PowerPatchState extends State<PowerPatch> {
       LocationRowViewModel vm => LocationRow(
           key: Key(vm.uid),
           vm: vm,
-          ),
-      MultiOutletRowViewModel vm => GestureDetector(
-          onTap: () => widget.vm.onMultiOutletPressed(row.multiOutlet.uid),
-          child: MultiOutletRow(
-            vm: vm,
-            selected: vm.uid == widget.vm.selectedMultiOutlet,
-            onAddSpareOutlet: widget.vm.onAddSpareOutlet,
-            onDeleteSpareOutlet: widget.vm.onDeleteSpareOutlet,
-          )),
+        ),
+      MultiOutletRowViewModel vm => Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: GestureDetector(
+              onTap: () => widget.vm.onMultiOutletPressed(row.multiOutlet.uid),
+              child: MultiOutletRow(
+                vm: vm,
+                selected: vm.uid == widget.vm.selectedMultiOutlet,
+                onAddSpareOutlet: widget.vm.onAddSpareOutlet,
+                onDeleteSpareOutlet: widget.vm.onDeleteSpareOutlet,
+              )),
+        ),
       _ => const Text("Error"),
     };
   }

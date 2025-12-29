@@ -92,6 +92,18 @@ class PropertyFieldState extends State<PropertyField> {
           textAlign: widget.textAlign,
           onEditingComplete: () => _handleSubmit(),
           onTapOutside: (e) => _handleSubmit(),
+          features: [
+            // Suffix
+            if (widget.suffix.isNotEmpty)
+              InputFeature.trailing(
+                  Text(widget.suffix,
+                      style: Theme.of(context)
+                          .typography
+                          .normal
+                          .copyWith(color: Colors.gray)),
+                  skipFocusTraversal: true,
+                  visibility: InputFeatureVisibility.always)
+          ],
         ));
   }
 

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class OverrideSettingsButton extends StatelessWidget {
   const OverrideSettingsButton({
@@ -12,16 +12,20 @@ class OverrideSettingsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Badge(
-      label: const Icon(Icons.check, color: Colors.black, size: 12),
-      isLabelVisible: hasOverrides,
-      child: FilledButton.tonalIcon(
-        onPressed: onPressed,
-        icon: const Icon(
-          Icons.settings,
-        ),
-        label: const Text('Settings'),
+    final button = OutlineButton(
+      onPressed: onPressed,
+      leading: const Icon(
+        Icons.settings,
       ),
+      child: const Text('Settings'),
     );
+
+    if (hasOverrides == false) {
+      return button;
+    }
+
+    return SecondaryBadge(
+        trailing: const Icon(Icons.check, color: Colors.black, size: 12),
+        child: button);
   }
 }

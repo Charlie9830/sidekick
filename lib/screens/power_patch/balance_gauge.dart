@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/utils/electrical_equations.dart';
 
 class BalanceGauge extends StatelessWidget {
@@ -19,7 +19,7 @@ class BalanceGauge extends StatelessWidget {
       return const SizedBox();
     }
 
-    const divider = VerticalDivider(endIndent: 4, indent: 4);
+    const divider = VerticalDivider(endIndent: 4, indent: 4, width: 16);
     final imbalanceRatio =
         calculateImbalanceRatio(phaseALoad, phaseBLoad, phaseCLoad);
     final imbalancePercent = (imbalanceRatio * 100).round();
@@ -27,18 +27,18 @@ class BalanceGauge extends StatelessWidget {
     return Row(
       children: [
         Text('${phaseALoad.round().toString()}A',
-            style: Theme.of(context).textTheme.titleLarge!.copyWith(
+            style: Theme.of(context).typography.large.copyWith(
                   color: Colors.red,
                 )),
         divider,
         Text('${phaseBLoad.round().toString()}A',
-            style: Theme.of(context).textTheme.titleLarge!.copyWith(
+            style: Theme.of(context).typography.large.copyWith(
                   color: Colors.white,
                 )),
         divider,
         Text('${phaseCLoad.round().toString()}A',
-            style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                  color: Colors.blueAccent,
+            style: Theme.of(context).typography.large.copyWith(
+                  color: Colors.blue,
                 )),
         const SizedBox(width: 24),
         FocusCard(
@@ -63,15 +63,15 @@ class FocusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       alignment: Alignment.center,
-      width: 60,
+      width: 48,
       height: 32,
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.all(Radius.circular(8)),
-        color: Theme.of(context).highlightColor,
+        color: Theme.of(context).colorScheme.border,
       ),
       child: Text(
         text,
-        style: Theme.of(context).textTheme.titleLarge,
+        style: Theme.of(context).typography.normal,
         textAlign: TextAlign.center,
       ),
     );

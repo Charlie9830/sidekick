@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/screens/power_patch/location_header_trailer.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';
