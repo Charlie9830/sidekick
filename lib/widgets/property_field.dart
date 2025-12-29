@@ -98,7 +98,7 @@ class PropertyFieldState extends State<PropertyField> {
   void _handleSubmit() {
     widget.onBlur?.call(_controller.text);
 
-    _focusNode.nextFocus();
+    //_focusNode.nextFocus();
   }
 
   @override

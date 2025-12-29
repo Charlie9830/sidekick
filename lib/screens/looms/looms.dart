@@ -69,6 +69,8 @@ class _LoomsState extends State<Looms> {
                   SizedBox(
                     width: 360,
                     child: Card(
+                        borderRadius: const BorderRadius.only(
+                            topLeft: Radius.zero, topRight: Radius.zero),
                         padding: EdgeInsets.zero,
                         child: ItemSelectionContainer<String>(
                           itemIndicies: Map<String, int>.fromEntries(

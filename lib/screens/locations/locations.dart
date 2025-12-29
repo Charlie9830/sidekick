@@ -7,6 +7,7 @@ import 'package:sidekick/screens/locations/color_select_dialog.dart';
 import 'package:sidekick/screens/locations/multi_color_chit.dart';
 import 'package:sidekick/screens/locations/power_system_manager.dart';
 import 'package:sidekick/simple_tooltip.dart';
+import 'package:sidekick/table_view_config.dart';
 
 import 'package:sidekick/view_models/locations_view_model.dart';
 
@@ -218,8 +219,8 @@ class _LocationsState extends State<Locations> {
   }
 
   TableSpan _columnBuilder(int index) {
-    final minorBorder = BorderSide(color: Colors.gray.shade800);
-    const defaultPadding = SpanPadding(leading: 8.0, trailing: 8.0);
+    final minorBorder = TableViewConfig.minorBorder;
+    const defaultPadding = TableViewConfig.spanPadding;
 
     return switch (index) {
       _Columns.name => const TableSpan(
@@ -240,20 +241,18 @@ class _LocationsState extends State<Locations> {
         ),
       _Columns.hoists => TableSpan(
           extent: const FixedSpanExtent(64),
-          foregroundDecoration:
-              SpanDecoration(border: SpanBorder(leading: minorBorder)),
+          foregroundDecoration: TableViewConfig.defaultForegroundDecoration,
           padding: defaultPadding,
         ),
       _Columns.powerMultis => TableSpan(
           extent: const FixedSpanExtent(64),
-          foregroundDecoration:
-              SpanDecoration(border: SpanBorder(leading: minorBorder)),
+          foregroundDecoration: TableViewConfig.defaultForegroundDecoration,
           padding: defaultPadding,
         ),
       _Columns.data => TableSpan(
           extent: const FixedSpanExtent(64),
-          foregroundDecoration: SpanDecoration(
-              border: SpanBorder(leading: minorBorder, trailing: minorBorder)),
+          foregroundDecoration:
+              TableViewConfig.defaultTrailingForegroundDecoration,
           padding: defaultPadding,
         ),
       _Columns.powerSystem => const TableSpan(
@@ -271,15 +270,7 @@ class _LocationsState extends State<Locations> {
   TableSpan _rowBuilder(BuildContext context, int index) {
     if (index == 0) {
       // Header Row
-      return TableSpan(
-        extent: const FixedSpanExtent(56),
-        backgroundDecoration: SpanDecoration(
-          color: Theme.of(context).colorScheme.card,
-          border: SpanBorder(
-            trailing: BorderSide(color: Theme.of(context).colorScheme.border),
-          ),
-        ),
-      );
+      return TableViewConfig.defaultHeaderRowSpan;
     }
 
     // Data Row

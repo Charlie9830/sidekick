@@ -141,6 +141,8 @@ class _Sidebar extends StatelessWidget {
       child: SizedBox(
         width: _kSidebarWidth,
         child: Card(
+          borderRadius: const BorderRadius.only(
+              topLeft: Radius.zero, topRight: Radius.zero),
           child: ReorderableListView.builder(
               key: hoistOutletPageStorageKey,
               buildDefaultDragHandles: false,

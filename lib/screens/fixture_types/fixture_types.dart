@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:sidekick/page_storage_keys.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/screens/fixture_types/fixture_type_data_table.dart';
 import 'package:sidekick/view_models/fixture_types_view_model.dart';
 import 'package:sidekick/widgets/toolbar.dart';
@@ -23,20 +22,19 @@ class FixtureTypes extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Checkbox(
-              value: vm.showAllFixtureTypes,
-              onChanged: (newValue) =>
-                  vm.onShowAllFixtureTypesChanged(newValue ?? false),
+              state: vm.showAllFixtureTypes
+                  ? CheckboxState.checked
+                  : CheckboxState.unchecked,
+              onChanged: (newValue) => vm.onShowAllFixtureTypesChanged(
+                  newValue == CheckboxState.checked ? true : false),
             ),
             const SizedBox(width: 8),
             const Text('Show All'),
           ],
         )),
         Expanded(
-          child: SingleChildScrollView(
-            key: fixtureTypesPageStorageKey,
-            child: FixtureTypeDataTable(
-              items: vm.itemVms,
-            ),
+          child: FixtureTypeDataTable(
+            items: vm.itemVms,
           ),
         ),
       ],
