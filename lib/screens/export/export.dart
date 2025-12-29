@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/card_subtitle.dart';
+import 'package:sidekick/shad_list_item.dart';
 import 'package:sidekick/titled_card.dart';
 
 import 'package:sidekick/view_models/export_view_model.dart';
@@ -23,13 +24,13 @@ class Export extends StatelessWidget {
                 switch (vm.lastUsedExportDirectory) {
                   '' => Text('Choose an export location..',
                       style: Theme.of(context)
-                          .textTheme
-                          .bodySmall!
-                          .copyWith(color: Colors.grey)),
+                          .typography
+                          .small
+                          .copyWith(color: Colors.gray)),
                   _ => Text(vm.lastUsedExportDirectory),
                 },
                 const SizedBox(height: 16),
-                OutlinedButton(
+                OutlineButton(
                   onPressed: vm.onChooseExportDirectoryButtonPressed,
                   child: const Text('Choose'),
                 ),
@@ -44,15 +45,20 @@ class Export extends StatelessWidget {
                 ),
                 const SizedBox(height: 32),
                 const CardSubtitle('Settings'),
-                CheckboxListTile(
-                    value: vm.openAfterExport,
-                    onChanged: vm.onOpenAfterExportChanged,
+                ShadListItem(
+                    trailing: Checkbox(
+                      onChanged: (value) => vm.onOpenAfterExportChanged(
+                          value == CheckboxState.checked),
+                      state: vm.openAfterExport
+                          ? CheckboxState.checked
+                          : CheckboxState.unchecked,
+                    ),
                     title: const Text('Open after export')),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    FilledButton(
+                    PrimaryButton(
                         onPressed: vm.onExportButtonPressed,
                         child: const Text('Export'))
                   ],
