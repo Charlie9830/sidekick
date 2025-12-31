@@ -1313,6 +1313,9 @@ ThunkAction<AppState> showImportManager(BuildContext context) {
   return (Store<AppState> store) async {
     final result = await showDialog(
         context: context,
+        fullScreen: true,
+        barrierDismissible: false,
+        barrierColor: Theme.of(context).colorScheme.background,
         builder: (innerContext) => const ImportManagerContainer());
 
     if (result is ImportManagerResult) {
