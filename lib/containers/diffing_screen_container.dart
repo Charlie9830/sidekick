@@ -41,41 +41,44 @@ class DiffingScreenContainer extends StatelessWidget {
           converter: (Store<AppState> store) {
             final cablesByOutletId = selectCablesByOutletId(store);
             return DiffingScreenViewModel(
-                onFileSelectedForCompare: (path) {
-                  store.dispatch(SetComparisonFilePath(path));
-                  diffViewModel.onFileSelectedForCompare(path);
-                },
-                initialDirectory:
-                    store.state.fileState.comparisonFilePath.isEmpty
-                        ? store.state.fileState.lastUsedProjectDirectory
-                        : p.dirname(store.state.fileState.comparisonFilePath),
-                comparisonFilePath: store.state.fileState.comparisonFilePath,
-                patchItemVms: _getPatchDiffs(
-                  currentPatchVms:
-                      selectPowerPatchViewModels(context, store).toModelMap(),
-                  originalPatchVms: diffViewModel.originalPatchViewModels,
-                ),
-                loomItemVms: _getLoomDiffs(
-                    currentLoomVms: selectLoomViewModels(store).toModelMap(),
-                    originalLoomVms: diffViewModel.originalLoomViewModels),
-                fixtureItemVms: _getFixtureDiffs(
-                  currentFixtureVms:
-                      selectFixtureRowViewModels(store).toModelMap(),
-                  originalFixtureVms: diffViewModel.originalFixtureViewModels,
-                ),
-                hoistControllerVms: _getHoistControllerDiffs(
-                  currentControllerVms: selectHoistControllers(
-                          store: store,
-                          selectedHoistChannelViewModelMap: {},
-                          cablesByHoistId: cablesByOutletId,
-                          isDiffing: true)
-                      .toModelMap(),
-                  originalControllerVms:
-                      diffViewModel.originalHoistControllerViewModels,
-                  currentHoistVms: mapHoistViewModels(
-                      store: store, cablesByOutletId: cablesByOutletId),
-                  originalHoistVms: diffViewModel.hoistViewModels,
-                ));
+              onFileSelectedForCompare: (path) {
+                store.dispatch(SetComparisonFilePath(path));
+                diffViewModel.onFileSelectedForCompare(path);
+              },
+              initialDirectory: store.state.fileState.comparisonFilePath.isEmpty
+                  ? store.state.fileState.lastUsedProjectDirectory
+                  : p.dirname(store.state.fileState.comparisonFilePath),
+              comparisonFilePath: store.state.fileState.comparisonFilePath,
+              patchItemVms: _getPatchDiffs(
+                currentPatchVms:
+                    selectPowerPatchViewModels(context, store).toModelMap(),
+                originalPatchVms: diffViewModel.originalPatchViewModels,
+              ),
+              loomItemVms: _getLoomDiffs(
+                  currentLoomVms: selectLoomViewModels(store).toModelMap(),
+                  originalLoomVms: diffViewModel.originalLoomViewModels),
+              fixtureItemVms: _getFixtureDiffs(
+                currentFixtureVms:
+                    selectFixtureRowViewModels(store).toModelMap(),
+                originalFixtureVms: diffViewModel.originalFixtureViewModels,
+              ),
+              hoistControllerVms: _getHoistControllerDiffs(
+                currentControllerVms: selectHoistControllers(
+                        store: store,
+                        selectedHoistChannelViewModelMap: {},
+                        cablesByHoistId: cablesByOutletId,
+                        isDiffing: true)
+                    .toModelMap(),
+                originalControllerVms:
+                    diffViewModel.originalHoistControllerViewModels,
+                currentHoistVms: mapHoistViewModels(
+                    store: store, cablesByOutletId: cablesByOutletId),
+                originalHoistVms: diffViewModel.hoistViewModels,
+              ),
+              onTabSelected: (index) =>
+                  store.dispatch(SetSelectedDiffingTab(index)),
+              selectedTab: store.state.navstate.selectedDiffingTab,
+            );
           },
         );
       },

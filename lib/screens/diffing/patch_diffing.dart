@@ -21,37 +21,40 @@ class PatchDiffing extends StatelessWidget {
       children: [
         Expanded(
           child: ListView.builder(
-            key: patchDiffingPageStorageKey,
+              key: patchDiffingPageStorageKey,
               itemCount: itemVms.length,
               itemBuilder: (context, index) {
                 final item = itemVms[index];
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: item.original != null
-                          ? DiffStateOverlay(
-                              diff: item.overallDiff,
-                              child: _buildRowSide(
-                                  vm: item.original!,
-                                  propertyDeltas: item.deltas,
-                                  outletDeltas: item.outletDeltas))
-                          : const SizedBox(),
-                    ),
-                    const SizedBox(width: 28),
-                    Expanded(
-                      flex: 1,
-                      child: item.current != null
-                          ? DiffStateOverlay(
-                              diff: item.overallDiff,
-                              child: _buildRowSide(
-                                  vm: item.current!,
-                                  propertyDeltas: item.deltas,
-                                  outletDeltas: item.outletDeltas))
-                          : const SizedBox(),
-                    ),
-                  ],
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: item.original != null
+                            ? DiffStateOverlay(
+                                diff: item.overallDiff,
+                                child: _buildRowSide(
+                                    vm: item.original!,
+                                    propertyDeltas: item.deltas,
+                                    outletDeltas: item.outletDeltas))
+                            : const SizedBox(),
+                      ),
+                      const SizedBox(width: 28),
+                      Expanded(
+                        flex: 1,
+                        child: item.current != null
+                            ? DiffStateOverlay(
+                                diff: item.overallDiff,
+                                child: _buildRowSide(
+                                    vm: item.current!,
+                                    propertyDeltas: item.deltas,
+                                    outletDeltas: item.outletDeltas))
+                            : const SizedBox(),
+                      ),
+                    ],
+                  ),
                 );
               }),
         ),

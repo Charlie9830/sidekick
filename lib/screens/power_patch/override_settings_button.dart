@@ -9,7 +9,7 @@ class OverrideSettingsButton extends StatelessWidget {
   });
 
   final bool hasOverrides;
-  final void Function() onPressed;
+  final void Function()? onPressed;
 
   @override
   Widget build(BuildContext context) {

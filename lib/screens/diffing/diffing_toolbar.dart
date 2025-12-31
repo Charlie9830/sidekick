@@ -1,5 +1,5 @@
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/file_select_button.dart';
 import 'package:sidekick/file_type_groups.dart';
 import 'package:sidekick/widgets/toolbar.dart';
@@ -8,25 +8,24 @@ class DiffingToolbar extends StatelessWidget {
   final String comparisonFilePath;
   final String comparisonFileInitialDirectory;
   final void Function(String path) onFileSelectedForCompare;
+  final void Function(int index) onTabSelected;
+  final int selectedTab;
 
-  final TabController tabController;
   const DiffingToolbar({
     super.key,
-    required this.tabController,
     required this.comparisonFilePath,
     required this.comparisonFileInitialDirectory,
     required this.onFileSelectedForCompare,
+    required this.onTabSelected,
+    required this.selectedTab,
   });
 
   @override
   Widget build(BuildContext context) {
-    final tabLabelTextStyle = Theme.of(context).textTheme.bodySmall;
-    const tabIconSize = 16.0;
-
     return Toolbar(
-        height: 124,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        height: 64,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             FileSelectButton(
               path: comparisonFilePath,
@@ -35,27 +34,27 @@ class DiffingToolbar extends StatelessWidget {
               dropTargetName: 'Drop Phase Project here',
               onFileDropped: onFileSelectedForCompare,
             ),
-            TabBar(
-              dividerHeight: 0,
-              controller: tabController,
-              tabs: [
-                Tab(
-                  icon: const Icon(Icons.lightbulb, size: tabIconSize),
-                  child: Text('Fixtures', style: tabLabelTextStyle),
-                ),
-                Tab(
-                  icon: const Icon(Icons.electric_bolt, size: tabIconSize),
-                  child: Text('Patch', style: tabLabelTextStyle),
-                ),
-                Tab(
-                  icon: const Icon(Icons.cable, size: tabIconSize),
-                  child: Text('Looms', style: tabLabelTextStyle),
-                ),
-                Tab(
-                    icon: const Icon(Icons.construction, size: tabIconSize),
-                    child: Text('Hoists', style: tabLabelTextStyle))
-              ],
-            ),
+            const Spacer(),
+            Expanded(
+              child: NavigationBar(
+                onSelected: (index) => onTabSelected(index),
+                index: selectedTab,
+                alignment: NavigationBarAlignment.end,
+                expands: false,
+                children: const [
+                  NavigationItem(
+                    child: Text('Fixtures'),
+                  ),
+                  NavigationItem(
+                    child: Text('Patch'),
+                  ),
+                  NavigationItem(
+                    child: Text('Looms'),
+                  ),
+                  NavigationItem(child: Text('Hoists')),
+                ],
+              ),
+            )
           ],
         ));
   }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/screens/diffing/diffing_toolbar.dart';
 import 'package:sidekick/screens/diffing/fixture_diffing.dart';
 import 'package:sidekick/screens/diffing/hoist_diffing.dart';
@@ -19,12 +19,8 @@ class DiffingScreen extends StatefulWidget {
 
 class _DiffingScreenState extends State<DiffingScreen>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
   @override
   void initState() {
-    _tabController = TabController(
-        length: 4, vsync: this, animationDuration: const Duration());
     super.initState();
   }
 
@@ -33,27 +29,25 @@ class _DiffingScreenState extends State<DiffingScreen>
     return Column(
       children: [
         DiffingToolbar(
-            tabController: _tabController,
-            comparisonFileInitialDirectory: widget.viewModel.initialDirectory,
-            comparisonFilePath: widget.viewModel.comparisonFilePath,
-            onFileSelectedForCompare:
-                widget.viewModel.onFileSelectedForCompare),
+          comparisonFileInitialDirectory: widget.viewModel.initialDirectory,
+          comparisonFilePath: widget.viewModel.comparisonFilePath,
+          onFileSelectedForCompare: widget.viewModel.onFileSelectedForCompare,
+          onTabSelected: widget.viewModel.onTabSelected,
+          selectedTab: widget.viewModel.selectedTab,
+        ),
         Expanded(
-          child: TabBarView(
-            physics: const NeverScrollableScrollPhysics(),
-            controller: _tabController,
-            children: [
-              FixtureDiffing(itemVms: widget.viewModel.fixtureItemVms),
-              PatchDiffing(itemVms: widget.viewModel.patchItemVms),
-              LoomDiffing(
-                itemVms: widget.viewModel.loomItemVms,
-              ),
-              HoistDiffing(
-                itemVms: widget.viewModel.hoistControllerVms,
-              )
-            ],
-          ),
-        )
+            child: switch (widget.viewModel.selectedTab) {
+          0 => FixtureDiffing(itemVms: widget.viewModel.fixtureItemVms),
+          1 => PatchDiffing(itemVms: widget.viewModel.patchItemVms),
+          2 => LoomDiffing(
+              itemVms: widget.viewModel.loomItemVms,
+            ),
+          3 => HoistDiffing(
+              itemVms: widget.viewModel.hoistControllerVms,
+            ),
+          _ => throw UnimplementedError(
+              'No Corresponding Screen for Diffing Tab Index ${widget.viewModel.selectedTab}'),
+        })
       ],
     );
   }

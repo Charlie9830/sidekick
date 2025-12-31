@@ -53,7 +53,7 @@ class _FileSelectButtonState extends State<FileSelectButton> {
                   style: Theme.of(context)
                       .typography
                       .xSmall
-                      .copyWith(color: Theme.of(context).colorScheme.muted))
+                      .copyWith(color: Colors.gray))
           ],
         ));
   }

@@ -11,6 +11,8 @@ class DiffingScreenViewModel {
   final String comparisonFilePath;
   final String initialDirectory;
   final List<HoistControllerDiffingViewModel> hoistControllerVms;
+  final void Function(int index) onTabSelected;
+  final int selectedTab;
 
   DiffingScreenViewModel({
     required this.loomItemVms,
@@ -20,5 +22,7 @@ class DiffingScreenViewModel {
     required this.initialDirectory,
     required this.fixtureItemVms,
     required this.hoistControllerVms,
+    required this.onTabSelected,
+    required this.selectedTab,
   });
 }
