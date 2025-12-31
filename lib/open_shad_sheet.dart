@@ -30,5 +30,3 @@ Future<T?> openShadSheet<T>(
     },
   );
 }
-
-void showCustomSideSheet(BuildContext context) {}
