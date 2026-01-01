@@ -31,7 +31,7 @@ class PhaseIcon extends StatelessWidget {
         margin: const EdgeInsets.all(12),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: Colors.gray.shade100,
+          color: Colors.gray.shade400,
           shape: BoxShape.circle,
         ),
       );
