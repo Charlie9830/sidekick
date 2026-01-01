@@ -108,6 +108,50 @@ flutter:
     - family: Orbitron
       fonts:
         - asset: assets/fonts/orbitron/Orbitron-Regular.ttf
+    - family: Inter
+      fonts:
+        # Variable
+        - asset: assets/fonts/inter/Inter-VariableFont_opsz,wght.ttf
+        # Static
+        - asset: assets/fonts/inter/static/Inter_18pt-Thin.ttf
+          weight: 100
+        - asset: assets/fonts/inter/static/Inter_18pt-ExtraLight.ttf
+          weight: 200
+        - asset: assets/fonts/inter/static/Inter_18pt-Light.ttf
+          weight: 300
+        - asset: assets/fonts/inter/static/Inter_18pt-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/inter/static/Inter_18pt-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/inter/static/Inter_18pt-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/inter/static/Inter_18pt-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/inter/static/Inter_18pt-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/inter/static/Inter_18pt-Black.ttf
+          weight: 900
+    - family: JetBrainsMono
+      fonts:
+        # Variable
+        - asset: assets/fonts/jetbrains_mono/JetBrainsMono-VariableFont_wght.ttf
+        # Static
+        - asset: assets/fonts/jetbrains_mono/static/JetBrainsMono-Thin.ttf
+          weight: 100
+        - asset: assets/fonts/jetbrains_mono/static/JetBrainsMono-ExtraLight.ttf
+          weight: 200
+        - asset: assets/fonts/jetbrains_mono/static/JetBrainsMono-Light.ttf
+          weight: 300
+        - asset: assets/fonts/jetbrains_mono/static/JetBrainsMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/jetbrains_mono/static/JetBrainsMono-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/jetbrains_mono/static/JetBrainsMono-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/jetbrains_mono/static/JetBrainsMono-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/jetbrains_mono/static/JetBrainsMono-ExtraBold.ttf
+          weight: 800
 
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

@@ -23,13 +23,14 @@ class FixtureTableRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return switch (vm) {
       FixtureRowDividerVM row => _buildDivider(context, row),
-      FixtureViewModel row => _buildTableRow(row, rangeSelectFixtureStartId),
+      FixtureViewModel row =>
+        _buildTableRow(context, row, rangeSelectFixtureStartId),
       _ => const SizedBox(),
     };
   }
 
-  TableRow _buildTableRow(
-      FixtureViewModel row, String rangeSelectStartFixtureId) {
+  TableRow _buildTableRow(BuildContext context, FixtureViewModel row,
+      String rangeSelectStartFixtureId) {
     return TableRow(
       rangeSelected: rangeSelectStartFixtureId == row.uid,
       selected: row.selected,
@@ -45,7 +46,8 @@ class FixtureTableRow extends StatelessWidget {
         ),
         DiffStateOverlay(
             diff: deltas?.lookup(PropertyDeltaName.fixtureId),
-            child: Text(row.fid.toString())),
+            child: Text(row.fid.toString(),
+                style: Theme.of(context).typography.mono)),
         DiffStateOverlay(
             diff: deltas?.lookup(PropertyDeltaName.fixtureType),
             child: Text(row.type)),
@@ -57,10 +59,11 @@ class FixtureTableRow extends StatelessWidget {
             child: Text(row.location)),
         DiffStateOverlay(
             diff: deltas?.lookup(PropertyDeltaName.address),
-            child: Text(row.address)),
+            child: Text(row.address, style: Theme.of(context).typography.mono)),
         DiffStateOverlay(
             diff: deltas?.lookup(PropertyDeltaName.powerPatch),
-            child: Text(row.powerPatch)),
+            child:
+                Text(row.powerPatch, style: Theme.of(context).typography.mono)),
       ],
     );
   }

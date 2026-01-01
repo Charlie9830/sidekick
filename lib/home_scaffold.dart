@@ -1,6 +1,7 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/containers/home_container.dart';
 import 'package:sidekick/global_keys.dart';
+import 'package:sidekick/typography.dart';
 
 class HomeScaffold extends StatelessWidget {
   const HomeScaffold({super.key});
@@ -9,7 +10,7 @@ class HomeScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return ShadcnApp(
       theme: const ThemeData.dark(
-        typography: Typography.geist(),
+        typography: appTypography,
         colorScheme: ColorSchemes.darkBlue,
         platform: TargetPlatform.windows,
       ),

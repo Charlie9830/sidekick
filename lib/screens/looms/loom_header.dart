@@ -25,8 +25,8 @@ class LoomHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).typography;
-    final loomNameTextStyle = textTheme.medium;
-    final loomLengthTextStyle = textTheme.small;
+    final loomNameTextStyle = textTheme.large;
+    final loomLengthTextStyle = textTheme.mono;
     final loomCompositionTextStyle = textTheme.small;
 
     return HoverRegionBuilder(builder: (context, isHovering) {

@@ -13,9 +13,10 @@ class OutletListItem extends StatelessWidget {
     return ShadListItem(
       enabled: !vm.assigned,
       selected: isSelected,
-      title: Text(_getTitle(vm)),
+      title: Text(_getTitle(vm), style: Theme.of(context).typography.mono),
       leading: _getLeading(vm),
-      trailing: Text(_getTrailing(vm)),
+      trailing:
+          Text(_getTrailing(vm), style: Theme.of(context).typography.mono),
     );
   }
 

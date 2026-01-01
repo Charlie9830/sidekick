@@ -37,7 +37,10 @@ class OutletTable extends StatelessWidget {
 
             return mat.TableRow(children: [
               // Multi Patch
-              Center(child: Text(vm.outlet.multiPatch.toString()).muted),
+              Center(
+                  child: Text(vm.outlet.multiPatch.toString(),
+                          style: Theme.of(context).typography.mono)
+                      .muted),
               // Phase
               PhaseIcon(phaseNumber: vm.outlet.phase),
               // Fixture Name
@@ -58,9 +61,11 @@ class OutletTable extends StatelessWidget {
                 child: DiffStateOverlay(
                   diff: currentDelta?.properties
                       .lookup(PropertyDeltaName.patchedFixtureIds),
-                  child: Text(vm.fixtureVms
-                      .map((fixtureVM) => fixtureVM.fixture.fid)
-                      .join(", ")),
+                  child: Text(
+                      vm.fixtureVms
+                          .map((fixtureVM) => fixtureVM.fixture.fid)
+                          .join(", "),
+                      style: Theme.of(context).typography.mono),
                 ),
               ),
               // Load

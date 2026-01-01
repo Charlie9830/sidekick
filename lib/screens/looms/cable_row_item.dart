@@ -61,6 +61,12 @@ class CableRowItem extends StatelessWidget {
         .light
         .copyWith(color: Colors.gray.shade400, fontSize: 14 * scaling);
 
+    final lengthTypography = Theme.of(context).typography.mono;
+    final labelTypography = Theme.of(context).typography.mono;
+    final labelHintTypography = labelTypography.copyWith(color: Colors.gray);
+    final typePrimaryTypography = Theme.of(context).typography.light;
+    final typeSecondaryTypography = Theme.of(context).typography.extraLight;
+
     return DiffStateOverlay(
       diff: cableDelta?.overallDiff,
       child: Container(
@@ -99,7 +105,7 @@ class CableRowItem extends StatelessWidget {
                                   onChanged: (newValue) =>
                                       onLengthChanged?.call(newValue),
                                   selectAllOnFocus: true,
-                                  style: primaryTypography,
+                                  style: lengthTypography,
                                   value: cable.length.floor().toString(),
                                   suffix: 'm',
                                 ),
@@ -130,34 +136,15 @@ class CableRowItem extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          switch (cable.type) {
-                            CableType.socapex => const Icon(Icons.bolt,
-                                size: 16, color: Colors.gray),
-                            CableType.wieland6way => const Icon(Icons.power,
-                                size: 16, color: Colors.gray),
-                            CableType.sneak => const Icon(
-                                Icons.settings_ethernet,
-                                size: 16,
-                                color: Colors.gray),
-                            CableType.dmx => Icon(
-                                cable.parentMultiId.isEmpty
-                                    ? Icons.settings_input_svideo
-                                    : Icons.subdirectory_arrow_right,
-                                size: 16,
-                                color: Colors.gray),
-                            CableType.hoist => const Icon(Icons.construction,
-                                size: 16, color: Colors.gray),
-                            CableType.hoistMulti => const Icon(
-                                Icons.view_module_outlined,
-                                color: Colors.gray),
-                            CableType.unknown => const SizedBox(),
-                          },
+                          if (cable.parentMultiId.isNotEmpty)
+                            const SizedBox(width: 16.0),
+                          _getCableTypeIcon(),
                           const SizedBox(width: 8),
                           Text(
                             typeLabel,
                             style: cable.parentMultiId.isEmpty
-                                ? primaryTypography
-                                : secondaryTypography,
+                                ? typePrimaryTypography
+                                : typeSecondaryTypography,
                           ),
                         ],
                       ),
@@ -176,16 +163,17 @@ class CableRowItem extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    const SizedBox(width: 8.0),
                     DiffStateOverlay(
                         diff: cableDelta?.properties
                             .lookup(PropertyDeltaName.label),
-                        child: Text(label, style: primaryTypography)),
+                        child: Text(label, style: labelTypography)),
                     if (labelHint.isNotEmpty) ...[
                       const SizedBox(width: 24),
                       DiffStateOverlay(
                         diff: cableDelta?.properties
                             .lookup(PropertyDeltaName.labelHint),
-                        child: Text(labelHint, style: secondaryTypography),
+                        child: Text(labelHint, style: labelHintTypography),
                       ),
                     ],
                     const Spacer(),
@@ -254,6 +242,27 @@ class CableRowItem extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _getCableTypeIcon() {
+    return switch (cable.type) {
+      CableType.socapex => const Icon(Icons.bolt, size: 16, color: Colors.gray),
+      CableType.wieland6way =>
+        const Icon(Icons.power, size: 16, color: Colors.gray),
+      CableType.sneak =>
+        const Icon(Icons.settings_ethernet, size: 16, color: Colors.gray),
+      CableType.dmx => Icon(
+          cable.parentMultiId.isEmpty
+              ? Icons.settings_input_svideo
+              : Icons.subdirectory_arrow_right,
+          size: 16,
+          color: Colors.gray),
+      CableType.hoist =>
+        const Icon(Icons.construction, size: 16, color: Colors.gray),
+      CableType.hoistMulti =>
+        const Icon(Icons.view_module_outlined, color: Colors.gray),
+      CableType.unknown => const SizedBox(),
+    };
   }
 
   Color? _getBackgroundColor(BuildContext context) {
