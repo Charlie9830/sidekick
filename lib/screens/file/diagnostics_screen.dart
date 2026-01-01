@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/titled_card.dart';
 
 import 'package:sidekick/view_models/diagnostics_view_model.dart';
@@ -14,7 +14,7 @@ class DiagnosticsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ElevatedButton(
+          PrimaryButton(
               onPressed: vm.onDebugAction, child: const Text("Debug Action")),
           Expanded(
             child: SingleChildScrollView(
