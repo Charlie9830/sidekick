@@ -14,6 +14,7 @@ import 'package:sidekick/redux/models/location_override_model.dart';
 import 'package:sidekick/redux/models/named_color_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
+import 'package:sidekick/redux/models/power_system_model.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
 
 class LocationModel extends ModelCollectionMember with DiffComparable {
@@ -26,6 +27,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
   final Set<String> hybridIds;
   final LocationOverrideModel overrides;
   final bool isRiggingOnlyLocation;
+  final String powerSystemId;
 
   static const Color noColor = Color.fromARGB(0, 0, 0, 0);
 
@@ -38,6 +40,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
     this.hybridIds = const {},
     this.overrides = const LocationOverrideModel.none(),
     this.isRiggingOnlyLocation = false,
+    this.powerSystemId = PowerSystemModel.kDefaultUid,
   });
 
   const LocationModel.none()
@@ -48,7 +51,8 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
         delimiter = '',
         hybridIds = const {},
         overrides = const LocationOverrideModel.none(),
-        isRiggingOnlyLocation = false;
+        isRiggingOnlyLocation = false,
+        powerSystemId = PowerSystemModel.kDefaultUid;
 
   bool get isHybrid => hybridIds.isNotEmpty;
 
@@ -174,6 +178,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       'hybridIds': hybridIds.toList(),
       'overrides': overrides.toMap(),
       'isRiggingOnlyLocation': isRiggingOnlyLocation,
+      'powerSystemId': powerSystemId,
     };
   }
 
@@ -195,6 +200,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
           ? const LocationOverrideModel.none()
           : LocationOverrideModel.fromMap(map['overrides']),
       isRiggingOnlyLocation: map['isRiggingOnlyLocation'] ?? false,
+      powerSystemId: map['powerSystemId'] ?? PowerSystemModel.kDefaultUid,
     );
   }
 

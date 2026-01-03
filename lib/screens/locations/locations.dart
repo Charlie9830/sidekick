@@ -274,7 +274,8 @@ class _LocationsState extends State<Locations> {
     }
 
     // Data Row
-    return const TableSpan(extent: FixedSpanExtent(56));
+    return const TableSpan(
+        extent: FixedSpanExtent(TableViewConfig.defaultRowHeight));
   }
 
   void _showColorPickerDialog(

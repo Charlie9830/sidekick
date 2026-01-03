@@ -11,6 +11,8 @@ class TableViewConfig {
   static final defaultTrailingForegroundDecoration = SpanDecoration(
       border: SpanBorder(leading: minorBorder, trailing: minorBorder));
 
+  static const double defaultRowHeight = 56;
+
   static final defaultHeaderRowSpan = TableSpan(
     extent: const FixedSpanExtent(56),
     backgroundDecoration: SpanDecoration(

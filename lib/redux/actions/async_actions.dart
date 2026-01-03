@@ -1784,7 +1784,8 @@ ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
 
 ThunkAction<AppState> debugButtonPressed() {
   return (Store<AppState> store) async {
-    print("No Action Performed");
+    print("Triggering Power Rack Patch");
+    store.dispatch(SetLocations(store.state.fixtureState.locations));
   };
 }
 

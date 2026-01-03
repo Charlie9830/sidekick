@@ -19,6 +19,8 @@ class DiagnosticsScreen extends StatelessWidget {
           Expanded(
             child: SingleChildScrollView(
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 16,
                 children: [
                   TitledCard(
                     title: 'Hoist Multi Outlets',
@@ -26,6 +28,15 @@ class DiagnosticsScreen extends StatelessWidget {
                       children: vm.appState.fixtureState.hoistMultis.values
                           .map((multi) => Text(
                               '${multi.name}:   ${multi.number},   ${multi.locationId}'))
+                          .toList(),
+                    ),
+                  ),
+                  TitledCard(
+                    title: 'Power Racks',
+                    child: Column(
+                      children: vm.appState.fixtureState.powerRacks.values
+                          .map((rack) => Text(
+                              '${rack.name}     index: ${rack.rackIndex}     Outlet Count: ${rack.outletSlots.qty}    parentSystemId: ${rack.parentSystemId}'))
                           .toList(),
                     ),
                   )

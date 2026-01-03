@@ -11,6 +11,7 @@ import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
+import 'package:sidekick/redux/models/power_rack_model.dart';
 import 'package:sidekick/redux/models/power_system_model.dart';
 
 class FixtureState {
@@ -31,6 +32,7 @@ class FixtureState {
   final Map<String, HoistMultiModel> hoistMultis;
   final Map<String, PowerSystemModel> powerSystems;
   final Map<String, PowerFeedModel> powerFeeds;
+  final Map<String, PowerRackModel> powerRacks;
 
   FixtureState(
       {required this.fixtures,
@@ -50,6 +52,7 @@ class FixtureState {
       required this.hoistMultis,
       required this.powerSystems,
       required this.powerFeeds,
+      required this.powerRacks,
       r});
 
   const FixtureState.initial()
@@ -71,7 +74,8 @@ class FixtureState {
         powerSystems = const {
           PowerSystemModel.kDefaultUid: PowerSystemModel.defaultSystem(),
         },
-        powerFeeds = const {};
+        powerFeeds = const {},
+        powerRacks = const {};
 
   FixtureState copyWith({
     Map<String, FixtureModel>? fixtures,
@@ -91,6 +95,7 @@ class FixtureState {
     Map<String, HoistMultiModel>? hoistMultis,
     Map<String, PowerSystemModel>? powerSystems,
     Map<String, PowerFeedModel>? powerFeeds,
+    Map<String, PowerRackModel>? powerRacks,
   }) {
     return FixtureState(
       fixtures: fixtures ?? this.fixtures,
@@ -110,6 +115,7 @@ class FixtureState {
       hoistMultis: hoistMultis ?? this.hoistMultis,
       powerSystems: powerSystems ?? this.powerSystems,
       powerFeeds: powerFeeds ?? this.powerFeeds,
+      powerRacks: powerRacks ?? this.powerRacks,
     );
   }
 }

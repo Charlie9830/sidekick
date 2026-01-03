@@ -5,6 +5,7 @@ import 'package:sidekick/extension_methods/clone_map.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/perform_data_patch.dart';
 import 'package:sidekick/perform_power_patch.dart';
+import 'package:sidekick/perform_power_rack_patch.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
@@ -78,6 +79,11 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
         fixtures: FixtureModel.sort(powerPatch.fixtures, a.locations),
         locations: a.locations,
         fixtureTypes: a.fixtureTypes,
+        powerRacks: performPowerRackPatch(
+            existingRacks: state.powerRacks,
+            powerMultis: powerPatch.powerMultiOutlets,
+            powerSystems: state.powerSystems,
+            locations: state.locations),
         powerMultiOutlets: powerPatch.powerMultiOutlets,
         dataPatches: performDataPatch(
           fixtures: a.fixtures,
@@ -242,6 +248,11 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       fixtureTypes: updatedFixtureTypes,
       powerMultiOutlets: outlets.powerMultiOutlets,
       fixtures: outlets.fixtures,
+      powerRacks: performPowerRackPatch(
+          existingRacks: state.powerRacks,
+          powerMultis: outlets.powerMultiOutlets,
+          powerSystems: state.powerSystems,
+          locations: state.locations),
     );
   }
 
@@ -294,6 +305,11 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     return state.copyWith(
         fixtures: outlets.fixtures,
         powerMultiOutlets: outlets.powerMultiOutlets,
+        powerRacks: performPowerRackPatch(
+            existingRacks: state.powerRacks,
+            powerMultis: outlets.powerMultiOutlets,
+            powerSystems: state.powerSystems,
+            locations: state.locations),
         dataPatches: performDataPatch(
             fixtures: a.fixtures,
             dataPatches: state.dataPatches,
@@ -313,6 +329,11 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     return state.copyWith(
       locations: a.locations,
       fixtures: outlets.fixtures,
+      powerRacks: performPowerRackPatch(
+          existingRacks: state.powerRacks,
+          powerMultis: outlets.powerMultiOutlets,
+          powerSystems: state.powerSystems,
+          locations: state.locations),
       dataMultis: assertOutletNameAndNumbers<DataMultiModel>(
               state.dataMultis.values, a.locations)
           .toModelMap(),
@@ -344,6 +365,11 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     return state.copyWith(
       powerMultiOutlets: outlets.powerMultiOutlets,
       fixtures: outlets.fixtures,
+      powerRacks: performPowerRackPatch(
+          existingRacks: state.powerRacks,
+          powerMultis: outlets.powerMultiOutlets,
+          powerSystems: state.powerSystems,
+          locations: state.locations),
     );
   }
 
@@ -362,6 +388,11 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     return state.copyWith(
       balanceTolerance: tolerance,
       powerMultiOutlets: outlets.powerMultiOutlets,
+      powerRacks: performPowerRackPatch(
+          existingRacks: state.powerRacks,
+          powerMultis: outlets.powerMultiOutlets,
+          powerSystems: state.powerSystems,
+          locations: state.locations),
       fixtures: outlets.fixtures,
     );
   }
@@ -383,6 +414,11 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       maxSequenceBreak: maxSequenceBreak,
       powerMultiOutlets: outlets.powerMultiOutlets,
       fixtures: outlets.fixtures,
+      powerRacks: performPowerRackPatch(
+          existingRacks: state.powerRacks,
+          powerMultis: outlets.powerMultiOutlets,
+          powerSystems: state.powerSystems,
+          locations: state.locations),
     );
   }
 
