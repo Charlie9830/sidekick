@@ -65,6 +65,13 @@ class PropertyFieldState extends State<PropertyField> {
     // When this happens, it triggers funky animations.
 
     _focusNode = widget.focusNode ?? FocusNode();
+    _focusNode.onKeyEvent = (node, event) {
+      if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.tab) {
+        _handleSubmit();
+      }
+
+      return KeyEventResult.ignored;
+    };
   }
 
   @override
