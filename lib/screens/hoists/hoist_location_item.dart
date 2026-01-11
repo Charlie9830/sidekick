@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/screens/locations/rigging_only_tag.dart';
+import 'package:sidekick/simple_tooltip.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';
 
@@ -20,7 +21,7 @@ class HoistLocationItem extends StatelessWidget {
             children: [
               Text(vm.location.name,
                   key: Key(vm.location.uid),
-                  style: Theme.of(context).textTheme.labelMedium),
+                  style: Theme.of(context).typography.xSmall),
               const Spacer(),
               if (vm.location.isRiggingOnlyLocation)
                 Row(
@@ -28,14 +29,14 @@ class HoistLocationItem extends StatelessWidget {
                     if (isHovering)
                       Row(
                         children: [
-                          IconButton(
+                          IconButton.ghost(
                             icon: const Icon(Icons.delete),
-                            iconSize: 20,
+                            size: ButtonSize.small,
                             onPressed: vm.onDeleteLocation,
                           ),
-                          IconButton(
+                          IconButton.ghost(
                             icon: const Icon(Icons.edit),
-                            iconSize: 20,
+                            size: ButtonSize.small,
                             onPressed: vm.onEditLocation,
                           ),
                         ],
@@ -43,12 +44,13 @@ class HoistLocationItem extends StatelessWidget {
                     const RiggingOnlyTag(),
                   ],
                 ),
-              IconButton(
-                  icon: const Icon(Icons.add),
-                  iconSize: 20,
-                  tooltip: 'Add Hoist',
-                  visualDensity: VisualDensity.compact,
-                  onPressed: vm.onAddHoistButtonPressed)
+              SimpleTooltip(
+                message: 'Add Hoist',
+                child: IconButton.ghost(
+                    icon: const Icon(Icons.add),
+                    size: ButtonSize.small,
+                    onPressed: vm.onAddHoistButtonPressed),
+              )
             ],
           ),
         );
