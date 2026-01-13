@@ -11,6 +11,8 @@ import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
+import 'package:sidekick/redux/models/power_rack_model.dart';
+import 'package:sidekick/redux/models/power_rack_type_model.dart';
 import 'package:sidekick/redux/models/power_system_model.dart';
 
 class FixtureState {
@@ -31,26 +33,30 @@ class FixtureState {
   final Map<String, HoistMultiModel> hoistMultis;
   final Map<String, PowerSystemModel> powerSystems;
   final Map<String, PowerFeedModel> powerFeeds;
+  final Map<String, PowerRackModel> powerRacks;
+  final Map<String, PowerRackTypeModel> powerRackTypes;
 
-  FixtureState(
-      {required this.fixtures,
-      required this.powerMultiOutlets,
-      required this.balanceTolerance,
-      required this.maxSequenceBreak,
-      required this.locations,
-      required this.dataMultis,
-      required this.dataPatches,
-      required this.looms,
-      required this.fixtureTypes,
-      required this.cables,
-      required this.defaultPowerMulti,
-      required this.loomStock,
-      required this.hoists,
-      required this.hoistControllers,
-      required this.hoistMultis,
-      required this.powerSystems,
-      required this.powerFeeds,
-      r});
+  FixtureState({
+    required this.fixtures,
+    required this.powerMultiOutlets,
+    required this.balanceTolerance,
+    required this.maxSequenceBreak,
+    required this.locations,
+    required this.dataMultis,
+    required this.dataPatches,
+    required this.looms,
+    required this.fixtureTypes,
+    required this.cables,
+    required this.defaultPowerMulti,
+    required this.loomStock,
+    required this.hoists,
+    required this.hoistControllers,
+    required this.hoistMultis,
+    required this.powerSystems,
+    required this.powerFeeds,
+    required this.powerRacks,
+    required this.powerRackTypes,
+  });
 
   const FixtureState.initial()
       : fixtures = const {},
@@ -71,7 +77,9 @@ class FixtureState {
         powerSystems = const {
           PowerSystemModel.kDefaultUid: PowerSystemModel.defaultSystem(),
         },
-        powerFeeds = const {};
+        powerFeeds = const {},
+        powerRacks = const {},
+        powerRackTypes = const {};
 
   FixtureState copyWith({
     Map<String, FixtureModel>? fixtures,
@@ -91,6 +99,8 @@ class FixtureState {
     Map<String, HoistMultiModel>? hoistMultis,
     Map<String, PowerSystemModel>? powerSystems,
     Map<String, PowerFeedModel>? powerFeeds,
+    Map<String, PowerRackModel>? powerRacks,
+    Map<String, PowerRackTypeModel>? powerRackTypes,
   }) {
     return FixtureState(
       fixtures: fixtures ?? this.fixtures,
@@ -110,6 +120,8 @@ class FixtureState {
       hoistMultis: hoistMultis ?? this.hoistMultis,
       powerSystems: powerSystems ?? this.powerSystems,
       powerFeeds: powerFeeds ?? this.powerFeeds,
+      powerRacks: powerRacks ?? this.powerRacks,
+      powerRackTypes: powerRackTypes ?? this.powerRackTypes,
     );
   }
 }

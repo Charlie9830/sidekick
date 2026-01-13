@@ -14,6 +14,8 @@ class NavigationState {
   final bool isAvailabilityDrawerOpen;
   final Set<String> selectedHoistIds;
   final Set<String> selectedHoistChannelIds;
+  final Set<String> selectedMultiPowerOutletIds;
+  final Set<String> selectedPowerMultiChannelIds;
 
   NavigationState({
     required this.selectedMultiOutlet,
@@ -28,6 +30,8 @@ class NavigationState {
     required this.isAvailabilityDrawerOpen,
     required this.selectedHoistIds,
     required this.selectedHoistChannelIds,
+    required this.selectedMultiPowerOutletIds,
+    required this.selectedPowerMultiChannelIds,
   });
 
   const NavigationState.initial()
@@ -42,7 +46,9 @@ class NavigationState {
         loomsDraggingState = LoomsDraggingState.idle,
         isAvailabilityDrawerOpen = false,
         selectedHoistIds = const {},
-        selectedHoistChannelIds = const {};
+        selectedHoistChannelIds = const {},
+        selectedMultiPowerOutletIds = const {},
+        selectedPowerMultiChannelIds = const {};
 
   NavigationState copyWith({
     String? selectedMultiOutlet,
@@ -57,6 +63,8 @@ class NavigationState {
     bool? isAvailabilityDrawerOpen,
     Set<String>? selectedHoistIds,
     Set<String>? selectedHoistChannelIds,
+    Set<String>? selectedPowerMultiOutletIds,
+    Set<String>? selectedPowerMultiChannelIds,
   }) {
     return NavigationState(
       selectedMultiOutlet: selectedMultiOutlet ?? this.selectedMultiOutlet,
@@ -73,6 +81,10 @@ class NavigationState {
       selectedHoistIds: selectedHoistIds ?? this.selectedHoistIds,
       selectedHoistChannelIds:
           selectedHoistChannelIds ?? this.selectedHoistChannelIds,
+      selectedMultiPowerOutletIds:
+          selectedPowerMultiOutletIds ?? this.selectedMultiPowerOutletIds,
+      selectedPowerMultiChannelIds:
+          selectedPowerMultiChannelIds ?? this.selectedPowerMultiChannelIds,
     );
   }
 }

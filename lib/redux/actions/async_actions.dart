@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:collection';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:excel/excel.dart';
@@ -10,12 +11,7 @@ import 'package:path/path.dart' as p;
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:sidekick/excel/create_fixture_info_sheet.dart';
-import 'package:sidekick/excel/create_hoist_patch_sheet.dart';
-import 'package:sidekick/open_shad_sheet.dart';
-import 'package:sidekick/screens/hoists/add_or_edit_rigging_location.dart';
-import 'package:sidekick/toasts.dart';
-import 'package:sidekick/view_models/hoists_view_model.dart';
+import 'package:sidekick/redux/models/power_rack_type_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:sidekick/assert_sneak_child_spares.dart';
@@ -30,7 +26,9 @@ import 'package:sidekick/excel/create_color_lookup_sheet.dart';
 import 'package:sidekick/excel/create_data_multi_sheet.dart';
 import 'package:sidekick/excel/create_data_patch_sheet.dart';
 import 'package:sidekick/excel/create_fixture_addressing_sheet.dart';
+import 'package:sidekick/excel/create_fixture_info_sheet.dart';
 import 'package:sidekick/excel/create_fixture_type_validation_sheet.dart';
+import 'package:sidekick/excel/create_hoist_patch_sheet.dart';
 import 'package:sidekick/excel/create_lighting_looms_sheet.dart';
 import 'package:sidekick/excel/create_power_patch_sheet.dart';
 import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
@@ -49,6 +47,7 @@ import 'package:sidekick/helpers/extract_locations_from_outlets.dart';
 import 'package:sidekick/helpers/fill_cables_to_satisfy_permanent_loom.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/model_collection/convert_to_map_entry.dart';
+import 'package:sidekick/open_shad_sheet.dart';
 import 'package:sidekick/persistent_settings/fetch_persistent_settings.dart';
 import 'package:sidekick/persistent_settings/init_persistent_settings_storage.dart';
 import 'package:sidekick/persistent_settings/update_persistent_settings.dart';
@@ -63,15 +62,108 @@ import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/redux/models/permanent_loom_composition.dart';
+import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
+import 'package:sidekick/redux/models/power_rack_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/file/import_module/import_manager_result.dart';
+import 'package:sidekick/screens/hoists/add_or_edit_rigging_location.dart';
 import 'package:sidekick/screens/location_overrides_dialog/location_overrides_dialog.dart';
 import 'package:sidekick/screens/looms/add_spare_cables.dart';
 import 'package:sidekick/screens/sequencer_dialog/sequencer_dialog.dart';
 import 'package:sidekick/screens/setup_quantities_dialog/setup_quantities_dialog.dart';
 import 'package:sidekick/serialization/deserialize_project_file.dart';
 import 'package:sidekick/serialization/serialize_project_file.dart';
+import 'package:sidekick/toasts.dart';
 import 'package:sidekick/utils/get_uid.dart';
+import 'package:sidekick/view_models/hoists_view_model.dart';
+
+ThunkAction<AppState> addPowerRack(PowerRackTypeModel rackType) {
+  return (Store<AppState> store) async {
+    final existingRacksOfType = store.state.fixtureState.powerRacks.values
+        .where((rack) => rack.typeId == rackType.uid);
+
+    final newRack = PowerRackModel(
+      uid: getUid(),
+      assignments: const {},
+      name: '${rackType.name} #${existingRacksOfType.length + 1}',
+      typeId: rackType.uid,
+      note: '',
+    );
+
+    store.dispatch(SetPowerRacks(store.state.fixtureState.powerRacks.clone()
+      ..addAll({
+        newRack.uid: newRack,
+      })));
+  };
+}
+
+ThunkAction<AppState> selectPowerMultiOutlets(
+    UpdateType type, Set<String> multiIds) {
+  return (Store<AppState> store) async {
+    switch (type) {
+      case UpdateType.overwrite:
+        store.dispatch(SetSelectedPowerMultiOutletIds(multiIds));
+      case UpdateType.addIfAbsentElseRemove:
+        store.dispatch(SetSelectedPowerMultiOutletIds(
+          store.state.navstate.selectedMultiPowerOutletIds.toSet()
+            ..addAllIfAbsentElseRemove(multiIds),
+        ));
+    }
+  };
+}
+
+ThunkAction<AppState> selectPowerMultiChannels(
+    UpdateType type, Set<String> multiIds) {
+  return (Store<AppState> store) async {
+    switch (type) {
+      case UpdateType.overwrite:
+        store.dispatch(SetSelectedPowerMultiChannelIds(multiIds));
+      case UpdateType.addIfAbsentElseRemove:
+        store.dispatch(SetSelectedPowerMultiChannelIds(
+          store.state.navstate.selectedPowerMultiChannelIds.toSet()
+            ..addAllIfAbsentElseRemove(multiIds),
+        ));
+    }
+  };
+}
+
+ThunkAction<AppState> updatePowerRackType(String rackId, String typeId) {
+  return (Store<AppState> store) async {
+    final rack = store.state.fixtureState.powerRacks[rackId];
+    final type = store.state.fixtureState.powerRackTypes[typeId];
+
+    if (rack == null || type == null) {
+      return;
+    }
+
+    store.dispatch(SetPowerRacks(store.state.fixtureState.powerRacks.clone()
+      ..update(
+          rackId,
+          (existing) => existing.copyWith(
+                typeId: typeId,
+              ))));
+  };
+}
+
+ThunkAction<AppState> deletePowerRack(
+    BuildContext context, PowerRackModel rack) {
+  return (Store<AppState> store) async {
+    final dialogResult = await showGenericDialog(
+      context: context,
+      title: 'Delete power rack',
+      message: 'Are you sure you want to delete ${rack.name}?',
+      affirmativeText: 'Delete',
+      destructiveAffirmative: true,
+      declineText: 'Cancel',
+    );
+
+    if (dialogResult == true) {
+      store.dispatch(SetPowerRacks(
+        store.state.fixtureState.powerRacks.clone()..remove(rack.uid),
+      ));
+    }
+  };
+}
 
 ThunkAction<AppState> deleteHoistController(
     BuildContext context, HoistControllerModel controller) {
@@ -115,11 +207,23 @@ ThunkAction<AppState> unpatchHoist(
 
     store.dispatch(SetHoists(store.state.fixtureState.hoists.clone()
       ..update(
-          (hoist.uid),
+          hoist.uid,
           (existing) => existing.copyWith(
                 parentController:
                     const HoistControllerChannelAssignment.unassigned(),
               ))));
+  };
+}
+
+ThunkAction<AppState> unpatchPowerMulti(
+    PowerRackModel rack, PowerMultiOutletModel multi) {
+  return (Store<AppState> store) async {
+    store.dispatch(SetPowerRacks(store.state.fixtureState.powerRacks.clone()
+      ..update(
+          rack.uid,
+          (existing) => existing.copyWith(
+              assignments: Map<int, String>.from(existing.assignments)
+                ..removeWhere((key, value) => value == multi.uid)))));
   };
 }
 
@@ -2356,4 +2460,150 @@ bool _validateAndNotifyHoistMove(int oldIndex, int newIndex,
   }
 
   return true;
+}
+
+ThunkAction<AppState> assignPowerMultisToRack(
+    {required Set<String> movingOrIncomingPowerMultiIds,
+    required int startingChannelNumber,
+    required String targetRackId}) {
+  return (Store<AppState> store) async {
+    if (movingOrIncomingPowerMultiIds.isEmpty ||
+        store.state.fixtureState.powerRacks[targetRackId] == null) {
+      return;
+    }
+
+    final movingOrIncomingPowerMultis = movingOrIncomingPowerMultiIds
+        .map((id) => store.state.fixtureState.powerMultiOutlets[id])
+        .nonNulls
+        .toList();
+
+    if (movingOrIncomingPowerMultis.isEmpty) {
+      return;
+    }
+
+    final rack = store.state.fixtureState.powerRacks[targetRackId];
+
+    if (rack == null) {
+      return;
+    }
+
+    final rackType = store.state.fixtureState.powerRackTypes[rack.typeId]!;
+
+    final childMultisByChannel = rack.assignments.map((channel, id) =>
+        MapEntry(channel, store.state.fixtureState.powerMultiOutlets[id]));
+
+    // Create a list that represents all channels currently in this controller, in their current channels, this includes unpopulated empty channels.
+    final allChannels = List.generate(
+        max(rack.assignments.length, rackType.multiOutletCount), (index) {
+      final originalMulti = childMultisByChannel[index + 1];
+      return _PowerRackChannel(
+        originalMulti: originalMulti,
+      );
+    });
+
+    final allChannelsWithPrunedMovingMultis = allChannels.map((channel) =>
+        movingOrIncomingPowerMultiIds.contains(channel.originalMulti?.uid)
+            ? _PowerRackChannel(originalMulti: null)
+            : channel);
+
+    final incomingMultisQueue =
+        Queue<PowerMultiOutletModel>.from(movingOrIncomingPowerMultis);
+
+    final startingInsertionIndex = startingChannelNumber - 1;
+    final channelAccum = allChannelsWithPrunedMovingMultis.foldIndexed(
+        _PowerChannelAccumulator(
+            channels: [],
+            carry: Queue<_PowerRackChannel>()), (index, accum, channel) {
+      if (incomingMultisQueue.isEmpty) {
+        if (accum.carry.isNotEmpty) {
+          return accum.copyWith(
+            channels: [
+              ...accum.channels,
+              accum.carry.removeFirst(),
+            ],
+            carry: accum.carry..add(channel),
+          );
+        }
+
+        if (accum.carry.isEmpty) {
+          return accum.copyWith(channels: [
+            ...accum.channels,
+            channel,
+          ]);
+        }
+      }
+
+      if (index < startingInsertionIndex) {
+        return accum.copyWith(channels: [
+          ...accum.channels,
+          channel,
+        ]);
+      } else {
+        if (channel.originalMulti == null) {
+          return accum.copyWith(channels: [
+            ...accum.channels,
+            _PowerRackChannel(originalMulti: incomingMultisQueue.removeFirst())
+          ]);
+        } else {
+          return accum.copyWith(
+            channels: [
+              ...accum.channels,
+              _PowerRackChannel(
+                  originalMulti: incomingMultisQueue.removeFirst())
+            ],
+            carry: accum.carry..add(channel),
+          );
+        }
+      }
+    });
+
+    final updatedChannels = [
+      ...channelAccum.channels,
+      ...channelAccum.carry,
+    ];
+
+    store.dispatch(SetPowerRacks(store.state.fixtureState.powerRacks.clone()
+      ..update(
+          targetRackId,
+          (existing) => existing.copyWith(
+              assignments: Map<int, String>.fromEntries(
+                  updatedChannels.mapIndexed((index, channel) => MapEntry(
+                      index + 1, channel.originalMulti?.uid ?? '')))))));
+  };
+}
+
+class _PowerChannelAccumulator {
+  final List<_PowerRackChannel> channels;
+  final Queue<_PowerRackChannel> carry;
+
+  _PowerChannelAccumulator({
+    required this.channels,
+    required this.carry,
+  });
+
+  _PowerChannelAccumulator copyWith({
+    List<_PowerRackChannel>? channels,
+    Queue<_PowerRackChannel>? carry,
+  }) {
+    return _PowerChannelAccumulator(
+      channels: channels ?? this.channels,
+      carry: carry ?? this.carry,
+    );
+  }
+}
+
+class _PowerRackChannel {
+  final PowerMultiOutletModel? originalMulti;
+
+  _PowerRackChannel({
+    required this.originalMulti,
+  });
+
+  _PowerRackChannel copyWith({
+    PowerMultiOutletModel? originalMulti,
+  }) {
+    return _PowerRackChannel(
+      originalMulti: originalMulti ?? this.originalMulti,
+    );
+  }
 }

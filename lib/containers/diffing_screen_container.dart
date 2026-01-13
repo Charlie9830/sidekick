@@ -506,3 +506,31 @@ class HoistDelta implements ModelCollectionMember {
     required this.properties,
   });
 }
+
+class PowerMultiChannelDelta implements ModelCollectionMember {
+  @override
+  final String uid;
+  final DiffState overallDiff;
+  final PropertyDeltaSet channelProperties;
+  final PowerMultiOutletDelta multiDelta;
+
+  PowerMultiChannelDelta({
+    required this.uid,
+    required this.overallDiff,
+    required this.channelProperties,
+    required this.multiDelta,
+  });
+}
+
+class PowerMultiOutletDelta implements ModelCollectionMember {
+  @override
+  final String uid;
+  final DiffState overallDiff;
+  final PropertyDeltaSet properties;
+
+  PowerMultiOutletDelta({
+    required this.uid,
+    required this.overallDiff,
+    required this.properties,
+  });
+}

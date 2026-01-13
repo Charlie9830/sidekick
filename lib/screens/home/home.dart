@@ -8,6 +8,7 @@ import 'package:sidekick/containers/locations_container.dart';
 import 'package:sidekick/containers/diffing_screen_container.dart';
 import 'package:sidekick/containers/looms_container.dart';
 import 'package:sidekick/containers/power_patch_container.dart';
+import 'package:sidekick/containers/racks_container.dart';
 import 'package:sidekick/global_keys.dart';
 import 'package:sidekick/screens/the_lab.dart';
 import 'package:sidekick/view_models/home_view_model.dart';
@@ -105,7 +106,7 @@ class _HomeState extends State<Home> {
             0 => const FileContainer(),
             1 => const FixtureTableContainer(),
             2 => const PowerPatchContainer(),
-            3 => const Text('Racks'),
+            3 => const RacksContainer(),
             4 => const HoistsContainer(),
             5 => const LoomsContainer(),
             6 => const LocationsContainer(),

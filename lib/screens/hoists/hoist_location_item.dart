@@ -21,7 +21,7 @@ class HoistLocationItem extends StatelessWidget {
             children: [
               Text(vm.location.name,
                   key: Key(vm.location.uid),
-                  style: Theme.of(context).typography.xSmall),
+                  style: Theme.of(context).typography.small),
               const Spacer(),
               if (vm.location.isRiggingOnlyLocation)
                 Row(

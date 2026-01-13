@@ -2,6 +2,18 @@ import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/state/navigation_state.dart';
 
 NavigationState navStateReducer(NavigationState state, dynamic a) {
+  if (a is SetSelectedPowerMultiOutletIds) {
+    return state.copyWith(
+      selectedPowerMultiOutletIds: a.value,
+    );
+  }
+
+  if (a is SetSelectedPowerMultiOutletIds) {
+    return state.copyWith(
+      selectedPowerMultiChannelIds: a.value,
+    );
+  }
+
   if (a is RemoveLocation) {
     return state.copyWith(
       selectedCableIds: {},
@@ -24,6 +36,13 @@ NavigationState navStateReducer(NavigationState state, dynamic a) {
   if (a is AppendSelectedHoistChannelId) {
     return state.copyWith(selectedHoistChannelIds: {
       ...state.selectedHoistChannelIds,
+      a.value,
+    });
+  }
+
+  if (a is AppendSelectedHoistChannelId) {
+    return state.copyWith(selectedPowerMultiChannelIds: {
+      ...state.selectedPowerMultiChannelIds,
       a.value,
     });
   }

@@ -12,9 +12,30 @@ import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
+import 'package:sidekick/redux/models/power_rack_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
+
+class SetPowerRacks {
+  final Map<String, PowerRackModel> racks;
+
+  SetPowerRacks(this.racks);
+}
+
+class UpdatePowerRackName {
+  final String rackId;
+  final String newValue;
+
+  UpdatePowerRackName(this.rackId, this.newValue);
+}
+
+class UpdatePowerRackNote {
+  final String rackId;
+  final String newValue;
+
+  UpdatePowerRackNote(this.rackId, this.newValue);
+}
 
 class SetHoistsAndControllers {
   final Map<String, HoistControllerModel> hoistControllers;
@@ -72,10 +93,28 @@ class AppendSelectedHoistChannelId {
   AppendSelectedHoistChannelId(this.value);
 }
 
+class AppendSelectedMultiChannelId {
+  final String value;
+
+  AppendSelectedMultiChannelId(this.value);
+}
+
 class SetSelectedHoistChannelIds {
   final Set<String> value;
 
   SetSelectedHoistChannelIds(this.value);
+}
+
+class SetSelectedPowerMultiOutletIds {
+  final Set<String> value;
+
+  SetSelectedPowerMultiOutletIds(this.value);
+}
+
+class SetSelectedPowerMultiChannelIds {
+  final Set<String> value;
+
+  SetSelectedPowerMultiChannelIds(this.value);
 }
 
 class SetHoists {
