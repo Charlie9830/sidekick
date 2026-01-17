@@ -17,6 +17,7 @@ class CableViewModel with DiffComparable implements ModelCollectionMember {
   final void Function(String newValue) onLengthChanged;
   final void Function(String newValue) onNotesChanged;
   final bool isDetached;
+  final int selectionIndex;
 
   CableViewModel({
     required this.cable,
@@ -31,6 +32,7 @@ class CableViewModel with DiffComparable implements ModelCollectionMember {
     required this.typeLabel,
     required this.onNotesChanged,
     required this.isDetached,
+    required this.selectionIndex,
   });
 
   @override

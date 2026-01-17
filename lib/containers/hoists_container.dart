@@ -45,10 +45,11 @@ class HoistsContainer extends StatelessWidget {
             onSelectedHoistChannelsChanged: (type, items) =>
                 store.dispatch(selectHoistControllerChannels(type, items)),
             hoistControllers: selectHoistControllers(
-                context: context,
-                store: store,
-                selectedHoistChannelViewModelMap: selectedHoistChannelVmMap,
-                cablesByHoistId: cablesByOutletId),
+              context: context,
+              store: store,
+              selectedHoistChannelViewModelMap: selectedHoistChannelVmMap,
+              hoistViewModels: hoistVmMap,
+            ),
             selectedHoistChannelViewModels: selectedHoistChannelVmMap,
             onAddMotorController: (wayNumber) =>
                 store.dispatch(addHoistController(wayNumber)),

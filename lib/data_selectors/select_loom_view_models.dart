@@ -8,6 +8,7 @@ import 'package:sidekick/data_selectors/select_cable_label_hint.dart';
 import 'package:sidekick/data_selectors/select_cable_location.dart';
 import 'package:sidekick/data_selectors/select_child_cables.dart';
 import 'package:sidekick/data_selectors/select_dmx_universe.dart';
+import 'package:sidekick/item_selection/get_item_selection_index_closure.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
@@ -26,11 +27,13 @@ List<LoomViewModel> selectLoomViewModels(
   bool forExcel = false,
 }) {
   // Wrapper Function to wrap multiple similiar calls to Cable VM creation.
-  CableViewModel wrapCableVm(CableModel cable, int localNumber) {
+  CableViewModel wrapCableVm(
+      CableModel cable, int localNumber, int selectionIndex) {
     final associatedLocation = selectCableLocation(cable, store);
 
     return CableViewModel(
         cable: cable,
+        selectionIndex: selectionIndex,
         locationId: associatedLocation?.uid ?? '',
         labelColor: associatedLocation?.color ?? const LabelColorModel.none(),
         isExtension: cable.upstreamId.isNotEmpty,
@@ -73,7 +76,7 @@ List<LoomViewModel> selectLoomViewModels(
 
   // Getting a bit stupidly smarty pants here. Create a local closure to track the current 'localNumber' of a cable.
   // The local number pertains to the current count of a type of cable within a loom, for example Soca 1, Soca 2, Soca 3, Sneak 1 etc.
-  int Function(CableType) localNumberCounterClosure() {
+  int Function(CableType type) localNumberCounterClosure() {
     Map<CableType, int> buffer = {
       CableType.socapex: 0,
       CableType.wieland6way: 0,
@@ -88,6 +91,8 @@ List<LoomViewModel> selectLoomViewModels(
       return buffer[type]!;
     };
   }
+
+  final getSelectionIndex = getItemSelectionIndexClosure();
 
   final loomVms = orderedLooms.mapIndexed(
     (index, loom) {
@@ -104,11 +109,12 @@ List<LoomViewModel> selectLoomViewModels(
             return [
               // Top Level Cable
               if (cable.parentMultiId.isEmpty)
-                wrapCableVm(cable, getCount(cable.type)),
+                wrapCableVm(cable, getCount(cable.type), getSelectionIndex()),
 
               // Optional Children of Multi Cables.
-              ...selectChildCables(cable, store.state.fixtureState)
-                  .mapIndexed((index, child) => wrapCableVm(child, index + 1))
+              ...selectChildCables(cable, store.state.fixtureState).mapIndexed(
+                  (index, child) =>
+                      wrapCableVm(child, index + 1, getSelectionIndex()))
             ];
           })
           .flattened

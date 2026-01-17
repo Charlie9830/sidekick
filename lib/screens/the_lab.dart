@@ -14,15 +14,41 @@ class TheLab extends StatefulWidget {
 
 class _TheLabState extends State<TheLab> {
   Map<String, SlotItem<String>> items = {
-    'one': SlotItem<String>(data: 'Item 1', id: 'one', associatedData: []),
-    'two': SlotItem<String>(data: 'Item 2', id: 'two', associatedData: []),
-    'three': SlotItem<String>(data: 'Item 3', id: 'three', associatedData: []),
-    'four': SlotItem<String>(data: 'Item 4', id: 'four', associatedData: []),
-    'five': SlotItem<String>(data: 'Item 5', id: 'five', associatedData: []),
+    'one': SlotItem<String>(
+      data: 'Item 1',
+      id: 'one',
+      associatedData: [],
+      itemIndex: 0,
+    ),
+    'two': SlotItem<String>(
+      data: 'Item 2',
+      id: 'two',
+      associatedData: [],
+      itemIndex: 1,
+    ),
+    'three': SlotItem<String>(
+      data: 'Item 3',
+      id: 'three',
+      associatedData: [],
+      itemIndex: 2,
+    ),
+    'four': SlotItem<String>(
+      data: 'Item 4',
+      id: 'four',
+      associatedData: [],
+      itemIndex: 3,
+    ),
+    'five': SlotItem<String>(
+      data: 'Item 5',
+      id: 'five',
+      associatedData: [],
+      itemIndex: 4,
+    ),
   };
 
   Map<int, SlotItem<String>> assignments = {
-    0: SlotItem<String>(data: 'Item 1', id: 'one', associatedData: []),
+    0: SlotItem<String>(
+        data: 'Item 1', id: 'one', associatedData: [], itemIndex: 0),
   };
 
   @override

@@ -12,11 +12,14 @@ void createHoistPatchSheet({
   required Store<AppState> store,
 }) {
   final sheet = excel['Motor patch'];
+  final cablesByOutletId = selectCablesByOutletId(store);
 
   final controllerVms = selectHoistControllers(
-      store: store,
-      selectedHoistChannelViewModelMap: {},
-      cablesByHoistId: selectCablesByOutletId(store));
+    store: store,
+    selectedHoistChannelViewModelMap: {},
+    hoistViewModels:
+        mapHoistViewModels(store: store, cablesByOutletId: cablesByOutletId),
+  );
 
   SheetIndexer indexer = SheetIndexer(
       initial: CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0));

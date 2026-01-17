@@ -9,6 +9,7 @@ import 'package:sidekick/item_selection/item_selection_listener.dart';
 
 class SlotItem<T> {
   final String id;
+  final int itemIndex;
   final T data;
   final List<T> associatedData;
 
@@ -16,6 +17,7 @@ class SlotItem<T> {
     required this.id,
     required this.data,
     required this.associatedData,
+    required this.itemIndex,
   });
 }
 
@@ -157,7 +159,8 @@ Widget _wrapSelectionListener(SlotItem? item, Widget child) {
   }
 
   return ItemSelectionListener<String>(
-    value: item.id,
+    itemId: item.id,
+    index: item.itemIndex,
     child: child,
   );
 }
@@ -189,8 +192,7 @@ class _SlotListControllerState<T extends SlotItem>
   @override
   Widget build(BuildContext context) {
     return ItemSelectionContainer<String>(
-      itemIndicies: {},
-      selectedItems: _selectedItemIds,
+      selectedItemIds: _selectedItemIds,
       onSelectionUpdated: (updateType, ids) {
         final newValue = switch (updateType) {
           UpdateType.overwrite => ids.toSet(),

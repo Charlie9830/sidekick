@@ -70,12 +70,7 @@ class _MotorControllerAssignment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ItemSelectionContainer<String>(
-      selectedItems: viewModel.selectedHoistChannelViewModels.keys.toSet(),
-      itemIndicies: Map<String, int>.fromEntries(viewModel.hoistControllers
-          .map((controller) => controller.channels)
-          .flattened
-          .where((channel) => channel.hoist != null)
-          .mapIndexed((index, channel) => MapEntry(channel.hoist!.uid, index))),
+      selectedItemIds: viewModel.selectedHoistChannelViewModels.keys.toSet(),
       onSelectionUpdated: viewModel.onSelectedHoistChannelsChanged,
       child: ListView(key: motorControllersPageStorageKey, children: [
         ...viewModel.hoistControllers
@@ -133,11 +128,8 @@ class _Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ItemSelectionContainer<String>(
-      selectedItems: viewModel.selectedHoistViewModels.keys.toSet(),
+      selectedItemIds: viewModel.selectedHoistViewModels.keys.toSet(),
       onSelectionUpdated: viewModel.onSelectedHoistsChanged,
-      itemIndicies: Map<String, int>.fromEntries(viewModel.hoistItems
-          .whereType<HoistViewModel>()
-          .mapIndexed((index, item) => MapEntry(item.hoist.uid, index))),
       child: SizedBox(
         width: _kSidebarWidth,
         child: Card(
@@ -158,7 +150,8 @@ class _Sidebar extends StatelessWidget {
                   HoistViewModel vm => ItemSelectionListener<String>(
                       key: Key(vm.hoist.uid),
                       enabled: !vm.assigned,
-                      value: vm.hoist.uid,
+                      itemId: vm.hoist.uid,
+                      index: vm.selectionIndex,
                       child: _wrapDragProxy(
                           HoistItem(
                             vm: vm,

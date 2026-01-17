@@ -52,13 +52,7 @@ class _PowerRackAssignment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ItemSelectionContainer<String>(
-      selectedItems: viewModel.selectedMultiOutlets.keys.toSet(),
-      itemIndicies: Map<String, int>.fromEntries(viewModel.powerRackVms
-          .map((rack) => rack.children)
-          .flattened
-          .where((channel) => channel.multiVm != null)
-          .mapIndexed(
-              (index, channel) => MapEntry(channel.multiVm!.multi.uid, index))),
+      selectedItemIds: viewModel.selectedMultiOutlets.keys.toSet(),
       onSelectionUpdated: viewModel.onSelectedPowerRackChannelsChanged,
       child: ListView(key: motorControllersPageStorageKey, children: [
         ...viewModel.powerRackVms
@@ -108,11 +102,8 @@ class _Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ItemSelectionContainer<String>(
-      selectedItems: viewModel.selectedMultiOutlets.keys.toSet(),
+      selectedItemIds: viewModel.selectedMultiOutlets.keys.toSet(),
       onSelectionUpdated: viewModel.onSelectedPowerMultiOutletsChanged,
-      itemIndicies: Map<String, int>.fromEntries(viewModel.powerOutletItems
-          .whereType<PowerMultiOutletViewModel>()
-          .mapIndexed((index, item) => MapEntry(item.multi.uid, index))),
       child: SizedBox(
         width: _kSidebarWidth,
         child: Card(
@@ -128,7 +119,7 @@ class _Sidebar extends StatelessWidget {
                 PowerMultiOutletViewModel vm => ItemSelectionListener<String>(
                     key: Key(vm.multi.uid),
                     enabled: !vm.assigned,
-                    value: vm.multi.uid,
+                    itemId: vm.multi.uid,
                     child: _wrapDragProxy(
                         PowerMultiOutletItem(
                           vm: vm,

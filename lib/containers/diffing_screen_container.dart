@@ -40,6 +40,9 @@ class DiffingScreenContainer extends StatelessWidget {
           },
           converter: (Store<AppState> store) {
             final cablesByOutletId = selectCablesByOutletId(store);
+            final currentHoistVms = mapHoistViewModels(
+                store: store, cablesByOutletId: cablesByOutletId);
+
             return DiffingScreenViewModel(
               onFileSelectedForCompare: (path) {
                 store.dispatch(SetComparisonFilePath(path));
@@ -66,13 +69,12 @@ class DiffingScreenContainer extends StatelessWidget {
                 currentControllerVms: selectHoistControllers(
                         store: store,
                         selectedHoistChannelViewModelMap: {},
-                        cablesByHoistId: cablesByOutletId,
+                        hoistViewModels: currentHoistVms,
                         isDiffing: true)
                     .toModelMap(),
                 originalControllerVms:
                     diffViewModel.originalHoistControllerViewModels,
-                currentHoistVms: mapHoistViewModels(
-                    store: store, cablesByOutletId: cablesByOutletId),
+                currentHoistVms: currentHoistVms,
                 originalHoistVms: diffViewModel.hoistViewModels,
               ),
               onTabSelected: (index) =>
@@ -84,23 +86,24 @@ class DiffingScreenContainer extends StatelessWidget {
       },
       converter: (Store<DiffAppState> diffStore) {
         final cablesByOutletId = selectCablesByOutletId(diffStore);
+        final originalHoistVms = mapHoistViewModels(
+            store: diffStore, cablesByOutletId: cablesByOutletId);
         return DiffAppStateViewModel(
-            originalLoomViewModels:
-                selectLoomViewModels(diffStore).toModelMap(),
-            onFileSelectedForCompare: (path) =>
-                diffStore.dispatch(openProjectFile(context, false, path)),
-            originalPatchViewModels:
-                selectPowerPatchViewModels(context, diffStore).toModelMap(),
-            originalFixtureViewModels:
-                selectFixtureRowViewModels(diffStore).toModelMap(),
-            originalHoistControllerViewModels: selectHoistControllers(
-                    store: diffStore,
-                    selectedHoistChannelViewModelMap: {},
-                    cablesByHoistId: cablesByOutletId,
-                    isDiffing: true)
-                .toModelMap(),
-            hoistViewModels: mapHoistViewModels(
-                store: diffStore, cablesByOutletId: cablesByOutletId));
+          originalLoomViewModels: selectLoomViewModels(diffStore).toModelMap(),
+          onFileSelectedForCompare: (path) =>
+              diffStore.dispatch(openProjectFile(context, false, path)),
+          originalPatchViewModels:
+              selectPowerPatchViewModels(context, diffStore).toModelMap(),
+          originalFixtureViewModels:
+              selectFixtureRowViewModels(diffStore).toModelMap(),
+          originalHoistControllerViewModels: selectHoistControllers(
+                  store: diffStore,
+                  selectedHoistChannelViewModelMap: {},
+                  hoistViewModels: originalHoistVms,
+                  isDiffing: true)
+              .toModelMap(),
+          hoistViewModels: originalHoistVms,
+        );
       },
     );
   }

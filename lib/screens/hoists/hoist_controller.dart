@@ -299,7 +299,8 @@ class _HoistChannel extends StatelessWidget {
     }
 
     return ItemSelectionListener<String>(
-      value: viewModel.hoist!.uid,
+      itemId: viewModel.hoist!.uid,
+      index: viewModel.itemIndex,
       child: child,
     );
   }

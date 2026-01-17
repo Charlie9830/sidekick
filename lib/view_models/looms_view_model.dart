@@ -67,10 +67,12 @@ class LoomsViewModel {
 abstract class OutletViewModel {
   final String uid;
   final bool assigned;
+  final int selectionIndex;
 
   OutletViewModel({
     required this.uid,
     required this.assigned,
+    required this.selectionIndex,
   });
 }
 
@@ -78,24 +80,33 @@ class PowerMultiOutletViewModel extends OutletViewModel {
   final PowerMultiOutletModel outlet;
 
   PowerMultiOutletViewModel(
-      {required String uid, required this.outlet, required bool assigned})
-      : super(uid: uid, assigned: assigned);
+      {required String uid,
+      required this.outlet,
+      required bool assigned,
+      required int selectionIndex})
+      : super(uid: uid, assigned: assigned, selectionIndex: selectionIndex);
 }
 
 class DataOutletViewModel extends OutletViewModel {
   final DataPatchModel outlet;
 
   DataOutletViewModel(
-      {required String uid, required this.outlet, required bool assigned})
-      : super(uid: uid, assigned: assigned);
+      {required String uid,
+      required this.outlet,
+      required bool assigned,
+      required int selectionIndex})
+      : super(uid: uid, assigned: assigned, selectionIndex: selectionIndex);
 }
 
 class HoistOutletViewModel extends OutletViewModel {
   final HoistModel outlet;
 
   HoistOutletViewModel(
-      {required String uid, required this.outlet, required bool assigned})
-      : super(uid: uid, assigned: assigned);
+      {required String uid,
+      required this.outlet,
+      required bool assigned,
+      required int selectionIndex})
+      : super(uid: uid, assigned: assigned, selectionIndex: selectionIndex);
 }
 
 class OutletDividerViewModel extends OutletViewModel {
@@ -104,7 +115,7 @@ class OutletDividerViewModel extends OutletViewModel {
   OutletDividerViewModel({
     required this.title,
     required String uid,
-  }) : super(uid: uid, assigned: false);
+  }) : super(uid: uid, assigned: false, selectionIndex: -1);
 }
 
 class LoomStockQuantityViewModel {

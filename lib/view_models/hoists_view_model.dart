@@ -50,6 +50,7 @@ class HoistViewModel extends HoistItemBase
   final String multi;
   final String patch;
   final bool hasRootCable;
+  final int selectionIndex;
 
   @override
   String get uid => hoist.uid;
@@ -65,6 +66,7 @@ class HoistViewModel extends HoistItemBase
     required this.patch,
     required this.onNoteChanged,
     required this.hasRootCable,
+    required this.selectionIndex,
   });
 
   @override
@@ -143,6 +145,7 @@ class HoistChannelViewModel
   final bool isOverflowing;
   final void Function() onDragStarted;
   final void Function() onUnpatchHoist;
+  final int itemIndex;
 
   HoistChannelViewModel({
     required this.number,
@@ -154,6 +157,7 @@ class HoistChannelViewModel
     required this.isOverflowing,
     required this.onDragStarted,
     required this.onUnpatchHoist,
+    required this.itemIndex,
   });
 
   @override

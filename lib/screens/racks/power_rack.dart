@@ -267,7 +267,7 @@ class _PowerMultiChannel extends StatelessWidget {
     }
 
     return ItemSelectionListener<String>(
-      value: viewModel.multiVm!.multi.uid,
+      itemId: viewModel.multiVm!.multi.uid,
       child: child,
     );
   }

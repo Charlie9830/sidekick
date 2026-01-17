@@ -73,10 +73,7 @@ class _LoomsState extends State<Looms> {
                             topLeft: Radius.zero, topRight: Radius.zero),
                         padding: EdgeInsets.zero,
                         child: ItemSelectionContainer<String>(
-                          itemIndicies: Map<String, int>.fromEntries(
-                              widget.vm.outlets.mapIndexed((index, outlet) =>
-                                  MapEntry(outlet.uid, index))),
-                          selectedItems: widget.vm.selectedLoomOutlets,
+                          selectedItemIds: widget.vm.selectedLoomOutlets,
                           onSelectionUpdated:
                               widget.vm.onSelectedLoomOutletsChanged,
                           mode: SelectionMode.multi,
@@ -117,7 +114,8 @@ class _LoomsState extends State<Looms> {
                                     ),
                                   ),
                                   child: ItemSelectionListener(
-                                    value: outletVm.uid,
+                                    itemId: outletVm.uid,
+                                    index: outletVm.selectionIndex,
                                     enabled: !outletVm.assigned,
                                     child: listTile,
                                   ),
@@ -127,9 +125,8 @@ class _LoomsState extends State<Looms> {
                   ),
                   Expanded(
                       child: ItemSelectionContainer<String>(
-                    selectedItems: widget.vm.selectedCableIds,
+                    selectedItemIds: widget.vm.selectedCableIds,
                     onSelectionUpdated: _handleCableSelectionUpdate,
-                    itemIndicies: _buildCableIndices(),
                     child: Padding(
                       padding: const EdgeInsets.only(left: 8),
                       child: widget.vm.loomVms.isNotEmpty
@@ -211,15 +208,6 @@ class _LoomsState extends State<Looms> {
     };
 
     widget.vm.onSelectCables(selectedIds);
-  }
-
-  Map<String, int> _buildCableIndices() {
-    return Map<String, int>.fromEntries(widget.vm.loomVms
-        .whereType<LoomViewModel>()
-        .map((loomVm) => loomVm.children)
-        .flattened
-        .map((cableVm) => cableVm.cable.uid)
-        .mapIndexed((index, id) => MapEntry(id, index)));
   }
 
   Widget _buildLoomRow({
@@ -315,7 +303,8 @@ class _LoomsState extends State<Looms> {
       {required CableViewModel vm, required Widget child, Key? key}) {
     return ItemSelectionListener<String>(
       key: key,
-      value: vm.cable.uid,
+      itemId: vm.cable.uid,
+      index: vm.selectionIndex,
       child: child,
     );
   }

@@ -4,6 +4,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/data_selectors/select_loom_view_models.dart';
 import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
+import 'package:sidekick/item_selection/get_item_selection_index_closure.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
@@ -65,10 +66,10 @@ class LoomsContainer extends StatelessWidget {
               store.dispatch(splitSelectedMultis(context)),
           onCreateNewFeederLoom: (outletIds, insertIndex, modifiers) => store.dispatch(
               createNewFeederLoom(context, outletIds, insertIndex, modifiers)),
-          onCreateNewLoomFromExistingCables: (cableIds, insertindex, modifiers) => store.dispatch(createNewLoomFromExistingCables(context, cableIds, insertindex, modifiers)),
-          onCreateNewExtensionLoom: (cableIds, insertIndex, modifiers) =>
-              store.dispatch(
-                  createNewExtensionLoom(context, cableIds, insertIndex, modifiers)),
+          onCreateNewLoomFromExistingCables:
+              (cableIds, insertindex, modifiers) => store.dispatch(
+                  createNewLoomFromExistingCables(context, cableIds, insertindex, modifiers)),
+          onCreateNewExtensionLoom: (cableIds, insertIndex, modifiers) => store.dispatch(createNewExtensionLoom(context, cableIds, insertIndex, modifiers)),
           loomVms: selectLoomViewModels(store, context: context),
           onLoomReorder: (oldIndex, newIndex) => store.dispatch(reorderLooms(context, oldIndex, newIndex)),
           onDeleteSelectedCables: store.state.navstate.selectedCableIds.isNotEmpty ? () => store.dispatch(deleteSelectedCables(context)) : null,
@@ -106,6 +107,8 @@ class LoomsContainer extends StatelessWidget {
     final hoistOutletsByLocation = store.state.fixtureState.hoists.values
         .groupListsBy((element) => element.locationId);
 
+    final getSelectionIndex = getItemSelectionIndexClosure();
+
     return store.state.fixtureState.locations.values
         .map((location) {
           final allOutletsInLocation = [
@@ -119,14 +122,17 @@ class LoomsContainer extends StatelessWidget {
             ...allOutletsInLocation.map((outlet) => switch (outlet) {
                   PowerMultiOutletModel outlet => PowerMultiOutletViewModel(
                       uid: outlet.uid,
+                      selectionIndex: getSelectionIndex(),
                       outlet: outlet,
                       assigned: assignedOutletIds.contains(outlet.uid)),
                   DataPatchModel outlet => DataOutletViewModel(
                       uid: outlet.uid,
+                      selectionIndex: getSelectionIndex(),
                       outlet: outlet,
                       assigned: assignedOutletIds.contains(outlet.uid)),
                   HoistModel outlet => HoistOutletViewModel(
                       uid: outlet.uid,
+                      selectionIndex: getSelectionIndex(),
                       outlet: outlet,
                       assigned: assignedOutletIds.contains(outlet.uid)),
                   _ => throw UnimplementedError(
