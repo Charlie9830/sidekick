@@ -8,7 +8,6 @@ import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/screens/sequencer_dialog/arrowed_divider.dart';
 import 'package:sidekick/shad_list_item.dart';
 import 'package:sidekick/simple_tooltip.dart';
-import 'package:sidekick/widgets/blur_listener.dart';
 import 'package:sidekick/widgets/property_field.dart';
 
 const double _kMappingListItemExtent = 56;

@@ -115,9 +115,9 @@ class Content extends StatelessWidget {
     return SizedBox(
       height: 48,
       child: Padding(
-        padding: EdgeInsets.only(top: 4.0, left: 8.0),
+        padding: const EdgeInsets.only(top: 4.0, left: 8.0),
         child: Card(
-          padding: EdgeInsets.symmetric(horizontal: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

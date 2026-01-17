@@ -33,7 +33,7 @@ class _AddSpareCablesState extends State<AddSpareCables> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Add Spare Cable').large,
+            const Text('Add Spare Cable').large,
             const SizedBox(height: 16),
             ..._valueRows
                 .mapIndexed((index, row) => FocusTraversalGroup(

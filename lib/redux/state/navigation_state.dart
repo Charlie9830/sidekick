@@ -82,7 +82,7 @@ class NavigationState {
       selectedHoistChannelIds:
           selectedHoistChannelIds ?? this.selectedHoistChannelIds,
       selectedMultiPowerOutletIds:
-          selectedPowerMultiOutletIds ?? this.selectedMultiPowerOutletIds,
+          selectedPowerMultiOutletIds ?? selectedMultiPowerOutletIds,
       selectedPowerMultiChannelIds:
           selectedPowerMultiChannelIds ?? this.selectedPowerMultiChannelIds,
     );

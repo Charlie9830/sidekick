@@ -125,7 +125,6 @@ class _NavigationItem extends StatelessWidget implements NavigationBarItem {
   final Widget child;
   final Widget label;
   const _NavigationItem({
-    super.key,
     required this.child,
     required this.label,
   });

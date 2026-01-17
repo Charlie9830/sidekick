@@ -27,7 +27,7 @@ class FixtureDiffing extends StatelessWidget {
           // Headers
           const SizedBox(
             height: 64,
-            child: const Row(
+            child: Row(
               children: [
                 SizedBox(width: tableWidth, child: FixtureTableHeader()),
                 SizedBox(

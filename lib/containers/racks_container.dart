@@ -74,7 +74,6 @@ List<PowerRackViewModel> _selectPowerRacks({
   required Map<String, PowerMultiOutletViewModel> selectedPowerMultiOutlets,
   required Set<String> assignedMultiIds,
   required List<PowerRackTypeViewModel> availablePowerRackTypes,
-  bool isDiffing = false,
 }) {
   return store.state.fixtureState.powerRacks.values.map((rack) {
     final childMultis = rack.assignments.map((index, multiId) =>

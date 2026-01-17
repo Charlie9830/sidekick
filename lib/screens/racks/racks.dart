@@ -1,5 +1,3 @@
-import 'package:collection/collection.dart';
-import 'package:flutter/material.dart' show ReorderableListView;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/drag_proxy/drag_proxy.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
@@ -9,7 +7,6 @@ import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/redux/models/power_rack_type_model.dart';
 import 'package:sidekick/screens/racks/power_multi_outlet_item.dart';
 import 'package:sidekick/screens/racks/power_rack.dart';
-import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:sidekick/view_models/racks_screen_view_model.dart';
 
 class Racks extends StatefulWidget {

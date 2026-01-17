@@ -296,7 +296,6 @@ class _IconTitle extends StatelessWidget {
   final Icon icon;
   final String title;
   const _IconTitle({
-    super.key,
     required this.icon,
     required this.title,
   });
