@@ -17,7 +17,6 @@ class HoistDiffing extends StatelessWidget {
     const double dividerWidth = 8;
     const double hardWidth = 2200;
     const double tableWidth = (hardWidth / 2) - (dividerWidth / 2);
-    const double dividerThickness = 12.0;
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,

@@ -44,9 +44,6 @@ class FixtureTypeDataTable extends StatelessWidget {
     centerAlign(Widget child) =>
         Align(alignment: Alignment.center, child: child);
 
-    rightAlign(Widget child) =>
-        Align(alignment: Alignment.centerRight, child: child);
-
     return switch (columnIndex) {
       _Columns.make =>
         TableViewCell(child: leftAlign(const Text('Make & Manufacturer'))),

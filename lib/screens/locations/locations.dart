@@ -219,7 +219,6 @@ class _LocationsState extends State<Locations> {
   }
 
   TableSpan _columnBuilder(int index) {
-    final minorBorder = TableViewConfig.minorBorder;
     const defaultPadding = TableViewConfig.spanPadding;
 
     return switch (index) {

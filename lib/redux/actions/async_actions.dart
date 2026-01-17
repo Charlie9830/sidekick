@@ -1888,7 +1888,7 @@ ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
 
 ThunkAction<AppState> debugButtonPressed() {
   return (Store<AppState> store) async {
-    print("No Action Performed");
+    debugPrint("No Action Performed");
   };
 }
 

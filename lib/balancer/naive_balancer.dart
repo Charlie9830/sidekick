@@ -132,7 +132,7 @@ class NaiveBalancer implements Balancer {
     assert(checkOutletQty(outlets.length),
         'Qty of Outlets is not a multiple of 6. Qty: ${outlets.length}');
     assert(checkPhaseOrdering(outlets),
-        'Phase ordering in given outlets is incorrect. ${outlets.mapIndexed((index, outlet) => print('$index: Phase => ${outlet.phase}'))}');
+        'Phase ordering in given outlets is incorrect. ${outlets.mapIndexed((index, outlet) => debugPrint('$index: Phase => ${outlet.phase}'))}');
 
     // Slice the list of Outlets up into 6 (Socapex Amount). Then "massage" each slice to get as close to
     // balanced as we can.
