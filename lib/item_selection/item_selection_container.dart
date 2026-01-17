@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sidekick/item_selection/item_selection_messenger.dart';
@@ -14,18 +15,16 @@ enum SelectionMode {
 
 class ItemSelectionContainer<T> extends StatefulWidget {
   final Widget child;
-  final Set<T> selectedItems;
+  final Set<T> selectedItemIds;
   final SelectionMode mode;
-  final Map<T, int>? itemIndicies;
   final FocusNode? focusNode;
   final void Function(UpdateType updateType, Set<T> values) onSelectionUpdated;
 
   const ItemSelectionContainer(
       {super.key,
       required this.child,
-      required this.selectedItems,
+      required this.selectedItemIds,
       this.mode = SelectionMode.multi,
-      this.itemIndicies,
       required this.onSelectionUpdated,
       this.focusNode});
 
@@ -38,6 +37,7 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
   late final FocusNode _keyboardFocusNode;
   bool _isModDown = false;
   bool _isShiftDown = false;
+  final Map<T, int> _itemIndicies = {};
 
   @override
   void initState() {
@@ -55,18 +55,39 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    assert(widget.mode == SelectionMode.multi && widget.itemIndicies != null,
-        "When using [SelectionMode.multi], the [itemIndicies] property must be provided");
+  void didUpdateWidget(covariant ItemSelectionContainer<T> oldWidget) {
+    if (kDebugMode && oldWidget.selectedItemIds != widget.selectedItemIds) {
+      final registeredItemIds = _itemIndicies.keys.toSet();
 
+      if (widget.selectedItemIds.union(registeredItemIds).length !=
+          widget.selectedItemIds.length) {
+        // _itemIndicies could be dangerously out of Sync with external state.
+        debugPrint(
+            "// Item Index Warning //\n [ItemSelectionContainer]'s internal _itemIndicies has fallen out of sync with exterior state");
+      }
+    }
+
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return ItemSelectionMessenger<T>(
       onItemPointerEvent: _handleItemPointerEvent,
+      onIndexRegistered: _handleItemRegistration,
       child: KeyboardListener(
         focusNode: _keyboardFocusNode,
         onKeyEvent: _dispatchKeyEvent,
         child: widget.child,
       ),
     );
+  }
+
+  void _handleItemRegistration(T itemId, int? index) {
+    assert((widget.mode == SelectionMode.multi && index == null) != true,
+        "If mode is set to SelectionMode.multi, all associated [ItemSelectionListener] Widgets must have the index property provided");
+
+    _itemIndicies[itemId] = index!;
   }
 
   void _handleSelection(T value) {
@@ -92,14 +113,14 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
   }
 
   void _handleShiftDownSelection(T value) {
-    if (widget.selectedItems.isEmpty) {
+    if (widget.selectedItemIds.isEmpty) {
       _handleCommonSelection(value);
       return;
     }
 
     final [int lower, int upper] = [
-      widget.itemIndicies![widget.selectedItems.first] ?? 0,
-      widget.itemIndicies![value] ?? 0
+      _itemIndicies[widget.selectedItemIds.first] ?? 0,
+      _itemIndicies[value] ?? 0
     ]..sort();
     final diff = upper - lower;
 
@@ -108,8 +129,8 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
       upper
     ];
 
-    final inverseLookup = Map<int, T>.fromEntries(widget.itemIndicies!.entries
-        .map((entry) => MapEntry(entry.value, entry.key)));
+    final inverseLookup = Map<int, T>.fromEntries(
+        _itemIndicies.entries.map((entry) => MapEntry(entry.value, entry.key)));
 
     final updatedItems = selectionRange
         .map((index) => inverseLookup[index])
