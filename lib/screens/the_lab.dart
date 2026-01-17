@@ -3,6 +3,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
+import 'package:sidekick/item_selection/get_item_selection_index_closure.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/slotted_list/slotted_list.dart';
@@ -21,6 +22,9 @@ class _TheLabState extends State<TheLab> {
 
   final Map<int, String> _assignments = {};
 
+  Set<String> _selectedCandidateItemIds = {};
+  Set<String> _selectedSlottedItemIds = {};
+
   @override
   void initState() {
     _assignments.addEntries(_items.values
@@ -36,34 +40,59 @@ class _TheLabState extends State<TheLab> {
       converter: (store) => LabViewModel(
         store: store,
       ),
-      builder: (context, viewModel) => Scaffold(
-          headers: [
-            AppBar(
-              title: const Text('The Lab'),
-              backgroundColor: Colors.orange.shade600,
-            ),
-          ],
-          child: SlottedListController(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 400,
-                  child: Card(
-                    child: ListView.builder(
-                      itemBuilder: (context, index) {
-                        if (index >= _items.length) {
-                          return null;
-                        }
-                        return Card(
-                          filled: true,
-                          fillColor: Theme.of(context).colorScheme.popover,
-                          child: CandidateListItem(
+      builder: (context, viewModel) {
+        final getCandidateSelectionIndex = getItemSelectionIndexClosure();
+        final getSlottedItemSelectionIndex = getItemSelectionIndexClosure();
+
+        return Scaffold(
+            headers: [
+              AppBar(
+                title: const Text('The Lab'),
+                backgroundColor: Colors.orange.shade600,
+              ),
+            ],
+            child: SlottedListController(
+              selectedCandidateIds: _selectedCandidateItemIds,
+              selectedSlottedItemIds: _selectedSlottedItemIds,
+              onSelectedCandidateIdsChanged: (ids) => setState(() {
+                _selectedCandidateItemIds = ids;
+                _selectedSlottedItemIds = {};
+              }),
+              onSelectedSlottedItemIdsChanged: (ids) => setState(() {
+                _selectedSlottedItemIds = ids;
+                _selectedCandidateItemIds = {};
+              }),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 400,
+                    child: Card(
+                      child: ListView.builder(
+                        itemBuilder: (context, index) {
+                          if (index >= _items.length) {
+                            return null;
+                          }
+
+                          final item = _items.values.toList()[index];
+
+                          return CandidateListItem(
                             data: CandidateData(
-                                itemId: _items.values.toList()[index]!.id,
-                                candidateBuilder: (context, itemId) =>
-                                    Text(_items[itemId]!.name),
-                                slottedBuilder: (context, itemId) => Row(
+                                itemId: item.id,
+                                candidateSelectionIndex:
+                                    getCandidateSelectionIndex(),
+                                slottedSelectionIndex: _assignments.values
+                                    .toList()
+                                    .indexOf(item.id),
+                                candidateBuilder: (context, itemId) => Card(
+                                    filled: true,
+                                    fillColor: _selectedCandidateItemIds
+                                            .contains(item.id)
+                                        ? Colors.gray
+                                        : null,
+                                    child: Text(_items[itemId]!.name)),
+                                slottedContentsBuilder: (context, itemId) =>
+                                    Row(
                                       spacing: 12,
                                       children: [
                                         Text(_items[itemId]!.name),
@@ -72,39 +101,44 @@ class _TheLabState extends State<TheLab> {
                                             color: Colors.green)
                                       ],
                                     )),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ),
-                Expanded(
-                    child: ListView.builder(
-                        itemCount: 24,
-                        itemBuilder: (context, index) {
-                          return Slot(
-                            assignedItemId: _assignments[index],
-                            index: index,
-                            builder: (context, slotIndex, child) => Card(
-                                child: SizedBox(
-                              height: 24,
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                      width: 48,
-                                      child: Text((index + 1).toString(),
-                                          style:
-                                              Theme.of(context).typography.p)),
-                                  const VerticalDivider(width: 24),
-                                  child ?? const Text('---'),
-                                ],
-                              ),
-                            )),
-                          );
-                        }))
-              ],
-            ),
-          )),
+                  Expanded(
+                      child: ListView.builder(
+                          itemCount: 24,
+                          itemBuilder: (context, index) {
+                            return Slot(
+                              assignedItemId: _assignments[index],
+                              index: index,
+                              builder: (context, slotIndex, child, selected) =>
+                                  Card(
+                                      filled: true,
+                                      fillColor: selected ? Colors.gray : null,
+                                      child: SizedBox(
+                                        height: 24,
+                                        child: Row(
+                                          children: [
+                                            SizedBox(
+                                                width: 48,
+                                                child: Text(
+                                                    (index + 1).toString(),
+                                                    style: Theme.of(context)
+                                                        .typography
+                                                        .p)),
+                                            const VerticalDivider(width: 24),
+                                            child ?? const Text('---'),
+                                          ],
+                                        ),
+                                      )),
+                            );
+                          }))
+                ],
+              ),
+            ));
+      },
     );
   }
 }

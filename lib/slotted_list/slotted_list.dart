@@ -1,17 +1,24 @@
 import 'package:flutter/widgets.dart';
+import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
+import 'package:sidekick/item_selection/item_selection_container.dart';
+import 'package:sidekick/item_selection/item_selection_listener.dart';
 
 typedef CandidateBuilder = Widget Function(BuildContext context, String itemId);
 typedef SlottedBuilder = Widget Function(BuildContext context, String itemId);
 
 class CandidateData {
   final CandidateBuilder candidateBuilder;
-  final SlottedBuilder slottedBuilder;
+  final SlottedBuilder slottedContentsBuilder;
   final String itemId;
+  final int candidateSelectionIndex;
+  final int slottedSelectionIndex;
 
   CandidateData({
     required this.candidateBuilder,
-    required this.slottedBuilder,
+    required this.slottedContentsBuilder,
     required this.itemId,
+    required this.candidateSelectionIndex,
+    required this.slottedSelectionIndex,
   });
 }
 
@@ -36,13 +43,20 @@ class _CandidateListItemState extends State<CandidateListItem> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.data.candidateBuilder(context, widget.data.itemId);
+    return ItemSelectionListener<_CandidateIdWrapper>(
+        itemId: _CandidateIdWrapper(widget.data.itemId),
+        index: widget.data.candidateSelectionIndex,
+        child: widget.data.candidateBuilder(
+          context,
+          widget.data.itemId,
+        ));
   }
 }
 
 class Slot extends StatefulWidget {
   final int index;
-  final Widget Function(BuildContext context, int index, Widget? candidate)
+  final Widget Function(
+          BuildContext context, int index, Widget? candidate, bool selected)
       builder;
   final String? assignedItemId;
 
@@ -60,23 +74,58 @@ class Slot extends StatefulWidget {
 class _SlotState extends State<Slot> {
   @override
   Widget build(BuildContext context) {
-    return widget.builder(
+    final candidateData = widget.assignedItemId == null
+        ? null
+        : SlottedListMessenger.maybeOf(context)!
+            .getCandidateData(widget.assignedItemId!);
+
+    final selected = widget.assignedItemId == null
+        ? false
+        : SlottedListMessenger.maybeOf(context)!
+            .selectedSlottedItemIds
+            .contains(widget.assignedItemId);
+
+    return _wrapSelectionListener(
+      itemId: widget.assignedItemId,
+      selectionIndex: candidateData?.slottedSelectionIndex,
+      child: widget.builder(
         context,
         widget.index,
-        widget.assignedItemId == null
-            ? null
-            : SlottedListMessenger.maybeOf(context)!
-                .getCandidateData(widget.assignedItemId!)
-                ?.slottedBuilder(context, widget.assignedItemId!));
+        candidateData?.slottedContentsBuilder(context, widget.assignedItemId!),
+        selected,
+      ),
+    );
+  }
+
+  Widget _wrapSelectionListener(
+      {required String? itemId,
+      required int? selectionIndex,
+      required Widget child}) {
+    if (itemId == null || selectionIndex == null) {
+      return child;
+    }
+
+    return ItemSelectionListener<_SlottedItemIdWrapper>(
+        itemId: _SlottedItemIdWrapper(itemId),
+        index: selectionIndex,
+        child: child);
   }
 }
 
 class SlottedListController extends StatefulWidget {
   final Widget child;
+  final Set<String> selectedCandidateIds;
+  final Set<String> selectedSlottedItemIds;
+  final void Function(Set<String> ids) onSelectedCandidateIdsChanged;
+  final void Function(Set<String> ids) onSelectedSlottedItemIdsChanged;
 
   const SlottedListController({
     super.key,
     required this.child,
+    required this.selectedCandidateIds,
+    required this.selectedSlottedItemIds,
+    required this.onSelectedCandidateIdsChanged,
+    required this.onSelectedSlottedItemIdsChanged,
   });
 
   @override
@@ -88,15 +137,53 @@ class _SlottedListControllerState extends State<SlottedListController> {
 
   @override
   Widget build(BuildContext context) {
-    return SlottedListMessenger(
-      onRegisterCandidate: _handleCandidateRegistration,
-      onGetCandidateData: _handleCandidateDataRequest,
-      child: widget.child,
+    return ItemSelectionContainer<_SlottedItemIdWrapper>(
+      selectedItemIds: widget.selectedSlottedItemIds
+          .map((id) => _SlottedItemIdWrapper(id))
+          .toSet(),
+      onSelectionUpdated: _handleSlottedItemSelectionUpdated,
+      child: ItemSelectionContainer<_CandidateIdWrapper>(
+        selectedItemIds: widget.selectedCandidateIds
+            .map((id) => _CandidateIdWrapper(id))
+            .toSet(),
+        onSelectionUpdated: _handleCandidateSelectionUpdated,
+        child: SlottedListMessenger(
+          onRegisterCandidate: _handleCandidateRegistration,
+          onGetCandidateData: _handleCandidateDataRequest,
+          selectedCandidateIds: widget.selectedCandidateIds,
+          selectedSlottedItemIds: widget.selectedSlottedItemIds,
+          child: widget.child,
+        ),
+      ),
     );
   }
 
   CandidateData? _handleCandidateDataRequest(String id) {
     return _candidates[id];
+  }
+
+  void _handleCandidateSelectionUpdated(
+      UpdateType type, Set<_CandidateIdWrapper> candidateIds) {
+    final ids = candidateIds.map((wrapper) => wrapper.id).toSet();
+    final updatedIds = switch (type) {
+      UpdateType.overwrite => ids.toSet(),
+      UpdateType.addIfAbsentElseRemove => widget.selectedCandidateIds.toSet()
+        ..addAllIfAbsentElseRemove(ids)
+    };
+
+    widget.onSelectedCandidateIdsChanged(updatedIds);
+  }
+
+  void _handleSlottedItemSelectionUpdated(
+      UpdateType type, Set<_SlottedItemIdWrapper> slottedItemIds) {
+    final ids = slottedItemIds.map((wrapper) => wrapper.id).toSet();
+    final updatedIds = switch (type) {
+      UpdateType.overwrite => ids.toSet(),
+      UpdateType.addIfAbsentElseRemove => widget.selectedSlottedItemIds.toSet()
+        ..addAllIfAbsentElseRemove(ids)
+    };
+
+    widget.onSelectedSlottedItemIdsChanged(updatedIds);
   }
 
   void _handleCandidateRegistration(CandidateData data) {
@@ -110,11 +197,15 @@ class _SlottedListControllerState extends State<SlottedListController> {
 class SlottedListMessenger extends InheritedWidget {
   final void Function(CandidateData data) onRegisterCandidate;
   final CandidateData? Function(String id) onGetCandidateData;
+  final Set<String> selectedCandidateIds;
+  final Set<String> selectedSlottedItemIds;
 
   const SlottedListMessenger({
     super.key,
     required this.onRegisterCandidate,
     required this.onGetCandidateData,
+    required this.selectedCandidateIds,
+    required this.selectedSlottedItemIds,
     required Widget child,
   }) : super(child: child);
 
@@ -137,6 +228,36 @@ class SlottedListMessenger extends InheritedWidget {
   @override
   bool updateShouldNotify(SlottedListMessenger oldWidget) {
     return oldWidget.onRegisterCandidate != onRegisterCandidate ||
-        oldWidget.onGetCandidateData != onGetCandidateData;
+        oldWidget.onGetCandidateData != onGetCandidateData ||
+        oldWidget.selectedCandidateIds != selectedCandidateIds ||
+        oldWidget.selectedSlottedItemIds != selectedSlottedItemIds;
   }
+}
+
+class _CandidateIdWrapper {
+  final String id;
+
+  _CandidateIdWrapper(this.id);
+
+  @override
+  bool operator ==(Object other) {
+    return other is _CandidateIdWrapper && other.id == id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+}
+
+class _SlottedItemIdWrapper {
+  final String id;
+
+  _SlottedItemIdWrapper(this.id);
+
+  @override
+  bool operator ==(Object other) {
+    return other is _SlottedItemIdWrapper && other.id == id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
 }

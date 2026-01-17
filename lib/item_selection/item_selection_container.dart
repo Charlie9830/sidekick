@@ -59,11 +59,10 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
     if (kDebugMode && oldWidget.selectedItemIds != widget.selectedItemIds) {
       final registeredItemIds = _itemIndicies.keys.toSet();
 
-      if (widget.selectedItemIds.union(registeredItemIds).length !=
-          widget.selectedItemIds.length) {
+      if (widget.selectedItemIds.difference(registeredItemIds).isNotEmpty) {
         // _itemIndicies could be dangerously out of Sync with external state.
         debugPrint(
-            "// Item Index Warning //\n [ItemSelectionContainer]'s internal _itemIndicies has fallen out of sync with exterior state");
+            "// Item Index Warning //\n [ItemSelectionContainer]'s internal _itemIndicies has fallen out of sync with exterior state.\n[ItemSelectionContainer<$T>] has detected selectedIds that are not internally registered.");
       }
     }
 
