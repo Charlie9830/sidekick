@@ -5,6 +5,7 @@ import 'package:sidekick/redux/models/hoist_controller_model.dart';
 import 'package:sidekick/redux/models/hoist_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
+import 'package:sidekick/slotted_list/slotted_list.dart';
 
 class HoistsViewModel {
   final List<HoistItemBase> hoistItems;
