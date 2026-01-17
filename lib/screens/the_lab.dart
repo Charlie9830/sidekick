@@ -1,7 +1,9 @@
+import 'package:collection/collection.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:sidekick/drag_proxy/drag_proxy.dart';
+import 'package:sidekick/extension_methods/to_model_map.dart';
+import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/slotted_list/slotted_list.dart';
 
@@ -13,46 +15,18 @@ class TheLab extends StatefulWidget {
 }
 
 class _TheLabState extends State<TheLab> {
-  Map<String, SlotItem<String>> items = {
-    'one': SlotItem<String>(
-      data: 'Item 1',
-      id: 'one',
-      associatedData: [],
-      itemIndex: 0,
-    ),
-    'two': SlotItem<String>(
-      data: 'Item 2',
-      id: 'two',
-      associatedData: [],
-      itemIndex: 1,
-    ),
-    'three': SlotItem<String>(
-      data: 'Item 3',
-      id: 'three',
-      associatedData: [],
-      itemIndex: 2,
-    ),
-    'four': SlotItem<String>(
-      data: 'Item 4',
-      id: 'four',
-      associatedData: [],
-      itemIndex: 3,
-    ),
-    'five': SlotItem<String>(
-      data: 'Item 5',
-      id: 'five',
-      associatedData: [],
-      itemIndex: 4,
-    ),
-  };
+  final Map<String, Item> _items = List<Item>.generate(
+          24, (index) => Item((index + 1).toString(), "Item ${index + 1}"))
+      .toModelMap();
 
-  Map<int, SlotItem<String>> assignments = {
-    0: SlotItem<String>(
-        data: 'Item 1', id: 'one', associatedData: [], itemIndex: 0),
-  };
+  final Map<int, String> _assignments = {};
 
   @override
   void initState() {
+    _assignments.addEntries(_items.values
+        .take(4)
+        .mapIndexed((index, item) => MapEntry(index, item.id)));
+
     super.initState();
   }
 
@@ -69,87 +43,80 @@ class _TheLabState extends State<TheLab> {
               backgroundColor: Colors.orange.shade600,
             ),
           ],
-          child: SlotListController(
-            child: DragProxyController(
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 400,
-                    child: Card(
-                      child: Column(
-                        children: items.values
-                            .map((item) => TestItem(item.data))
-                            .toList(),
-                      ),
+          child: SlottedListController(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 400,
+                  child: Card(
+                    child: ListView.builder(
+                      itemBuilder: (context, index) {
+                        if (index >= _items.length) {
+                          return null;
+                        }
+                        return Card(
+                          filled: true,
+                          fillColor: Theme.of(context).colorScheme.popover,
+                          child: CandidateListItem(
+                            data: CandidateData(
+                                itemId: _items.values.toList()[index]!.id,
+                                candidateBuilder: (context, itemId) =>
+                                    Text(_items[itemId]!.name),
+                                slottedBuilder: (context, itemId) => Row(
+                                      spacing: 12,
+                                      children: [
+                                        Text(_items[itemId]!.name),
+                                        const Icon(
+                                            Icons.sentiment_very_satisfied,
+                                            color: Colors.green)
+                                      ],
+                                    )),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                  Expanded(
-                    child: SlotList(
-                      slotCount: 16,
-                      items: assignments
-                          .map((index, value) => MapEntry(index, value)),
-                      occupiedBuilder: (context, index, itemId) =>
-                          Content(index: index, title: items[itemId]!.data),
-                      vacantBuilder: (context, index) =>
-                          Content.empty(index: index),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                Expanded(
+                    child: ListView.builder(
+                        itemCount: 24,
+                        itemBuilder: (context, index) {
+                          return Slot(
+                            assignedItemId: _assignments[index],
+                            index: index,
+                            builder: (context, slotIndex, child) => Card(
+                                child: SizedBox(
+                              height: 24,
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                      width: 48,
+                                      child: Text((index + 1).toString(),
+                                          style:
+                                              Theme.of(context).typography.p)),
+                                  const VerticalDivider(width: 24),
+                                  child ?? const Text('---'),
+                                ],
+                              ),
+                            )),
+                          );
+                        }))
+              ],
             ),
           )),
     );
   }
 }
 
-class Content extends StatelessWidget {
-  final int index;
-  final String title;
+class Item extends ModelCollectionMember {
+  final String id;
+  final String name;
 
-  const Content({super.key, required this.index, required this.title});
-
-  const Content.empty({super.key, required this.index}) : title = '---';
+  Item(this.id, this.name);
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 48,
-      child: Padding(
-        padding: const EdgeInsets.only(top: 4.0, left: 8.0),
-        child: Card(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(index.toString(),
-                  style: Theme.of(context)
-                      .typography
-                      .mono
-                      .copyWith(backgroundColor: Colors.gray.shade800)),
-              const VerticalDivider(
-                width: 24,
-                endIndent: 0,
-              ),
-              Text(title),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class TestItem extends StatelessWidget {
-  final String title;
-
-  const TestItem(this.title, {super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Text(title),
-    );
-  }
+  String get uid => id;
 }
 
 class LabViewModel {

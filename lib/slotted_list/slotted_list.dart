@@ -1,243 +1,142 @@
-import 'dart:math';
+import 'package:flutter/widgets.dart';
 
-import 'package:shadcn_flutter/shadcn_flutter.dart';
+typedef CandidateBuilder = Widget Function(BuildContext context, String itemId);
+typedef SlottedBuilder = Widget Function(BuildContext context, String itemId);
 
-import 'package:sidekick/drag_proxy/drag_proxy.dart';
-import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
-import 'package:sidekick/item_selection/item_selection_container.dart';
-import 'package:sidekick/item_selection/item_selection_listener.dart';
+class CandidateData {
+  final CandidateBuilder candidateBuilder;
+  final SlottedBuilder slottedBuilder;
+  final String itemId;
 
-class SlotItem<T> {
-  final String id;
-  final int itemIndex;
-  final T data;
-  final List<T> associatedData;
+  CandidateData({
+    required this.candidateBuilder,
+    required this.slottedBuilder,
+    required this.itemId,
+  });
+}
 
-  SlotItem({
-    required this.id,
+class CandidateListItem extends StatefulWidget {
+  final CandidateData data;
+
+  const CandidateListItem({
+    super.key,
     required this.data,
-    required this.associatedData,
-    required this.itemIndex,
   });
+
+  @override
+  State<CandidateListItem> createState() => _CandidateListItemState();
 }
 
-class _SlotItemWrapper<T extends SlotItem> extends StatelessWidget {
-  final Widget child;
-  final bool isDragHoveringOver;
-  final bool isSelected;
-  final void Function(int hoveringItemCount) onHoverEnter;
-  final void Function() onHoverLeave;
-  final void Function(T data) onItemsLanded;
+class _CandidateListItemState extends State<CandidateListItem> {
+  @override
+  void didChangeDependencies() {
+    SlottedListMessenger.maybeOf(context)!.registerCandiate(widget.data);
+    super.didChangeDependencies();
+  }
 
-  const _SlotItemWrapper({
+  @override
+  Widget build(BuildContext context) {
+    return widget.data.candidateBuilder(context, widget.data.itemId);
+  }
+}
+
+class Slot extends StatefulWidget {
+  final int index;
+  final Widget Function(BuildContext context, int index, Widget? candidate)
+      builder;
+  final String? assignedItemId;
+
+  const Slot({
     super.key,
-    required this.child,
-    required this.isDragHoveringOver,
-    required this.isSelected,
-    required this.onHoverEnter,
-    required this.onHoverLeave,
-    required this.onItemsLanded,
+    required this.index,
+    required this.builder,
+    required this.assignedItemId,
   });
 
   @override
-  Widget build(BuildContext context) {
-    return DragTargetProxy<T>(
-      onWillAcceptWithDetails: (details) {
-        onHoverEnter(details.data.associatedData.length);
-        return true;
-      },
-      onAcceptWithDetails: (details) {
-        onHoverLeave();
-        onItemsLanded(details.data);
-      },
-      onLeave: (details) => onHoverLeave(),
-      builder: (BuildContext context, List<T?> candidateData,
-          List<dynamic> rejectedData) {
-        return Container(
-          decoration: BoxDecoration(
-            color: isSelected ? Theme.of(context).colorScheme.border : null,
-          ),
-          foregroundDecoration: isDragHoveringOver
-              ? const BoxDecoration(
-                  border: BoxBorder.fromBorderSide(
-                    BorderSide(
-                      color: Colors.green,
-                      width: 1,
-                    ),
-                  ),
-                )
-              : null,
-          child: child,
-        );
-      },
-    );
-  }
+  State<Slot> createState() => _SlotState();
 }
 
-class SlotList<T extends SlotItem> extends StatefulWidget {
-  final int slotCount;
-  final Map<int, T?> items;
-  final Widget Function(BuildContext context, int index) vacantBuilder;
-  final Widget Function(BuildContext context, int index, String id)
-      occupiedBuilder;
-
-  const SlotList({
-    super.key,
-    required this.items,
-    required this.slotCount,
-    required this.vacantBuilder,
-    required this.occupiedBuilder,
-  });
-
-  @override
-  State<SlotList> createState() => _SlotListState();
-}
-
-class _SlotListState extends State<SlotList> {
-  Set<int> _hoveredOverIndexes = {};
-
+class _SlotState extends State<Slot> {
   @override
   Widget build(BuildContext context) {
-    assert(SlotListMessenger.maybeOf(context) != null,
-        'Invalid Ancestry: A [SlotListController] must be provided as an ancestor to this [SlotList]');
-
-    return ListView.builder(
-      itemCount: max(widget.slotCount, widget.items.length),
-      itemBuilder: (context, index) {
-        final slotItem = widget.items[index];
-        return _wrapSelectionListener(
-            slotItem,
-            _SlotItemWrapper(
-                isDragHoveringOver: _hoveredOverIndexes.contains(index),
-                isSelected: slotItem == null
-                    ? false
-                    : SlotListMessenger.of(context)
-                        .selectedItemIds
-                        .contains(slotItem.id),
-                onHoverEnter: (hoveringItemCount) =>
-                    setState(() => _hoveredOverIndexes = {
-                          ...List<int>.generate(hoveringItemCount,
-                              (generatorIndex) => index + generatorIndex),
-                        }),
-                onHoverLeave: () => setState(() => _hoveredOverIndexes =
-                    _hoveredOverIndexes.toSet()..remove(index)),
-                onItemsLanded: (data) {
-                  // TODO Implement This.
-                },
-                child: slotItem == null
-                    ? widget.vacantBuilder(context, index)
-                    : _wrapInnerDragProxy(
-                        item: slotItem,
-                        child: widget.occupiedBuilder(
-                            context, index, slotItem.id))));
-      },
-    );
-  }
-
-  Widget _wrapInnerDragProxy({
-    required Widget child,
-    required SlotItem item,
-  }) {
-    return LongPressDraggableProxy<SlotItem>(
-      data: item,
-      childWhenDragging: child,
-      feedback: Opacity(
-        opacity: 0.25,
-        child: SizedBox(
-          width: 600,
-          child: child,
-        ),
-      ),
-      child: child,
-    );
+    return widget.builder(
+        context,
+        widget.index,
+        widget.assignedItemId == null
+            ? null
+            : SlottedListMessenger.maybeOf(context)!
+                .getCandidateData(widget.assignedItemId!)
+                ?.slottedBuilder(context, widget.assignedItemId!));
   }
 }
 
-Widget _wrapSelectionListener(SlotItem? item, Widget child) {
-  if (item == null) {
-    return child;
-  }
-
-  return ItemSelectionListener<String>(
-    itemId: item.id,
-    index: item.itemIndex,
-    child: child,
-  );
-}
-
-class SlotableCandidateList extends StatelessWidget {
-  const SlotableCandidateList({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Placeholder();
-  }
-}
-
-class SlotListController<T extends SlotItem> extends StatefulWidget {
+class SlottedListController extends StatefulWidget {
   final Widget child;
-  const SlotListController({
+
+  const SlottedListController({
     super.key,
     required this.child,
   });
 
   @override
-  State<SlotListController> createState() => _SlotListControllerState();
+  State<SlottedListController> createState() => _SlottedListControllerState();
 }
 
-class _SlotListControllerState<T extends SlotItem>
-    extends State<SlotListController> {
-  Set<String> _selectedItemIds = {};
+class _SlottedListControllerState extends State<SlottedListController> {
+  Map<String, CandidateData> _candidates = {};
 
   @override
   Widget build(BuildContext context) {
-    return ItemSelectionContainer<String>(
-      selectedItemIds: _selectedItemIds,
-      onSelectionUpdated: (updateType, ids) {
-        final newValue = switch (updateType) {
-          UpdateType.overwrite => ids.toSet(),
-          UpdateType.addIfAbsentElseRemove => _selectedItemIds.toSet()
-            ..addAllIfAbsentElseRemove(ids),
-        };
-
-        setState(() {
-          _selectedItemIds = newValue;
-        });
-      },
-      child: SlotListMessenger<T>(
-        selectedItemIds: _selectedItemIds,
-        child: widget.child,
-      ),
+    return SlottedListMessenger(
+      onRegisterCandidate: _handleCandidateRegistration,
+      onGetCandidateData: _handleCandidateDataRequest,
+      child: widget.child,
     );
+  }
+
+  CandidateData? _handleCandidateDataRequest(String id) {
+    return _candidates[id];
+  }
+
+  void _handleCandidateRegistration(CandidateData data) {
+    final updatedCandidates = Map<String, CandidateData>.from(_candidates)
+      ..addAll({data.itemId: data});
+
+    _candidates = updatedCandidates;
   }
 }
 
-class SlotListMessenger<T extends SlotItem> extends InheritedWidget {
-  final Set<String> selectedItemIds;
+class SlottedListMessenger extends InheritedWidget {
+  final void Function(CandidateData data) onRegisterCandidate;
+  final CandidateData? Function(String id) onGetCandidateData;
 
-  const SlotListMessenger({
+  const SlottedListMessenger({
     super.key,
+    required this.onRegisterCandidate,
+    required this.onGetCandidateData,
     required Widget child,
-    required this.selectedItemIds,
   }) : super(child: child);
 
-  static SlotListMessenger of<T extends SlotItem>(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<SlotListMessenger<T>>()!;
-  }
-
-  static SlotListMessenger? maybeOf<T extends SlotItem>(BuildContext context) {
+  static SlottedListMessenger? maybeOf<T>(BuildContext context) {
     if (context.mounted == false) {
       return null;
     }
 
-    return context.dependOnInheritedWidgetOfExactType<SlotListMessenger<T>>();
+    return context.dependOnInheritedWidgetOfExactType<SlottedListMessenger>();
+  }
+
+  void registerCandiate(CandidateData data) {
+    onRegisterCandidate(data);
+  }
+
+  CandidateData? getCandidateData(String id) {
+    return onGetCandidateData(id);
   }
 
   @override
-  bool updateShouldNotify(SlotListMessenger oldWidget) {
-    if (oldWidget.selectedItemIds != selectedItemIds) {
-      return true;
-    }
-    return false;
+  bool updateShouldNotify(SlottedListMessenger oldWidget) {
+    return oldWidget.onRegisterCandidate != onRegisterCandidate ||
+        oldWidget.onGetCandidateData != onGetCandidateData;
   }
 }
