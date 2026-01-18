@@ -4,9 +4,6 @@ import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
 
-typedef CandidateBuilder = Widget Function(BuildContext context, String itemId);
-typedef SlottedBuilder = Widget Function(BuildContext context, String itemId);
-
 class SlotId {
   final String parentId;
   final int slotIndex;
@@ -26,6 +23,9 @@ class SlotId {
   @override
   int get hashCode => parentId.hashCode ^ slotIndex.hashCode;
 }
+
+typedef CandidateBuilder = Widget Function(BuildContext context);
+typedef SlottedBuilder = Widget Function(BuildContext context);
 
 class CandidateData {
   final CandidateBuilder candidateBuilder;
@@ -58,11 +58,11 @@ class _SlottedItemDragData extends _DragData {
 }
 
 class CandidateListItem extends StatefulWidget {
-  final CandidateData data;
+  final CandidateData configuration;
 
   const CandidateListItem({
     super.key,
-    required this.data,
+    required this.configuration,
   });
 
   @override
@@ -72,7 +72,8 @@ class CandidateListItem extends StatefulWidget {
 class _CandidateListItemState extends State<CandidateListItem> {
   @override
   void didChangeDependencies() {
-    SlottedListMessenger.maybeOf(context)!.registerCandiate(widget.data);
+    SlottedListMessenger.maybeOf(context)!
+        .registerCandiate(widget.configuration);
     super.didChangeDependencies();
   }
 
@@ -86,16 +87,14 @@ class _CandidateListItemState extends State<CandidateListItem> {
       onDragEnd: (details) => controller.notifyCandidateDragEnd(),
       feedback: Column(
         children: selectedCandidates
-            .map((candidate) =>
-                candidate.candidateBuilder(context, candidate.itemId))
+            .map((candidate) => candidate.candidateBuilder(context))
             .toList(),
       ),
       child: ItemSelectionListener<_CandidateIdWrapper>(
-          itemId: _CandidateIdWrapper(widget.data.itemId),
-          index: widget.data.candidateSelectionIndex,
-          child: widget.data.candidateBuilder(
+          itemId: _CandidateIdWrapper(widget.configuration.itemId),
+          index: widget.configuration.candidateSelectionIndex,
+          child: widget.configuration.candidateBuilder(
             context,
-            widget.data.itemId,
           )),
     );
   }
@@ -168,8 +167,7 @@ class _SlotState extends State<Slot> {
               child: widget.builder(
                 context,
                 widget.index,
-                candidateData?.slottedContentsBuilder(
-                    context, widget.assignedItemId!),
+                candidateData?.slottedContentsBuilder(context),
                 selected,
               ),
             ),
@@ -192,8 +190,7 @@ class _SlotState extends State<Slot> {
         controller.getAllSelectedSlottedItemsData(),
       ),
       onDragCompleted: () => controller.notifyCandidateDragEnd(),
-      feedback:
-          candidateData.slottedContentsBuilder(context, candidateData.itemId),
+      feedback: candidateData.slottedContentsBuilder(context),
       child: child,
     );
   }

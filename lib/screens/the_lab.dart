@@ -75,14 +75,14 @@ class _TheLabState extends State<TheLab> {
                           final item = _items.values.toList()[index];
 
                           return CandidateListItem(
-                            data: CandidateData(
+                            configuration: CandidateData(
                                 itemId: item.id,
                                 candidateSelectionIndex:
                                     item.candidateSelectionIndex,
                                 slottedSelectionIndex: _assignments.values
                                     .toList()
                                     .indexOf(item.id),
-                                candidateBuilder: (context, itemId) => Card(
+                                candidateBuilder: (context) => Card(
                                     filled: true,
                                     fillColor: _selectedCandidateItemIds
                                             .contains(item.id)
@@ -92,14 +92,13 @@ class _TheLabState extends State<TheLab> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(_items[itemId]!.name),
+                                        Text(item.name),
                                       ],
                                     )),
-                                slottedContentsBuilder: (context, itemId) =>
-                                    Row(
+                                slottedContentsBuilder: (context) => Row(
                                       spacing: 12,
                                       children: [
-                                        Text(_items[itemId]!.name),
+                                        Text(item.name),
                                         const Icon(
                                             Icons.sentiment_very_satisfied,
                                             color: Colors.green)
