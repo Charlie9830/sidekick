@@ -43,10 +43,18 @@ class CandidateData {
   });
 }
 
-class _CandidateDragData {
+sealed class _DragData {
   final List<CandidateData> draggingCandidates;
 
-  _CandidateDragData(this.draggingCandidates);
+  _DragData(this.draggingCandidates);
+}
+
+class _CandidateDragData extends _DragData {
+  _CandidateDragData(super.draggingCandidates);
+}
+
+class _SlottedItemDragData extends _DragData {
+  _SlottedItemDragData(super.draggingCandidates);
 }
 
 class CandidateListItem extends StatefulWidget {
@@ -100,6 +108,7 @@ class Slot extends StatefulWidget {
           BuildContext context, int index, Widget? candidate, bool selected)
       builder;
   final void Function(List<CandidateData> candidates) onCandidatesLanded;
+  final void Function(List<CandidateData> candidates) onCandidatesRepositioned;
   final String? assignedItemId;
 
   const Slot({
@@ -109,6 +118,7 @@ class Slot extends StatefulWidget {
     required this.builder,
     required this.assignedItemId,
     required this.onCandidatesLanded,
+    required this.onCandidatesRepositioned,
   });
 
   @override
@@ -128,9 +138,14 @@ class _SlotState extends State<Slot> {
         ? false
         : controller.selectedSlottedItemIds.contains(widget.assignedItemId);
 
-    return DragTargetProxy<_CandidateDragData>(
+    return DragTargetProxy<_DragData>(
       onAcceptWithDetails: (details) {
-        widget.onCandidatesLanded(details.data.draggingCandidates);
+        switch (details.data) {
+          case _CandidateDragData():
+            widget.onCandidatesLanded(details.data.draggingCandidates);
+          case _SlottedItemDragData():
+            widget.onCandidatesRepositioned(details.data.draggingCandidates);
+        }
       },
       onWillAcceptWithDetails: (details) {
         controller.notifySlotDragEnter(details.data.draggingCandidates.length,
@@ -147,16 +162,39 @@ class _SlotState extends State<Slot> {
           child: _wrapSelectionListener(
             itemId: widget.assignedItemId,
             selectionIndex: candidateData?.slottedSelectionIndex,
-            child: widget.builder(
-              context,
-              widget.index,
-              candidateData?.slottedContentsBuilder(
-                  context, widget.assignedItemId!),
-              selected,
+            child: _wrapDraggable(
+              controller: controller,
+              candidateData: candidateData,
+              child: widget.builder(
+                context,
+                widget.index,
+                candidateData?.slottedContentsBuilder(
+                    context, widget.assignedItemId!),
+                selected,
+              ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _wrapDraggable(
+      {required Widget child,
+      required CandidateData? candidateData,
+      required SlottedListMessenger controller}) {
+    if (candidateData == null) {
+      return child;
+    }
+
+    return LongPressDraggable<_SlottedItemDragData>(
+      data: _SlottedItemDragData(
+        controller.getAllSelectedSlottedItemsData(),
+      ),
+      onDragCompleted: () => controller.notifyCandidateDragEnd(),
+      feedback:
+          candidateData.slottedContentsBuilder(context, candidateData.itemId),
+      child: child,
     );
   }
 
@@ -227,6 +265,8 @@ class _SlottedListControllerState extends State<SlottedListController> {
             onGetCandidateData: _handleCandidateDataRequest,
             onGetAllSelectedCandidateData:
                 _handleGetAllSelectedCandidateDataRequest,
+            onGetAllSelectedSlottedItemsData:
+                _handleGetAllSelectedSlottedItemsRequest,
             selectedCandidateIds: widget.selectedCandidateIds,
             selectedSlottedItemIds: widget.selectedSlottedItemIds,
             onSlotDragEnter: _handleSlotDragEnter,
@@ -261,6 +301,13 @@ class _SlottedListControllerState extends State<SlottedListController> {
 
   List<CandidateData> _handleGetAllSelectedCandidateDataRequest() {
     return widget.selectedCandidateIds
+        .map((id) => _handleCandidateDataRequest(id))
+        .nonNulls
+        .toList();
+  }
+
+  List<CandidateData> _handleGetAllSelectedSlottedItemsRequest() {
+    return widget.selectedSlottedItemIds
         .map((id) => _handleCandidateDataRequest(id))
         .nonNulls
         .toList();
@@ -305,6 +352,7 @@ class _SlottedListControllerState extends State<SlottedListController> {
 class SlottedListMessenger extends InheritedWidget {
   final void Function(CandidateData data) onRegisterCandidate;
   final List<CandidateData> Function() onGetAllSelectedCandidateData;
+  final List<CandidateData> Function() onGetAllSelectedSlottedItemsData;
   final CandidateData? Function(String id) onGetCandidateData;
   final Set<String> selectedCandidateIds;
   final Set<String> selectedSlottedItemIds;
@@ -325,6 +373,7 @@ class SlottedListMessenger extends InheritedWidget {
     required this.onSlotDragLeave,
     required this.hoveredSlotIds,
     required this.onCandidateDragEnd,
+    required this.onGetAllSelectedSlottedItemsData,
     required Widget child,
   }) : super(child: child);
 
@@ -350,6 +399,10 @@ class SlottedListMessenger extends InheritedWidget {
 
   void notifyCandidateDragEnd() {
     onCandidateDragEnd();
+  }
+
+  List<CandidateData> getAllSelectedSlottedItemsData() {
+    return onGetAllSelectedSlottedItemsData();
   }
 
   List<CandidateData> getAllSelectedCandidateData() {

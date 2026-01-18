@@ -122,14 +122,34 @@ class _TheLabState extends State<TheLab> {
                               onCandidatesLanded: (candidates) {
                                 final updatedAssignments =
                                     Map<int, String>.from(_assignments)
-                                      ..addEntries(candidates.mapIndexed(
-                                          (index, candidate) => MapEntry(
-                                              slotIndex + index,
-                                              candidate.itemId)));
+                                      ..addEntries(
+                                        candidates.mapIndexed(
+                                            (index, candidate) => MapEntry(
+                                                slotIndex + index,
+                                                candidate.itemId)),
+                                      );
 
                                 setState(() {
                                   _assignments = updatedAssignments;
                                 });
+                              },
+                              onCandidatesRepositioned: (candidates) {
+                                final movingCandidateIds = candidates
+                                    .map((candidate) => candidate.itemId)
+                                    .toSet();
+                                final updatedAssignments =
+                                    Map<int, String>.from(_assignments)
+                                      ..removeWhere((key, value) =>
+                                          movingCandidateIds.contains(value))
+                                      ..addEntries(
+                                        candidates.mapIndexed(
+                                            (index, candidate) => MapEntry(
+                                                slotIndex + index,
+                                                candidate.itemId)),
+                                      );
+
+                                setState(
+                                    () => _assignments = updatedAssignments);
                               },
                               builder: (context, slotIndex, child, selected) =>
                                   Card(
