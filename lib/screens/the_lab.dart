@@ -16,11 +16,11 @@ class TheLab extends StatefulWidget {
 }
 
 class _TheLabState extends State<TheLab> {
-  final Map<String, Item> _items = List<Item>.generate(
-          24, (index) => Item((index + 1).toString(), "Item ${index + 1}"))
+  final Map<String, Item> _items = List<Item>.generate(24,
+          (index) => Item((index + 1).toString(), "Item ${index + 1}", index))
       .toModelMap();
 
-  final Map<int, String> _assignments = {};
+  Map<int, String> _assignments = {};
 
   Set<String> _selectedCandidateItemIds = {};
   Set<String> _selectedSlottedItemIds = {};
@@ -41,9 +41,6 @@ class _TheLabState extends State<TheLab> {
         store: store,
       ),
       builder: (context, viewModel) {
-        final getCandidateSelectionIndex = getItemSelectionIndexClosure();
-        final getSlottedItemSelectionIndex = getItemSelectionIndexClosure();
-
         return Scaffold(
             headers: [
               AppBar(
@@ -65,6 +62,7 @@ class _TheLabState extends State<TheLab> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Candidates.
                   SizedBox(
                     width: 400,
                     child: Card(
@@ -80,7 +78,7 @@ class _TheLabState extends State<TheLab> {
                             data: CandidateData(
                                 itemId: item.id,
                                 candidateSelectionIndex:
-                                    getCandidateSelectionIndex(),
+                                    item.candidateSelectionIndex,
                                 slottedSelectionIndex: _assignments.values
                                     .toList()
                                     .indexOf(item.id),
@@ -90,7 +88,13 @@ class _TheLabState extends State<TheLab> {
                                             .contains(item.id)
                                         ? Colors.gray
                                         : null,
-                                    child: Text(_items[itemId]!.name)),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(_items[itemId]!.name),
+                                      ],
+                                    )),
                                 slottedContentsBuilder: (context, itemId) =>
                                     Row(
                                       spacing: 12,
@@ -106,13 +110,27 @@ class _TheLabState extends State<TheLab> {
                       ),
                     ),
                   ),
+
+                  // Slots
                   Expanded(
                       child: ListView.builder(
                           itemCount: 24,
-                          itemBuilder: (context, index) {
+                          itemBuilder: (context, slotIndex) {
                             return Slot(
-                              assignedItemId: _assignments[index],
-                              index: index,
+                              assignedItemId: _assignments[slotIndex],
+                              index: slotIndex,
+                              onCandidatesLanded: (candidates) {
+                                final updatedAssignments =
+                                    Map<int, String>.from(_assignments)
+                                      ..addEntries(candidates.mapIndexed(
+                                          (index, candidate) => MapEntry(
+                                              slotIndex + index,
+                                              candidate.itemId)));
+
+                                setState(() {
+                                  _assignments = updatedAssignments;
+                                });
+                              },
                               builder: (context, slotIndex, child, selected) =>
                                   Card(
                                       filled: true,
@@ -124,7 +142,7 @@ class _TheLabState extends State<TheLab> {
                                             SizedBox(
                                                 width: 48,
                                                 child: Text(
-                                                    (index + 1).toString(),
+                                                    (slotIndex + 1).toString(),
                                                     style: Theme.of(context)
                                                         .typography
                                                         .p)),
@@ -146,8 +164,9 @@ class _TheLabState extends State<TheLab> {
 class Item extends ModelCollectionMember {
   final String id;
   final String name;
+  final int candidateSelectionIndex;
 
-  Item(this.id, this.name);
+  Item(this.id, this.name, this.candidateSelectionIndex);
 
   @override
   String get uid => id;

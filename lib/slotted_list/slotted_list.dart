@@ -1,10 +1,31 @@
-import 'package:flutter/widgets.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/drag_proxy/drag_proxy.dart';
 import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
 import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
 
 typedef CandidateBuilder = Widget Function(BuildContext context, String itemId);
 typedef SlottedBuilder = Widget Function(BuildContext context, String itemId);
+
+class SlotId {
+  final String parentId;
+  final int slotIndex;
+
+  SlotId({
+    required this.parentId,
+    required this.slotIndex,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    return other is SlotId &&
+        other.parentId == parentId &&
+        other.slotIndex == slotIndex;
+  }
+
+  @override
+  int get hashCode => parentId.hashCode ^ slotIndex.hashCode;
+}
 
 class CandidateData {
   final CandidateBuilder candidateBuilder;
@@ -20,6 +41,12 @@ class CandidateData {
     required this.candidateSelectionIndex,
     required this.slottedSelectionIndex,
   });
+}
+
+class _CandidateDragData {
+  final List<CandidateData> draggingCandidates;
+
+  _CandidateDragData(this.draggingCandidates);
 }
 
 class CandidateListItem extends StatefulWidget {
@@ -43,28 +70,45 @@ class _CandidateListItemState extends State<CandidateListItem> {
 
   @override
   Widget build(BuildContext context) {
-    return ItemSelectionListener<_CandidateIdWrapper>(
-        itemId: _CandidateIdWrapper(widget.data.itemId),
-        index: widget.data.candidateSelectionIndex,
-        child: widget.data.candidateBuilder(
-          context,
-          widget.data.itemId,
-        ));
+    final controller = SlottedListMessenger.maybeOf(context)!;
+    final selectedCandidates = controller.getAllSelectedCandidateData();
+
+    return LongPressDraggableProxy<_CandidateDragData>(
+      data: _CandidateDragData(selectedCandidates),
+      onDragEnd: (details) => controller.notifyCandidateDragEnd(),
+      feedback: Column(
+        children: selectedCandidates
+            .map((candidate) =>
+                candidate.candidateBuilder(context, candidate.itemId))
+            .toList(),
+      ),
+      child: ItemSelectionListener<_CandidateIdWrapper>(
+          itemId: _CandidateIdWrapper(widget.data.itemId),
+          index: widget.data.candidateSelectionIndex,
+          child: widget.data.candidateBuilder(
+            context,
+            widget.data.itemId,
+          )),
+    );
   }
 }
 
 class Slot extends StatefulWidget {
   final int index;
+  final String parentId;
   final Widget Function(
           BuildContext context, int index, Widget? candidate, bool selected)
       builder;
+  final void Function(List<CandidateData> candidates) onCandidatesLanded;
   final String? assignedItemId;
 
   const Slot({
     super.key,
+    this.parentId = '',
     required this.index,
     required this.builder,
     required this.assignedItemId,
+    required this.onCandidatesLanded,
   });
 
   @override
@@ -74,26 +118,55 @@ class Slot extends StatefulWidget {
 class _SlotState extends State<Slot> {
   @override
   Widget build(BuildContext context) {
+    final controller = SlottedListMessenger.maybeOf(context)!;
+
     final candidateData = widget.assignedItemId == null
         ? null
-        : SlottedListMessenger.maybeOf(context)!
-            .getCandidateData(widget.assignedItemId!);
+        : controller.getCandidateData(widget.assignedItemId!);
 
     final selected = widget.assignedItemId == null
         ? false
-        : SlottedListMessenger.maybeOf(context)!
-            .selectedSlottedItemIds
-            .contains(widget.assignedItemId);
+        : controller.selectedSlottedItemIds.contains(widget.assignedItemId);
 
-    return _wrapSelectionListener(
-      itemId: widget.assignedItemId,
-      selectionIndex: candidateData?.slottedSelectionIndex,
-      child: widget.builder(
-        context,
-        widget.index,
-        candidateData?.slottedContentsBuilder(context, widget.assignedItemId!),
-        selected,
+    return DragTargetProxy<_CandidateDragData>(
+      onAcceptWithDetails: (details) {
+        widget.onCandidatesLanded(details.data.draggingCandidates);
+      },
+      onWillAcceptWithDetails: (details) {
+        controller.notifySlotDragEnter(details.data.draggingCandidates.length,
+            widget.parentId, widget.index);
+        return true;
+      },
+      onLeave: (details) {
+        controller.notifySlotDragLeave(widget.parentId, widget.index);
+      },
+      builder: (context, candidateItems, rejectedItems) {
+        return _wrapDragOverBorder(
+          showBorder: controller.hoveredSlotIds.contains(
+              SlotId(parentId: widget.parentId, slotIndex: widget.index)),
+          child: _wrapSelectionListener(
+            itemId: widget.assignedItemId,
+            selectionIndex: candidateData?.slottedSelectionIndex,
+            child: widget.builder(
+              context,
+              widget.index,
+              candidateData?.slottedContentsBuilder(
+                  context, widget.assignedItemId!),
+              selected,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _wrapDragOverBorder(
+      {required Widget child, required bool showBorder}) {
+    return Container(
+      foregroundDecoration: BoxDecoration(
+        border: showBorder ? Border.all(color: Colors.green, width: 2) : null,
       ),
+      child: child,
     );
   }
 
@@ -134,28 +207,63 @@ class SlottedListController extends StatefulWidget {
 
 class _SlottedListControllerState extends State<SlottedListController> {
   Map<String, CandidateData> _candidates = {};
+  Set<SlotId> _hoveredSlotIds = {};
 
   @override
   Widget build(BuildContext context) {
-    return ItemSelectionContainer<_SlottedItemIdWrapper>(
-      selectedItemIds: widget.selectedSlottedItemIds
-          .map((id) => _SlottedItemIdWrapper(id))
-          .toSet(),
-      onSelectionUpdated: _handleSlottedItemSelectionUpdated,
-      child: ItemSelectionContainer<_CandidateIdWrapper>(
-        selectedItemIds: widget.selectedCandidateIds
-            .map((id) => _CandidateIdWrapper(id))
+    return DragProxyController(
+      child: ItemSelectionContainer<_SlottedItemIdWrapper>(
+        selectedItemIds: widget.selectedSlottedItemIds
+            .map((id) => _SlottedItemIdWrapper(id))
             .toSet(),
-        onSelectionUpdated: _handleCandidateSelectionUpdated,
-        child: SlottedListMessenger(
-          onRegisterCandidate: _handleCandidateRegistration,
-          onGetCandidateData: _handleCandidateDataRequest,
-          selectedCandidateIds: widget.selectedCandidateIds,
-          selectedSlottedItemIds: widget.selectedSlottedItemIds,
-          child: widget.child,
+        onSelectionUpdated: _handleSlottedItemSelectionUpdated,
+        child: ItemSelectionContainer<_CandidateIdWrapper>(
+          selectedItemIds: widget.selectedCandidateIds
+              .map((id) => _CandidateIdWrapper(id))
+              .toSet(),
+          onSelectionUpdated: _handleCandidateSelectionUpdated,
+          child: SlottedListMessenger(
+            onRegisterCandidate: _handleCandidateRegistration,
+            onGetCandidateData: _handleCandidateDataRequest,
+            onGetAllSelectedCandidateData:
+                _handleGetAllSelectedCandidateDataRequest,
+            selectedCandidateIds: widget.selectedCandidateIds,
+            selectedSlottedItemIds: widget.selectedSlottedItemIds,
+            onSlotDragEnter: _handleSlotDragEnter,
+            onSlotDragLeave: _handleSlotDragLeave,
+            hoveredSlotIds: _hoveredSlotIds,
+            onCandidateDragEnd: _handleCandidateDragEnd,
+            child: widget.child,
+          ),
         ),
       ),
     );
+  }
+
+  void _handleCandidateDragEnd() {
+    setState(() => _hoveredSlotIds = {});
+  }
+
+  void _handleSlotDragEnter(
+      int draggingItemCount, String parentId, int slotIndex) {
+    final hoveredSlotIds = List<SlotId>.generate(draggingItemCount,
+        (index) => SlotId(parentId: parentId, slotIndex: index + slotIndex));
+
+    setState(() => _hoveredSlotIds = hoveredSlotIds.toSet());
+  }
+
+  void _handleSlotDragLeave(String parentId, int slotIndex) {
+    final hoveredSlotIds = _hoveredSlotIds.toSet()
+      ..remove(SlotId(parentId: parentId, slotIndex: slotIndex));
+
+    setState(() => _hoveredSlotIds = hoveredSlotIds);
+  }
+
+  List<CandidateData> _handleGetAllSelectedCandidateDataRequest() {
+    return widget.selectedCandidateIds
+        .map((id) => _handleCandidateDataRequest(id))
+        .nonNulls
+        .toList();
   }
 
   CandidateData? _handleCandidateDataRequest(String id) {
@@ -196,9 +304,15 @@ class _SlottedListControllerState extends State<SlottedListController> {
 
 class SlottedListMessenger extends InheritedWidget {
   final void Function(CandidateData data) onRegisterCandidate;
+  final List<CandidateData> Function() onGetAllSelectedCandidateData;
   final CandidateData? Function(String id) onGetCandidateData;
   final Set<String> selectedCandidateIds;
   final Set<String> selectedSlottedItemIds;
+  final void Function(int draggingItemCount, String parentId, int index)
+      onSlotDragEnter;
+  final void Function(String parentId, int index) onSlotDragLeave;
+  final void Function() onCandidateDragEnd;
+  final Set<SlotId> hoveredSlotIds;
 
   const SlottedListMessenger({
     super.key,
@@ -206,6 +320,11 @@ class SlottedListMessenger extends InheritedWidget {
     required this.onGetCandidateData,
     required this.selectedCandidateIds,
     required this.selectedSlottedItemIds,
+    required this.onGetAllSelectedCandidateData,
+    required this.onSlotDragEnter,
+    required this.onSlotDragLeave,
+    required this.hoveredSlotIds,
+    required this.onCandidateDragEnd,
     required Widget child,
   }) : super(child: child);
 
@@ -221,6 +340,22 @@ class SlottedListMessenger extends InheritedWidget {
     onRegisterCandidate(data);
   }
 
+  void notifySlotDragEnter(int draggingItemCount, String parentId, int index) {
+    onSlotDragEnter(draggingItemCount, parentId, index);
+  }
+
+  void notifySlotDragLeave(String parentId, int index) {
+    onSlotDragLeave(parentId, index);
+  }
+
+  void notifyCandidateDragEnd() {
+    onCandidateDragEnd();
+  }
+
+  List<CandidateData> getAllSelectedCandidateData() {
+    return onGetAllSelectedCandidateData();
+  }
+
   CandidateData? getCandidateData(String id) {
     return onGetCandidateData(id);
   }
@@ -230,7 +365,8 @@ class SlottedListMessenger extends InheritedWidget {
     return oldWidget.onRegisterCandidate != onRegisterCandidate ||
         oldWidget.onGetCandidateData != onGetCandidateData ||
         oldWidget.selectedCandidateIds != selectedCandidateIds ||
-        oldWidget.selectedSlottedItemIds != selectedSlottedItemIds;
+        oldWidget.selectedSlottedItemIds != selectedSlottedItemIds ||
+        oldWidget.hoveredSlotIds != hoveredSlotIds;
   }
 }
 
