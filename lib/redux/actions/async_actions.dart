@@ -10,8 +10,9 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' hide IndexedSlot;
 import 'package:sidekick/redux/models/power_rack_type_model.dart';
+import 'package:sidekick/utils/packable_list.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:sidekick/assert_sneak_child_spares.dart';
@@ -383,15 +384,6 @@ ThunkAction<AppState> assignHoistsToController(
       return;
     }
 
-    final movingOrIncomingHoists = movingOrIncomingHoistIds
-        .map((id) => store.state.fixtureState.hoists[id])
-        .nonNulls
-        .toList();
-
-    if (movingOrIncomingHoists.isEmpty) {
-      return;
-    }
-
     final controller =
         store.state.fixtureState.hoistControllers[targetControllerId];
 
@@ -399,153 +391,35 @@ ThunkAction<AppState> assignHoistsToController(
       return;
     }
 
-    final childHoistsByChannel = store.state.fixtureState.hoists.values
-        .where((hoist) =>
-            hoist.parentController.controllerId == targetControllerId)
-        .groupFoldBy(
-            (hoist) => hoist.parentController.channel, (_, hoist) => hoist);
-
-    final movingOrIncomingHoistsWithUpdatedChannels =
-        movingOrIncomingHoists.mapIndexed((index, hoist) => hoist.copyWith(
-            parentController: hoist.parentController
-                .copyWith(channel: startingChannelNumber + index)));
-
-    // Create a list that represents all channels currently in this controller, in their current channels, this includes unpopulated empty channels.
-    final allChannels = List.generate(
-        HoistModel.getHighestChannelNumber([
-          ...childHoistsByChannel.values.toList(),
-          ...movingOrIncomingHoistsWithUpdatedChannels
-        ]).greaterOf(controller.ways), (index) {
-      final originalHoist = childHoistsByChannel[index + 1];
-      return _HoistControllerChannel(
-        originalHoist: originalHoist,
-      );
-    });
-
-    final allChannelsWithPrunedMovingHoists = allChannels.map((channel) =>
-        movingOrIncomingHoistIds.contains(channel.originalHoist?.uid)
-            ? _HoistControllerChannel(originalHoist: null)
-            : channel);
-
-    final incomingHoistsQueue = Queue<HoistModel>.from(movingOrIncomingHoists);
-
-    final startingInsertionIndex = startingChannelNumber - 1;
-    final channelAccum = allChannelsWithPrunedMovingHoists.foldIndexed(
-        _ChannelAccumulator(
-            channels: [],
-            carry: Queue<_HoistControllerChannel>()), (index, accum, channel) {
-      if (incomingHoistsQueue.isEmpty) {
-        if (accum.carry.isNotEmpty) {
-          return accum.copyWith(
-            channels: [
-              ...accum.channels,
-              accum.carry.removeFirst(),
-            ],
-            carry: accum.carry..add(channel),
-          );
-        }
-
-        if (accum.carry.isEmpty) {
-          return accum.copyWith(channels: [
-            ...accum.channels,
-            channel,
-          ]);
-        }
-      }
-
-      if (index < startingInsertionIndex) {
-        return accum.copyWith(channels: [
-          ...accum.channels,
-          channel,
-        ]);
-      } else {
-        if (channel.originalHoist == null) {
-          return accum.copyWith(channels: [
-            ...accum.channels,
-            _HoistControllerChannel(
-                originalHoist: incomingHoistsQueue.removeFirst())
-          ]);
-        } else {
-          return accum.copyWith(
-            channels: [
-              ...accum.channels,
-              _HoistControllerChannel(
-                  originalHoist: incomingHoistsQueue.removeFirst())
-            ],
-            carry: accum.carry..add(channel),
-          );
-        }
-      }
-    });
-
-    final updatedChannels = [
-      ...channelAccum.channels,
-      ...channelAccum.carry,
-    ];
-
-    final updatedHoists = updatedChannels
-        .mapIndexed((index, channel) => channel.originalHoist?.copyWith(
-                parentController:
-                    channel.originalHoist?.parentController.copyWith(
-              channel: index + 1,
-              controllerId: targetControllerId,
-            )))
-        .nonNulls
+    // Collect all Hoists currently assigned to this controller.
+    final hoistsInController = store.state.fixtureState.hoists.values
+        .where((hoist) => hoist.parentController.controllerId == controller.uid)
         .toList();
 
-    store.dispatch(
-      SetHoists(
-        store.state.fixtureState.hoists.clone()
-          ..addAll(
-            updatedHoists.toModelMap(),
-          ),
-      ),
-    );
+    // Convert assigned hoists into [IndexedSpots].
+    // Do not include any Hoists that are incoming or Moving, these are going to get inserted in the next step anyway.
+    final occupiedSlots = hoistsInController
+        .where((hoist) => movingOrIncomingHoistIds.contains(hoist.uid) == false)
+        .map((hoist) =>
+            IndexedSpot<String>(hoist.parentController.channel - 1, hoist.uid));
 
-    store.dispatch(SetSelectedHoistChannelIds(movingOrIncomingHoistIds));
+    final packableList = PackableList.fromIndexedSpots(
+        occupiedSlots,
+        max(controller.ways,
+            HoistModel.getHighestChannelNumber(hoistsInController) - 1));
+
+    packableList.insert(movingOrIncomingHoistIds, startingChannelNumber - 1);
+
+    final updatedHoists = packableList
+        .toIndexedSpotList()
+        .where((slot) => slot.content != null)
+        .map((slot) => store.state.fixtureState.hoists[slot.content]!.copyWith(
+            parentController: HoistControllerChannelAssignment(
+                controllerId: controller.uid, channel: slot.index + 1)));
+
+    store.dispatch(SetHoists(store.state.fixtureState.hoists.clone()
+      ..addAll(updatedHoists.toModelMap())));
   };
-}
-
-class _ChannelAccumulator {
-  final List<_HoistControllerChannel> channels;
-  final Queue<_HoistControllerChannel> carry;
-
-  _ChannelAccumulator({
-    required this.channels,
-    required this.carry,
-  });
-
-  _ChannelAccumulator copyWith({
-    List<_HoistControllerChannel>? channels,
-    Queue<_HoistControllerChannel>? carry,
-  }) {
-    return _ChannelAccumulator(
-      channels: channels ?? this.channels,
-      carry: carry ?? this.carry,
-    );
-  }
-}
-
-class _HoistControllerChannel {
-  final HoistModel? originalHoist;
-
-  _HoistControllerChannel({
-    required this.originalHoist,
-  });
-
-  @override
-  String toString() {
-    return '$originalHoist';
-  }
-
-  _HoistControllerChannel copyWith({
-    HoistModel? originalHoist,
-    bool? dirty,
-  }) {
-    return _HoistControllerChannel(
-      originalHoist: originalHoist ?? this.originalHoist,
-    );
-  }
 }
 
 ThunkAction<AppState> addHoistController(int wayNumber) {

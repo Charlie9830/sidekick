@@ -29,17 +29,13 @@ typedef SlottedBuilder = Widget Function(BuildContext context);
 
 class CandidateData {
   final CandidateBuilder candidateBuilder;
-  final SlottedBuilder slottedContentsBuilder;
   final String itemId;
   final int candidateSelectionIndex;
-  final int slottedSelectionIndex;
 
   CandidateData({
     required this.candidateBuilder,
-    required this.slottedContentsBuilder,
     required this.itemId,
     required this.candidateSelectionIndex,
-    required this.slottedSelectionIndex,
   });
 }
 
@@ -59,10 +55,14 @@ class _SlottedItemDragData extends _DragData {
 
 class CandidateListItem extends StatefulWidget {
   final CandidateData configuration;
+  final double feedbackOpacity;
+  final BoxConstraints? feedbackConstraints;
 
   const CandidateListItem({
     super.key,
     required this.configuration,
+    this.feedbackConstraints,
+    this.feedbackOpacity = 0.25,
   });
 
   @override
@@ -86,9 +86,17 @@ class _CandidateListItemState extends State<CandidateListItem> {
       data: _CandidateDragData(selectedCandidates),
       onDragEnd: (details) => controller.notifyCandidateDragEnd(),
       feedback: Column(
-        children: selectedCandidates
-            .map((candidate) => candidate.candidateBuilder(context))
-            .toList(),
+        children: selectedCandidates.map((candidate) {
+          final candidateWidget = candidate.candidateBuilder(context);
+
+          return ConstrainedBox(
+            constraints: widget.feedbackConstraints ?? const BoxConstraints(),
+            child: Opacity(
+              opacity: widget.feedbackOpacity,
+              child: candidateWidget,
+            ),
+          );
+        }).toList(),
       ),
       child: ItemSelectionListener<_CandidateIdWrapper>(
           itemId: _CandidateIdWrapper(widget.configuration.itemId),
@@ -100,24 +108,31 @@ class _CandidateListItemState extends State<CandidateListItem> {
   }
 }
 
+typedef SlotBuilder = Widget Function(
+    BuildContext context, int slotIndex, bool selected);
+
 class Slot extends StatefulWidget {
-  final int index;
+  final int slotIndex;
+  final int? selectionIndex;
   final String parentId;
-  final Widget Function(
-          BuildContext context, int index, Widget? candidate, bool selected)
-      builder;
+  final Widget Function(BuildContext context, int index, bool selected) builder;
   final void Function(List<CandidateData> candidates) onCandidatesLanded;
   final void Function(List<CandidateData> candidates) onCandidatesRepositioned;
   final String? assignedItemId;
+  final double feedbackOpacity;
+  final BoxConstraints feedbackConstraints;
 
   const Slot({
     super.key,
     this.parentId = '',
-    required this.index,
+    required this.slotIndex,
     required this.builder,
     required this.assignedItemId,
     required this.onCandidatesLanded,
     required this.onCandidatesRepositioned,
+    required this.selectionIndex,
+    this.feedbackOpacity = 0.25,
+    this.feedbackConstraints = const BoxConstraints(),
   });
 
   @override
@@ -148,26 +163,25 @@ class _SlotState extends State<Slot> {
       },
       onWillAcceptWithDetails: (details) {
         controller.notifySlotDragEnter(details.data.draggingCandidates.length,
-            widget.parentId, widget.index);
+            widget.parentId, widget.slotIndex);
         return true;
       },
       onLeave: (details) {
-        controller.notifySlotDragLeave(widget.parentId, widget.index);
+        controller.notifySlotDragLeave(widget.parentId, widget.slotIndex);
       },
       builder: (context, candidateItems, rejectedItems) {
         return _wrapDragOverBorder(
           showBorder: controller.hoveredSlotIds.contains(
-              SlotId(parentId: widget.parentId, slotIndex: widget.index)),
+              SlotId(parentId: widget.parentId, slotIndex: widget.slotIndex)),
           child: _wrapSelectionListener(
             itemId: widget.assignedItemId,
-            selectionIndex: candidateData?.slottedSelectionIndex,
+            selectionIndex: widget.selectionIndex,
             child: _wrapDraggable(
               controller: controller,
               candidateData: candidateData,
               child: widget.builder(
                 context,
-                widget.index,
-                candidateData?.slottedContentsBuilder(context),
+                widget.slotIndex,
                 selected,
               ),
             ),
@@ -190,7 +204,9 @@ class _SlotState extends State<Slot> {
         controller.getAllSelectedSlottedItemsData(),
       ),
       onDragCompleted: () => controller.notifyCandidateDragEnd(),
-      feedback: candidateData.slottedContentsBuilder(context),
+      feedback: ConstrainedBox(
+          constraints: widget.feedbackConstraints,
+          child: Opacity(opacity: widget.feedbackOpacity, child: child)),
       child: child,
     );
   }

@@ -47,7 +47,8 @@ List<HoistControllerViewModel> selectHoistControllers({
 
           return HoistChannelViewModel(
               number: channel,
-              itemIndex: getSelectionIndex(),
+              slottedItemSelectionIndex:
+                  hoist == null ? null : getSelectionIndex(),
               parentControllerId: controller.uid,
               isOverflowing: channel > controller.ways,
               onDragStarted: hoist != null
@@ -95,7 +96,7 @@ HoistViewModel selectHoistViewModel(
 
   return HoistViewModel(
     hoist: hoist,
-    selectionIndex: selectionIndex,
+    unslottedSelectionIndex: selectionIndex,
     hasRootCable: associatedRootHoistCable != null,
     patch: associatedRootHoistCable == null
         ? ''
@@ -175,4 +176,16 @@ List<HoistItemBase> selectLocationHoistItems(
       .toList();
 
   return value;
+}
+
+Map<String, int> mapAssignedHoistSelectionIndexes(
+    List<HoistControllerViewModel> controllers) {
+  final assignedHoistIds = controllers
+      .map((controller) => controller.channels
+          .where((channel) => channel.hoist != null)
+          .map((channel) => channel.hoist!.uid))
+      .flattened;
+
+  return Map<String, int>.fromEntries(
+      assignedHoistIds.mapIndexed((index, id) => MapEntry(id, index)));
 }

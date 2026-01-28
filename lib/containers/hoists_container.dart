@@ -32,6 +32,13 @@ class HoistsContainer extends StatelessWidget {
         final hoistItems = selectLocationHoistItems(
             context: context, hoistViewModels: hoistVmMap, store: store);
 
+        final hoistControllers = selectHoistControllers(
+          context: context,
+          store: store,
+          selectedHoistChannelViewModelMap: selectedHoistChannelVmMap,
+          hoistViewModels: hoistVmMap,
+        );
+
         return HoistsViewModel(
             hoistItems: hoistItems,
             selectedHoistViewModels: Map<String, HoistViewModel>.fromEntries(
@@ -44,12 +51,7 @@ class HoistsContainer extends StatelessWidget {
                 store.dispatch(selectHoistOutlets(type, items)),
             onSelectedHoistChannelsChanged: (type, items) =>
                 store.dispatch(selectHoistControllerChannels(type, items)),
-            hoistControllers: selectHoistControllers(
-              context: context,
-              store: store,
-              selectedHoistChannelViewModelMap: selectedHoistChannelVmMap,
-              hoistViewModels: hoistVmMap,
-            ),
+            hoistControllers: hoistControllers,
             selectedHoistChannelViewModels: selectedHoistChannelVmMap,
             onAddMotorController: (wayNumber) =>
                 store.dispatch(addHoistController(wayNumber)),
