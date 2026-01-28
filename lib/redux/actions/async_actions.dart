@@ -35,7 +35,6 @@ import 'package:sidekick/excel/create_power_patch_sheet.dart';
 import 'package:sidekick/extension_methods/all_all_if_absent_else_remove.dart';
 import 'package:sidekick/extension_methods/clone_map.dart';
 import 'package:sidekick/extension_methods/copy_with_inserted_entry.dart';
-import 'package:sidekick/extension_methods/greater_of.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/file_type_groups.dart';
 import 'package:sidekick/generic_dialog/show_generic_dialog.dart';
