@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sidekick/item_selection/item_selection_messenger.dart';
+import 'package:sidekick/slotted_list/attempt2.dart';
 
 enum UpdateType {
   overwrite,
@@ -18,6 +19,7 @@ class ItemSelectionContainer<T> extends StatefulWidget {
   final Set<T> selectedItemIds;
   final SelectionMode mode;
   final FocusNode? focusNode;
+  final bool debug;
   final void Function(UpdateType updateType, Set<T> values) onSelectionUpdated;
 
   const ItemSelectionContainer(
@@ -26,6 +28,7 @@ class ItemSelectionContainer<T> extends StatefulWidget {
       required this.selectedItemIds,
       this.mode = SelectionMode.multi,
       required this.onSelectionUpdated,
+      this.debug = false,
       this.focusNode});
 
   @override

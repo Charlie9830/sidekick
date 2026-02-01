@@ -1,10 +1,13 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/containers/hoist_selectors.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/state/app_state.dart';
+import 'package:sidekick/screens/hoists/hoist_item.dart';
 import 'package:sidekick/screens/hoists/hoists.dart';
+import 'package:sidekick/slotted_list/attempt2.dart';
 
 import 'package:sidekick/view_models/hoists_view_model.dart';
 
@@ -26,6 +29,18 @@ class HoistsContainer extends StatelessWidget {
           cablesByOutletId: cablesByOutletId,
         );
 
+        final assignableItems = hoistVmMap.map(
+          (key, value) => MapEntry(
+            key,
+            AssignableItem<String, HoistViewModel>(
+              id: key,
+              item: value,
+              assignedSelectionIndex: value.assignedSelectionIndex,
+              candidateSelectionIndex: value.candidateSelectionIndex,
+            ),
+          ),
+        );
+
         final selectedHoistChannelVmMap =
             mapSelectedHoistChannelViewModels(store, hoistVmMap);
 
@@ -41,6 +56,7 @@ class HoistsContainer extends StatelessWidget {
 
         return HoistsViewModel(
             hoistItems: hoistItems,
+            assignableItems: assignableItems,
             selectedHoistViewModels: Map<String, HoistViewModel>.fromEntries(
               store.state.navstate.selectedHoistIds
                   .map((id) => hoistVmMap[id])

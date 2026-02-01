@@ -5,9 +5,11 @@ import 'package:sidekick/redux/models/hoist_controller_model.dart';
 import 'package:sidekick/redux/models/hoist_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
+import 'package:sidekick/slotted_list/attempt2.dart';
 
 class HoistsViewModel {
   final List<HoistItemBase> hoistItems;
+  final Map<String, AssignableItem<String, HoistViewModel>> assignableItems;
   final Map<String, HoistViewModel> selectedHoistViewModels;
   final void Function(UpdateType type, Set<String> items)
       onSelectedHoistsChanged;
@@ -22,6 +24,7 @@ class HoistsViewModel {
 
   HoistsViewModel({
     required this.hoistItems,
+    required this.assignableItems,
     required this.selectedHoistViewModels,
     required this.onSelectedHoistsChanged,
     required this.hoistControllers,
@@ -49,7 +52,8 @@ class HoistViewModel extends HoistItemBase
   final String multi;
   final String patch;
   final bool hasRootCable;
-  final int unslottedSelectionIndex;
+  final int candidateSelectionIndex;
+  final int? assignedSelectionIndex;
 
   @override
   String get uid => hoist.uid;
@@ -65,7 +69,8 @@ class HoistViewModel extends HoistItemBase
     required this.patch,
     required this.onNoteChanged,
     required this.hasRootCable,
-    required this.unslottedSelectionIndex,
+    required this.candidateSelectionIndex,
+    required this.assignedSelectionIndex,
   });
 
   @override

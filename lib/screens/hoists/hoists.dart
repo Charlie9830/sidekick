@@ -4,7 +4,7 @@ import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/screens/hoists/motor_control_assignment.dart';
 import 'package:sidekick/screens/hoists/sidebar.dart';
 import 'package:sidekick/simple_tooltip.dart';
-import 'package:sidekick/slotted_list/slotted_list.dart';
+import 'package:sidekick/slotted_list/attempt2.dart';
 import 'package:sidekick/three_panel_scaffold.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:sidekick/widgets/toolbar.dart';
@@ -20,14 +20,15 @@ class Hoists extends StatefulWidget {
 class _HoistsState extends State<Hoists> {
   @override
   Widget build(BuildContext context) {
-    return SlottedListController(
-      selectedCandidateIds:
+    return AssignableItemListController<String, HoistViewModel>(
+      items: widget.viewModel.assignableItems,
+      selectedCandidateItemIds:
           widget.viewModel.selectedHoistViewModels.keys.toSet(),
-      selectedSlottedItemIds:
+      selectedAssignedItemIds:
           widget.viewModel.selectedHoistChannelViewModels.keys.toSet(),
       onSelectedCandidateIdsChanged: (ids) =>
           widget.viewModel.onSelectedHoistsChanged(UpdateType.overwrite, ids),
-      onSelectedSlottedItemIdsChanged: (ids) => widget.viewModel
+      onSelectedAssignedIdsChanged: (ids) => widget.viewModel
           .onSelectedHoistChannelsChanged(UpdateType.overwrite, ids),
       child: ThreePanelScaffold(
         toolbar: Toolbar(

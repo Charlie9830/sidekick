@@ -30,6 +30,7 @@ NavigationState navStateReducer(NavigationState state, dynamic a) {
   if (a is SetSelectedHoistOutlets) {
     return state.copyWith(
       selectedHoistIds: a.value,
+      selectedHoistChannelIds: {},
     );
   }
 
@@ -40,16 +41,10 @@ NavigationState navStateReducer(NavigationState state, dynamic a) {
     });
   }
 
-  if (a is AppendSelectedHoistChannelId) {
-    return state.copyWith(selectedPowerMultiChannelIds: {
-      ...state.selectedPowerMultiChannelIds,
-      a.value,
-    });
-  }
-
   if (a is SetSelectedHoistChannelIds) {
     return state.copyWith(
       selectedHoistChannelIds: a.value,
+      selectedHoistIds: {},
     );
   }
 

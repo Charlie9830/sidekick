@@ -96,7 +96,7 @@ HoistViewModel selectHoistViewModel(
 
   return HoistViewModel(
     hoist: hoist,
-    unslottedSelectionIndex: selectionIndex,
+    candidateSelectionIndex: selectionIndex,
     hasRootCable: associatedRootHoistCable != null,
     patch: associatedRootHoistCable == null
         ? ''
@@ -112,6 +112,9 @@ HoistViewModel selectHoistViewModel(
     onNameChanged: (value) => store.dispatch(updateHoistName(hoist.uid, value)),
     selected: store.state.navstate.selectedHoistIds.contains(hoist.uid),
     assigned: hoist.parentController.isAssigned,
+    assignedSelectionIndex: hoist.parentController.isAssigned
+        ? hoist.parentController.channel - 1
+        : null,
     onNoteChanged: (value) => store.dispatch(UpdateHoistNote(hoist.uid, value)),
   );
 }
@@ -136,6 +139,7 @@ Map<String, HoistViewModel> mapHoistViewModels(
     {required Store<AppState> store,
     required Map<String, List<CableModel>> cablesByOutletId}) {
   final getSelectionIndex = getItemSelectionIndexClosure();
+
   return store.state.fixtureState.hoists.values
       .map(
         (hoist) => selectHoistViewModel(
