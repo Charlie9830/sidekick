@@ -3,6 +3,7 @@ import 'package:redux/redux.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/state/app_state.dart';
+import 'package:sidekick/slotted_list/attempt2.dart';
 
 class TheLab extends StatefulWidget {
   const TheLab({super.key});
@@ -38,7 +39,7 @@ class _TheLabState extends State<TheLab> {
               ],
             ),
           ],
-          child: const Center(child: Text('Nothing here, go away')),
+          child: ListTester(),
         );
       },
     );
