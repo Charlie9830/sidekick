@@ -29,23 +29,20 @@ class HoistsContainer extends StatelessWidget {
           cablesByOutletId: cablesByOutletId,
         );
 
-        final assignableItems = hoistVmMap.map(
-          (key, value) => MapEntry(
-            key,
+        final assignableItems =
+            Map<String, AssignableItem<String, HoistViewModel>>.fromEntries(
+                hoistVmMap.entries.map(
+          (entry) => MapEntry(
+            entry.key,
             AssignableItem<String, HoistViewModel>(
-              id: key,
-              item: value,
-              assignedSelectionIndex: value.assignedSelectionIndex,
-              candidateSelectionIndex: value.candidateSelectionIndex,
+              id: entry.key,
+              item: entry.value,
             ),
           ),
-        );
+        ));
 
         final selectedHoistChannelVmMap =
             mapSelectedHoistChannelViewModels(store, hoistVmMap);
-
-        final hoistItems = selectLocationHoistItems(
-            context: context, hoistViewModels: hoistVmMap, store: store);
 
         final hoistControllers = selectHoistControllers(
           context: context,
@@ -55,7 +52,7 @@ class HoistsContainer extends StatelessWidget {
         );
 
         return HoistsViewModel(
-            hoistItems: hoistItems,
+            sidebarItems: selectSidebarItems(context: context, store: store),
             assignableItems: assignableItems,
             selectedHoistViewModels: Map<String, HoistViewModel>.fromEntries(
               store.state.navstate.selectedHoistIds
@@ -79,7 +76,7 @@ class HoistsContainer extends StatelessWidget {
                 store.dispatch(reorderHoists(
                   oldIndex,
                   newIndex,
-                  hoistItems,
+                  store.state.fixtureState.hoists.values.toList(),
                   context,
                 )));
       },

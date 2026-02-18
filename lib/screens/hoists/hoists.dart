@@ -20,37 +20,38 @@ class Hoists extends StatefulWidget {
 class _HoistsState extends State<Hoists> {
   @override
   Widget build(BuildContext context) {
-    return AssignableItemListController<String, HoistViewModel>(
-      items: widget.viewModel.assignableItems,
-      selectedCandidateItemIds:
-          widget.viewModel.selectedHoistViewModels.keys.toSet(),
-      selectedAssignedItemIds:
-          widget.viewModel.selectedHoistChannelViewModels.keys.toSet(),
-      onSelectedCandidateIdsChanged: (ids) =>
-          widget.viewModel.onSelectedHoistsChanged(UpdateType.overwrite, ids),
-      onSelectedAssignedIdsChanged: (ids) => widget.viewModel
-          .onSelectedHoistChannelsChanged(UpdateType.overwrite, ids),
-      child: ThreePanelScaffold(
-        toolbar: Toolbar(
-            child: Row(
-          children: [
-            SimpleTooltip(
-              message: 'Unpatch selected Motor Control channels',
-              child: IconButton.destructive(
-                icon: const Icon(Icons.clear),
-                onPressed:
-                    widget.viewModel.selectedHoistChannelViewModels.isNotEmpty
-                        ? widget.viewModel.onDeleteSelectedHoistChannels
-                        : null,
-              ),
-            ),
-          ],
-        )),
-        sidebar: Sidebar(viewModel: widget.viewModel),
-        body: MotorControllerAssignment(
-          viewModel: widget.viewModel,
-        ),
-      ),
-    );
+    return Text("Come back Later");
+    // return DefaultAssignableItemListController<String, HoistViewModel>(
+    //   items: widget.viewModel.assignableItems,
+    //   selectedCandidateItemIds:
+    //       widget.viewModel.selectedHoistViewModels.keys.toSet(),
+    //   selectedAssignedItemIds:
+    //       widget.viewModel.selectedHoistChannelViewModels.keys.toSet(),
+    //   onSelectedCandidateIdsChanged: (ids) =>
+    //       widget.viewModel.onSelectedHoistsChanged(UpdateType.overwrite, ids),
+    //   onSelectedAssignedIdsChanged: (ids) => widget.viewModel
+    //       .onSelectedHoistChannelsChanged(UpdateType.overwrite, ids),
+    //   child: ThreePanelScaffold(
+    //     toolbar: Toolbar(
+    //         child: Row(
+    //       children: [
+    //         SimpleTooltip(
+    //           message: 'Unpatch selected Motor Control channels',
+    //           child: IconButton.destructive(
+    //             icon: const Icon(Icons.clear),
+    //             onPressed:
+    //                 widget.viewModel.selectedHoistChannelViewModels.isNotEmpty
+    //                     ? widget.viewModel.onDeleteSelectedHoistChannels
+    //                     : null,
+    //           ),
+    //         ),
+    //       ],
+    //     )),
+    //     sidebar: Sidebar(viewModel: widget.viewModel),
+    //     body: MotorControllerAssignment(
+    //       viewModel: widget.viewModel,
+    //     ),
+    //   ),
+    // );
   }
 }

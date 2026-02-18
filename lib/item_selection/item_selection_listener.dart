@@ -30,12 +30,22 @@ class ItemSelectionListener<T> extends StatefulWidget {
 class _ItemSelectionListenerState<T> extends State<ItemSelectionListener<T>> {
   @override
   void didChangeDependencies() {
-    assert(ItemSelectionMessenger.maybeOf<T>(context) != null,
-        'Unable to find Ancestor [ItemSelectionMessenger]. Ensure an [ItemSelectionContainer]<$T> is provided as an Ancestor to this widget.');
+    _assertAncestorState(context);
 
     ItemSelectionMessenger.maybeOf<T>(context)
         ?.registerItemIndex(widget.itemId, widget.index);
     super.didChangeDependencies();
+  }
+
+  @override
+  void didUpdateWidget(ItemSelectionListener<T> oldWidget) {
+    if (oldWidget.index != widget.index || oldWidget.itemId != widget.itemId) {
+      _assertAncestorState(context);
+      ItemSelectionMessenger.maybeOf<T>(context)
+          ?.registerItemIndex(widget.itemId, widget.index);
+    }
+
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -54,5 +64,10 @@ class _ItemSelectionListenerState<T> extends State<ItemSelectionListener<T>> {
               : null,
       child: widget.child,
     );
+  }
+
+  void _assertAncestorState(BuildContext context) {
+    assert(ItemSelectionMessenger.maybeOf<T>(context) != null,
+        'Unable to find Ancestor [ItemSelectionMessenger]. Ensure an [ItemSelectionContainer]<$T> is provided as an Ancestor to this widget.');
   }
 }

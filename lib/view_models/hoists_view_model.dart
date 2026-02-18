@@ -8,7 +8,7 @@ import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/slotted_list/attempt2.dart';
 
 class HoistsViewModel {
-  final List<HoistItemBase> hoistItems;
+  final List<HoistSidebarLocation> sidebarItems;
   final Map<String, AssignableItem<String, HoistViewModel>> assignableItems;
   final Map<String, HoistViewModel> selectedHoistViewModels;
   final void Function(UpdateType type, Set<String> items)
@@ -23,8 +23,8 @@ class HoistsViewModel {
   final void Function(int oldIndex, int newIndex) onHoistReorder;
 
   HoistsViewModel({
-    required this.hoistItems,
     required this.assignableItems,
+    required this.sidebarItems,
     required this.selectedHoistViewModels,
     required this.onSelectedHoistsChanged,
     required this.hoistControllers,
@@ -37,11 +37,17 @@ class HoistsViewModel {
   });
 }
 
-sealed class HoistItemBase {}
+class HoistSidebarLocation {
+  final HoistLocationViewModel locationVm;
+  final List<String> associatedHoistIds;
 
-class HoistViewModel extends HoistItemBase
-    with DiffComparable
-    implements ModelCollectionMember {
+  HoistSidebarLocation({
+    required this.locationVm,
+    required this.associatedHoistIds,
+  });
+}
+
+class HoistViewModel with DiffComparable implements ModelCollectionMember {
   final HoistModel hoist;
   final void Function() onDelete;
   final void Function(String value) onNameChanged;
@@ -52,8 +58,8 @@ class HoistViewModel extends HoistItemBase
   final String multi;
   final String patch;
   final bool hasRootCable;
-  final int candidateSelectionIndex;
   final int? assignedSelectionIndex;
+  final int reorderableIndex;
 
   @override
   String get uid => hoist.uid;
@@ -69,9 +75,26 @@ class HoistViewModel extends HoistItemBase
     required this.patch,
     required this.onNoteChanged,
     required this.hasRootCable,
-    required this.candidateSelectionIndex,
     required this.assignedSelectionIndex,
+    this.reorderableIndex = 0,
   });
+
+  HoistViewModel withReorderableIndex(int index) {
+    return HoistViewModel(
+      hoist: hoist,
+      onDelete: onDelete,
+      onNameChanged: onNameChanged,
+      locationName: locationName,
+      selected: selected,
+      assigned: assigned,
+      multi: multi,
+      patch: patch,
+      onNoteChanged: onNoteChanged,
+      hasRootCable: hasRootCable,
+      assignedSelectionIndex: assignedSelectionIndex,
+      reorderableIndex: index,
+    );
+  }
 
   @override
   Map<PropertyDeltaName, Object> getDiffValues() {
@@ -85,17 +108,19 @@ class HoistViewModel extends HoistItemBase
   }
 }
 
-class HoistLocationViewModel extends HoistItemBase with DiffComparable {
+class HoistLocationViewModel with DiffComparable {
   final LocationModel location;
   final void Function() onAddHoistButtonPressed;
   final void Function() onDeleteLocation;
   final void Function() onEditLocation;
+  final void Function(int oldIndex, int newIndex) onHoistReorder;
 
   HoistLocationViewModel({
     required this.location,
     required this.onAddHoistButtonPressed,
     required this.onDeleteLocation,
     required this.onEditLocation,
+    required this.onHoistReorder,
   });
 
   @override
@@ -149,7 +174,7 @@ class HoistChannelViewModel
   final bool isOverflowing;
   final void Function() onDragStarted;
   final void Function() onUnpatchHoist;
-  final int? slottedItemSelectionIndex;
+  final int? assignedSelectionIndex;
 
   HoistChannelViewModel({
     required this.number,
@@ -161,7 +186,7 @@ class HoistChannelViewModel
     required this.isOverflowing,
     required this.onDragStarted,
     required this.onUnpatchHoist,
-    required this.slottedItemSelectionIndex,
+    required this.assignedSelectionIndex,
   });
 
   @override

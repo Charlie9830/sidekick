@@ -1,15 +1,23 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/editable_text_field.dart';
-import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';
 
 class HoistItem extends StatelessWidget {
-  final HoistViewModel vm;
+  final bool assigned;
+  final String name;
+  final void Function(String newValue) onNameChanged;
+  final void Function() onDelete;
   final int reorderableIndex;
+  final bool selected;
+
   const HoistItem({
     super.key,
-    required this.vm,
     required this.reorderableIndex,
+    required this.name,
+    required this.onDelete,
+    required this.onNameChanged,
+    required this.assigned,
+    required this.selected,
   });
 
   @override
@@ -19,7 +27,7 @@ class HoistItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Container(
           height: 40,
-          color: vm.selected ? Theme.of(context).colorScheme.accent : null,
+          color: selected ? Theme.of(context).colorScheme.accent : null,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.start,
@@ -39,10 +47,10 @@ class HoistItem extends StatelessWidget {
                   style: Theme.of(context)
                       .typography
                       .mono
-                      .copyWith(color: vm.assigned ? Colors.gray : null),
-                  value: vm.hoist.name,
+                      .copyWith(color: assigned ? Colors.gray : null),
+                  value: name,
                   hintText: 'Hoist name...',
-                  onChanged: vm.onNameChanged,
+                  onChanged: onNameChanged,
                 ),
               ),
               const Spacer(),
@@ -50,7 +58,7 @@ class HoistItem extends StatelessWidget {
                 IconButton.ghost(
                   icon: const Icon(Icons.delete),
                   size: ButtonSize.small,
-                  onPressed: vm.onDelete,
+                  onPressed: onDelete,
                 )
             ],
           ),

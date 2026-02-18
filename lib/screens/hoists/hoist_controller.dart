@@ -3,16 +3,12 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/containers/diffing_screen_container.dart';
 import 'package:sidekick/diff_state_overlay.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
-import 'package:sidekick/drag_proxy/drag_proxy.dart';
 import 'package:sidekick/editable_text_field.dart';
-import 'package:sidekick/item_selection/item_selection_listener.dart';
-import 'package:sidekick/redux/models/hoist_model.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/screens/hoists/hoist_channel_content.dart';
 import 'package:sidekick/screens/hoists/hoist_controller_column_widths.dart';
 import 'package:sidekick/simple_tooltip.dart';
 import 'package:sidekick/slotted_list/attempt2.dart';
-import 'package:sidekick/slotted_list/slotted_list.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';
 
@@ -102,12 +98,10 @@ class _ChannelArea extends StatelessWidget {
         return ItemSlot<String, HoistViewModel>(
           assignedItemId: channelVm.hoist?.uid,
           slotIndex: index,
-          // feedbackConstraints:
-          //     BoxConstraints.tightFor(width: constraints.maxWidth),
-          // selectionIndex: channelVm.slottedItemSelectionIndex,
+          selectionIndex: channelVm.assignedSelectionIndex,
           slotIndexScope: viewModel.controller.uid,
           onItemsLanded: (items) {
-            channelVm.onHoistsLanded(items.map((item) => item.uid).toSet());
+            channelVm.onHoistsLanded(items.toSet());
           },
           builder: (context, assignedItem, selected) => SizedBox(
             height: 24,
@@ -124,11 +118,6 @@ class _ChannelArea extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  SizedBox(
-                      width: 60,
-                      child: Text(
-                          assignedItem?.assignedSelectionIndex.toString() ??
-                              '-')),
                   SizedBox(
                     width: HoistControllerColumnWidths.columnWidths[0],
                     child: Center(

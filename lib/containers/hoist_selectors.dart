@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/extension_methods/greater_of.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
-import 'package:sidekick/item_selection/get_item_selection_index_closure.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
@@ -21,7 +20,7 @@ List<HoistControllerViewModel> selectHoistControllers({
   final hoistsByControllerId = store.state.fixtureState.hoists.values
       .groupListsBy((hoist) => hoist.parentController.controllerId);
 
-  final getSelectionIndex = getItemSelectionIndexClosure();
+  int assignedItemSelectionIndex = 0;
 
   return store.state.fixtureState.hoistControllers.values.map((controller) {
     final childHoists = hoistsByControllerId[controller.uid] ?? [];
@@ -47,8 +46,8 @@ List<HoistControllerViewModel> selectHoistControllers({
 
           return HoistChannelViewModel(
               number: channel,
-              slottedItemSelectionIndex:
-                  hoist == null ? null : getSelectionIndex(),
+              assignedSelectionIndex:
+                  hoist == null ? null : assignedItemSelectionIndex++,
               parentControllerId: controller.uid,
               isOverflowing: channel > controller.ways,
               onDragStarted: hoist != null
@@ -74,7 +73,6 @@ List<HoistControllerViewModel> selectHoistControllers({
 
 HoistViewModel selectHoistViewModel(
     {required HoistModel hoist,
-    required int selectionIndex,
     required Store<AppState> store,
     required Map<String, List<CableModel>> cablesByOutletId}) {
   final associatedRootHoistCable = cablesByOutletId[hoist.uid]
@@ -96,7 +94,6 @@ HoistViewModel selectHoistViewModel(
 
   return HoistViewModel(
     hoist: hoist,
-    candidateSelectionIndex: selectionIndex,
     hasRootCable: associatedRootHoistCable != null,
     patch: associatedRootHoistCable == null
         ? ''
@@ -138,48 +135,45 @@ Map<String, HoistViewModel> mapSelectedHoistChannelViewModels(
 Map<String, HoistViewModel> mapHoistViewModels(
     {required Store<AppState> store,
     required Map<String, List<CableModel>> cablesByOutletId}) {
-  final getSelectionIndex = getItemSelectionIndexClosure();
-
   return store.state.fixtureState.hoists.values
       .map(
         (hoist) => selectHoistViewModel(
           hoist: hoist,
           store: store,
           cablesByOutletId: cablesByOutletId,
-          selectionIndex: getSelectionIndex(),
         ),
       )
       .toModelMap();
 }
 
-List<HoistItemBase> selectLocationHoistItems(
-    {required BuildContext context,
-    required Map<String, HoistViewModel> hoistViewModels,
-    required Store<AppState> store}) {
-  final locations = store.state.fixtureState.locations.values
-      .where((location) => location.isHybrid == false);
+List<HoistSidebarLocation> selectSidebarItems(
+    {required BuildContext context, required Store<AppState> store}) {
+  final hoistsByLocationId = store.state.fixtureState.hoists.values
+      .groupListsBy((hoist) => hoist.locationId);
 
-  final hoistViewModelsByLocationId =
-      hoistViewModels.values.groupListsBy((vm) => vm.hoist.locationId);
-
-  final value = locations
-      .map((location) => [
-            HoistLocationViewModel(
-                location: location,
-                onDeleteLocation: () =>
-                    store.dispatch(deleteLocation(context, location.uid)),
-                onAddHoistButtonPressed: () =>
-                    store.dispatch(addHoist(location.uid)),
-                onEditLocation: () =>
-                    store.dispatch(editRiggingLocation(context, location))),
-            ...hoistViewModelsByLocationId[location.uid]?.map((vm) => vm) ??
-                <HoistViewModel>[],
-          ])
-      .flattened
-      .cast<HoistItemBase>()
-      .toList();
-
-  return value;
+  return store.state.fixtureState.locations.values
+      .mapIndexed((index, location) {
+    return HoistSidebarLocation(
+        locationVm: HoistLocationViewModel(
+            location: location,
+            onHoistReorder: (oldRawIndex, newRawIndex) {
+              store.dispatch(reorderHoists(
+                  oldRawIndex + index,
+                  newRawIndex + index,
+                  store.state.fixtureState.hoists.values.toList(),
+                  context));
+            },
+            onDeleteLocation: () =>
+                store.dispatch(deleteLocation(context, location.uid)),
+            onAddHoistButtonPressed: () =>
+                store.dispatch(addHoist(location.uid)),
+            onEditLocation: () =>
+                store.dispatch(editRiggingLocation(context, location))),
+        associatedHoistIds: hoistsByLocationId[location.uid]
+                ?.map((hoist) => hoist.uid)
+                .toList() ??
+            []);
+  }).toList();
 }
 
 Map<String, int> mapAssignedHoistSelectionIndexes(
