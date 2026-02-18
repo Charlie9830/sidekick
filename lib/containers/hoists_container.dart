@@ -7,7 +7,7 @@ import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/hoists/hoist_item.dart';
 import 'package:sidekick/screens/hoists/hoists.dart';
-import 'package:sidekick/slotted_list/attempt2.dart';
+import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
 
 import 'package:sidekick/view_models/hoists_view_model.dart';
 

@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sidekick/item_selection/item_selection_messenger.dart';
-import 'package:sidekick/slotted_list/attempt2.dart';
+import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
 
 enum UpdateType {
   overwrite,

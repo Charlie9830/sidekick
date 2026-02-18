@@ -6,7 +6,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:sidekick/redux/actions/async_actions.dart';
 import 'package:sidekick/redux/state/app_state.dart';
-import 'package:sidekick/slotted_list/attempt2.dart';
+import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
 
 class TheLab extends StatefulWidget {
   const TheLab({super.key});
@@ -119,7 +119,7 @@ class _TheLabState extends State<TheLab> {
                               Expanded(
                                 child: AvailableItem<String, Item>(
                                   id: itemId,
-                                  fallbackController: _listController,
+                                  controller: _listController,
                                   builder: (context, item, isSelected) {
                                     return Container(
                                         height: 32,

@@ -4,7 +4,7 @@ import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/screens/hoists/motor_control_assignment.dart';
 import 'package:sidekick/screens/hoists/sidebar.dart';
 import 'package:sidekick/simple_tooltip.dart';
-import 'package:sidekick/slotted_list/attempt2.dart';
+import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
 import 'package:sidekick/three_panel_scaffold.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:sidekick/widgets/toolbar.dart';

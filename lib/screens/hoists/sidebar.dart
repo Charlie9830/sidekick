@@ -1,7 +1,7 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/screens/hoists/hoist_item.dart';
 import 'package:sidekick/screens/hoists/hoist_location_item.dart';
-import 'package:sidekick/slotted_list/attempt2.dart';
+import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
 
 const double _kSidebarWidth = 360;

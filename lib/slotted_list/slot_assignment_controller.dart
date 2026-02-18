@@ -86,6 +86,15 @@ class SlotAssignmentScope<K, V> extends StatefulWidget {
     required this.child,
   });
 
+  static SlotAssignmentController<K, V> of<K, V>(BuildContext context) {
+    final scope = context
+        .dependOnInheritedWidgetOfExactType<_SlotAssignmentInherited<K, V>>();
+
+    assert(scope != null, 'No SlotAssignmentScope found in context');
+
+    return scope!.controller;
+  }
+
   @override
   State<SlotAssignmentScope<K, V>> createState() =>
       _SlotAssignmentScopeState<K, V>();
@@ -101,7 +110,7 @@ class _SlotAssignmentScopeState<K, V> extends State<SlotAssignmentScope<K, V>> {
           return _wrapDragController(
             child: _wrapCandidateItemSelectionContainer(
                 child: _wrapAssignedItemSelectionContainer(
-                    child: SlotAssignmentScope2<K, V>(
+                    child: _SlotAssignmentInherited<K, V>(
               controller: widget.controller,
               child: child!,
             ))),
@@ -135,25 +144,16 @@ class _SlotAssignmentScopeState<K, V> extends State<SlotAssignmentScope<K, V>> {
   }
 }
 
-class SlotAssignmentScope2<K, V> extends InheritedWidget {
+class _SlotAssignmentInherited<K, V> extends InheritedWidget {
   final SlotAssignmentController<K, V> controller;
-  const SlotAssignmentScope2({
+  const _SlotAssignmentInherited({
     super.key,
     required super.child,
     required this.controller,
   });
 
-  static SlotAssignmentScope2<K, V>? maybeOf<K, V>(BuildContext context) {
-    if (context.mounted == false) {
-      return null;
-    }
-
-    return context
-        .dependOnInheritedWidgetOfExactType<SlotAssignmentScope2<K, V>>();
-  }
-
   @override
-  bool updateShouldNotify(covariant SlotAssignmentScope2 oldWidget) {
+  bool updateShouldNotify(covariant _SlotAssignmentInherited oldWidget) {
     return oldWidget.controller != controller;
   }
 }
@@ -165,21 +165,19 @@ class AvailableItem<K, V> extends StatelessWidget {
   final K id;
   final int selectionIndex;
   final ItemBuilder<K, V> builder;
-  final SlotAssignmentController<K, V>? fallbackController;
+  final SlotAssignmentController<K, V>? controller;
 
   const AvailableItem({
     super.key,
     required this.id,
     required this.builder,
     required this.selectionIndex,
-    this.fallbackController,
+    this.controller,
   });
 
   @override
   Widget build(BuildContext context) {
-    final listController =
-        SlotAssignmentScope2.maybeOf<K, V>(context)?.controller ??
-            fallbackController!;
+    final listController = controller ?? SlotAssignmentScope.of<K, V>(context);
 
     return ListenableBuilder(
         listenable: listController,
@@ -265,7 +263,7 @@ class Slot<K, V> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = SlotAssignmentScope2.maybeOf<K, V>(context)!.controller;
+    final controller = SlotAssignmentScope.of<K, V>(context);
     return ListenableBuilder(
         listenable: controller,
         builder: (context, _) {
