@@ -95,7 +95,7 @@ class _ChannelArea extends StatelessWidget {
     return LayoutBuilder(builder: (context, constraints) {
       return Column(
           children: viewModel.channels.mapIndexed((index, channelVm) {
-        return ItemSlot<String, HoistViewModel>(
+        return Slot<String, HoistViewModel>(
           assignedItemId: channelVm.hoist?.uid,
           slotIndex: index,
           selectionIndex: channelVm.assignedSelectionIndex,

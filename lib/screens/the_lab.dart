@@ -18,7 +18,7 @@ class TheLab extends StatefulWidget {
 class _TheLabState extends State<TheLab> {
   late Map<String, ItemContainer> _containers;
   late Map<String, Item> _items;
-  late final AssignableItemListController<String, Item> _listController;
+  late final SlotAssignmentController<String, Item> _listController;
 
   @override
   void initState() {
@@ -44,8 +44,8 @@ class _TheLabState extends State<TheLab> {
       ]),
     };
 
-    _listController = AssignableItemListController<String, Item>(
-      items: _toAssignableItems(_items),
+    _listController = SlotAssignmentController<String, Item>(
+      itemsById: _toAssignableItems(_items),
     );
 
     super.initState();
@@ -59,7 +59,7 @@ class _TheLabState extends State<TheLab> {
       ),
       builder: (context, viewModel) {
         final containers = _containers.values.toList();
-        final itemKeys = _listController.items.keys.toList();
+        final itemKeys = _listController.itemsById.keys.toList();
 
         return Scaffold(
             headers: [
@@ -75,7 +75,7 @@ class _TheLabState extends State<TheLab> {
                 ],
               ),
             ],
-            child: DefaultAssignableItemListController<String, Item>(
+            child: SlotAssignmentScope<String, Item>(
               controller: _listController,
               child: Row(
                 children: [
@@ -101,7 +101,7 @@ class _TheLabState extends State<TheLab> {
                           });
 
                           _listController
-                              .updateItems(_toAssignableItems(updatedItems));
+                              .setItems(_toAssignableItems(updatedItems));
                         },
                         itemBuilder: (context, index) {
                           final itemId = itemKeys[index];
@@ -117,7 +117,7 @@ class _TheLabState extends State<TheLab> {
                                 ),
                               ),
                               Expanded(
-                                child: CandidateDelegate<String, Item>(
+                                child: AvailableItem<String, Item>(
                                   id: itemId,
                                   fallbackController: _listController,
                                   builder: (context, item, isSelected) {
@@ -143,7 +143,7 @@ class _TheLabState extends State<TheLab> {
                         return Column(
                           children: itemContainer.slots
                               .mapIndexed(
-                                (index, slot) => ItemSlot<String, Item>(
+                                (index, slot) => Slot<String, Item>(
                                   onItemsLanded: (ids) {
                                     final landingIndex = slot.index;
 
@@ -214,12 +214,12 @@ class _TheLabState extends State<TheLab> {
     super.dispose();
   }
 
-  Map<String, AssignableItem<String, Item>> _toAssignableItems(
+  Map<String, ItemData<String, Item>> _toAssignableItems(
       Map<String, Item> items) {
     return items.map(
       (key, value) => MapEntry(
         key,
-        AssignableItem<String, Item>(id: key, item: value),
+        ItemData<String, Item>(id: key, item: value),
       ),
     );
   }

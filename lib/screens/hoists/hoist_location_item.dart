@@ -70,7 +70,7 @@ class HoistLocationItem extends StatelessWidget {
             primary: false,
             itemBuilder: (context, index) {
               final hoistId = associatedHoistIds[index];
-              return CandidateDelegate<String, HoistViewModel>(
+              return AvailableItem<String, HoistViewModel>(
                 key: Key(hoistId),
                 id: hoistId,
                 selectionIndex: index,
@@ -88,7 +88,7 @@ class HoistLocationItem extends StatelessWidget {
   }
 
   Widget _contentsBuilder(BuildContext context,
-      AssignableItem<String, HoistViewModel>? item, bool selected) {
+      ItemData<String, HoistViewModel>? item, bool selected) {
     if (item == null) {
       return const Text("-");
     }

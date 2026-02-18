@@ -8,107 +8,105 @@ import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
 import 'package:sidekick/item_selection/item_selection_messenger.dart';
 
-class AssignableItemListController<K, V> extends ChangeNotifier {
-  Map<K, AssignableItem<K, V>> items;
-  Set<K> selectedCandidateItemIds = {};
-  Set<K> selectedAssignedItemIds = {};
-  final void Function(Set<K> selectedCandidateIds, Set<K> selectedAssignedIds)?
+class SlotAssignmentController<K, V> extends ChangeNotifier {
+  Map<K, ItemData<K, V>> itemsById;
+  Set<K> selectedAvailableIds = {};
+  Set<K> selectedPlacedIds = {};
+  final void Function(Set<K> selectedAvailableIds, Set<K> selectedPlacedIds)?
       onSelectionChanged;
-  Set<ScopedSlotIndex> activatedSlotIndexes = {};
+  Set<SlotPosition> highlightedSlots = {};
 
-  AssignableItemListController({
-    required this.items,
+  SlotAssignmentController({
+    required this.itemsById,
     this.onSelectionChanged,
   });
 
-  void updateItems(Map<K, AssignableItem<K, V>> items) {
-    this.items = items;
+  void setItems(Map<K, ItemData<K, V>> itemsById) {
+    this.itemsById = itemsById;
     notifyListeners();
   }
 
-  void handleDragEnded() {
-    activatedSlotIndexes = {};
+  void endDrag() {
+    highlightedSlots = {};
     notifyListeners();
   }
 
-  void handleDragOver(ScopedSlotIndex slotIndex) {
+  void updateDragHover(SlotPosition slotIndex) {
     final selectedItemCount =
-        max(selectedAssignedItemIds.length, selectedCandidateItemIds.length);
+        max(selectedPlacedIds.length, selectedAvailableIds.length);
 
-    final activatedSlotIndexes = List.generate(
+    final highlightedSlotIndexes = List.generate(
         selectedItemCount,
-        (index) => ScopedSlotIndex(
+        (index) => SlotPosition(
               scope: slotIndex.scope,
               index: slotIndex.index + index,
             ));
 
-    this.activatedSlotIndexes = activatedSlotIndexes.toSet();
+    highlightedSlots = highlightedSlotIndexes.toSet();
     notifyListeners();
   }
 
-  void handleCandidateSelectionUpdated(
-      UpdateType type, Set<CandidateItemIdWrapper<K>> wrappedIds) {
+  void updateAvailableSelection(
+      UpdateType type, Set<AvailableItemIdWrapper<K>> wrappedIds) {
     final unwrappedIds = wrappedIds.map((wrapper) => wrapper.id).toSet();
     final updatedIds = switch (type) {
       UpdateType.overwrite => unwrappedIds.toSet(),
-      UpdateType.addIfAbsentElseRemove => selectedCandidateItemIds.toSet()
+      UpdateType.addIfAbsentElseRemove => selectedAvailableIds.toSet()
         ..addAllIfAbsentElseRemove(unwrappedIds)
     };
 
-    selectedAssignedItemIds = {};
-    selectedCandidateItemIds = {...updatedIds};
-    onSelectionChanged?.call(selectedCandidateItemIds, selectedAssignedItemIds);
+    selectedPlacedIds = {};
+    selectedAvailableIds = {...updatedIds};
+    onSelectionChanged?.call(selectedAvailableIds, selectedPlacedIds);
     notifyListeners();
-
-    print("Updated");
   }
 
-  void handleAssignedItemSelectionUpdated(
-      UpdateType type, Set<AssignedItemIdWrapper<K>> wrappedItemIds) {
+  void updatePlacedSelection(
+      UpdateType type, Set<PlacedItemIdWrapper<K>> wrappedItemIds) {
     final unwrappedIds = wrappedItemIds.map((wrapper) => wrapper.id).toSet();
     final updatedIds = switch (type) {
       UpdateType.overwrite => unwrappedIds.toSet(),
-      UpdateType.addIfAbsentElseRemove => selectedAssignedItemIds.toSet()
+      UpdateType.addIfAbsentElseRemove => selectedPlacedIds.toSet()
         ..addAllIfAbsentElseRemove(unwrappedIds)
     };
-    selectedAssignedItemIds = {...updatedIds};
-    selectedCandidateItemIds = {};
-    onSelectionChanged?.call(selectedCandidateItemIds, selectedAssignedItemIds);
+    selectedPlacedIds = {...updatedIds};
+    selectedAvailableIds = {};
+    onSelectionChanged?.call(selectedAvailableIds, selectedPlacedIds);
     notifyListeners();
   }
 }
 
-///
-/// Orchestrates Selection and Drag and Drop utilities for Decendant Assignable List Items.
-/// Accepts a Map<K, CandidateValue<K,V> where K is the type of the ID used and V is the item specific Value.
-///
-class DefaultAssignableItemListController<K, V> extends StatefulWidget {
-  final AssignableItemListController<K, V> controller;
+class SlotAssignmentScope<K, V> extends StatefulWidget {
+  final SlotAssignmentController<K, V> controller;
   final Widget child;
 
-  const DefaultAssignableItemListController({
+  const SlotAssignmentScope({
     super.key,
     required this.controller,
     required this.child,
   });
 
   @override
-  State<DefaultAssignableItemListController<K, V>> createState() =>
-      _DefaultAssignableItemListControllerState<K, V>();
+  State<SlotAssignmentScope<K, V>> createState() =>
+      _SlotAssignmentScopeState<K, V>();
 }
 
-class _DefaultAssignableItemListControllerState<K, V>
-    extends State<DefaultAssignableItemListController<K, V>> {
+class _SlotAssignmentScopeState<K, V> extends State<SlotAssignmentScope<K, V>> {
   @override
   Widget build(BuildContext context) {
-    return _wrapDragController(
-      child: _wrapCandidateItemSelectionContainer(
-          child: _wrapAssignedItemSelectionContainer(
-              child: ListControllerMessenger<K, V>(
-        controller: widget.controller,
+    return ListenableBuilder(
+        listenable: widget.controller,
         child: widget.child,
-      ))),
-    );
+        builder: (context, child) {
+          return _wrapDragController(
+            child: _wrapCandidateItemSelectionContainer(
+                child: _wrapAssignedItemSelectionContainer(
+                    child: SlotAssignmentScope2<K, V>(
+              controller: widget.controller,
+              child: child!,
+            ))),
+          );
+        });
   }
 
   Widget _wrapDragController({required Widget child}) {
@@ -116,60 +114,60 @@ class _DefaultAssignableItemListControllerState<K, V>
   }
 
   Widget _wrapCandidateItemSelectionContainer({required Widget child}) {
-    return ItemSelectionContainer<CandidateItemIdWrapper<K>>(
-      selectedItemIds: widget.controller.selectedCandidateItemIds
-          .map((id) => CandidateItemIdWrapper<K>(id))
+    return ItemSelectionContainer<AvailableItemIdWrapper<K>>(
+      selectedItemIds: widget.controller.selectedAvailableIds
+          .map((id) => AvailableItemIdWrapper<K>(id))
           .toSet(),
-      onSelectionUpdated: widget.controller.handleCandidateSelectionUpdated,
+      onSelectionUpdated: widget.controller.updateAvailableSelection,
       child: child,
     );
   }
 
   Widget _wrapAssignedItemSelectionContainer({required Widget child}) {
-    return ItemSelectionContainer<AssignedItemIdWrapper<K>>(
+    return ItemSelectionContainer<PlacedItemIdWrapper<K>>(
       debug: true,
-      selectedItemIds: widget.controller.selectedAssignedItemIds
-          .map((id) => AssignedItemIdWrapper<K>(id))
+      selectedItemIds: widget.controller.selectedPlacedIds
+          .map((id) => PlacedItemIdWrapper<K>(id))
           .toSet(),
-      onSelectionUpdated: widget.controller.handleAssignedItemSelectionUpdated,
+      onSelectionUpdated: widget.controller.updatePlacedSelection,
       child: child,
     );
   }
 }
 
-class ListControllerMessenger<K, V> extends InheritedWidget {
-  final AssignableItemListController<K, V> controller;
-  const ListControllerMessenger({
+class SlotAssignmentScope2<K, V> extends InheritedWidget {
+  final SlotAssignmentController<K, V> controller;
+  const SlotAssignmentScope2({
     super.key,
     required super.child,
     required this.controller,
   });
 
-  static ListControllerMessenger<K, V>? maybeOf<K, V>(BuildContext context) {
+  static SlotAssignmentScope2<K, V>? maybeOf<K, V>(BuildContext context) {
     if (context.mounted == false) {
       return null;
     }
 
     return context
-        .dependOnInheritedWidgetOfExactType<ListControllerMessenger<K, V>>();
+        .dependOnInheritedWidgetOfExactType<SlotAssignmentScope2<K, V>>();
   }
 
   @override
-  bool updateShouldNotify(covariant ListControllerMessenger oldWidget) {
+  bool updateShouldNotify(covariant SlotAssignmentScope2 oldWidget) {
     return oldWidget.controller != controller;
   }
 }
 
-typedef AssignableItemBuilder<K, V> = Widget Function(
-    BuildContext context, AssignableItem<K, V>? value, bool selected);
+typedef ItemBuilder<K, V> = Widget Function(
+    BuildContext context, ItemData<K, V>? value, bool selected);
 
-class CandidateDelegate<K, V> extends StatelessWidget {
+class AvailableItem<K, V> extends StatelessWidget {
   final K id;
   final int selectionIndex;
-  final AssignableItemBuilder<K, V> builder;
-  final AssignableItemListController<K, V>? fallbackController;
+  final ItemBuilder<K, V> builder;
+  final SlotAssignmentController<K, V>? fallbackController;
 
-  const CandidateDelegate({
+  const AvailableItem({
     super.key,
     required this.id,
     required this.builder,
@@ -180,16 +178,16 @@ class CandidateDelegate<K, V> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final listController =
-        ListControllerMessenger.maybeOf<K, V>(context)?.controller ??
+        SlotAssignmentScope2.maybeOf<K, V>(context)?.controller ??
             fallbackController!;
 
     return ListenableBuilder(
         listenable: listController,
         builder: (context, _) {
-          final item = listController.items[id];
+          final item = listController.itemsById[id];
 
-          final child = builder(context, item,
-              listController.selectedCandidateItemIds.contains(id));
+          final child = builder(
+              context, item, listController.selectedAvailableIds.contains(id));
           return _wrapSelectionListener(
             item: item,
             selectionIndex: selectionIndex,
@@ -206,57 +204,56 @@ class CandidateDelegate<K, V> extends StatelessWidget {
   Widget _wrapDraggable(
       {required Widget child,
       required BuildContext context,
-      required AssignableItemListController<K, V>? controller,
-      required AssignableItem<K, V>? item}) {
+      required SlotAssignmentController<K, V>? controller,
+      required ItemData<K, V>? item}) {
     if (controller == null ||
         item == null ||
         DragProxyMessenger.of(context) == null) {
       return child;
     }
 
-    return LongPressDraggableProxy<AssignableItemDragData<K>>(
+    return LongPressDraggableProxy<ItemDragData<K>>(
       feedback: SizedBox(width: 400, child: child),
-      onDragCompleted: () => controller.handleDragEnded(),
-      onDragEnd: (details) => controller.handleDragEnded(),
-      onDraggableCanceled: (vel, details) => controller.handleDragEnded(),
-      data: AssignableItemDragData(
-          itemIds: controller.selectedCandidateItemIds.toList()),
+      onDragCompleted: () => controller.endDrag(),
+      onDragEnd: (details) => controller.endDrag(),
+      onDraggableCanceled: (vel, details) => controller.endDrag(),
+      data: ItemDragData(itemIds: controller.selectedAvailableIds.toList()),
       child: child,
     );
   }
 
   Widget _wrapSelectionListener({
     required Widget child,
-    required AssignableItem? item,
+    required ItemData? item,
     required int selectionIndex,
     required BuildContext context,
   }) {
     if (item == null ||
-        ItemSelectionMessenger.maybeOf<CandidateItemIdWrapper<K>>(context) ==
+        ItemSelectionMessenger.maybeOf<AvailableItemIdWrapper<K>>(context) ==
             null) {
       return child;
     }
 
-    return ItemSelectionListener<CandidateItemIdWrapper<K>>(
-      itemId: CandidateItemIdWrapper<K>(item.id),
+    return ItemSelectionListener<AvailableItemIdWrapper<K>>(
+      itemId: AvailableItemIdWrapper<K>(item.id),
       index: selectionIndex,
       child: child,
     );
   }
 }
 
-typedef ItemSlotBuilder<K, V> = Widget Function(
-    BuildContext context, AssignableItem<K, V>? value, bool selected);
+typedef SlotBuilder<K, V> = Widget Function(
+    BuildContext context, ItemData<K, V>? value, bool selected);
 
-class ItemSlot<K, V> extends StatelessWidget {
+class Slot<K, V> extends StatelessWidget {
   final K? assignedItemId;
   final String slotIndexScope;
   final int slotIndex;
   final int? selectionIndex;
-  final AssignableItemBuilder<K, V> builder;
+  final ItemBuilder<K, V> builder;
   final void Function(List<K> itemIds) onItemsLanded;
 
-  const ItemSlot({
+  const Slot({
     super.key,
     required this.assignedItemId,
     required this.builder,
@@ -268,16 +265,16 @@ class ItemSlot<K, V> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller =
-        ListControllerMessenger.maybeOf<K, V>(context)!.controller;
+    final controller = SlotAssignmentScope2.maybeOf<K, V>(context)!.controller;
     return ListenableBuilder(
         listenable: controller,
         builder: (context, _) {
-          final item =
-              assignedItemId != null ? controller.items[assignedItemId] : null;
+          final item = assignedItemId != null
+              ? controller.itemsById[assignedItemId]
+              : null;
 
           final child = builder(context, item,
-              controller.selectedAssignedItemIds.contains(assignedItemId));
+              controller.selectedPlacedIds.contains(assignedItemId));
           return _wrapActivatedBorder(
             controller: controller,
             slotIndex: slotIndex,
@@ -300,7 +297,7 @@ class ItemSlot<K, V> extends StatelessWidget {
 
   Widget _wrapActivatedBorder(
       {required Widget child,
-      required AssignableItemListController<K, V>? controller,
+      required SlotAssignmentController<K, V>? controller,
       required String slotIndexScope,
       required int slotIndex}) {
     if (controller == null) {
@@ -308,10 +305,10 @@ class ItemSlot<K, V> extends StatelessWidget {
     }
 
     final scopedSlotIndex =
-        ScopedSlotIndex(scope: slotIndexScope, index: slotIndex);
+        SlotPosition(scope: slotIndexScope, index: slotIndex);
     return Container(
       foregroundDecoration:
-          controller.activatedSlotIndexes.contains(scopedSlotIndex)
+          controller.highlightedSlots.contains(scopedSlotIndex)
               ? BoxDecoration(border: Border.all(color: Colors.green, width: 1))
               : null,
       child: child,
@@ -320,14 +317,14 @@ class ItemSlot<K, V> extends StatelessWidget {
 
   Widget _wrapDragTarget(
       {required Widget child,
-      required AssignableItemListController<K, V>? controller}) {
-    return DragTargetProxy<AssignableItemDragData<K>>(
+      required SlotAssignmentController<K, V>? controller}) {
+    return DragTargetProxy<ItemDragData<K>>(
       onAcceptWithDetails: (details) {
         onItemsLanded(details.data.itemIds);
       },
       onWillAcceptWithDetails: (details) {
-        controller?.handleDragOver(
-            ScopedSlotIndex(scope: slotIndexScope, index: slotIndex));
+        controller?.updateDragHover(
+            SlotPosition(scope: slotIndexScope, index: slotIndex));
 
         return true;
       },
@@ -339,51 +336,50 @@ class ItemSlot<K, V> extends StatelessWidget {
 
   Widget _wrapDraggable(
       {required Widget child,
-      required AssignableItemListController<K, V>? controller,
-      required AssignableItem<K, V>? item}) {
+      required SlotAssignmentController<K, V>? controller,
+      required ItemData<K, V>? item}) {
     if (controller == null || item == null) {
       return child;
     }
 
-    return LongPressDraggableProxy<AssignableItemDragData<K>>(
+    return LongPressDraggableProxy<ItemDragData<K>>(
       feedback: SizedBox(width: 1200, child: child),
-      onDragCompleted: () => controller.handleDragEnded(),
-      onDragEnd: (details) => controller.handleDragEnded(),
-      onDraggableCanceled: (vel, details) => controller.handleDragEnded(),
-      data: AssignableItemDragData<K>(
-          itemIds: controller.selectedAssignedItemIds.toList()),
+      onDragCompleted: () => controller.endDrag(),
+      onDragEnd: (details) => controller.endDrag(),
+      onDraggableCanceled: (vel, details) => controller.endDrag(),
+      data: ItemDragData<K>(itemIds: controller.selectedPlacedIds.toList()),
       child: child,
     );
   }
 
   Widget _wrapSelectionListener(
       {required Widget child,
-      required AssignableItem? item,
+      required ItemData? item,
       required int? selectionIndex}) {
     if (item == null || selectionIndex == null) {
       return child;
     }
 
-    return ItemSelectionListener<AssignedItemIdWrapper<K>>(
-      itemId: AssignedItemIdWrapper<K>(item.id),
+    return ItemSelectionListener<PlacedItemIdWrapper<K>>(
+      itemId: PlacedItemIdWrapper<K>(item.id),
       index: selectionIndex,
       child: child,
     );
   }
 }
 
-class ScopedSlotIndex {
+class SlotPosition {
   final String scope;
   final int index;
 
-  ScopedSlotIndex({
+  SlotPosition({
     required this.scope,
     required this.index,
   });
 
   @override
   bool operator ==(Object other) {
-    return other is ScopedSlotIndex &&
+    return other is SlotPosition &&
         other.scope == scope &&
         other.index == index;
   }
@@ -392,48 +388,58 @@ class ScopedSlotIndex {
   int get hashCode => scope.hashCode ^ index.hashCode;
 }
 
-class AssignableItem<K, V> {
+class ItemData<K, V> {
   final K id;
   final V item;
 
-  AssignableItem({
+  ItemData({
     required this.id,
     required this.item,
   });
 }
 
-class CandidateItemIdWrapper<K> {
+class AvailableItemIdWrapper<K> {
   final K id;
 
-  CandidateItemIdWrapper(this.id);
+  AvailableItemIdWrapper(this.id);
 
   @override
   bool operator ==(Object other) {
-    return other is CandidateItemIdWrapper && other.id == id;
+    return other is AvailableItemIdWrapper && other.id == id;
   }
 
   @override
   int get hashCode => id.hashCode;
+
+  @override
+  String toString() {
+    return id.toString();
+  }
 }
 
-class AssignedItemIdWrapper<K> {
+class PlacedItemIdWrapper<K> {
   final K id;
 
-  AssignedItemIdWrapper(this.id);
+  PlacedItemIdWrapper(this.id);
 
   @override
   bool operator ==(Object other) {
-    return other is AssignedItemIdWrapper && other.id == id;
+    return other is PlacedItemIdWrapper && other.id == id;
   }
 
   @override
   int get hashCode => id.hashCode;
+
+  @override
+  String toString() {
+    return id.toString();
+  }
 }
 
-class AssignableItemDragData<K> {
+class ItemDragData<K> {
   final List<K> itemIds;
 
-  AssignableItemDragData({
+  ItemDragData({
     required this.itemIds,
   });
 }

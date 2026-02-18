@@ -9,7 +9,7 @@ import 'package:sidekick/slotted_list/attempt2.dart';
 
 class HoistsViewModel {
   final List<HoistSidebarLocation> sidebarItems;
-  final Map<String, AssignableItem<String, HoistViewModel>> assignableItems;
+  final Map<String, ItemData<String, HoistViewModel>> assignableItems;
   final Map<String, HoistViewModel> selectedHoistViewModels;
   final void Function(UpdateType type, Set<String> items)
       onSelectedHoistsChanged;

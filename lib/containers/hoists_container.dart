@@ -30,11 +30,11 @@ class HoistsContainer extends StatelessWidget {
         );
 
         final assignableItems =
-            Map<String, AssignableItem<String, HoistViewModel>>.fromEntries(
+            Map<String, ItemData<String, HoistViewModel>>.fromEntries(
                 hoistVmMap.entries.map(
           (entry) => MapEntry(
             entry.key,
-            AssignableItem<String, HoistViewModel>(
+            ItemData<String, HoistViewModel>(
               id: entry.key,
               item: entry.value,
             ),
