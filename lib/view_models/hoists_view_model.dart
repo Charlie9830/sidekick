@@ -20,7 +20,6 @@ class HoistsViewModel {
       onSelectedHoistChannelsChanged;
   final void Function() onDeleteSelectedHoistChannels;
   final void Function() onAddLocationButtonPressed;
-  final void Function(int oldIndex, int newIndex) onHoistReorder;
 
   HoistsViewModel({
     required this.assignableItems,
@@ -33,7 +32,6 @@ class HoistsViewModel {
     required this.onSelectedHoistChannelsChanged,
     required this.onDeleteSelectedHoistChannels,
     required this.onAddLocationButtonPressed,
-    required this.onHoistReorder,
   });
 }
 
@@ -59,7 +57,6 @@ class HoistViewModel with DiffComparable implements ModelCollectionMember {
   final String patch;
   final bool hasRootCable;
   final int? assignedSelectionIndex;
-  final int reorderableIndex;
 
   @override
   String get uid => hoist.uid;
@@ -76,25 +73,7 @@ class HoistViewModel with DiffComparable implements ModelCollectionMember {
     required this.onNoteChanged,
     required this.hasRootCable,
     required this.assignedSelectionIndex,
-    this.reorderableIndex = 0,
   });
-
-  HoistViewModel withReorderableIndex(int index) {
-    return HoistViewModel(
-      hoist: hoist,
-      onDelete: onDelete,
-      onNameChanged: onNameChanged,
-      locationName: locationName,
-      selected: selected,
-      assigned: assigned,
-      multi: multi,
-      patch: patch,
-      onNoteChanged: onNoteChanged,
-      hasRootCable: hasRootCable,
-      assignedSelectionIndex: assignedSelectionIndex,
-      reorderableIndex: index,
-    );
-  }
 
   @override
   Map<PropertyDeltaName, Object> getDiffValues() {

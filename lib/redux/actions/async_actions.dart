@@ -239,7 +239,7 @@ ThunkAction<AppState> reorderHoists(
     final item = items.removeAt(oldIndex);
     items.insert(newIndex, item);
 
-    store.dispatch(SetHoists(hoists.toModelMap()));
+    store.dispatch(SetHoists(items.toModelMap()));
   };
 }
 

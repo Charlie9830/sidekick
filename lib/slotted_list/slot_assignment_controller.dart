@@ -26,6 +26,22 @@ class SlotAssignmentController<K, V> extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setSelectedAvailableIds(Set<K> ids) {
+    selectedPlacedIds = {};
+    selectedAvailableIds = ids.toSet();
+
+    onSelectionChanged?.call(selectedAvailableIds, selectedPlacedIds);
+    notifyListeners();
+  }
+
+  void setSelectedPlacedIds(Set<K> ids) {
+    selectedPlacedIds = ids.toSet();
+    selectedAvailableIds = {};
+
+    onSelectionChanged?.call(selectedAvailableIds, selectedPlacedIds);
+    notifyListeners();
+  }
+
   void endDrag() {
     highlightedSlots.value = {};
   }

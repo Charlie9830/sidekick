@@ -29,6 +29,16 @@ class _HoistsState extends State<Hoists> {
   }
 
   @override
+  void didUpdateWidget(Hoists oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.viewModel.assignableItems !=
+        widget.viewModel.assignableItems) {
+      _assignmentController.setItems(widget.viewModel.assignableItems);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SlotAssignmentScope<String, HoistViewModel>(
       controller: _assignmentController,
@@ -48,7 +58,9 @@ class _HoistsState extends State<Hoists> {
             ),
           ],
         )),
-        sidebar: Sidebar(viewModel: widget.viewModel),
+        sidebar: Sidebar(
+            viewModel: widget.viewModel,
+            assignmentController: _assignmentController),
         body: MotorControllerAssignment(
           viewModel: widget.viewModel,
         ),

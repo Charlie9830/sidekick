@@ -151,15 +151,24 @@ List<HoistSidebarLocation> selectSidebarItems(
   final hoistsByLocationId = store.state.fixtureState.hoists.values
       .groupListsBy((hoist) => hoist.locationId);
 
+  int runningHoistCount = 0;
   return store.state.fixtureState.locations.values
       .mapIndexed((index, location) {
+    final associatedHoistIds =
+        hoistsByLocationId[location.uid]?.map((hoist) => hoist.uid).toList() ??
+            [];
+
+    runningHoistCount += associatedHoistIds.length;
+    final currentGlobalHoistOffset =
+        runningHoistCount - associatedHoistIds.length;
+
     return HoistSidebarLocation(
         locationVm: HoistLocationViewModel(
             location: location,
             onHoistReorder: (oldRawIndex, newRawIndex) {
               store.dispatch(reorderHoists(
-                  oldRawIndex + index,
-                  newRawIndex + index,
+                  oldRawIndex + currentGlobalHoistOffset,
+                  newRawIndex + currentGlobalHoistOffset,
                   store.state.fixtureState.hoists.values.toList(),
                   context));
             },
@@ -169,10 +178,7 @@ List<HoistSidebarLocation> selectSidebarItems(
                 store.dispatch(addHoist(location.uid)),
             onEditLocation: () =>
                 store.dispatch(editRiggingLocation(context, location))),
-        associatedHoistIds: hoistsByLocationId[location.uid]
-                ?.map((hoist) => hoist.uid)
-                .toList() ??
-            []);
+        associatedHoistIds: associatedHoistIds);
   }).toList();
 }
 

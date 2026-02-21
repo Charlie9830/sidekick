@@ -23,45 +23,48 @@ class HoistItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return HoverRegionBuilder(builder: (context, isHovering) {
-      return Padding(
+      return Container(
+        height: 40,
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Container(
-          height: 40,
-          color: selected ? Theme.of(context).colorScheme.accent : null,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
+        color: selected ? Theme.of(context).colorScheme.accent : null,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text(
+              reorderableIndex.toString(),
+            ),
+            SizedBox(
+              width: 148,
+              child: EditableTextField(
+                style: Theme.of(context)
+                    .typography
+                    .mono
+                    .copyWith(color: assigned ? Colors.gray : null),
+                value: name,
+                hintText: 'Hoist name...',
+                onChanged: onNameChanged,
+              ),
+            ),
+            const Spacer(),
+            if (isHovering) ...[
+              IconButton.ghost(
+                icon: const Icon(Icons.delete),
+                size: ButtonSize.small,
+                onPressed: onDelete,
+              ),
               ReorderableDragStartListener(
                 index: reorderableIndex,
                 child: const SizedBox(
                   width: 32,
                   child: Center(
-                      child: Icon(Icons.drag_handle,
-                          color: Colors.gray, size: 20)),
+                      child: Icon(
+                    Icons.drag_handle,
+                  )),
                 ),
               ),
-              SizedBox(
-                width: 148,
-                child: EditableTextField(
-                  style: Theme.of(context)
-                      .typography
-                      .mono
-                      .copyWith(color: assigned ? Colors.gray : null),
-                  value: name,
-                  hintText: 'Hoist name...',
-                  onChanged: onNameChanged,
-                ),
-              ),
-              const Spacer(),
-              if (isHovering)
-                IconButton.ghost(
-                  icon: const Icon(Icons.delete),
-                  size: ButtonSize.small,
-                  onPressed: onDelete,
-                )
-            ],
-          ),
+            ]
+          ],
         ),
       );
     });

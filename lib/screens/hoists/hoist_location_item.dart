@@ -9,21 +9,25 @@ import 'package:sidekick/widgets/hover_region.dart';
 class HoistLocationItem extends StatelessWidget {
   final HoistLocationViewModel vm;
   final List<String> associatedHoistIds;
+  final SlotAssignmentController<String, HoistViewModel> assignmentController;
+
   const HoistLocationItem({
     super.key,
     required this.vm,
     required this.associatedHoistIds,
+    required this.assignmentController,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // Location Header
         SizedBox(
           height: 48,
           child: HoverRegionBuilder(builder: (context, isHovering) {
             return Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -65,18 +69,29 @@ class HoistLocationItem extends StatelessWidget {
             );
           }),
         ),
+
+        // Location Hoists.
         ReorderableList(
+            padding: EdgeInsets.zero,
             shrinkWrap: true,
             primary: false,
+            onReorderStart: (index) {
+              final id = associatedHoistIds.elementAtOrNull(index);
+              if (id == null) {
+                return;
+              }
+
+              assignmentController.setSelectedAvailableIds({id});
+            },
             itemBuilder: (context, index) {
               final hoistId = associatedHoistIds[index];
               return AvailableItem<String, HoistViewModel>(
                 key: Key(hoistId),
+                controller: assignmentController,
                 id: hoistId,
                 selectionIndex: index,
-                builder: _contentsBuilder,
-                // feedbackConstraints:
-                //     const BoxConstraints.tightFor(width: _kSidebarWidth),
+                builder: (context, item, selected) =>
+                    _contentsBuilder(context, item, selected, index),
               );
             },
             itemCount: associatedHoistIds.length,
@@ -88,7 +103,7 @@ class HoistLocationItem extends StatelessWidget {
   }
 
   Widget _contentsBuilder(BuildContext context,
-      ItemData<String, HoistViewModel>? item, bool selected) {
+      ItemData<String, HoistViewModel>? item, bool selected, int localIndex) {
     if (item == null) {
       return const Text("-");
     }
@@ -97,7 +112,7 @@ class HoistLocationItem extends StatelessWidget {
       name: item.item.hoist.name,
       onDelete: item.item.onDelete,
       onNameChanged: item.item.onNameChanged,
-      reorderableIndex: item.item.reorderableIndex,
+      reorderableIndex: localIndex,
       selected: selected,
     );
   }

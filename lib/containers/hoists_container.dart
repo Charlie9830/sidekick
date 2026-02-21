@@ -51,34 +51,30 @@ class HoistsContainer extends StatelessWidget {
           hoistViewModels: hoistVmMap,
         );
 
+        final sidebarItems = selectSidebarItems(context: context, store: store);
+
         return HoistsViewModel(
-            sidebarItems: selectSidebarItems(context: context, store: store),
-            assignableItems: assignableItems,
-            selectedHoistViewModels: Map<String, HoistViewModel>.fromEntries(
-              store.state.navstate.selectedHoistIds
-                  .map((id) => hoistVmMap[id])
-                  .nonNulls
-                  .map((vm) => MapEntry(vm.uid, vm)),
-            ),
-            onSelectedHoistsChanged: (type, items) =>
-                store.dispatch(selectHoistOutlets(type, items)),
-            onSelectedHoistChannelsChanged: (type, items) =>
-                store.dispatch(selectHoistControllerChannels(type, items)),
-            hoistControllers: hoistControllers,
-            selectedHoistChannelViewModels: selectedHoistChannelVmMap,
-            onAddMotorController: (wayNumber) =>
-                store.dispatch(addHoistController(wayNumber)),
-            onDeleteSelectedHoistChannels: () =>
-                store.dispatch(deleteSelectedHoistChannels()),
-            onAddLocationButtonPressed: () =>
-                store.dispatch(addRiggingLocation(context)),
-            onHoistReorder: (oldIndex, newIndex) =>
-                store.dispatch(reorderHoists(
-                  oldIndex,
-                  newIndex,
-                  store.state.fixtureState.hoists.values.toList(),
-                  context,
-                )));
+          sidebarItems: sidebarItems,
+          assignableItems: assignableItems,
+          selectedHoistViewModels: Map<String, HoistViewModel>.fromEntries(
+            store.state.navstate.selectedHoistIds
+                .map((id) => hoistVmMap[id])
+                .nonNulls
+                .map((vm) => MapEntry(vm.uid, vm)),
+          ),
+          onSelectedHoistsChanged: (type, items) =>
+              store.dispatch(selectHoistOutlets(type, items)),
+          onSelectedHoistChannelsChanged: (type, items) =>
+              store.dispatch(selectHoistControllerChannels(type, items)),
+          hoistControllers: hoistControllers,
+          selectedHoistChannelViewModels: selectedHoistChannelVmMap,
+          onAddMotorController: (wayNumber) =>
+              store.dispatch(addHoistController(wayNumber)),
+          onDeleteSelectedHoistChannels: () =>
+              store.dispatch(deleteSelectedHoistChannels()),
+          onAddLocationButtonPressed: () =>
+              store.dispatch(addRiggingLocation(context)),
+        );
       },
     );
   }
