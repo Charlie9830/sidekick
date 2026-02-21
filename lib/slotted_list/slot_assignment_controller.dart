@@ -14,7 +14,7 @@ class SlotAssignmentController<K, V> extends ChangeNotifier {
   Set<K> selectedPlacedIds = {};
   final void Function(Set<K> selectedAvailableIds, Set<K> selectedPlacedIds)?
       onSelectionChanged;
-  Set<SlotPosition> highlightedSlots = {};
+  ValueNotifier<Set<SlotPosition>> highlightedSlots = ValueNotifier({});
 
   SlotAssignmentController({
     required this.itemsById,
@@ -27,8 +27,7 @@ class SlotAssignmentController<K, V> extends ChangeNotifier {
   }
 
   void endDrag() {
-    highlightedSlots = {};
-    notifyListeners();
+    highlightedSlots.value = {};
   }
 
   void updateDragHover(SlotPosition slotIndex) {
@@ -42,8 +41,7 @@ class SlotAssignmentController<K, V> extends ChangeNotifier {
               index: slotIndex.index + index,
             ));
 
-    highlightedSlots = highlightedSlotIndexes.toSet();
-    notifyListeners();
+    highlightedSlots.value = highlightedSlotIndexes.toSet();
   }
 
   void updateAvailableSelection(
@@ -304,12 +302,16 @@ class Slot<K, V> extends StatelessWidget {
 
     final scopedSlotIndex =
         SlotPosition(scope: slotIndexScope, index: slotIndex);
-    return Container(
-      foregroundDecoration:
-          controller.highlightedSlots.contains(scopedSlotIndex)
-              ? BoxDecoration(border: Border.all(color: Colors.green, width: 1))
-              : null,
+    return ValueListenableBuilder<Set<SlotPosition>>(
+      valueListenable: controller.highlightedSlots,
       child: child,
+      builder: (context, value, child) => Container(
+        foregroundDecoration: controller.highlightedSlots.value
+                .contains(scopedSlotIndex)
+            ? BoxDecoration(border: Border.all(color: Colors.green, width: 1))
+            : null,
+        child: child,
+      ),
     );
   }
 
