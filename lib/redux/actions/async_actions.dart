@@ -75,7 +75,6 @@ import 'package:sidekick/serialization/deserialize_project_file.dart';
 import 'package:sidekick/serialization/serialize_project_file.dart';
 import 'package:sidekick/toasts.dart';
 import 'package:sidekick/utils/get_uid.dart';
-import 'package:sidekick/view_models/hoists_view_model.dart';
 
 ThunkAction<AppState> addPowerRack(PowerRackTypeModel rackType) {
   return (Store<AppState> store) async {

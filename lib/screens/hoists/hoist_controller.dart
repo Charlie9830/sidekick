@@ -88,7 +88,7 @@ class _HoistControllerState extends State<HoistController> {
 
 class _ChannelArea extends StatelessWidget {
   final HoistControllerViewModel viewModel;
-  const _ChannelArea({super.key, required this.viewModel});
+  const _ChannelArea({required this.viewModel});
 
   @override
   Widget build(BuildContext context) {
@@ -149,9 +149,7 @@ class _ChannelArea extends StatelessWidget {
 }
 
 class _ChannelAreaHeader extends StatelessWidget {
-  const _ChannelAreaHeader({
-    super.key,
-  });
+  const _ChannelAreaHeader();
 
   @override
   Widget build(BuildContext context) {
@@ -213,7 +211,6 @@ class _ChannelAreaHeader extends StatelessWidget {
 
 class _TypeSelectButton extends StatelessWidget {
   const _TypeSelectButton({
-    super.key,
     required this.viewModel,
   });
 

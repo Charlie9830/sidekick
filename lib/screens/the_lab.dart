@@ -188,7 +188,7 @@ class _TheLabState extends State<TheLab> {
                                           Text('$index'),
                                           const VerticalDivider(width: 36),
                                           value == null
-                                              ? SizedBox()
+                                              ? const SizedBox()
                                               : Text(value.item.name),
                                         ],
                                       ),

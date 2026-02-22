@@ -1,5 +1,4 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:sidekick/item_selection/item_selection_container.dart';
 
 import 'package:sidekick/screens/hoists/motor_control_assignment.dart';
 import 'package:sidekick/screens/hoists/sidebar.dart';
