@@ -1,5 +1,5 @@
-import 'package:collection/collection.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/screens/racks/power_racks_assignment.dart';
 import 'package:sidekick/screens/racks/sidebar.dart';
 import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
 import 'package:sidekick/three_panel_scaffold.dart';
@@ -22,8 +22,20 @@ class _RacksState extends State<Racks> {
   void initState() {
     _assignmentController =
         SlotAssignmentController<String, PowerMultiOutletViewModel>(
-            itemsById: widget.viewModel.assignableItems);
+      itemsById: widget.viewModel.assignableItems,
+    );
+
     super.initState();
+  }
+
+  @override
+  void didUpdateWidget(Racks oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.viewModel.assignableItems !=
+        widget.viewModel.assignableItems) {
+      _assignmentController.setItems(widget.viewModel.assignableItems);
+    }
   }
 
   @override
@@ -38,7 +50,7 @@ class _RacksState extends State<Racks> {
         sidebar: Sidebar(
             viewModel: widget.viewModel,
             assignmentController: _assignmentController),
-        body: Center(child: Text("Coming Soon")),
+        body: PowerRacksAssignment(viewModel: widget.viewModel),
       ),
     );
   }

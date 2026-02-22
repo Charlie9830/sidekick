@@ -9,14 +9,12 @@ class PowerRackModel extends ModelCollectionMember {
   final String name;
   final String note;
   final String typeId;
-  final Map<int, String> assignments;
 
   PowerRackModel({
     required this.uid,
     required this.name,
     required this.note,
     required this.typeId,
-    required this.assignments,
   });
 
   PowerRackModel copyWith({
@@ -24,14 +22,12 @@ class PowerRackModel extends ModelCollectionMember {
     String? name,
     String? note,
     String? typeId,
-    Map<int, String>? assignments,
   }) {
     return PowerRackModel(
       uid: uid ?? this.uid,
       name: name ?? this.name,
       note: note ?? this.note,
       typeId: typeId ?? this.typeId,
-      assignments: assignments ?? this.assignments,
     );
   }
 
@@ -41,19 +37,16 @@ class PowerRackModel extends ModelCollectionMember {
       'name': name,
       'note': note,
       'typeId': typeId,
-      'assignments': assignments,
     };
   }
 
   factory PowerRackModel.fromMap(Map<String, dynamic> map) {
     return PowerRackModel(
-        uid: map['uid'] as String,
-        name: map['name'] as String,
-        note: map['note'] as String,
-        typeId: map['typeId'] as String,
-        assignments: Map<int, String>.from(
-          (map['assignments'] as Map<int, String>),
-        ));
+      uid: map['uid'] as String,
+      name: map['name'] as String,
+      note: map['note'] as String,
+      typeId: map['typeId'] as String,
+    );
   }
 
   String toJson() => json.encode(toMap());

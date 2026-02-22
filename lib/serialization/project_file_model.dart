@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:sidekick/extension_methods/to_model_map.dart';
+import 'package:sidekick/redux/models/built_in_power_rack_types.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
@@ -213,8 +214,9 @@ class ProjectFileModel {
           .map<PowerRackModel>(
               (x) => PowerRackModel.fromMap(x as Map<String, dynamic>))),
       powerRackTypes: List<PowerRackTypeModel>.from(
-          (map['powerRackTypes'] ?? []).map<PowerRackTypeModel>(
-              (x) => PowerRackTypeModel.fromMap(x as Map<String, dynamic>))),
+        (map['powerRackTypes'] ?? []).map<PowerRackTypeModel>(
+            (x) => PowerRackTypeModel.fromMap(x as Map<String, dynamic>)),
+      ),
     );
   }
 

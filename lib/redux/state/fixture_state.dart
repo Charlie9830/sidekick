@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:sidekick/redux/models/built_in_power_rack_types.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
@@ -79,7 +80,7 @@ class FixtureState {
         },
         powerFeeds = const {},
         powerRacks = const {},
-        powerRackTypes = const {};
+        powerRackTypes = BuiltInPowerRackTypes.types;
 
   FixtureState copyWith({
     Map<String, FixtureModel>? fixtures,

@@ -19,7 +19,6 @@ class HoistControllerModel extends ModelCollectionMember {
     String? uid,
     int? ways,
     String? name,
-    Map<int, String>? assignments,
   }) {
     return HoistControllerModel(
       uid: uid ?? this.uid,

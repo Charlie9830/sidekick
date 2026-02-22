@@ -76,14 +76,94 @@ import 'package:sidekick/serialization/serialize_project_file.dart';
 import 'package:sidekick/toasts.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
-ThunkAction<AppState> addPowerRack(PowerRackTypeModel rackType) {
+ThunkAction<AppState> assignPowerMultisToRack(
+    {required Set<String> movingOrIncomingMultiIds,
+    required int startingChannelNumber,
+    required String targetRackId}) {
   return (Store<AppState> store) async {
+    if (movingOrIncomingMultiIds.isEmpty ||
+        store.state.fixtureState.powerRacks[targetRackId] == null) {
+      return;
+    }
+
+    final rack = store.state.fixtureState.powerRacks[targetRackId];
+
+    if (rack == null) {
+      return;
+    }
+
+    final rackType = store.state.fixtureState.powerRackTypes[rack.typeId];
+
+    if (rackType == null) {
+      return;
+    }
+
+    // Collect all Multis currently assigned to this Rack.
+    final multisInRack = store.state.fixtureState.powerMultiOutlets.values
+        .where((multi) => multi.parentRack.rackId == rack.uid)
+        .toList();
+
+    // Convert assigned Multis into [IndexedSpots].
+    // Do not include any Multis that are incoming or Moving, these are going to get inserted in the next step anyway.
+    final occupiedSlots = multisInRack
+        .where((multi) => movingOrIncomingMultiIds.contains(multi.uid) == false)
+        .map((multi) =>
+            IndexedSpot<String>(multi.parentRack.channel - 1, multi.uid));
+
+    final packableList = PackableList.fromIndexedSpots(
+        occupiedSlots,
+        max(rackType.multiOutletCount,
+            PowerMultiOutletModel.getHighestChannelNumber(multisInRack) - 1));
+
+    packableList.insert(movingOrIncomingMultiIds, startingChannelNumber - 1);
+
+    final updatedPowerMultis = packableList
+        .toIndexedSpotList()
+        .where((slot) => slot.content != null)
+        .map((slot) => store.state.fixtureState.powerMultiOutlets[slot.content]!
+            .copyWith(
+                parentRack: PowerMultiRackAssignment(
+                    rackId: rack.uid, channel: slot.index + 1)));
+
+    store.dispatch(SetPowerMultiOutlets(
+        store.state.fixtureState.powerMultiOutlets.clone()
+          ..addAll(updatedPowerMultis.toModelMap())));
+  };
+}
+
+ThunkAction<AppState> addPowerRack(BuildContext context) {
+  return (Store<AppState> store) async {
+    final PowerRackTypeModel? rackType = await openShadSheet(
+      context: context,
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: const Text('Add Power Rack').large,
+            ),
+            ...store.state.fixtureState.powerRackTypes.values.map(
+              (type) => TextButton(
+                child: Text(type.name),
+                onPressed: () => Navigator.of(context).pop(type),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (rackType == null) {
+      return;
+    }
+
     final existingRacksOfType = store.state.fixtureState.powerRacks.values
         .where((rack) => rack.typeId == rackType.uid);
 
     final newRack = PowerRackModel(
       uid: getUid(),
-      assignments: const {},
       name: '${rackType.name} #${existingRacksOfType.length + 1}',
       typeId: rackType.uid,
       note: '',
@@ -215,14 +295,25 @@ ThunkAction<AppState> unpatchHoist(
 }
 
 ThunkAction<AppState> unpatchPowerMulti(
-    PowerRackModel rack, PowerMultiOutletModel multi) {
+    PowerRackModel powerRack, String? multiId) {
   return (Store<AppState> store) async {
-    store.dispatch(SetPowerRacks(store.state.fixtureState.powerRacks.clone()
-      ..update(
-          rack.uid,
-          (existing) => existing.copyWith(
-              assignments: Map<int, String>.from(existing.assignments)
-                ..removeWhere((key, value) => value == multi.uid)))));
+    if (multiId == null) {
+      return;
+    }
+
+    final multi = store.state.fixtureState.powerMultiOutlets[multiId];
+
+    if (multi == null) {
+      return;
+    }
+
+    store.dispatch(
+        SetPowerMultiOutlets(store.state.fixtureState.powerMultiOutlets.clone()
+          ..update(
+              multi.uid,
+              (existing) => existing.copyWith(
+                    parentRack: const PowerMultiRackAssignment.unassigned(),
+                  ))));
   };
 }
 
@@ -2265,150 +2356,4 @@ int _findNextAvailableSequenceNumber(List<int> sequenceNumbers) {
   }
 
   return sortedSequenceNumbers.last + 1;
-}
-
-ThunkAction<AppState> assignPowerMultisToRack(
-    {required Set<String> movingOrIncomingPowerMultiIds,
-    required int startingChannelNumber,
-    required String targetRackId}) {
-  return (Store<AppState> store) async {
-    if (movingOrIncomingPowerMultiIds.isEmpty ||
-        store.state.fixtureState.powerRacks[targetRackId] == null) {
-      return;
-    }
-
-    final movingOrIncomingPowerMultis = movingOrIncomingPowerMultiIds
-        .map((id) => store.state.fixtureState.powerMultiOutlets[id])
-        .nonNulls
-        .toList();
-
-    if (movingOrIncomingPowerMultis.isEmpty) {
-      return;
-    }
-
-    final rack = store.state.fixtureState.powerRacks[targetRackId];
-
-    if (rack == null) {
-      return;
-    }
-
-    final rackType = store.state.fixtureState.powerRackTypes[rack.typeId]!;
-
-    final childMultisByChannel = rack.assignments.map((channel, id) =>
-        MapEntry(channel, store.state.fixtureState.powerMultiOutlets[id]));
-
-    // Create a list that represents all channels currently in this controller, in their current channels, this includes unpopulated empty channels.
-    final allChannels = List.generate(
-        max(rack.assignments.length, rackType.multiOutletCount), (index) {
-      final originalMulti = childMultisByChannel[index + 1];
-      return _PowerRackChannel(
-        originalMulti: originalMulti,
-      );
-    });
-
-    final allChannelsWithPrunedMovingMultis = allChannels.map((channel) =>
-        movingOrIncomingPowerMultiIds.contains(channel.originalMulti?.uid)
-            ? _PowerRackChannel(originalMulti: null)
-            : channel);
-
-    final incomingMultisQueue =
-        Queue<PowerMultiOutletModel>.from(movingOrIncomingPowerMultis);
-
-    final startingInsertionIndex = startingChannelNumber - 1;
-    final channelAccum = allChannelsWithPrunedMovingMultis.foldIndexed(
-        _PowerChannelAccumulator(
-            channels: [],
-            carry: Queue<_PowerRackChannel>()), (index, accum, channel) {
-      if (incomingMultisQueue.isEmpty) {
-        if (accum.carry.isNotEmpty) {
-          return accum.copyWith(
-            channels: [
-              ...accum.channels,
-              accum.carry.removeFirst(),
-            ],
-            carry: accum.carry..add(channel),
-          );
-        }
-
-        if (accum.carry.isEmpty) {
-          return accum.copyWith(channels: [
-            ...accum.channels,
-            channel,
-          ]);
-        }
-      }
-
-      if (index < startingInsertionIndex) {
-        return accum.copyWith(channels: [
-          ...accum.channels,
-          channel,
-        ]);
-      } else {
-        if (channel.originalMulti == null) {
-          return accum.copyWith(channels: [
-            ...accum.channels,
-            _PowerRackChannel(originalMulti: incomingMultisQueue.removeFirst())
-          ]);
-        } else {
-          return accum.copyWith(
-            channels: [
-              ...accum.channels,
-              _PowerRackChannel(
-                  originalMulti: incomingMultisQueue.removeFirst())
-            ],
-            carry: accum.carry..add(channel),
-          );
-        }
-      }
-    });
-
-    final updatedChannels = [
-      ...channelAccum.channels,
-      ...channelAccum.carry,
-    ];
-
-    store.dispatch(SetPowerRacks(store.state.fixtureState.powerRacks.clone()
-      ..update(
-          targetRackId,
-          (existing) => existing.copyWith(
-              assignments: Map<int, String>.fromEntries(
-                  updatedChannels.mapIndexed((index, channel) => MapEntry(
-                      index + 1, channel.originalMulti?.uid ?? '')))))));
-  };
-}
-
-class _PowerChannelAccumulator {
-  final List<_PowerRackChannel> channels;
-  final Queue<_PowerRackChannel> carry;
-
-  _PowerChannelAccumulator({
-    required this.channels,
-    required this.carry,
-  });
-
-  _PowerChannelAccumulator copyWith({
-    List<_PowerRackChannel>? channels,
-    Queue<_PowerRackChannel>? carry,
-  }) {
-    return _PowerChannelAccumulator(
-      channels: channels ?? this.channels,
-      carry: carry ?? this.carry,
-    );
-  }
-}
-
-class _PowerRackChannel {
-  final PowerMultiOutletModel? originalMulti;
-
-  _PowerRackChannel({
-    required this.originalMulti,
-  });
-
-  _PowerRackChannel copyWith({
-    PowerMultiOutletModel? originalMulti,
-  }) {
-    return _PowerRackChannel(
-      originalMulti: originalMulti ?? this.originalMulti,
-    );
-  }
 }

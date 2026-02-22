@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:sidekick/redux/models/built_in_power_rack_types.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
 import 'package:path/path.dart' as p;
 
@@ -14,6 +15,12 @@ Future<ProjectFileModel> deserializeProjectFile(String path) async {
     projectData = projectData.copyWith(
         metadata: projectData.metadata
             .copyWith(projectName: p.basenameWithoutExtension(path)));
+  }
+
+  // Coerce PowerRackTypes
+  if (projectData.powerRackTypes.isEmpty) {
+    projectData = projectData.copyWith(
+        powerRackTypes: BuiltInPowerRackTypes.types.values.toList());
   }
 
   return projectData;

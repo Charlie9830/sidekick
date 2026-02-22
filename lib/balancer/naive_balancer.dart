@@ -68,6 +68,7 @@ class NaiveBalancer implements Balancer {
                     0, // We will iterate through and update these once we have the full picture.
                 name: '',
                 children: [],
+                parentRack: const PowerMultiRackAssignment.unassigned(),
                 desiredSpareCircuits: 0,
               )
             : BalancerMultiOutletModel.fromMultiOutletWithoutChildren(

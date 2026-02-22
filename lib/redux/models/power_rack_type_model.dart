@@ -13,7 +13,7 @@ class PowerRackTypeModel extends ModelCollectionMember {
 
   int get multiOutletCount => (ways / multiWayDivisor).floor();
 
-  PowerRackTypeModel(
+  const PowerRackTypeModel(
       {required this.uid,
       required this.name,
       required this.ways,

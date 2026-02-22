@@ -9,6 +9,7 @@ class BalancerMultiOutletModel implements Comparable<BalancerMultiOutletModel> {
   final int number;
   final List<BalancerOutletModel> children;
   final String name;
+  final PowerMultiRackAssignment parentRack;
 
   BalancerMultiOutletModel({
     required this.uid,
@@ -17,6 +18,7 @@ class BalancerMultiOutletModel implements Comparable<BalancerMultiOutletModel> {
     this.name = '',
     required this.desiredSpareCircuits,
     required this.children,
+    required this.parentRack,
   });
 
   const BalancerMultiOutletModel.none()
@@ -25,15 +27,18 @@ class BalancerMultiOutletModel implements Comparable<BalancerMultiOutletModel> {
         name = '',
         number = 0,
         desiredSpareCircuits = 0,
-        children = const [];
+        children = const [],
+        parentRack = const PowerMultiRackAssignment.unassigned();
 
   factory BalancerMultiOutletModel.fromMultiOutletWithoutChildren(
       PowerMultiOutletModel multi) {
     return BalancerMultiOutletModel(
-        uid: multi.uid,
-        locationId: multi.locationId,
-        desiredSpareCircuits: multi.desiredSpareCircuits,
-        children: []);
+      uid: multi.uid,
+      locationId: multi.locationId,
+      desiredSpareCircuits: multi.desiredSpareCircuits,
+      children: [],
+      parentRack: multi.parentRack,
+    );
   }
 
   @override
@@ -48,6 +53,7 @@ class BalancerMultiOutletModel implements Comparable<BalancerMultiOutletModel> {
     int? number,
     List<BalancerOutletModel>? children,
     String? name,
+    PowerMultiRackAssignment? parentRack,
   }) {
     return BalancerMultiOutletModel(
       uid: uid ?? this.uid,
@@ -56,6 +62,7 @@ class BalancerMultiOutletModel implements Comparable<BalancerMultiOutletModel> {
       number: number ?? this.number,
       children: children ?? this.children,
       name: name ?? this.name,
+      parentRack: parentRack ?? this.parentRack,
     );
   }
 }

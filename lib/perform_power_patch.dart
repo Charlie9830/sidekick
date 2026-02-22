@@ -124,6 +124,7 @@ List<PowerMultiOutletModel> _balanceOutlets({
         uid: balancerMultiOutlet.uid,
         locationId: balancerMultiOutlet.locationId,
         desiredSpareCircuits: balancerMultiOutlet.desiredSpareCircuits,
+        parentRack: balancerMultiOutlet.parentRack,
         children: balancerMultiOutlet.children
             .map((balancerOutlet) => PowerOutletModel(
                 phase: balancerOutlet.phase,
