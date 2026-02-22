@@ -1,13 +1,10 @@
+import 'package:collection/collection.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:sidekick/drag_proxy/drag_proxy.dart';
-import 'package:sidekick/item_selection/item_selection_container.dart';
-import 'package:sidekick/item_selection/item_selection_listener.dart';
-import 'package:sidekick/open_shad_sheet.dart';
-import 'package:sidekick/page_storage_keys.dart';
-import 'package:sidekick/redux/models/power_rack_type_model.dart';
-import 'package:sidekick/screens/racks/power_multi_outlet_item.dart';
-import 'package:sidekick/screens/racks/power_rack.dart';
+import 'package:sidekick/screens/racks/sidebar.dart';
+import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
+import 'package:sidekick/three_panel_scaffold.dart';
 import 'package:sidekick/view_models/racks_screen_view_model.dart';
+import 'package:sidekick/widgets/toolbar.dart';
 
 class Racks extends StatefulWidget {
   final RacksScreenViewModel viewModel;
@@ -18,167 +15,30 @@ class Racks extends StatefulWidget {
 }
 
 class _RacksState extends State<Racks> {
+  late final SlotAssignmentController<String, PowerMultiOutletViewModel>
+      _assignmentController;
+
+  @override
+  void initState() {
+    _assignmentController =
+        SlotAssignmentController<String, PowerMultiOutletViewModel>(
+            itemsById: widget.viewModel.assignableItems);
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return DragProxyController(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Content
-          Expanded(
+    return SlotAssignmentScope<String, PowerMultiOutletViewModel>(
+      controller: _assignmentController,
+      child: ThreePanelScaffold(
+        toolbar: const Toolbar(
             child: Row(
-              children: [
-                _Sidebar(viewModel: widget.viewModel),
-                Expanded(
-                    child: _PowerRackAssignment(
-                  viewModel: widget.viewModel,
-                )),
-              ],
-            ),
-          )
-        ],
-      ),
-    );
-  }
-}
-
-class _PowerRackAssignment extends StatelessWidget {
-  final RacksScreenViewModel viewModel;
-  const _PowerRackAssignment({required this.viewModel});
-
-  @override
-  Widget build(BuildContext context) {
-    return ItemSelectionContainer<String>(
-      selectedItemIds: viewModel.selectedMultiOutlets.keys.toSet(),
-      onSelectionUpdated: viewModel.onSelectedPowerRackChannelsChanged,
-      child: ListView(key: motorControllersPageStorageKey, children: [
-        ...viewModel.powerRackVms
-            .map((vm) => PowerRack(viewModel: vm))
-            .toList(),
-        _PowerRackListTrailer(
-            onAddButtonPressed: () => _handleAddButtonPressed(context))
-      ]),
-    );
-  }
-
-  void _handleAddButtonPressed(BuildContext context) async {
-    final PowerRackTypeModel? rackType = await openShadSheet(
-      context: context,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: const Text('Add Power Rack').large,
-            ),
-            ...viewModel.availablePowerRackTypes.map((rack) => MenuButton(
-                  child: Text(rack.type.name),
-                  onPressed: (context) => Navigator.of(context).pop(rack.type),
-                ))
-          ],
-        ),
-      ),
-    );
-
-    if (rackType == null) {
-      return;
-    }
-
-    viewModel.onAddPowerRack(rackType);
-  }
-}
-
-const double _kSidebarWidth = 360;
-
-class _Sidebar extends StatelessWidget {
-  final RacksScreenViewModel viewModel;
-  const _Sidebar({required this.viewModel});
-
-  @override
-  Widget build(BuildContext context) {
-    return ItemSelectionContainer<String>(
-      selectedItemIds: viewModel.selectedMultiOutlets.keys.toSet(),
-      onSelectionUpdated: viewModel.onSelectedPowerMultiOutletsChanged,
-      child: SizedBox(
-        width: _kSidebarWidth,
-        child: Card(
-          borderRadius: const BorderRadius.only(
-              topLeft: Radius.zero, topRight: Radius.zero),
-          child: ListView.builder(
-            key: hoistOutletPageStorageKey,
-            itemCount: viewModel.powerOutletItems.length,
-            itemBuilder: (context, index) {
-              final item = viewModel.powerOutletItems[index];
-
-              return switch (item) {
-                PowerMultiOutletViewModel vm => ItemSelectionListener<String>(
-                    key: Key(vm.multi.uid),
-                    enabled: !vm.assigned,
-                    itemId: vm.multi.uid,
-                    child: _wrapDragProxy(
-                        PowerMultiOutletItem(
-                          vm: vm,
-                        ),
-                        !vm.assigned),
-                  ),
-                RackOutletLocationViewModel vm => Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(vm.locationName,
-                        style: Theme.of(context).typography.small),
-                  ),
-              };
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _wrapDragProxy(Widget child, bool enabled) {
-    if (enabled == false) {
-      return child;
-    }
-
-    return LongPressDraggableProxy(
-      data: PowerMultiDragData(
-          viewModels: viewModel.selectedMultiOutlets.values.toList()),
-      feedback: Opacity(
-          opacity: 0.25,
-          child: SizedBox(
-              width: _kSidebarWidth,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: viewModel.selectedMultiOutlets.values
-                    .map((multiVm) => PowerMultiOutletItem(vm: multiVm))
-                    .toList(),
-              ))),
-      child: child,
-    );
-  }
-}
-
-class PowerMultiDragData {
-  final List<PowerMultiOutletViewModel> viewModels;
-
-  PowerMultiDragData({required this.viewModels});
-}
-
-class _PowerRackListTrailer extends StatelessWidget {
-  final void Function() onAddButtonPressed;
-
-  const _PowerRackListTrailer({
-    required this.onAddButtonPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: IconButton.text(
-        onPressed: onAddButtonPressed,
-        icon: const Icon(Icons.add),
-        trailing: const Text('Add Rack'),
+          children: [],
+        )),
+        sidebar: Sidebar(
+            viewModel: widget.viewModel,
+            assignmentController: _assignmentController),
+        body: Center(child: Text("Coming Soon")),
       ),
     );
   }
