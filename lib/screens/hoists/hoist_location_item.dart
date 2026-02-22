@@ -8,13 +8,13 @@ import 'package:sidekick/widgets/hover_region.dart';
 
 class HoistLocationItem extends StatelessWidget {
   final HoistLocationViewModel vm;
-  final List<String> associatedHoistIds;
+  final List<SidebarHoistItem> childHoists;
   final SlotAssignmentController<String, HoistViewModel> assignmentController;
 
   const HoistLocationItem({
     super.key,
     required this.vm,
-    required this.associatedHoistIds,
+    required this.childHoists,
     required this.assignmentController,
   });
 
@@ -76,7 +76,7 @@ class HoistLocationItem extends StatelessWidget {
             shrinkWrap: true,
             primary: false,
             onReorderStart: (index) {
-              final id = associatedHoistIds.elementAtOrNull(index);
+              final id = childHoists.elementAtOrNull(index)?.uid;
               if (id == null) {
                 return;
               }
@@ -84,17 +84,17 @@ class HoistLocationItem extends StatelessWidget {
               assignmentController.setSelectedAvailableIds({id});
             },
             itemBuilder: (context, index) {
-              final hoistId = associatedHoistIds[index];
+              final hoistItem = childHoists[index];
               return AvailableItem<String, HoistViewModel>(
-                key: Key(hoistId),
+                key: Key(hoistItem.uid),
                 controller: assignmentController,
-                id: hoistId,
-                selectionIndex: index,
+                id: hoistItem.uid,
+                selectionIndex: hoistItem.selectionIndex,
                 builder: (context, item, selected) =>
                     _contentsBuilder(context, item, selected, index),
               );
             },
-            itemCount: associatedHoistIds.length,
+            itemCount: childHoists.length,
             onReorder: (oldRawIndex, newRawIndex) {
               vm.onHoistReorder(oldRawIndex, newRawIndex);
             })

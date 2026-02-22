@@ -31,9 +31,6 @@ class HoistItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Text(
-              reorderableIndex.toString(),
-            ),
             SizedBox(
               width: 148,
               child: EditableTextField(

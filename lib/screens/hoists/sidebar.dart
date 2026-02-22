@@ -39,7 +39,7 @@ class Sidebar extends StatelessWidget {
             return HoistLocationItem(
                 vm: item.locationVm,
                 assignmentController: assignmentController,
-                associatedHoistIds: item.associatedHoistIds);
+                childHoists: item.associatedHoists);
           },
         ),
       ),

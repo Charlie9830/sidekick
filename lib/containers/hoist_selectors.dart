@@ -151,24 +151,21 @@ List<HoistSidebarLocation> selectSidebarItems(
   final hoistsByLocationId = store.state.fixtureState.hoists.values
       .groupListsBy((hoist) => hoist.locationId);
 
-  int runningHoistCount = 0;
   return store.state.fixtureState.locations.values
-      .mapIndexed((index, location) {
-    final associatedHoistIds =
-        hoistsByLocationId[location.uid]?.map((hoist) => hoist.uid).toList() ??
-            [];
+      .foldIndexed(<HoistSidebarLocation>[], (locationIndex, accum, location) {
+    final globalIndexOffset =
+        accum.fold(0, (v, e) => v + e.associatedHoists.length);
 
-    runningHoistCount += associatedHoistIds.length;
-    final currentGlobalHoistOffset =
-        runningHoistCount - associatedHoistIds.length;
-
-    return HoistSidebarLocation(
+    return [
+      ...accum,
+      HoistSidebarLocation(
         locationVm: HoistLocationViewModel(
             location: location,
+            locationIndex: locationIndex,
             onHoistReorder: (oldRawIndex, newRawIndex) {
               store.dispatch(reorderHoists(
-                  oldRawIndex + currentGlobalHoistOffset,
-                  newRawIndex + currentGlobalHoistOffset,
+                  oldRawIndex + globalIndexOffset,
+                  newRawIndex + globalIndexOffset,
                   store.state.fixtureState.hoists.values.toList(),
                   context));
             },
@@ -178,8 +175,14 @@ List<HoistSidebarLocation> selectSidebarItems(
                 store.dispatch(addHoist(location.uid)),
             onEditLocation: () =>
                 store.dispatch(editRiggingLocation(context, location))),
-        associatedHoistIds: associatedHoistIds);
-  }).toList();
+        associatedHoists: (hoistsByLocationId[location.uid] ?? [])
+            .mapIndexed((hoistsInLocationIndex, hoist) => SidebarHoistItem(
+                uid: hoist.uid,
+                selectionIndex: globalIndexOffset + hoistsInLocationIndex))
+            .toList(),
+      )
+    ];
+  });
 }
 
 Map<String, int> mapAssignedHoistSelectionIndexes(

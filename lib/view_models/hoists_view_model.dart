@@ -37,11 +37,21 @@ class HoistsViewModel {
 
 class HoistSidebarLocation {
   final HoistLocationViewModel locationVm;
-  final List<String> associatedHoistIds;
+  final List<SidebarHoistItem> associatedHoists;
 
   HoistSidebarLocation({
     required this.locationVm,
-    required this.associatedHoistIds,
+    required this.associatedHoists,
+  });
+}
+
+class SidebarHoistItem {
+  final String uid;
+  final int selectionIndex;
+
+  SidebarHoistItem({
+    required this.uid,
+    required this.selectionIndex,
   });
 }
 
@@ -89,6 +99,7 @@ class HoistViewModel with DiffComparable implements ModelCollectionMember {
 
 class HoistLocationViewModel with DiffComparable {
   final LocationModel location;
+  final int locationIndex;
   final void Function() onAddHoistButtonPressed;
   final void Function() onDeleteLocation;
   final void Function() onEditLocation;
@@ -96,6 +107,7 @@ class HoistLocationViewModel with DiffComparable {
 
   HoistLocationViewModel({
     required this.location,
+    required this.locationIndex,
     required this.onAddHoistButtonPressed,
     required this.onDeleteLocation,
     required this.onEditLocation,

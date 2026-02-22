@@ -11,12 +11,19 @@ class MotorControllerAssignment extends StatelessWidget {
   Widget build(BuildContext context) {
     final controllers = viewModel.hoistControllers;
 
+    final addControllerButton = _HoistControllerListTrailer(
+      onAddButtonPressed: () => _handleAddButtonPressed(context),
+    );
+
+    if (controllers.isEmpty) {
+      return addControllerButton;
+    }
+
     return ListView.builder(
         itemCount: controllers.length + 1,
         itemBuilder: (context, index) {
           if (controllers.isEmpty || index == controllers.length) {
-            return _HoistControllerListTrailer(
-                onAddButtonPressed: () => _handleAddButtonPressed(context));
+            return addControllerButton;
           }
 
           return HoistController(viewModel: controllers[index]);
