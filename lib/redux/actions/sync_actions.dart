@@ -11,11 +11,23 @@ import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/loom_model.dart';
 import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
+import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_rack_model.dart';
+import 'package:sidekick/redux/models/power_system_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
+
+class SetPowerSystemsAndFeeds {
+  final Map<String, PowerSystemModel> systems;
+  final Map<String, PowerFeedModel> powerFeeds;
+
+  SetPowerSystemsAndFeeds({
+    required this.systems,
+    required this.powerFeeds,
+  });
+}
 
 class SetPowerRacks {
   final Map<String, PowerRackModel> racks;

@@ -16,6 +16,10 @@ import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
+  if (a is SetPowerSystemsAndFeeds) {
+    return state.copyWith(powerSystems: a.systems, powerFeeds: a.powerFeeds);
+  }
+
   if (a is SetPowerRacks) {
     return state.copyWith(
       powerRacks: a.racks,

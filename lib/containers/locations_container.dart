@@ -39,7 +39,7 @@ class LocationsContainer extends StatelessWidget {
 
   List<PowerSystemViewModel> _selectPowerSystems(Store<AppState> store) {
     return store.state.fixtureState.powerSystems.values
-        .map((system) => PowerSystemViewModel(system: system))
+        .map((system) => PowerSystemViewModel(system: system, childFeeds: []))
         .toList();
   }
 

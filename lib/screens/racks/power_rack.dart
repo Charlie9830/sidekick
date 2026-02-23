@@ -6,10 +6,9 @@ import 'package:sidekick/editable_text_field.dart';
 import 'package:sidekick/screens/hoists/hoist_controller_column_widths.dart';
 import 'package:sidekick/screens/racks/power_multi_channel_content.dart';
 import 'package:sidekick/screens/racks/power_multi_column_widths.dart';
-import 'package:sidekick/simple_tooltip.dart';
 import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
+import 'package:sidekick/view_models/power_system_view_model.dart';
 import 'package:sidekick/view_models/racks_screen_view_model.dart';
-import 'package:sidekick/widgets/hover_region.dart';
 
 class PowerRack extends StatefulWidget {
   final PowerRackViewModel viewModel;
@@ -31,38 +30,8 @@ class _PowerRackState extends State<PowerRack> {
       child: Card(
           child: Column(
         children: [
-          // Controller Header
-          HoverRegionBuilder(builder: (context, isHovering) {
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SizedBox(
-                  width: 360,
-                  child: EditableTextField(
-                    onChanged: (newValue) =>
-                        widget.viewModel.onNameChanged(newValue),
-                    value: widget.viewModel.rack.name,
-                    style: Theme.of(context).typography.large.copyWith(
-                        color: widget.viewModel.hasOverflowed
-                            ? Colors.amber
-                            : null),
-                  ),
-                ),
-                const Spacer(),
-                if (isHovering)
-                  SimpleTooltip(
-                    message: "Delete controller",
-                    child: IconButton.destructive(
-                      size: ButtonSize.small,
-                      icon: const Icon(Icons.delete),
-                      onPressed: widget.viewModel.onDelete,
-                    ),
-                  ),
-                const SizedBox(width: 8.0),
-                _TypeSelectButton(viewModel: widget.viewModel),
-              ],
-            );
-          }),
+          // Rack Header
+          _RackHeader(viewModel: widget.viewModel),
 
           const SizedBox(height: 8),
           const _ChannelAreaHeader(),
@@ -72,6 +41,192 @@ class _PowerRackState extends State<PowerRack> {
           ),
         ],
       )),
+    );
+  }
+}
+
+class _RackHeader extends StatelessWidget {
+  final PowerRackViewModel viewModel;
+
+  const _RackHeader({
+    super.key,
+    required this.viewModel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        SizedBox(
+          width: 360,
+          child: EditableTextField(
+            onChanged: (newValue) => viewModel.onNameChanged(newValue),
+            value: viewModel.rack.name,
+            style: Theme.of(context)
+                .typography
+                .large
+                .copyWith(color: viewModel.hasOverflowed ? Colors.amber : null),
+          ),
+        ),
+        const Spacer(),
+        _PowerFeedCard(
+          vm: viewModel.powerFeed,
+          availablePowerSystems: viewModel.availablePowerSystems,
+          onPowerFeedSelected: (id) => viewModel.onPowerFeedSelected(id),
+          onManagePowerSystemsButtonPressed: () =>
+              viewModel.onManagePowerSystems(),
+        ),
+        Builder(builder: (context) {
+          return IconButton.ghost(
+            icon: const Icon(Icons.more_vert),
+            onPressed: () => showDropdown(
+              context: context,
+              builder: (context) => DropdownMenu(
+                children: [
+                  MenuButton(
+                    subMenu: viewModel.availableTypes
+                        .map((type) => MenuButton(
+                              trailing: viewModel.rack.typeId == type.uid
+                                  ? const Icon(Icons.check)
+                                  : null,
+                              child: Text(type.name),
+                              onPressed: (context) =>
+                                  viewModel.onTypeChanged(type.uid),
+                            ))
+                        .toList(),
+                    child: const Text('Type'),
+                  ),
+                  MenuButton(
+                    onPressed: (context) => viewModel.onManagePowerSystems(),
+                    child: const Text('Manage Power Feeds...'),
+                  ),
+                  const MenuDivider(),
+                  MenuButton(
+                    leading: const Icon(Icons.delete),
+                    child: const Text('Delete'),
+                    onPressed: (context) => viewModel.onDelete(),
+                  ),
+                ],
+              ),
+            ),
+          );
+        })
+      ],
+    );
+  }
+}
+
+class _PowerFeedCard extends StatelessWidget {
+  final PowerFeedViewModel? vm;
+  final List<PowerSystemViewModel> availablePowerSystems;
+  final void Function(String feedId) onPowerFeedSelected;
+  final void Function() onManagePowerSystemsButtonPressed;
+
+  const _PowerFeedCard({
+    super.key,
+    required this.vm,
+    required this.availablePowerSystems,
+    required this.onPowerFeedSelected,
+    required this.onManagePowerSystemsButtonPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (vm == null) {
+      return const SizedBox();
+    }
+
+    return Chip(
+      onPressed: () => _handlePressed(context),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.electrical_services, color: Colors.gray),
+              const SizedBox(width: 8.0),
+              Text(
+                vm!.feed.name,
+                style: Theme.of(context).typography.small,
+              ),
+              const SizedBox(width: 32, height: 24, child: VerticalDivider()),
+              _PowerMeter(capacity: vm!.feed.capacity, draw: vm!.draw),
+              const SizedBox(width: 32, height: 24, child: VerticalDivider()),
+              Text(vm!.parentSystemName,
+                  style: Theme.of(context).typography.small),
+              const SizedBox(width: 8.0),
+              const Icon(Icons.location_city, color: Colors.gray),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  void _handlePressed(BuildContext context) {
+    showDropdown(
+        context: context,
+        builder: (context) => DropdownMenu(children: [
+              ...availablePowerSystems
+                  .map((system) => [
+                        // System Header Button
+                        MenuLabel(
+                          leading: const Icon(Icons.location_city,
+                              color: Colors.gray),
+                          child: Text(system.system.name,
+                              style: Theme.of(context).typography.semiBold),
+                        ),
+                        ...system.childFeeds.map((feed) => MenuButton(
+                              onPressed: (context) =>
+                                  onPowerFeedSelected(feed.feed.uid),
+                              leading: feed.feed.uid == vm?.feed.uid
+                                  ? const Center(
+                                      child: Icon(
+                                      Icons.check,
+                                      size: 16,
+                                      color: Colors.green,
+                                    ))
+                                  : null,
+                              trailing: Text('${feed.feed.capacity}A',
+                                  style: Theme.of(context).typography.light),
+                              child: Text(feed.feed.name),
+                            )),
+                      ])
+                  .flattened,
+              const MenuDivider(),
+              MenuButton(
+                child: const Text("Manage Power Systems..."),
+                onPressed: (context) => onManagePowerSystemsButtonPressed(),
+              )
+            ]));
+  }
+}
+
+class _PowerMeter extends StatelessWidget {
+  final CurrentDraw draw;
+  final int capacity;
+
+  const _PowerMeter({super.key, required this.draw, required this.capacity});
+
+  @override
+  Widget build(BuildContext context) {
+    final hottest = draw.hottest;
+    final loadPercent = (hottest / capacity) * 100;
+
+    final textColor = switch (loadPercent) {
+      double.infinity => Colors.white,
+      >= 100 => Colors.red,
+      >= 75 => Colors.amber,
+      _ => Colors.white,
+    };
+
+    return Stack(
+      children: [
+        Text(
+          '${hottest.round()}A / ${capacity}A',
+          style: Theme.of(context).typography.bold.copyWith(color: textColor),
+        ),
+      ],
     );
   }
 }

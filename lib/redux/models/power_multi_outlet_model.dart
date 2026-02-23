@@ -4,12 +4,27 @@ import 'dart:convert';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
+import 'package:sidekick/view_models/racks_screen_view_model.dart';
 
 class PowerMultiOutletModel extends Outlet
     implements Comparable<PowerMultiOutletModel> {
   final int desiredSpareCircuits;
   final List<PowerOutletModel> children;
   final PowerMultiRackAssignment parentRack;
+
+  CurrentDraw get draw => children.fold(CurrentDraw(0, 0, 0), (accum, child) {
+        return accum.copyWith(
+          l1: child.multiPatch == 1 || child.multiPatch == 4
+              ? accum.l1 + child.load
+              : null,
+          l2: child.multiPatch == 2 || child.multiPatch == 5
+              ? accum.l2 + child.load
+              : null,
+          l3: child.multiPatch == 3 || child.multiPatch == 6
+              ? accum.l3 + child.load
+              : null,
+        );
+      });
 
   PowerMultiOutletModel({
     required String uid,

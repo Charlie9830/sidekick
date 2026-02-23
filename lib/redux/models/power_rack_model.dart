@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:sidekick/model_collection/model_collection_member.dart';
+import 'package:sidekick/redux/models/power_system_model.dart';
 
 class PowerRackModel extends ModelCollectionMember {
   @override
@@ -9,12 +10,14 @@ class PowerRackModel extends ModelCollectionMember {
   final String name;
   final String note;
   final String typeId;
+  final String powerFeedId;
 
   PowerRackModel({
     required this.uid,
     required this.name,
     required this.note,
     required this.typeId,
+    required this.powerFeedId,
   });
 
   PowerRackModel copyWith({
@@ -22,12 +25,14 @@ class PowerRackModel extends ModelCollectionMember {
     String? name,
     String? note,
     String? typeId,
+    String? powerFeedId,
   }) {
     return PowerRackModel(
       uid: uid ?? this.uid,
       name: name ?? this.name,
       note: note ?? this.note,
       typeId: typeId ?? this.typeId,
+      powerFeedId: powerFeedId ?? this.powerFeedId,
     );
   }
 
@@ -37,6 +42,7 @@ class PowerRackModel extends ModelCollectionMember {
       'name': name,
       'note': note,
       'typeId': typeId,
+      'powerFeedId': powerFeedId,
     };
   }
 
@@ -46,6 +52,7 @@ class PowerRackModel extends ModelCollectionMember {
       name: map['name'] as String,
       note: map['note'] as String,
       typeId: map['typeId'] as String,
+      powerFeedId: map['powerFeedId'] ?? '',
     );
   }
 

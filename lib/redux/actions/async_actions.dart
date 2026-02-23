@@ -11,7 +11,10 @@ import 'package:path/path.dart' as p;
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide IndexedSlot;
+import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_rack_type_model.dart';
+import 'package:sidekick/redux/models/power_system_model.dart';
+import 'package:sidekick/screens/locations/power_system_manager.dart';
 import 'package:sidekick/utils/packable_list.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -75,6 +78,62 @@ import 'package:sidekick/serialization/deserialize_project_file.dart';
 import 'package:sidekick/serialization/serialize_project_file.dart';
 import 'package:sidekick/toasts.dart';
 import 'package:sidekick/utils/get_uid.dart';
+
+ThunkAction<AppState> updatePowerRackFeed(String feedId, String targetRackId) {
+  return (Store<AppState> store) async {
+    final feed = store.state.fixtureState.powerFeeds[feedId];
+    final rack = store.state.fixtureState.powerRacks[targetRackId];
+
+    if (feed == null || rack == null) {
+      return;
+    }
+
+    store.dispatch(
+      SetPowerRacks(
+        store.state.fixtureState.powerRacks.clone()
+          ..update(
+            targetRackId,
+            (existing) => existing.copyWith(
+              powerFeedId: feedId,
+            ),
+          ),
+      ),
+    );
+  };
+}
+
+ThunkAction<AppState> showPowerSystemManager(BuildContext context) {
+  return (Store<AppState> store) async {
+    final result = await openShadSheet(
+      context: context,
+      builder: (context) => PowerSystemManager(
+        existingSystems: store.state.fixtureState.powerSystems.values.toList(),
+        existingPowerFeeds: store.state.fixtureState.powerFeeds.clone(),
+      ),
+    );
+
+    if (result == null || result is! PowerSystemManagerResult) {
+      return;
+    }
+
+    store.dispatch(SetPowerSystemsAndFeeds(
+        systems: result.systems, powerFeeds: result.powerFeeds));
+  };
+}
+
+ThunkAction<AppState> assignPowerRackToSystem(String systemId, String rackId) {
+  return (Store<AppState> store) async {
+    final system = store.state.fixtureState.powerSystems[systemId];
+    final rack = store.state.fixtureState.powerRacks[rackId];
+
+    if (system == null || rack == null) {
+      return;
+    }
+
+    store.dispatch(SetPowerRacks(store.state.fixtureState.powerRacks.clone()
+      ..update(rack.uid, (_) => rack.copyWith(powerFeedId: systemId))));
+  };
+}
 
 ThunkAction<AppState> assignPowerMultisToRack(
     {required Set<String> movingOrIncomingMultiIds,
@@ -166,6 +225,7 @@ ThunkAction<AppState> addPowerRack(BuildContext context) {
       uid: getUid(),
       name: '${rackType.name} #${existingRacksOfType.length + 1}',
       typeId: rackType.uid,
+      powerFeedId: const PowerFeedModel.defaultFeed().uid,
       note: '',
     );
 

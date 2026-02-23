@@ -25,6 +25,12 @@ class RacksContainer extends StatelessWidget {
         final cablesByOutletId = store.state.fixtureState.cables.values
             .groupListsBy((e) => e.outletId);
 
+        final assignedPowerMultiIds = store
+            .state.fixtureState.powerMultiOutlets.values
+            .where((multi) => multi.parentRack.isAssigned)
+            .map((multi) => multi.uid)
+            .toSet();
+
         return RacksScreenViewModel(
             assignableItems: Map<String,
                 ItemData<String, PowerMultiOutletViewModel>>.fromEntries(
@@ -35,10 +41,9 @@ class RacksContainer extends StatelessWidget {
                     id: outlet.uid,
                     item: PowerMultiOutletViewModel(
                       multi: outlet,
-                      assigned: false,
+                      assigned: assignedPowerMultiIds.contains(outlet.uid),
                       parentLocation: store
                           .state.fixtureState.locations[outlet.locationId]!,
-                      selected: false,
                       hasRootCable:
                           cablesByOutletId[outlet.uid]?.isNotEmpty ?? false,
                     ),

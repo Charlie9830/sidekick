@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:sidekick/model_collection/model_collection_member.dart';
+import 'package:sidekick/redux/models/power_system_model.dart';
 
 class PowerFeedModel extends ModelCollectionMember {
   @override
@@ -16,6 +17,14 @@ class PowerFeedModel extends ModelCollectionMember {
     required this.name,
     required this.capacity,
   });
+
+  static const kDefaultPowerFeedId = 'default-power-feed';
+
+  const PowerFeedModel.defaultFeed()
+      : uid = kDefaultPowerFeedId,
+        powerSystemId = PowerSystemModel.kDefaultPowerSystemId,
+        name = 'Feed 1',
+        capacity = 400;
 
   PowerFeedModel copyWith({
     String? uid,

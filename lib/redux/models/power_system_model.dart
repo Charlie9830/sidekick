@@ -13,13 +13,13 @@ class PowerSystemModel extends ModelCollectionMember {
     this.name = '',
   });
 
-  static const String kDefaultUid = 'default';
+  static const String kDefaultPowerSystemId = 'default';
 
   const PowerSystemModel.defaultSystem()
-      : uid = kDefaultUid,
+      : uid = kDefaultPowerSystemId,
         name = 'Default';
 
-  bool get isDefault => this == const PowerSystemModel.defaultSystem();
+  bool get isDefault => uid == kDefaultPowerSystemId;
 
   PowerSystemModel copyWith({
     String? uid,

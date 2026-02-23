@@ -19,8 +19,12 @@ class PowerRacksAssignment extends StatelessWidget {
     }
 
     return ListView.builder(
-      itemCount: racks.length,
+      itemCount: racks.length + 1,
       itemBuilder: (context, index) {
+        if (index == racks.length) {
+          return addRackButton;
+        }
+
         final rackVm = racks[index];
 
         return PowerRack(

@@ -76,9 +76,12 @@ class FixtureState {
         hoistControllers = const {},
         hoistMultis = const {},
         powerSystems = const {
-          PowerSystemModel.kDefaultUid: PowerSystemModel.defaultSystem(),
+          PowerSystemModel.kDefaultPowerSystemId:
+              PowerSystemModel.defaultSystem(),
         },
-        powerFeeds = const {},
+        powerFeeds = const {
+          PowerFeedModel.kDefaultPowerFeedId: PowerFeedModel.defaultFeed(),
+        },
         powerRacks = const {},
         powerRackTypes = BuiltInPowerRackTypes.types;
 

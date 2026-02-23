@@ -11,8 +11,7 @@ class PowerMultiOutletItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        color: vm.selected ? Theme.of(context).colorScheme.accent : null,
+    return SizedBox(
         height: 32,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
