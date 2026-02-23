@@ -13,7 +13,6 @@ import 'package:redux_thunk/redux_thunk.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide IndexedSlot;
 import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_rack_type_model.dart';
-import 'package:sidekick/redux/models/power_system_model.dart';
 import 'package:sidekick/screens/locations/power_system_manager.dart';
 import 'package:sidekick/utils/packable_list.dart';
 import 'package:url_launcher/url_launcher.dart';

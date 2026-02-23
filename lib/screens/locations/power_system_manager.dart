@@ -261,7 +261,6 @@ class _FeedItem extends StatelessWidget {
   final void Function() onDelete;
 
   const _FeedItem({
-    super.key,
     required this.name,
     required this.capacity,
     required this.onNameChanged,

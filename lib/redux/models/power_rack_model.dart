@@ -2,7 +2,6 @@
 import 'dart:convert';
 
 import 'package:sidekick/model_collection/model_collection_member.dart';
-import 'package:sidekick/redux/models/power_system_model.dart';
 
 class PowerRackModel extends ModelCollectionMember {
   @override

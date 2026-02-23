@@ -49,7 +49,6 @@ class _RackHeader extends StatelessWidget {
   final PowerRackViewModel viewModel;
 
   const _RackHeader({
-    super.key,
     required this.viewModel,
   });
 
@@ -124,7 +123,6 @@ class _PowerFeedCard extends StatelessWidget {
   final void Function() onManagePowerSystemsButtonPressed;
 
   const _PowerFeedCard({
-    super.key,
     required this.vm,
     required this.availablePowerSystems,
     required this.onPowerFeedSelected,
@@ -206,7 +204,7 @@ class _PowerMeter extends StatelessWidget {
   final CurrentDraw draw;
   final int capacity;
 
-  const _PowerMeter({super.key, required this.draw, required this.capacity});
+  const _PowerMeter({required this.draw, required this.capacity});
 
   @override
   Widget build(BuildContext context) {
@@ -332,35 +330,5 @@ class _ChannelAreaHeader extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _TypeSelectButton extends StatelessWidget {
-  const _TypeSelectButton({
-    required this.viewModel,
-  });
-
-  final PowerRackViewModel viewModel;
-
-  @override
-  Widget build(BuildContext context) {
-    return Builder(builder: (context) {
-      return OutlineButton(
-          leading: const Icon(Icons.edit),
-          size: ButtonSize.small,
-          child: const Text('Change Type'),
-          onPressed: () {
-            showDropdown(
-                context: context,
-                builder: (context) => DropdownMenu(children: [
-                      const MenuLabel(child: Text('Select Rack Type')),
-                      ...viewModel.availableTypes.map((rackType) => MenuButton(
-                            child: Text(rackType.name),
-                            onPressed: (context) =>
-                                viewModel.onTypeChanged(rackType.uid),
-                          ))
-                    ]));
-          });
-    });
   }
 }
