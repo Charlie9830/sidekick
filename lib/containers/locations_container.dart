@@ -7,7 +7,6 @@ import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/locations/locations.dart';
 import 'package:sidekick/view_models/locations_view_model.dart';
-import 'package:sidekick/view_models/power_system_view_model.dart';
 
 class LocationsContainer extends StatelessWidget {
   const LocationsContainer({Key? key}) : super(key: key);
@@ -31,16 +30,9 @@ class LocationsContainer extends StatelessWidget {
           ),
           onLocationDelimiterChanged: (locationId, newValue) => store
               .dispatch(updateLocationMultiDelimiter(locationId, newValue)),
-          powerSystemVms: _selectPowerSystems(store),
         );
       },
     );
-  }
-
-  List<PowerSystemViewModel> _selectPowerSystems(Store<AppState> store) {
-    return store.state.fixtureState.powerSystems.values
-        .map((system) => PowerSystemViewModel(system: system, childFeeds: []))
-        .toList();
   }
 
   List<LocationItemViewModel> _selectLocationItems(

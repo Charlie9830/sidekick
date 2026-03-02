@@ -10,8 +10,10 @@ import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
+import 'package:sidekick/redux/models/power_rack_model.dart';
 
 class PowerPatchResult {
   final Map<String, PowerMultiOutletModel> powerMultiOutlets;
@@ -28,6 +30,7 @@ PowerPatchResult performPowerPatch({
   required Map<String, FixtureTypeModel> fixtureTypes,
   required Map<String, PowerMultiOutletModel> powerMultiOutlets,
   required Map<String, LocationModel> locations,
+  required Map<String, PowerRackModel> powerRacks,
   required int maxSequenceBreak,
   required double balanceTolerance,
 }) {
@@ -47,11 +50,37 @@ PowerPatchResult performPowerPatch({
             MapEntry(key, BalancerLocationModel.fromLocation(value)))),
   );
 
-  final balancedMultiOutlets = _balanceOutlets(
-    unbalancedMultiOutlets: unbalancedMultiOutlets,
-    balancer: balancer,
-    balanceTolerance: balanceTolerance,
-  );
+  final unbalancedMultiOutletsByPowerFeedId =
+      unbalancedMultiOutlets.groupListsBy((outlet) {
+    final rackId = outlet.parentRack.rackId;
+
+    if (rackId.isEmpty) {
+      return const PowerFeedModel.defaultFeed().uid;
+    }
+
+    final rack = powerRacks[rackId];
+
+    if (rack == null || rack.powerFeedId.isEmpty) {
+      return const PowerFeedModel.defaultFeed().uid;
+    }
+
+    return rack.powerFeedId;
+  });
+
+  final balancedMultiOutlets = unbalancedMultiOutletsByPowerFeedId.entries
+      .map((entry) {
+        final feedId = entry
+            .key; // TODO: Keep this handy, we may use it to then lookup feed specific properties, like balance tolerance.
+        final associatedOutlets = entry.value;
+
+        return _balanceOutlets(
+          unbalancedMultiOutlets: associatedOutlets,
+          balancer: balancer,
+          balanceTolerance: balanceTolerance,
+        );
+      })
+      .flattened
+      .toList();
 
   final withDefaultMultiOutletNamesAndAssertedState = _assertPowerMultiState(
       _applyDefaultMultiOutletNames(

@@ -16,13 +16,25 @@ import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
-  if (a is SetPowerSystemsAndFeeds) {
-    return state.copyWith(powerSystems: a.systems, powerFeeds: a.powerFeeds);
+  if (a is SetPowerFeeds) {
+    return state.copyWith(powerFeeds: a.powerFeeds);
   }
 
   if (a is SetPowerRacks) {
+    final powerPatch = performPowerPatch(
+      fixtures: state.fixtures,
+      fixtureTypes: state.fixtureTypes,
+      powerMultiOutlets: state.powerMultiOutlets,
+      locations: state.locations,
+      maxSequenceBreak: state.maxSequenceBreak,
+      balanceTolerance: state.balanceTolerance,
+      powerRacks: a.racks,
+    );
+
     return state.copyWith(
       powerRacks: a.racks,
+      powerMultiOutlets: powerPatch.powerMultiOutlets,
+      fixtures: powerPatch.fixtures,
     );
   }
 
@@ -96,6 +108,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       locations: a.locations,
       maxSequenceBreak: state.maxSequenceBreak,
       balanceTolerance: state.balanceTolerance,
+      powerRacks: state.powerRacks,
     );
 
     return state.copyWith(
@@ -260,6 +273,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       locations: state.locations,
       maxSequenceBreak: state.maxSequenceBreak,
       balanceTolerance: state.balanceTolerance,
+      powerRacks: state.powerRacks,
     );
 
     return state.copyWith(
@@ -313,6 +327,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       locations: state.locations,
       maxSequenceBreak: state.maxSequenceBreak,
       balanceTolerance: state.balanceTolerance,
+      powerRacks: state.powerRacks,
     );
 
     return state.copyWith(
@@ -332,6 +347,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       locations: a.locations,
       maxSequenceBreak: state.maxSequenceBreak,
       balanceTolerance: state.balanceTolerance,
+      powerRacks: state.powerRacks,
     );
 
     return state.copyWith(
@@ -363,6 +379,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       locations: state.locations,
       maxSequenceBreak: state.maxSequenceBreak,
       balanceTolerance: state.balanceTolerance,
+      powerRacks: state.powerRacks,
     );
 
     return state.copyWith(
@@ -381,6 +398,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       locations: state.locations,
       maxSequenceBreak: state.maxSequenceBreak,
       balanceTolerance: tolerance,
+      powerRacks: state.powerRacks,
     );
 
     return state.copyWith(
@@ -401,6 +419,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       locations: state.locations,
       maxSequenceBreak: maxSequenceBreak,
       balanceTolerance: state.balanceTolerance,
+      powerRacks: state.powerRacks,
     );
 
     return state.copyWith(

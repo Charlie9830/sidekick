@@ -1,17 +1,24 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/utils/electrical_equations.dart';
 
+enum Variance {
+  normal,
+  small,
+}
+
 class BalanceGauge extends StatelessWidget {
   final double phaseALoad;
   final double phaseBLoad;
   final double phaseCLoad;
+  final Variance variance;
 
-  const BalanceGauge(
-      {Key? key,
-      required this.phaseALoad,
-      required this.phaseBLoad,
-      required this.phaseCLoad})
-      : super(key: key);
+  const BalanceGauge({
+    Key? key,
+    required this.phaseALoad,
+    required this.phaseBLoad,
+    required this.phaseCLoad,
+    this.variance = Variance.normal,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -28,24 +35,31 @@ class BalanceGauge extends StatelessWidget {
       children: [
         Text('${phaseALoad.round().toString()}A',
             style: Theme.of(context).typography.large.copyWith(
+                  fontSize: variance == Variance.small ? 14 : null,
                   color: Colors.red,
                 )),
         divider,
         Text('${phaseBLoad.round().toString()}A',
             style: Theme.of(context).typography.large.copyWith(
+                  fontSize: variance == Variance.small ? 14 : null,
                   color: Colors.white,
                 )),
         divider,
         Text('${phaseCLoad.round().toString()}A',
             style: Theme.of(context).typography.large.copyWith(
+                  fontSize: variance == Variance.small ? 14 : null,
                   color: Colors.blue,
                 )),
-        const SizedBox(width: 24),
+        SizedBox(width: variance == Variance.small ? 16 : 24),
         FocusCard(
           '${calculateNeutralCurrent(phaseALoad, phaseBLoad, phaseCLoad).floor()}A',
+          variance: variance,
         ),
         const SizedBox(width: 8),
-        FocusCard('${imbalancePercent.toString()}%'),
+        FocusCard(
+          '${imbalancePercent.toString()}%',
+          variance: variance,
+        ),
       ],
     );
   }
@@ -53,9 +67,11 @@ class BalanceGauge extends StatelessWidget {
 
 class FocusCard extends StatelessWidget {
   final String text;
+  final Variance variance;
 
   const FocusCard(
     this.text, {
+    this.variance = Variance.normal,
     super.key,
   });
 
@@ -63,15 +79,17 @@ class FocusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       alignment: Alignment.center,
-      width: 48,
-      height: 32,
+      width: variance == Variance.small ? 32 : 48,
+      height: variance == Variance.small ? 24 : 32,
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.all(Radius.circular(8)),
         color: Theme.of(context).colorScheme.border,
       ),
       child: Text(
         text,
-        style: Theme.of(context).typography.normal,
+        style: variance == Variance.small
+            ? Theme.of(context).typography.small
+            : Theme.of(context).typography.normal,
         textAlign: TextAlign.center,
       ),
     );

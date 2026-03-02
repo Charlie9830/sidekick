@@ -31,6 +31,9 @@ class HoistItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
+            Icon(Icons.construction,
+                size: 16, color: assigned ? Colors.gray : Colors.blue),
+            const SizedBox(width: 8),
             SizedBox(
               width: 148,
               child: EditableTextField(

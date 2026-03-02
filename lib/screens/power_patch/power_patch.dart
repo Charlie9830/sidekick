@@ -1,8 +1,11 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/page_storage_keys.dart';
+import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/screens/power_patch/balance_gauge.dart';
 import 'package:sidekick/screens/power_patch/location_row.dart';
 import 'package:sidekick/screens/power_patch/multi_outlet_row.dart';
+import 'package:sidekick/screens/power_patch/power_feeds_drawer.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';
 import 'package:sidekick/widgets/property_field.dart';
 import 'package:sidekick/widgets/toolbar.dart';
@@ -67,22 +70,36 @@ class _PowerPatchState extends State<PowerPatch> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               BalanceGauge(
-                phaseALoad: widget.vm.phaseLoad.a,
-                phaseBLoad: widget.vm.phaseLoad.b,
-                phaseCLoad: widget.vm.phaseLoad.c,
+                phaseALoad: widget.vm.totalPhaseLoad.a,
+                phaseBLoad: widget.vm.totalPhaseLoad.b,
+                phaseCLoad: widget.vm.totalPhaseLoad.c,
+              ),
+              IconButton.ghost(
+                icon: const Icon(Icons.more_horiz),
+                onPressed: widget.vm.onToggleFeedsSidebarButtonPressed,
               )
             ],
           ))
         ],
       )),
       Expanded(
-        child: ListView.builder(
-          key: powerPatchPageStorageKey,
-          itemCount: widget.vm.rows.length,
-          itemBuilder: (context, index) => _buildRow(
-            context,
-            widget.vm.rows[index],
-          ),
+        child: Row(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                key: powerPatchPageStorageKey,
+                itemCount: widget.vm.rows.length,
+                itemBuilder: (context, index) => _buildRow(
+                  context,
+                  widget.vm.rows[index],
+                ),
+              ),
+            ),
+            if (widget.vm.isFeedsDrawerOpen)
+              SizedBox(
+                  width: 400,
+                  child: Card(child: PowerFeedsDrawer(vm: widget.vm))),
+          ],
         ),
       )
     ]);

@@ -24,15 +24,15 @@ class PowerMultiItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              SizedBox(
-                width: 148,
-                child: Text(
-                  name,
-                  style: Theme.of(context)
-                      .typography
-                      .mono
-                      .copyWith(color: assigned ? Colors.gray : null),
-                ),
+              Icon(Icons.electric_bolt,
+                  size: 16, color: assigned ? Colors.gray : Colors.yellow),
+              const SizedBox(width: 8),
+              Text(
+                name,
+                style: Theme.of(context)
+                    .typography
+                    .mono
+                    .copyWith(color: assigned ? Colors.gray : null),
               ),
             ]),
       );

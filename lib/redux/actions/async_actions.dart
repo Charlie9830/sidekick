@@ -13,7 +13,7 @@ import 'package:redux_thunk/redux_thunk.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide IndexedSlot;
 import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_rack_type_model.dart';
-import 'package:sidekick/screens/locations/power_system_manager.dart';
+import 'package:sidekick/screens/locations/power_feed_manager.dart';
 import 'package:sidekick/utils/packable_list.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -101,36 +101,33 @@ ThunkAction<AppState> updatePowerRackFeed(String feedId, String targetRackId) {
   };
 }
 
-ThunkAction<AppState> showPowerSystemManager(BuildContext context) {
+ThunkAction<AppState> showPowerFeedManager(BuildContext context) {
   return (Store<AppState> store) async {
     final result = await openShadSheet(
       context: context,
-      builder: (context) => PowerSystemManager(
-        existingSystems: store.state.fixtureState.powerSystems.values.toList(),
+      builder: (context) => PowerFeedManager(
         existingPowerFeeds: store.state.fixtureState.powerFeeds.clone(),
       ),
     );
 
-    if (result == null || result is! PowerSystemManagerResult) {
+    if (result == null || result is! PowerFeedManagerResult) {
       return;
     }
 
-    store.dispatch(SetPowerSystemsAndFeeds(
-        systems: result.systems, powerFeeds: result.powerFeeds));
+    store.dispatch(SetPowerFeeds(powerFeeds: result.powerFeeds));
   };
 }
 
-ThunkAction<AppState> assignPowerRackToSystem(String systemId, String rackId) {
+ThunkAction<AppState> assignPowerRackToFeed(String feedId, String rackId) {
   return (Store<AppState> store) async {
-    final system = store.state.fixtureState.powerSystems[systemId];
     final rack = store.state.fixtureState.powerRacks[rackId];
 
-    if (system == null || rack == null) {
+    if (rack == null) {
       return;
     }
 
     store.dispatch(SetPowerRacks(store.state.fixtureState.powerRacks.clone()
-      ..update(rack.uid, (_) => rack.copyWith(powerFeedId: systemId))));
+      ..update(rack.uid, (_) => rack.copyWith(powerFeedId: feedId))));
   };
 }
 
@@ -243,7 +240,7 @@ ThunkAction<AppState> selectPowerMultiOutlets(
         store.dispatch(SetSelectedPowerMultiOutletIds(multiIds));
       case UpdateType.addIfAbsentElseRemove:
         store.dispatch(SetSelectedPowerMultiOutletIds(
-          store.state.navstate.selectedMultiPowerOutletIds.toSet()
+          store.state.navstate.selectedPowerMultiOutletIds.toSet()
             ..addAllIfAbsentElseRemove(multiIds),
         ));
     }

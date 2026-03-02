@@ -8,7 +8,6 @@ import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_rack_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
-import 'package:sidekick/view_models/power_system_view_model.dart';
 import 'package:sidekick/view_models/racks_screen_view_model.dart';
 
 List<PowerMultiSidebarLocation> selectPowerMultiSidebarItems(
@@ -38,8 +37,6 @@ List<PowerMultiSidebarLocation> selectPowerMultiSidebarItems(
 
 List<PowerRackViewModel> selectPowerRacks(
     {required BuildContext context, required Store<AppState> store}) {
-  final availablePowerSystems =
-      _selectPowerSystems(context: context, store: store);
   // Instantiate a closure to serve the Selection indexes to the individual channel.
   final getAssignedIndex = () {
     int index = 0;
@@ -56,12 +53,11 @@ List<PowerRackViewModel> selectPowerRacks(
 
     return PowerRackViewModel(
         rack: rack,
-        availablePowerSystems: availablePowerSystems,
         powerFeed: _selectPowerFeed(uid: rack.powerFeedId, store: store),
         channelVms: channelVms,
         availableTypes: store.state.fixtureState.powerRackTypes.values.toList(),
         updatePowerSystemId: (id) =>
-            store.dispatch(assignPowerRackToSystem(id, rack.uid)),
+            store.dispatch(assignPowerRackToFeed(id, rack.uid)),
         hasOverflowed: (channelVms
                     .lastIndexWhereOrNull((e) => e.assignedMultiId != null) ??
                 0) >
@@ -73,13 +69,16 @@ List<PowerRackViewModel> selectPowerRacks(
         onDelete: () => store.dispatch(deletePowerRack(context, rack)),
         onNameChanged: (value) =>
             store.dispatch(UpdatePowerRackName(rack.uid, value)),
-        onEditPowerSystems: () =>
-            store.dispatch(showPowerSystemManager(context)),
+        onEditPowerSystems: () => store.dispatch(showPowerFeedManager(context)),
         onManagePowerSystems: () => store.dispatch(
-              showPowerSystemManager(context),
+              showPowerFeedManager(context),
             ),
         onPowerFeedSelected: (feedId) =>
-            store.dispatch(updatePowerRackFeed(feedId, rack.uid)));
+            store.dispatch(updatePowerRackFeed(feedId, rack.uid)),
+        availablePowerFeeds: store.state.fixtureState.powerFeeds.values
+            .map((feed) => _selectPowerFeed(uid: feed.uid, store: store))
+            .nonNulls
+            .toList());
   }).toList();
 }
 
@@ -91,11 +90,9 @@ PowerFeedViewModel? _selectPowerFeed(
   }
 
   return PowerFeedViewModel(
-      feed: feed,
-      draw: _calculateCurrentDraw(feedId: feed.uid, store: store),
-      parentSystemName:
-          store.state.fixtureState.powerSystems[feed.powerSystemId]?.name ??
-              '');
+    feed: feed,
+    draw: _calculateCurrentDraw(feedId: feed.uid, store: store),
+  );
 }
 
 CurrentDraw _calculateCurrentDraw(
@@ -106,25 +103,6 @@ CurrentDraw _calculateCurrentDraw(
           .where((multi) => multi.parentRack.rackId == rack.uid))
       .flattened
       .fold(CurrentDraw(0, 0, 0), (accum, item) => accum.addedWith(item.draw));
-}
-
-List<PowerSystemViewModel> _selectPowerSystems(
-    {required BuildContext context, required Store<AppState> store}) {
-  final powerFeedsBySystemId = store.state.fixtureState.powerFeeds.values
-      .groupListsBy((i) => i.powerSystemId);
-
-  return store.state.fixtureState.powerSystems.values.map((system) {
-    return PowerSystemViewModel(
-        system: system,
-        childFeeds: (powerFeedsBySystemId[system.uid] ?? [])
-            .map(
-              (feed) => PowerFeedViewModel(
-                  feed: feed,
-                  draw: _calculateCurrentDraw(feedId: feed.uid, store: store),
-                  parentSystemName: system.name),
-            )
-            .toList());
-  }).toList();
 }
 
 List<PowerRackChannelViewModel> _selectChannelVms(

@@ -7,7 +7,6 @@ import 'package:sidekick/screens/hoists/hoist_controller_column_widths.dart';
 import 'package:sidekick/screens/racks/power_multi_channel_content.dart';
 import 'package:sidekick/screens/racks/power_multi_column_widths.dart';
 import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
-import 'package:sidekick/view_models/power_system_view_model.dart';
 import 'package:sidekick/view_models/racks_screen_view_model.dart';
 
 class PowerRack extends StatefulWidget {
@@ -71,8 +70,8 @@ class _RackHeader extends StatelessWidget {
         const Spacer(),
         _PowerFeedCard(
           vm: viewModel.powerFeed,
-          availablePowerSystems: viewModel.availablePowerSystems,
           onPowerFeedSelected: (id) => viewModel.onPowerFeedSelected(id),
+          availablePowerFeeds: viewModel.availablePowerFeeds,
           onManagePowerSystemsButtonPressed: () =>
               viewModel.onManagePowerSystems(),
         ),
@@ -118,15 +117,15 @@ class _RackHeader extends StatelessWidget {
 
 class _PowerFeedCard extends StatelessWidget {
   final PowerFeedViewModel? vm;
-  final List<PowerSystemViewModel> availablePowerSystems;
   final void Function(String feedId) onPowerFeedSelected;
   final void Function() onManagePowerSystemsButtonPressed;
+  final List<PowerFeedViewModel> availablePowerFeeds;
 
   const _PowerFeedCard({
     required this.vm,
-    required this.availablePowerSystems,
     required this.onPowerFeedSelected,
     required this.onManagePowerSystemsButtonPressed,
+    required this.availablePowerFeeds,
   });
 
   @override
@@ -149,11 +148,6 @@ class _PowerFeedCard extends StatelessWidget {
               ),
               const SizedBox(width: 32, height: 24, child: VerticalDivider()),
               _PowerMeter(capacity: vm!.feed.capacity, draw: vm!.draw),
-              const SizedBox(width: 32, height: 24, child: VerticalDivider()),
-              Text(vm!.parentSystemName,
-                  style: Theme.of(context).typography.small),
-              const SizedBox(width: 8.0),
-              const Icon(Icons.location_city, color: Colors.gray),
             ],
           )
         ],
@@ -165,35 +159,23 @@ class _PowerFeedCard extends StatelessWidget {
     showDropdown(
         context: context,
         builder: (context) => DropdownMenu(children: [
-              ...availablePowerSystems
-                  .map((system) => [
-                        // System Header Button
-                        MenuLabel(
-                          leading: const Icon(Icons.location_city,
-                              color: Colors.gray),
-                          child: Text(system.system.name,
-                              style: Theme.of(context).typography.semiBold),
-                        ),
-                        ...system.childFeeds.map((feed) => MenuButton(
-                              onPressed: (context) =>
-                                  onPowerFeedSelected(feed.feed.uid),
-                              leading: feed.feed.uid == vm?.feed.uid
-                                  ? const Center(
-                                      child: Icon(
-                                      Icons.check,
-                                      size: 16,
-                                      color: Colors.green,
-                                    ))
-                                  : null,
-                              trailing: Text('${feed.feed.capacity}A',
-                                  style: Theme.of(context).typography.light),
-                              child: Text(feed.feed.name),
-                            )),
-                      ])
-                  .flattened,
+              ...availablePowerFeeds.map((feed) => MenuButton(
+                    onPressed: (context) => onPowerFeedSelected(feed.feed.uid),
+                    leading: feed.feed.uid == vm?.feed.uid
+                        ? const Center(
+                            child: Icon(
+                            Icons.check,
+                            size: 16,
+                            color: Colors.green,
+                          ))
+                        : null,
+                    trailing: Text('${feed.feed.capacity}A',
+                        style: Theme.of(context).typography.light),
+                    child: Text(feed.feed.name),
+                  )),
               const MenuDivider(),
               MenuButton(
-                child: const Text("Manage Power Systems..."),
+                child: const Text("Manage Power Feeds..."),
                 onPressed: (context) => onManagePowerSystemsButtonPressed(),
               )
             ]));

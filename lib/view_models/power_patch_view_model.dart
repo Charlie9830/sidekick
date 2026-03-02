@@ -4,6 +4,7 @@ import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
@@ -13,7 +14,10 @@ class PowerPatchViewModel {
   final String balanceTolerancePercent;
   final int maxSequenceBreak;
   final String selectedMultiOutlet;
-  final PhaseLoad phaseLoad;
+  final List<FeedLoadViewModel> feedLoadings;
+  final PhaseLoad totalPhaseLoad;
+  final void Function() onToggleFeedsSidebarButtonPressed;
+  final bool isFeedsDrawerOpen;
 
   final void Function(String uid) onAddSpareOutlet;
   final void Function(String uid) onDeleteSpareOutlet;
@@ -24,7 +28,7 @@ class PowerPatchViewModel {
   PowerPatchViewModel({
     required this.selectedMultiOutlet,
     required this.rows,
-    required this.phaseLoad,
+    required this.feedLoadings,
     required this.balanceTolerancePercent,
     required this.onAddSpareOutlet,
     required this.onDeleteSpareOutlet,
@@ -32,6 +36,19 @@ class PowerPatchViewModel {
     required this.onMaxSequenceBreakChanged,
     required this.maxSequenceBreak,
     required this.onMultiOutletPressed,
+    required this.totalPhaseLoad,
+    required this.onToggleFeedsSidebarButtonPressed,
+    required this.isFeedsDrawerOpen,
+  });
+}
+
+class FeedLoadViewModel {
+  final PhaseLoad load;
+  final PowerFeedModel feed;
+
+  FeedLoadViewModel({
+    required this.load,
+    required this.feed,
   });
 }
 

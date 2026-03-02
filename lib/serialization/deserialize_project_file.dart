@@ -25,12 +25,6 @@ Future<ProjectFileModel> deserializeProjectFile(String path) async {
         powerRackTypes: BuiltInPowerRackTypes.types.values.toList());
   }
 
-  // Coerce Power Systems
-  if (projectData.powerSystems.isEmpty) {
-    projectData = projectData.copyWith(
-        powerSystems: defaultFixtureState.powerSystems.values.toList());
-  }
-
   // Coerce Power Feeds
   if (projectData.powerFeeds.isEmpty) {
     projectData = projectData.copyWith(

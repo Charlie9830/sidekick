@@ -8,7 +8,6 @@ import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_rack_model.dart';
 import 'package:sidekick/redux/models/power_rack_type_model.dart';
 import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
-import 'package:sidekick/view_models/power_system_view_model.dart';
 
 class RacksScreenViewModel {
   final Map<String, ItemData<String, PowerMultiOutletViewModel>>
@@ -66,11 +65,11 @@ class PowerRackViewModel {
   final PowerRackModel rack;
   final List<PowerRackChannelViewModel> channelVms;
   final List<PowerRackTypeModel> availableTypes;
+  final List<PowerFeedViewModel> availablePowerFeeds;
   final void Function() onDelete;
   final bool hasOverflowed;
   final void Function(String value) onNameChanged;
   final void Function(String uid) onTypeChanged;
-  final List<PowerSystemViewModel> availablePowerSystems;
   final PowerFeedViewModel? powerFeed;
   final void Function(String id) updatePowerSystemId;
   final void Function() onEditPowerSystems;
@@ -86,11 +85,11 @@ class PowerRackViewModel {
     required this.hasOverflowed,
     required this.onNameChanged,
     required this.onTypeChanged,
-    required this.availablePowerSystems,
     required this.updatePowerSystemId,
     required this.onEditPowerSystems,
     required this.onManagePowerSystems,
     required this.onPowerFeedSelected,
+    required this.availablePowerFeeds,
   });
 }
 
@@ -113,12 +112,10 @@ class PowerRackChannelViewModel {
 class PowerFeedViewModel {
   final PowerFeedModel feed;
   final CurrentDraw draw;
-  final String parentSystemName;
 
   PowerFeedViewModel({
     required this.feed,
     required this.draw,
-    required this.parentSystemName,
   });
 }
 

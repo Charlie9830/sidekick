@@ -14,8 +14,9 @@ class NavigationState {
   final bool isAvailabilityDrawerOpen;
   final Set<String> selectedHoistIds;
   final Set<String> selectedHoistChannelIds;
-  final Set<String> selectedMultiPowerOutletIds;
+  final Set<String> selectedPowerMultiOutletIds;
   final Set<String> selectedPowerMultiChannelIds;
+  final bool isFeedsDrawerOpen;
 
   NavigationState({
     required this.selectedMultiOutlet,
@@ -30,8 +31,9 @@ class NavigationState {
     required this.isAvailabilityDrawerOpen,
     required this.selectedHoistIds,
     required this.selectedHoistChannelIds,
-    required this.selectedMultiPowerOutletIds,
+    required this.selectedPowerMultiOutletIds,
     required this.selectedPowerMultiChannelIds,
+    required this.isFeedsDrawerOpen,
   });
 
   const NavigationState.initial()
@@ -47,8 +49,9 @@ class NavigationState {
         isAvailabilityDrawerOpen = false,
         selectedHoistIds = const {},
         selectedHoistChannelIds = const {},
-        selectedMultiPowerOutletIds = const {},
-        selectedPowerMultiChannelIds = const {};
+        selectedPowerMultiOutletIds = const {},
+        selectedPowerMultiChannelIds = const {},
+        isFeedsDrawerOpen = false;
 
   NavigationState copyWith({
     String? selectedMultiOutlet,
@@ -65,6 +68,7 @@ class NavigationState {
     Set<String>? selectedHoistChannelIds,
     Set<String>? selectedPowerMultiOutletIds,
     Set<String>? selectedPowerMultiChannelIds,
+    bool? isFeedsDrawerOpen,
   }) {
     return NavigationState(
       selectedMultiOutlet: selectedMultiOutlet ?? this.selectedMultiOutlet,
@@ -81,10 +85,11 @@ class NavigationState {
       selectedHoistIds: selectedHoistIds ?? this.selectedHoistIds,
       selectedHoistChannelIds:
           selectedHoistChannelIds ?? this.selectedHoistChannelIds,
-      selectedMultiPowerOutletIds:
-          selectedPowerMultiOutletIds ?? selectedMultiPowerOutletIds,
+      selectedPowerMultiOutletIds:
+          selectedPowerMultiOutletIds ?? this.selectedPowerMultiOutletIds,
       selectedPowerMultiChannelIds:
           selectedPowerMultiChannelIds ?? this.selectedPowerMultiChannelIds,
+      isFeedsDrawerOpen: isFeedsDrawerOpen ?? this.isFeedsDrawerOpen,
     );
   }
 }

@@ -36,7 +36,6 @@ Future<ProjectFileMetadataModel> serializeProjectFile(
     hoists: state.fixtureState.hoists.values.toList(),
     hoistControllers: state.fixtureState.hoistControllers.values.toList(),
     hoistMultis: state.fixtureState.hoistMultis.values.toList(),
-    powerSystems: state.fixtureState.powerSystems.values.toList(),
     powerFeeds: state.fixtureState.powerFeeds.values.toList(),
     powerRacks: state.fixtureState.powerRacks.values.toList(),
     powerRackTypes: state.fixtureState.powerRackTypes.values.toList(),

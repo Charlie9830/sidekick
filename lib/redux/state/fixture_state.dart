@@ -14,7 +14,6 @@ import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_rack_model.dart';
 import 'package:sidekick/redux/models/power_rack_type_model.dart';
-import 'package:sidekick/redux/models/power_system_model.dart';
 
 class FixtureState {
   final Map<String, FixtureModel> fixtures;
@@ -32,7 +31,6 @@ class FixtureState {
   final Map<String, HoistModel> hoists;
   final Map<String, HoistControllerModel> hoistControllers;
   final Map<String, HoistMultiModel> hoistMultis;
-  final Map<String, PowerSystemModel> powerSystems;
   final Map<String, PowerFeedModel> powerFeeds;
   final Map<String, PowerRackModel> powerRacks;
   final Map<String, PowerRackTypeModel> powerRackTypes;
@@ -53,7 +51,6 @@ class FixtureState {
     required this.hoists,
     required this.hoistControllers,
     required this.hoistMultis,
-    required this.powerSystems,
     required this.powerFeeds,
     required this.powerRacks,
     required this.powerRackTypes,
@@ -75,10 +72,6 @@ class FixtureState {
         hoists = const {},
         hoistControllers = const {},
         hoistMultis = const {},
-        powerSystems = const {
-          PowerSystemModel.kDefaultPowerSystemId:
-              PowerSystemModel.defaultSystem(),
-        },
         powerFeeds = const {
           PowerFeedModel.kDefaultPowerFeedId: PowerFeedModel.defaultFeed(),
         },
@@ -101,7 +94,6 @@ class FixtureState {
     Map<String, HoistModel>? hoists,
     Map<String, HoistControllerModel>? hoistControllers,
     Map<String, HoistMultiModel>? hoistMultis,
-    Map<String, PowerSystemModel>? powerSystems,
     Map<String, PowerFeedModel>? powerFeeds,
     Map<String, PowerRackModel>? powerRacks,
     Map<String, PowerRackTypeModel>? powerRackTypes,
@@ -122,7 +114,6 @@ class FixtureState {
       hoists: hoists ?? this.hoists,
       hoistControllers: hoistControllers ?? this.hoistControllers,
       hoistMultis: hoistMultis ?? this.hoistMultis,
-      powerSystems: powerSystems ?? this.powerSystems,
       powerFeeds: powerFeeds ?? this.powerFeeds,
       powerRacks: powerRacks ?? this.powerRacks,
       powerRackTypes: powerRackTypes ?? this.powerRackTypes,

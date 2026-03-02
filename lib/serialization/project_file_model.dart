@@ -16,7 +16,6 @@ import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_rack_model.dart';
 import 'package:sidekick/redux/models/power_rack_type_model.dart';
-import 'package:sidekick/redux/models/power_system_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 
@@ -37,7 +36,6 @@ class ProjectFileModel {
   final List<HoistModel> hoists;
   final List<HoistControllerModel> hoistControllers;
   final List<HoistMultiModel> hoistMultis;
-  final List<PowerSystemModel> powerSystems;
   final List<PowerFeedModel> powerFeeds;
   final List<PowerRackModel> powerRacks;
   final List<PowerRackTypeModel> powerRackTypes;
@@ -59,7 +57,6 @@ class ProjectFileModel {
     required this.hoists,
     required this.hoistControllers,
     required this.hoistMultis,
-    required this.powerSystems,
     required this.powerFeeds,
     required this.powerRacks,
     required this.powerRackTypes,
@@ -82,7 +79,6 @@ class ProjectFileModel {
     List<HoistModel>? hoists,
     List<HoistControllerModel>? hoistControllers,
     List<HoistMultiModel>? hoistMultis,
-    List<PowerSystemModel>? powerSystems,
     List<PowerFeedModel>? powerFeeds,
     List<PowerRackModel>? powerRacks,
     List<PowerRackTypeModel>? powerRackTypes,
@@ -104,7 +100,6 @@ class ProjectFileModel {
       hoists: hoists ?? this.hoists,
       hoistControllers: hoistControllers ?? this.hoistControllers,
       hoistMultis: hoistMultis ?? this.hoistMultis,
-      powerSystems: powerSystems ?? this.powerSystems,
       powerFeeds: powerFeeds ?? this.powerFeeds,
       powerRacks: powerRacks ?? this.powerRacks,
       powerRackTypes: powerRackTypes ?? this.powerRackTypes,
@@ -129,7 +124,6 @@ class ProjectFileModel {
       'hoists': hoists.map((x) => x.toMap()).toList(),
       'hoistControllers': hoistControllers.map((x) => x.toMap()).toList(),
       'hoistMultis': hoistMultis.map((x) => x.toMap()).toList(),
-      'powerSystems': powerSystems.map((x) => x.toMap()).toList(),
       'powerFeeds': powerFeeds.map((x) => x.toMap()).toList(),
       'powerRacks': powerRacks.map((x) => x.toMap()).toList(),
       'powerRackTypes': powerRackTypes.map((x) => x.toMap()).toList(),
@@ -202,10 +196,6 @@ class ProjectFileModel {
           (x) => HoistMultiModel.fromMap(x as Map<String, dynamic>),
         ),
       ),
-      powerSystems: List<PowerSystemModel>.from((map['powerSystems'] ??
-              [const PowerSystemModel.defaultSystem().toMap()])
-          .map<PowerSystemModel>(
-              (x) => PowerSystemModel.fromMap(x as Map<String, dynamic>))),
       powerFeeds: List<PowerFeedModel>.from((map['powerFeeds'] ?? [])
           .map<PowerFeedModel>(
               (x) => PowerFeedModel.fromMap(x as Map<String, dynamic>))),
@@ -241,7 +231,6 @@ class ProjectFileModel {
       hoists: hoists.toModelMap(),
       hoistControllers: hoistControllers.toModelMap(),
       hoistMultis: hoistMultis.toModelMap(),
-      powerSystems: powerSystems.toModelMap(),
       powerFeeds: powerFeeds.toModelMap(),
       powerRacks: powerRacks.toModelMap(),
       powerRackTypes: powerRackTypes.toModelMap(),

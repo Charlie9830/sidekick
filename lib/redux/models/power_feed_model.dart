@@ -2,18 +2,15 @@
 import 'dart:convert';
 
 import 'package:sidekick/model_collection/model_collection_member.dart';
-import 'package:sidekick/redux/models/power_system_model.dart';
 
 class PowerFeedModel extends ModelCollectionMember {
   @override
   final String uid;
-  final String powerSystemId;
   final String name;
   final int capacity;
 
   PowerFeedModel({
     required this.uid,
-    required this.powerSystemId,
     required this.name,
     required this.capacity,
   });
@@ -22,7 +19,6 @@ class PowerFeedModel extends ModelCollectionMember {
 
   const PowerFeedModel.defaultFeed()
       : uid = kDefaultPowerFeedId,
-        powerSystemId = PowerSystemModel.kDefaultPowerSystemId,
         name = 'Feed 1',
         capacity = 400;
 
@@ -34,7 +30,6 @@ class PowerFeedModel extends ModelCollectionMember {
   }) {
     return PowerFeedModel(
       uid: uid ?? this.uid,
-      powerSystemId: powerSystemId ?? this.powerSystemId,
       name: name ?? this.name,
       capacity: capacity ?? this.capacity,
     );
@@ -43,7 +38,6 @@ class PowerFeedModel extends ModelCollectionMember {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'uid': uid,
-      'powerSystemId': powerSystemId,
       'name': name,
       'capacity': capacity,
     };
@@ -52,7 +46,6 @@ class PowerFeedModel extends ModelCollectionMember {
   factory PowerFeedModel.fromMap(Map<String, dynamic> map) {
     return PowerFeedModel(
       uid: map['uid'] as String,
-      powerSystemId: map['powerSystemId'] as String,
       name: map['name'] as String,
       capacity: map['capacity'] as int,
     );
@@ -65,6 +58,6 @@ class PowerFeedModel extends ModelCollectionMember {
 
   @override
   String toString() {
-    return 'PowerFeedModel(uid: $uid, powerSystemId: $powerSystemId, name: $name, capacity: $capacity)';
+    return 'PowerFeedModel(uid: $uid, name: $name, capacity: $capacity)';
   }
 }

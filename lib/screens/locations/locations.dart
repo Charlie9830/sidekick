@@ -1,11 +1,9 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:sidekick/open_shad_sheet.dart';
 import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/screens/locations/color_select_dialog.dart';
 
 import 'package:sidekick/screens/locations/multi_color_chit.dart';
-import 'package:sidekick/screens/locations/power_system_manager.dart';
 import 'package:sidekick/simple_tooltip.dart';
 import 'package:sidekick/table_view_config.dart';
 
@@ -22,11 +20,8 @@ class _Columns {
   static const int hoists = 4;
   static const int powerMultis = 5;
   static const int data = 6;
-  static const int powerSystem = 7;
-  static const int actions = 8;
+  static const int actions = 7;
 }
-
-const String _kNewPowerSystemValue = "new-power-system";
 
 class Locations extends StatefulWidget {
   final LocationsViewModel vm;
@@ -104,26 +99,6 @@ class _LocationsState extends State<Locations> {
       _Columns.data => Align(
           alignment: Alignment.center,
           child: Text('${item.dataMultiCount} (${item.dataPatchCount})')),
-      _Columns.powerSystem => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Select<String>(
-              canUnselect: false,
-              itemBuilder: (context, item) => Text(item),
-              onChanged: (value) =>
-                  _handlePowerSystemValueChanged(context, value),
-              value: 'System A',
-              popup: SelectPopup<String>(
-                  items: SelectItemList(children: [
-                ...widget.vm.powerSystemVms
-                    .map((systemItem) => SelectItemButton(
-                          value: systemItem.system.uid,
-                          child: Text(systemItem.system.name),
-                        )),
-                const Divider(),
-                const SelectItemButton(
-                    value: _kNewPowerSystemValue, child: Text('Manage...'))
-              ]))),
-        ),
       _Columns.actions => Builder(builder: (context) {
           return IconButton.ghost(
             icon: const Icon(Icons.more_vert),
@@ -151,23 +126,6 @@ class _LocationsState extends State<Locations> {
         }),
       _ => throw "Unexpected Vicinity $vicinity",
     });
-  }
-
-  void _handlePowerSystemValueChanged(
-      BuildContext context, String? value) async {
-    if (value == null) {
-      return;
-    }
-
-    if (value == _kNewPowerSystemValue) {
-      await openShadSheet(
-        context: context,
-        builder: (context) => PowerSystemManager(
-            existingSystems:
-                widget.vm.powerSystemVms.map((vm) => vm.system).toList()),
-      );
-      return;
-    }
   }
 
   TableViewCell _buildHeaderCell(BuildContext context, int columnIndex) {
@@ -210,8 +168,6 @@ class _LocationsState extends State<Locations> {
             ),
           ),
         ),
-      _Columns.powerSystem =>
-        TableViewCell(child: leftAlign(const Text('Power System'))),
       _Columns.actions =>
         TableViewCell(child: rightAlign(const Text('Actions'))),
       _ => throw "Unexpected Column Index $columnIndex",
@@ -252,10 +208,6 @@ class _LocationsState extends State<Locations> {
           extent: const FixedSpanExtent(64),
           foregroundDecoration:
               TableViewConfig.defaultTrailingForegroundDecoration,
-          padding: defaultPadding,
-        ),
-      _Columns.powerSystem => const TableSpan(
-          extent: FixedSpanExtent(180),
           padding: defaultPadding,
         ),
       _Columns.actions => const TableSpan(
