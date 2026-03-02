@@ -1,6 +1,8 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/screens/power_patch/balance_gauge.dart';
+import 'package:sidekick/screens/racks/power_rack.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';
+import 'package:sidekick/view_models/racks_screen_view_model.dart';
 
 class PowerFeedsDrawer extends StatelessWidget {
   final PowerPatchViewModel vm;
@@ -25,8 +27,9 @@ class PowerFeedsDrawer extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(feedVm.feed.name),
-                    Text('${feedVm.feed.capacity}A',
-                        style: Theme.of(context).typography.small)
+                    PowerMeter(
+                        draw: CurrentDraw.fromPhaseLoad(feedVm.load),
+                        capacity: feedVm.feed.capacity)
                   ],
                 ),
                 const SizedBox(height: 4.0),

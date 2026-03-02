@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:math';
 
+import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_feed_model.dart';
@@ -127,6 +128,10 @@ class CurrentDraw {
   double get hottest => max(max(l1, l2), l3);
 
   CurrentDraw(this.l1, this.l2, this.l3);
+
+  factory CurrentDraw.fromPhaseLoad(PhaseLoad load) {
+    return CurrentDraw(load.a, load.b, load.c);
+  }
 
   CurrentDraw copyWith({
     double? l1,

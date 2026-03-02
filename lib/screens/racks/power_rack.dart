@@ -147,7 +147,7 @@ class _PowerFeedCard extends StatelessWidget {
                 style: Theme.of(context).typography.small,
               ),
               const SizedBox(width: 32, height: 24, child: VerticalDivider()),
-              _PowerMeter(capacity: vm!.feed.capacity, draw: vm!.draw),
+              PowerMeter(capacity: vm!.feed.capacity, draw: vm!.draw),
             ],
           )
         ],
@@ -182,11 +182,11 @@ class _PowerFeedCard extends StatelessWidget {
   }
 }
 
-class _PowerMeter extends StatelessWidget {
+class PowerMeter extends StatelessWidget {
   final CurrentDraw draw;
   final int capacity;
 
-  const _PowerMeter({required this.draw, required this.capacity});
+  const PowerMeter({super.key, required this.draw, required this.capacity});
 
   @override
   Widget build(BuildContext context) {

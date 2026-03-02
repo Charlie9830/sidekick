@@ -26,7 +26,8 @@ class BalanceGauge extends StatelessWidget {
       return const SizedBox();
     }
 
-    const divider = VerticalDivider(endIndent: 4, indent: 4, width: 16);
+    final divider = VerticalDivider(
+        endIndent: 4, indent: 4, width: variance == Variance.small ? 8 : 16);
     final imbalanceRatio =
         calculateImbalanceRatio(phaseALoad, phaseBLoad, phaseCLoad);
     final imbalancePercent = (imbalanceRatio * 100).round();
@@ -35,27 +36,27 @@ class BalanceGauge extends StatelessWidget {
       children: [
         Text('${phaseALoad.round().toString()}A',
             style: Theme.of(context).typography.large.copyWith(
-                  fontSize: variance == Variance.small ? 14 : null,
+                  fontSize: variance == Variance.small ? 12 : null,
                   color: Colors.red,
                 )),
         divider,
         Text('${phaseBLoad.round().toString()}A',
             style: Theme.of(context).typography.large.copyWith(
-                  fontSize: variance == Variance.small ? 14 : null,
+                  fontSize: variance == Variance.small ? 12 : null,
                   color: Colors.white,
                 )),
         divider,
         Text('${phaseCLoad.round().toString()}A',
             style: Theme.of(context).typography.large.copyWith(
-                  fontSize: variance == Variance.small ? 14 : null,
+                  fontSize: variance == Variance.small ? 12 : null,
                   color: Colors.blue,
                 )),
-        SizedBox(width: variance == Variance.small ? 16 : 24),
+        SizedBox(width: variance == Variance.small ? 14 : 24),
         FocusCard(
           '${calculateNeutralCurrent(phaseALoad, phaseBLoad, phaseCLoad).floor()}A',
           variance: variance,
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: variance == Variance.small ? 4 : 8),
         FocusCard(
           '${imbalancePercent.toString()}%',
           variance: variance,
@@ -80,7 +81,7 @@ class FocusCard extends StatelessWidget {
     return Container(
       alignment: Alignment.center,
       width: variance == Variance.small ? 32 : 48,
-      height: variance == Variance.small ? 24 : 32,
+      height: variance == Variance.small ? 22 : 32,
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.all(Radius.circular(8)),
         color: Theme.of(context).colorScheme.border,
