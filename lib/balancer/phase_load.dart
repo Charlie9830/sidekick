@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:sidekick/redux/models/power_outlet_model.dart';
 import 'package:sidekick/utils/electrical_equations.dart' as ee;
 
@@ -16,6 +18,7 @@ class PhaseLoad {
   double get neutral => ee.calculateNeutralCurrent(a, b, c);
   double get median => ee.median([a, b, c]);
   double get ratio => ee.calculateImbalanceRatio(a, b, c);
+  double get hottest => max(max(a, b), c);
 
   (IndexedLoad a, IndexedLoad b, IndexedLoad c) get asIndexedLoads =>
       (IndexedLoad(0, a), IndexedLoad(1, b), IndexedLoad(2, c));

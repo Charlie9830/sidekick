@@ -38,6 +38,25 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
     );
   }
 
+  if (a is SetPowerFeedsAndPowerRacks) {
+    final powerPatch = performPowerPatch(
+      fixtures: state.fixtures,
+      fixtureTypes: state.fixtureTypes,
+      powerMultiOutlets: state.powerMultiOutlets,
+      locations: state.locations,
+      maxSequenceBreak: state.maxSequenceBreak,
+      balanceTolerance: state.balanceTolerance,
+      powerRacks: a.racks,
+    );
+
+    return state.copyWith(
+      powerFeeds: a.powerFeeds,
+      powerRacks: a.racks,
+      powerMultiOutlets: powerPatch.powerMultiOutlets,
+      fixtures: powerPatch.fixtures,
+    );
+  }
+
   if (a is UpdatePowerRackName) {
     return state.copyWith(
         powerRacks: state.powerRacks.clone()

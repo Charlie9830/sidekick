@@ -8,9 +8,11 @@ import 'package:sidekick/widgets/property_field.dart';
 
 class PowerFeedManagerResult {
   final Map<String, PowerFeedModel> powerFeeds;
+  final Set<String> deletedFeedIds;
 
   PowerFeedManagerResult({
     required this.powerFeeds,
+    required this.deletedFeedIds,
   });
 }
 
@@ -27,6 +29,7 @@ class PowerFeedManager extends StatefulWidget {
 
 class _PowerFeedManagerState extends State<PowerFeedManager> {
   late Map<String, PowerFeedModel> _feeds;
+  Set<String> _deletedFeedIds = {};
 
   @override
   void initState() {
@@ -64,12 +67,20 @@ class _PowerFeedManagerState extends State<PowerFeedManager> {
                   itemBuilder: (context, index) {
                     final item = feeds[index];
                     return _FeedItem(
-                      onDelete: () => setState(() {
+                      isDefault: item.uid == PowerFeedModel.kDefaultPowerFeedId,
+                      onDelete: () {
                         if (item.uid == PowerFeedModel.kDefaultPowerFeedId) {
                           return;
                         }
-                        _feeds = _feeds.clone()..remove(item.uid);
-                      }),
+
+                        final updatedFeeds = _feeds.clone()..remove(item.uid);
+                        final deletedFeedIds = {..._deletedFeedIds, item.uid};
+
+                        setState(() {
+                          _feeds = updatedFeeds;
+                          _deletedFeedIds = deletedFeedIds;
+                        });
+                      },
                       name: item.name,
                       capacity: item.capacity,
                       onCapacityChanged: (newValue) => setState(() {
@@ -101,6 +112,7 @@ class _PowerFeedManagerState extends State<PowerFeedManager> {
                     onPressed: () =>
                         Navigator.of(context).pop(PowerFeedManagerResult(
                           powerFeeds: _feeds,
+                          deletedFeedIds: _deletedFeedIds,
                         )),
                     child: const Text('Apply')),
               ],
@@ -131,6 +143,7 @@ class _PowerFeedManagerState extends State<PowerFeedManager> {
 class _FeedItem extends StatelessWidget {
   final String name;
   final int capacity;
+  final bool isDefault;
   final void Function(String newValue) onNameChanged;
   final void Function(String newValue) onCapacityChanged;
   final void Function() onDelete;
@@ -138,6 +151,7 @@ class _FeedItem extends StatelessWidget {
   const _FeedItem({
     required this.name,
     required this.capacity,
+    required this.isDefault,
     required this.onNameChanged,
     required this.onCapacityChanged,
     required this.onDelete,
@@ -149,33 +163,48 @@ class _FeedItem extends StatelessWidget {
       padding: const EdgeInsets.only(
         top: 16.0,
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Expanded(
-            flex: 3,
-            child: PropertyField(
-                value: name, label: 'Name', onBlur: onNameChanged),
-          ),
-          const SizedBox(width: 8.0),
-          Expanded(
-            flex: 2,
-            child: PropertyField(
-              value: capacity.toString(),
-              label: 'Capacity',
-              suffix: 'Amps',
-              onBlur: onCapacityChanged,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-              ],
+          if (isDefault)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 4.0),
+              child: Chip(
+                child: Text('Default'),
+              ),
             ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 3,
+                child: PropertyField(
+                    value: name, label: 'Name', onBlur: onNameChanged),
+              ),
+              const SizedBox(width: 8.0),
+              Expanded(
+                flex: 2,
+                child: PropertyField(
+                  value: capacity.toString(),
+                  label: 'Capacity',
+                  suffix: 'Amps',
+                  onBlur: onCapacityChanged,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8.0),
+              SimpleTooltip(
+                message: isDefault ? 'Cannot remove default feed' : null,
+                child: IconButton.ghost(
+                  icon: const Icon(Icons.clear),
+                  size: ButtonSize.small,
+                  onPressed: isDefault ? null : onDelete,
+                ),
+              )
+            ],
           ),
-          const SizedBox(width: 8.0),
-          IconButton.link(
-            icon: const Icon(Icons.clear),
-            size: ButtonSize.small,
-            onPressed: onDelete,
-          )
         ],
       ),
     );

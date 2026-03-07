@@ -114,7 +114,15 @@ ThunkAction<AppState> showPowerFeedManager(BuildContext context) {
       return;
     }
 
-    store.dispatch(SetPowerFeeds(powerFeeds: result.powerFeeds));
+    // Ensure no Power Racks are assigned to a now deleted Power feed. If they are, assign them to the default feed.
+    final updatedPowerRacks = store.state.fixtureState.powerRacks.clone()
+      ..updateAll((rackId, rack) =>
+          result.deletedFeedIds.contains(rack.powerFeedId)
+              ? rack.copyWith(powerFeedId: PowerFeedModel.kDefaultPowerFeedId)
+              : rack);
+
+    store.dispatch(SetPowerFeedsAndPowerRacks(
+        powerFeeds: result.powerFeeds, racks: updatedPowerRacks));
   };
 }
 
@@ -2175,6 +2183,8 @@ ThunkAction<AppState> export(BuildContext context) {
       locations: store.state.fixtureState.locations,
       fixtures: store.state.fixtureState.fixtures,
       fixtureTypes: store.state.fixtureState.fixtureTypes,
+      powerRackTypes: store.state.fixtureState.powerRackTypes,
+      powerRacks: store.state.fixtureState.powerRacks,
     );
 
     createColorLookupSheet(

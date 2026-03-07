@@ -28,6 +28,16 @@ class SetPowerFeeds {
   });
 }
 
+class SetPowerFeedsAndPowerRacks {
+  final Map<String, PowerFeedModel> powerFeeds;
+  final Map<String, PowerRackModel> racks;
+
+  SetPowerFeedsAndPowerRacks({
+    required this.powerFeeds,
+    required this.racks,
+  });
+}
+
 class SetPowerRacks {
   final Map<String, PowerRackModel> racks;
 
