@@ -56,21 +56,6 @@ class _RacksState extends State<Racks> {
                       : null,
                 ),
               ),
-            Expanded(
-              child: NavigationBar(
-                  onSelected: widget.viewModel.onTabSelected,
-                  index: widget.viewModel.tabIndex,
-                  expands: false,
-                  alignment: NavigationBarAlignment.end,
-                  children: const [
-                    NavigationItem(
-                      child: Text('Power'),
-                    ),
-                    NavigationItem(
-                      child: Text('Data'),
-                    ),
-                  ]),
-            )
           ],
         )),
         body: switch (widget.viewModel.tabIndex) {

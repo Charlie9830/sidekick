@@ -101,6 +101,28 @@ class _HomeState extends State<Home> {
                 ),
               ],
             ),
+
+            if (_tabIndex == 3)
+              SizedBox(
+                height: 48,
+                child: NavigationBar(
+                  labelType: NavigationLabelType.all,
+                  index: widget.vm.racksTabIndex,
+                  onSelected: widget.vm.onRacksTabIndexChanged,
+                  expands: false,
+                  alignment: NavigationBarAlignment.start,
+                  children: const [
+                    NavigationItem(
+                      index: 0,
+                      child: Text('Power'),
+                    ),
+                    NavigationItem(
+                      index: 1,
+                      child: Text('Data'),
+                    )
+                  ],
+                ),
+              )
           ],
           child: switch (_tabIndex) {
             0 => const FileContainer(),
@@ -136,24 +158,6 @@ class _NavigationItem extends StatelessWidget implements NavigationBarItem {
       selectedStyle: const ButtonStyle.fixed(density: ButtonDensity.icon),
       label: label,
       child: child,
-    );
-  }
-
-  @override
-  bool get selectable => true;
-}
-
-class _SubNavigationItem extends StatelessWidget implements NavigationBarItem {
-  final Widget label;
-
-  const _SubNavigationItem({
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return NavigationItem(
-      child: label,
     );
   }
 

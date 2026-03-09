@@ -20,8 +20,8 @@ class PowerMultiItem extends StatelessWidget {
       return ShadListItem(
         selected: selected,
         enabled: !assigned,
-        leading: Icon(Icons.settings_input_svideo,
-            size: 16, color: assigned ? Colors.gray : Colors.blue),
+        leading: Icon(Icons.electric_bolt,
+            size: 16, color: assigned ? Colors.gray : Colors.yellow),
         title: Text(
           name,
           style: Theme.of(context)

@@ -20,13 +20,17 @@ class HomeContainer extends StatelessWidget {
       },
       converter: (Store<AppState> store) {
         return HomeViewModel(
-            onDebugAction: () => store.dispatch(debugButtonPressed()),
-            selectedFixtureIds: store.state.navstate.selectedFixtureIds,
-            onSelectedFixturesChanged: (ids) =>
-                store.dispatch(SetSelectedFixtureIds(ids)),
-            onAppInitialize: () => store.dispatch(initializeApp(context)),
-            onSetSequenceButtonPressed: () =>
-                store.dispatch(setSequenceNumbers(context)));
+          onDebugAction: () => store.dispatch(debugButtonPressed()),
+          selectedFixtureIds: store.state.navstate.selectedFixtureIds,
+          onSelectedFixturesChanged: (ids) =>
+              store.dispatch(SetSelectedFixtureIds(ids)),
+          onAppInitialize: () => store.dispatch(initializeApp(context)),
+          onSetSequenceButtonPressed: () =>
+              store.dispatch(setSequenceNumbers(context)),
+          onRacksTabIndexChanged: (index) =>
+              store.dispatch(SetSelectedRacksTabIndex(index)),
+          racksTabIndex: store.state.navstate.selectedRacksTabIndex,
+        );
       },
     );
   }
