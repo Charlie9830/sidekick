@@ -2,6 +2,8 @@ import 'package:excel/excel.dart';
 import 'package:sidekick/diffing/union_proxy.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
+import 'package:sidekick/redux/models/data_patch_model.dart';
+import 'package:sidekick/redux/models/data_rack_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/hoist_controller_model.dart';
@@ -17,6 +19,24 @@ import 'package:sidekick/redux/models/power_rack_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
+
+class SetDataPatches {
+  final Map<String, DataPatchModel> patches;
+
+  SetDataPatches(this.patches);
+}
+
+class SetDataRacks {
+  final Map<String, DataRackModel> racks;
+
+  SetDataRacks(this.racks);
+}
+
+class SetSelectedRacksTabIndex {
+  final int value;
+
+  SetSelectedRacksTabIndex(this.value);
+}
 
 class ToggleFeedsDrawer {}
 
@@ -56,6 +76,20 @@ class UpdatePowerRackNote {
   final String newValue;
 
   UpdatePowerRackNote(this.rackId, this.newValue);
+}
+
+class UpdateDataRackName {
+  final String rackId;
+  final String newValue;
+
+  UpdateDataRackName(this.rackId, this.newValue);
+}
+
+class UpdateDataRackNote {
+  final String rackId;
+  final String newValue;
+
+  UpdateDataRackNote(this.rackId, this.newValue);
 }
 
 class SetHoistsAndControllers {

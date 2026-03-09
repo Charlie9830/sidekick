@@ -1,6 +1,6 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:sidekick/redux/models/outlet.dart';
 
 class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
@@ -8,6 +8,7 @@ class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
   final List<String> fixtureIds;
   final int startsAtFixtureId;
   final int endsAtFixtureId;
+  final DataPatchRackAssignment parentRack;
 
   DataPatchModel({
     required String uid,
@@ -18,6 +19,7 @@ class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
     this.fixtureIds = const [],
     this.startsAtFixtureId = 0,
     this.endsAtFixtureId = 0,
+    this.parentRack = const DataPatchRackAssignment.unassigned(),
   }) : super(
           uid: uid,
           locationId: locationId,
@@ -33,25 +35,26 @@ class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
 
   @override
   DataPatchModel copyWith({
+    int? universe,
     String? uid,
+    String? locationId,
     String? name,
     int? number,
-    int? universe,
     List<String>? fixtureIds,
-    String? locationId,
-    bool? isSpare,
     int? startsAtFixtureId,
     int? endsAtFixtureId,
+    DataPatchRackAssignment? parentRack,
   }) {
     return DataPatchModel(
       uid: uid ?? this.uid,
       name: name ?? this.name,
       number: number ?? this.number,
+      locationId: locationId ?? this.locationId,
       universe: universe ?? this.universe,
       fixtureIds: fixtureIds ?? this.fixtureIds,
-      locationId: locationId ?? this.locationId,
       startsAtFixtureId: startsAtFixtureId ?? this.startsAtFixtureId,
       endsAtFixtureId: endsAtFixtureId ?? this.endsAtFixtureId,
+      parentRack: parentRack ?? this.parentRack,
     );
   }
 
@@ -65,6 +68,7 @@ class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
       'locationId': locationId,
       'startsAtFixtureId': startsAtFixtureId,
       'endsAtFixtureId': endsAtFixtureId,
+      'parentRack': parentRack.toMap(),
     };
   }
 
@@ -78,6 +82,9 @@ class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
       locationId: map['locationId'] ?? '',
       startsAtFixtureId: map['startsAtFixtureId']?.toInt() ?? 0,
       endsAtFixtureId: map['endsAtFixtureId']?.toInt() ?? 0,
+      parentRack: map['parentRack'] == null
+          ? const DataPatchRackAssignment.unassigned()
+          : DataPatchRackAssignment.fromMap(map['parentRack']),
     );
   }
 
@@ -91,35 +98,66 @@ class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
     return 'DataPatchModel(uid: $uid, name: $name, number: $number, universe: $universe, fixtureIds: $fixtureIds, locationId: $locationId, startsAtFixtureId: $startsAtFixtureId, endsAtFixtureId: $endsAtFixtureId)';
   }
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
+  static int getHighestChannelNumber(List<DataPatchModel> patches) {
+    int number = 1;
 
-    return other is DataPatchModel &&
-        other.uid == uid &&
-        other.name == name &&
-        other.number == number &&
-        other.universe == universe &&
-        listEquals(other.fixtureIds, fixtureIds) &&
-        other.locationId == locationId &&
-        other.startsAtFixtureId == startsAtFixtureId &&
-        other.endsAtFixtureId == endsAtFixtureId;
-  }
+    for (final patch in patches) {
+      number = patch.parentRack.channel >= number
+          ? patch.parentRack.channel
+          : number;
+    }
 
-  @override
-  int get hashCode {
-    return uid.hashCode ^
-        name.hashCode ^
-        number.hashCode ^
-        universe.hashCode ^
-        fixtureIds.hashCode ^
-        locationId.hashCode ^
-        startsAtFixtureId.hashCode ^
-        endsAtFixtureId.hashCode;
+    return number;
   }
 
   @override
   int compareTo(DataPatchModel other) {
     return universe - other.universe;
   }
+}
+
+class DataPatchRackAssignment {
+  final String rackId;
+  final int channel;
+
+  const DataPatchRackAssignment({
+    required this.rackId,
+    required this.channel,
+  });
+
+  bool get isAssigned => channel != 0 && rackId.isNotEmpty;
+
+  const DataPatchRackAssignment.unassigned()
+      : rackId = '',
+        channel = 0;
+
+  DataPatchRackAssignment copyWith({
+    String? rackId,
+    int? channel,
+  }) {
+    return DataPatchRackAssignment(
+      rackId: rackId ?? this.rackId,
+      channel: channel ?? this.channel,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'rackId': rackId,
+      'channel': channel,
+    };
+  }
+
+  factory DataPatchRackAssignment.fromMap(Map<String, dynamic> map) {
+    return DataPatchRackAssignment(
+      rackId: map['rackId'] as String,
+      channel: map['channel'] as int,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory DataPatchRackAssignment.fromJson(String source) =>
+      DataPatchRackAssignment.fromMap(
+          json.decode(source) as Map<String, dynamic>);
 }

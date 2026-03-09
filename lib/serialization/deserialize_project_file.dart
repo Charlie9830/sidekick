@@ -31,5 +31,10 @@ Future<ProjectFileModel> deserializeProjectFile(String path) async {
         powerFeeds: defaultFixtureState.powerFeeds.values.toList());
   }
 
+  if (projectData.dataRackTypes.isEmpty) {
+    projectData = projectData.copyWith(
+        dataRackTypes: defaultFixtureState.dataRackTypes.values.toList());
+  }
+
   return projectData;
 }

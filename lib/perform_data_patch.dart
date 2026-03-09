@@ -69,7 +69,6 @@ Map<String, DataPatchModel> performDataPatch({
         startsAtFixtureId: span.startsAt.fid,
         endsAtFixtureId: span.endsAt?.fid ?? 0,
         fixtureIds: span.fixtureIds,
-        isSpare: false,
       ));
     }
   }

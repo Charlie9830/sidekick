@@ -1,7 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:sidekick/redux/models/built_in_data_rack_types.dart';
 import 'package:sidekick/redux/models/built_in_power_rack_types.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
+import 'package:sidekick/redux/models/data_rack_model.dart';
+import 'package:sidekick/redux/models/data_rack_type_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/hoist_controller_model.dart';
@@ -34,6 +37,8 @@ class FixtureState {
   final Map<String, PowerFeedModel> powerFeeds;
   final Map<String, PowerRackModel> powerRacks;
   final Map<String, PowerRackTypeModel> powerRackTypes;
+  final Map<String, DataRackModel> dataRacks;
+  final Map<String, DataRackTypeModel> dataRackTypes;
 
   FixtureState({
     required this.fixtures,
@@ -54,6 +59,8 @@ class FixtureState {
     required this.powerFeeds,
     required this.powerRacks,
     required this.powerRackTypes,
+    required this.dataRackTypes,
+    required this.dataRacks,
   });
 
   const FixtureState.initial()
@@ -76,7 +83,9 @@ class FixtureState {
           PowerFeedModel.kDefaultPowerFeedId: PowerFeedModel.defaultFeed(),
         },
         powerRacks = const {},
-        powerRackTypes = BuiltInPowerRackTypes.types;
+        powerRackTypes = BuiltInPowerRackTypes.types,
+        dataRackTypes = BuiltInDataRackTypes.types,
+        dataRacks = const {};
 
   FixtureState copyWith({
     Map<String, FixtureModel>? fixtures,
@@ -97,6 +106,8 @@ class FixtureState {
     Map<String, PowerFeedModel>? powerFeeds,
     Map<String, PowerRackModel>? powerRacks,
     Map<String, PowerRackTypeModel>? powerRackTypes,
+    Map<String, DataRackModel>? dataRacks,
+    Map<String, DataRackTypeModel>? dataRackTypes,
   }) {
     return FixtureState(
       fixtures: fixtures ?? this.fixtures,
@@ -117,6 +128,8 @@ class FixtureState {
       powerFeeds: powerFeeds ?? this.powerFeeds,
       powerRacks: powerRacks ?? this.powerRacks,
       powerRackTypes: powerRackTypes ?? this.powerRackTypes,
+      dataRacks: dataRacks ?? this.dataRacks,
+      dataRackTypes: dataRackTypes ?? this.dataRackTypes,
     );
   }
 }

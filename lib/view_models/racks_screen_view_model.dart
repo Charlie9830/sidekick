@@ -3,7 +3,11 @@ import 'dart:math';
 
 import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
+import 'package:sidekick/redux/models/data_patch_model.dart';
+import 'package:sidekick/redux/models/data_rack_model.dart';
+import 'package:sidekick/redux/models/data_rack_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_rack_model.dart';
@@ -12,18 +16,32 @@ import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
 
 class RacksScreenViewModel {
   final Map<String, ItemData<String, PowerMultiOutletViewModel>>
-      assignableItems;
-  final List<PowerMultiSidebarLocation> sidebarItems;
+      assignablePowerMultiItems;
+  final Map<String, ItemData<String, DataOutletViewModel>> assignableDataItems;
+  final List<PowerMultiSidebarLocation> powerSidebarItems;
+  final List<DataOutletSidebarLocation> dataSidebarItems;
   final List<PowerRackViewModel> powerRacks;
+  final List<DataRackViewModel> dataRacks;
   final void Function() onAddPowerRack;
+  final void Function() onAddDataRack;
   final void Function(Set<String> selectedMultiIds) onUnpatchPowerMultis;
+  final void Function(Set<String> selectedPatchOutlets) onUnpatchDataOutlets;
+  final void Function(int index) onTabSelected;
+  final int tabIndex;
 
   RacksScreenViewModel({
-    required this.assignableItems,
-    required this.sidebarItems,
+    required this.assignablePowerMultiItems,
+    required this.powerSidebarItems,
     required this.powerRacks,
     required this.onAddPowerRack,
     required this.onUnpatchPowerMultis,
+    required this.dataSidebarItems,
+    required this.onTabSelected,
+    required this.tabIndex,
+    required this.dataRacks,
+    required this.assignableDataItems,
+    required this.onAddDataRack,
+    required this.onUnpatchDataOutlets,
   });
 }
 
@@ -150,4 +168,78 @@ class CurrentDraw {
   CurrentDraw addedWith(CurrentDraw other) {
     return copyWith(l1: l1 + other.l1, l2: l2 + other.l2, l3: l3 + other.l3);
   }
+}
+
+class DataOutletViewModel {
+  final DataPatchModel patch;
+  final DataMultiModel? parentMulti;
+  final LocationModel parentLocation;
+  final bool assigned;
+  final int? parentMultiLineNumber;
+
+  DataOutletViewModel({
+    required this.patch,
+    required this.parentMulti,
+    required this.assigned,
+    required this.parentLocation,
+    required this.parentMultiLineNumber,
+  });
+}
+
+class DataOutletSidebarLocation {
+  final LocationModel location;
+  final List<DataOutletSidebarItem> children;
+
+  DataOutletSidebarLocation({
+    required this.location,
+    required this.children,
+  });
+}
+
+class DataOutletSidebarItem {
+  final String uid;
+  final int selectionIndex;
+
+  DataOutletSidebarItem({
+    required this.uid,
+    required this.selectionIndex,
+  });
+}
+
+class DataRackViewModel {
+  final DataRackModel rack;
+  final List<DataRackChannelViewModel> channelVms;
+  final List<DataRackTypeModel> availableTypes;
+  final void Function() onDelete;
+  final bool hasOverflowed;
+  final void Function(String value) onNameChanged;
+  final void Function(String uid) onTypeChanged;
+  final DataRackTypeModel rackType;
+
+  DataRackViewModel({
+    required this.rack,
+    required this.channelVms,
+    required this.availableTypes,
+    required this.onDelete,
+    required this.hasOverflowed,
+    required this.onNameChanged,
+    required this.onTypeChanged,
+    required this.rackType,
+  });
+}
+
+class DataRackChannelViewModel {
+  final String? assignedPatchId;
+  final int? assignedSelectionIndex;
+  final bool isOverflowing;
+  final void Function() onUnpatch;
+  final void Function(Set<String> ids) onPatchesLanded;
+
+  DataRackChannelViewModel({
+    required this.assignedPatchId,
+    required this.assignedSelectionIndex,
+    required this.isOverflowing,
+    required this.onUnpatch,
+    required this.onPatchesLanded,
+  });
 }

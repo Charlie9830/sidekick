@@ -4,6 +4,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/containers/rack_selectors.dart';
 import 'package:sidekick/redux/actions/async_actions.dart';
+import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/racks/racks.dart';
 import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
@@ -31,8 +32,13 @@ class RacksContainer extends StatelessWidget {
             .map((multi) => multi.uid)
             .toSet();
 
+        final assignedDataPatchIds = store.state.fixtureState.dataPatches.values
+            .where((patch) => patch.parentRack.isAssigned)
+            .map((patch) => patch.uid);
+
         return RacksScreenViewModel(
-            assignableItems: Map<String,
+            // Power Multis
+            assignablePowerMultiItems: Map<String,
                 ItemData<String, PowerMultiOutletViewModel>>.fromEntries(
               store.state.fixtureState.powerMultiOutlets.values.map(
                 (outlet) => MapEntry(
@@ -51,12 +57,42 @@ class RacksContainer extends StatelessWidget {
                 ),
               ),
             ),
+
+            // Data Outlets
+            assignableDataItems:
+                Map<String, ItemData<String, DataOutletViewModel>>.fromEntries(
+              selectRootDataPatches(store).map(
+                (patchInfo) => MapEntry(
+                  patchInfo.patch.uid,
+                  ItemData<String, DataOutletViewModel>(
+                    id: patchInfo.patch.uid,
+                    item: DataOutletViewModel(
+                      assigned:
+                          assignedDataPatchIds.contains(patchInfo.patch.uid),
+                      parentMulti: patchInfo.parentMultiOutlet,
+                      patch: patchInfo.patch,
+                      parentLocation: patchInfo.location,
+                      parentMultiLineNumber: patchInfo.parentMultiLine,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            powerRacks: selectPowerRacks(context: context, store: store),
             onUnpatchPowerMultis: (selectedMultiIds) =>
                 store.dispatch(unpatchPowerMultis(selectedMultiIds)),
-            powerRacks: selectPowerRacks(context: context, store: store),
-            sidebarItems:
+            dataRacks: selectDataRacks(context: context, store: store),
+            powerSidebarItems:
                 selectPowerMultiSidebarItems(context: context, store: store),
-            onAddPowerRack: () => store.dispatch(addPowerRack(context)));
+            dataSidebarItems:
+                selectDataPatchSidebarItems(context: context, store: store),
+            onAddPowerRack: () => store.dispatch(addPowerRack(context)),
+            onAddDataRack: () => store.dispatch(addDataRack(context)),
+            onTabSelected: (index) =>
+                store.dispatch(SetSelectedRacksTabIndex(index)),
+            tabIndex: store.state.navstate.selectedRacksTabIndex,
+            onUnpatchDataOutlets: (selectedPatchOutletIds) =>
+                store.dispatch(unpatchDataOutlets(selectedPatchOutletIds)));
       },
     );
   }

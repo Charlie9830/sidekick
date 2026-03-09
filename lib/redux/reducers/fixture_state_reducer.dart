@@ -6,7 +6,6 @@ import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/perform_data_patch.dart';
 import 'package:sidekick/perform_power_patch.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
-import 'package:sidekick/redux/models/built_in_power_rack_types.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
@@ -14,11 +13,30 @@ import 'package:sidekick/redux/models/hoist_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
-import 'package:sidekick/redux/models/power_rack_model.dart';
-import 'package:sidekick/redux/models/power_rack_type_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
+  if (a is SetDataPatches) {
+    final patches = assertDataPatchState(a.patches, state.locations);
+
+    final cables = _assertCableState(
+        cables: state.cables,
+        powerMultiOutlets: state.powerMultiOutlets,
+        dataMultis: state.dataMultis,
+        dataPatches: patches,
+        hoistOutlets: state.hoists,
+        hoistMultis: state.hoistMultis);
+
+    return state.copyWith(
+      dataPatches: patches,
+      cables: cables,
+    );
+  }
+
+  if (a is SetDataRacks) {
+    return state.copyWith(dataRacks: a.racks);
+  }
+
   if (a is SetPowerFeeds) {
     return state.copyWith(powerFeeds: a.powerFeeds);
   }
@@ -72,6 +90,20 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
         powerRacks: state.powerRacks.clone()
           ..update(a.rackId,
               (existing) => existing.copyWith(note: a.newValue.trim())));
+  }
+
+  if (a is UpdateDataRackName) {
+    return state.copyWith(
+        dataRacks: state.dataRacks.clone()
+          ..update(a.rackId,
+              (existing) => existing.copyWith(name: a.newValue.trim())));
+  }
+
+  if (a is UpdateDataRackNote) {
+    return state.copyWith(
+        dataRacks: state.dataRacks.clone()
+          ..update(a.rackId,
+              (existing) => existing.copyWith(notes: a.newValue.trim())));
   }
 
   if (a is SetHoistsAndControllers) {

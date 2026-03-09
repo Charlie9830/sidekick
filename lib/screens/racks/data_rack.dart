@@ -4,24 +4,24 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/editable_text_field.dart';
 
 import 'package:sidekick/screens/hoists/hoist_controller_column_widths.dart';
-import 'package:sidekick/screens/racks/power_multi_channel_content.dart';
-import 'package:sidekick/screens/racks/power_multi_column_widths.dart';
+import 'package:sidekick/screens/racks/data_outlet_channel_content.dart';
+import 'package:sidekick/screens/racks/data_outlet_column_widths.dart';
 import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
 import 'package:sidekick/view_models/racks_screen_view_model.dart';
 
-class PowerRack extends StatefulWidget {
-  final PowerRackViewModel viewModel;
+class DataRack extends StatefulWidget {
+  final DataRackViewModel viewModel;
 
-  const PowerRack({
+  const DataRack({
     super.key,
     required this.viewModel,
   });
 
   @override
-  State<PowerRack> createState() => _PowerRackState();
+  State<DataRack> createState() => _DataRackState();
 }
 
-class _PowerRackState extends State<PowerRack> {
+class _DataRackState extends State<DataRack> {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -45,7 +45,7 @@ class _PowerRackState extends State<PowerRack> {
 }
 
 class _RackHeader extends StatelessWidget {
-  final PowerRackViewModel viewModel;
+  final DataRackViewModel viewModel;
 
   const _RackHeader({
     required this.viewModel,
@@ -68,13 +68,6 @@ class _RackHeader extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        _PowerFeedCard(
-          vm: viewModel.powerFeed,
-          onPowerFeedSelected: (id) => viewModel.onPowerFeedSelected(id),
-          availablePowerFeeds: viewModel.availablePowerFeeds,
-          onManagePowerSystemsButtonPressed: () =>
-              viewModel.onManagePowerSystems(),
-        ),
         Builder(builder: (context) {
           return IconButton.ghost(
             icon: const Icon(Icons.more_vert),
@@ -95,10 +88,6 @@ class _RackHeader extends StatelessWidget {
                         .toList(),
                     child: const Text('Type'),
                   ),
-                  MenuButton(
-                    onPressed: (context) => viewModel.onManagePowerSystems(),
-                    child: const Text('Manage Power Feeds...'),
-                  ),
                   const MenuDivider(),
                   MenuButton(
                     leading: const Icon(Icons.delete),
@@ -115,104 +104,8 @@ class _RackHeader extends StatelessWidget {
   }
 }
 
-class _PowerFeedCard extends StatelessWidget {
-  final PowerFeedViewModel? vm;
-  final void Function(String feedId) onPowerFeedSelected;
-  final void Function() onManagePowerSystemsButtonPressed;
-  final List<PowerFeedViewModel> availablePowerFeeds;
-
-  const _PowerFeedCard({
-    required this.vm,
-    required this.onPowerFeedSelected,
-    required this.onManagePowerSystemsButtonPressed,
-    required this.availablePowerFeeds,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (vm == null) {
-      return const SizedBox();
-    }
-
-    return Chip(
-      onPressed: () => _handlePressed(context),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.electrical_services, color: Colors.gray),
-              const SizedBox(width: 8.0),
-              Text(
-                vm!.feed.name,
-                style: Theme.of(context).typography.small,
-              ),
-              const SizedBox(width: 32, height: 24, child: VerticalDivider()),
-              PowerMeter(capacity: vm!.feed.capacity, draw: vm!.draw),
-            ],
-          )
-        ],
-      ),
-    );
-  }
-
-  void _handlePressed(BuildContext context) {
-    showDropdown(
-        context: context,
-        builder: (context) => DropdownMenu(children: [
-              ...availablePowerFeeds.map((feed) => MenuButton(
-                    onPressed: (context) => onPowerFeedSelected(feed.feed.uid),
-                    leading: feed.feed.uid == vm?.feed.uid
-                        ? const Center(
-                            child: Icon(
-                            Icons.check,
-                            size: 16,
-                            color: Colors.green,
-                          ))
-                        : null,
-                    trailing: Text('${feed.feed.capacity}A',
-                        style: Theme.of(context).typography.light),
-                    child: Text(feed.feed.name),
-                  )),
-              const MenuDivider(),
-              MenuButton(
-                child: const Text("Manage Power Feeds..."),
-                onPressed: (context) => onManagePowerSystemsButtonPressed(),
-              )
-            ]));
-  }
-}
-
-class PowerMeter extends StatelessWidget {
-  final CurrentDraw draw;
-  final int capacity;
-
-  const PowerMeter({super.key, required this.draw, required this.capacity});
-
-  @override
-  Widget build(BuildContext context) {
-    final hottest = draw.hottest;
-    final loadPercent = (hottest / capacity) * 100;
-
-    final textColor = switch (loadPercent) {
-      double.infinity => Colors.white,
-      >= 100 => Colors.red,
-      >= 75 => Colors.amber,
-      _ => Colors.white,
-    };
-
-    return Stack(
-      children: [
-        Text(
-          '${hottest.round()}A / ${capacity}A',
-          style: Theme.of(context).typography.bold.copyWith(color: textColor),
-        ),
-      ],
-    );
-  }
-}
-
 class _ChannelArea extends StatelessWidget {
-  final PowerRackViewModel viewModel;
+  final DataRackViewModel viewModel;
   const _ChannelArea({required this.viewModel});
 
   @override
@@ -220,13 +113,13 @@ class _ChannelArea extends StatelessWidget {
     return LayoutBuilder(builder: (context, constraints) {
       return Column(
           children: viewModel.channelVms.mapIndexed((index, channelVm) {
-        return Slot<String, PowerMultiOutletViewModel>(
-          assignedItemId: channelVm.assignedMultiId,
+        return Slot<String, DataOutletViewModel>(
+          assignedItemId: channelVm.assignedPatchId,
           slotIndex: index,
           selectionIndex: channelVm.assignedSelectionIndex,
           slotIndexScope: viewModel.rack.uid,
           onItemsLanded: (items) {
-            channelVm.onMultisLanded(items.toSet());
+            channelVm.onPatchesLanded(items.toSet());
           },
           builder: (context, assignedItem, selected) => SizedBox(
             height: 24,
@@ -237,14 +130,20 @@ class _ChannelArea extends StatelessWidget {
                   bottom: index != viewModel.channelVms.length - 1
                       ? BorderSide(
                           color: Theme.of(context).colorScheme.border,
-                        )
+                        ).copyWith(
+                          color: switch (viewModel.rackType.dividers[index]) {
+                          0 => null,
+                          1 => Colors.gray.shade500,
+                          2 => Colors.gray.shade400,
+                          _ => null,
+                        })
                       : BorderSide.none,
                 ),
               ),
               child: Row(
                 children: [
                   SizedBox(
-                    width: PowerMultiColumnWidths.columnWidths[0],
+                    width: DataOutletColumnWidths.columnWidths[0],
                     child: Center(
                       child: Text((index + 1).toString(),
                           style: channelVm.isOverflowing
@@ -259,7 +158,7 @@ class _ChannelArea extends StatelessWidget {
                   const VerticalDivider(),
                   if (assignedItem != null)
                     Expanded(
-                        child: PowerMultiChannelContent(
+                        child: DataOutletChannelContent(
                       viewModel: assignedItem.item,
                       onClearButtonPressed: channelVm.onUnpatch,
                     ))
@@ -278,6 +177,11 @@ class _ChannelAreaHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const divider = VerticalDivider(
+      width: 8,
+      color: Colors.transparent,
+    );
+
     return DefaultTextStyle(
       style: Theme.of(context).typography.xSmall,
       child: SizedBox(
@@ -285,28 +189,38 @@ class _ChannelAreaHeader extends StatelessWidget {
         child: Row(
           children: [
             SizedBox(
-              width: PowerMultiColumnWidths.columnWidths[0],
+              width: DataOutletColumnWidths.columnWidths[0],
               child: const Text("Outlet"),
             ),
-            const VerticalDivider(
-              width: 8,
-              color: Colors.transparent,
-            ),
+            divider,
             SizedBox(
-              width: PowerMultiColumnWidths.columnWidths[1],
-              child: const Text("Multi Name"),
+              width: DataOutletColumnWidths.columnWidths[1],
+              child: const Text("Universe"),
             ),
-            const VerticalDivider(
-              width: 8,
-              color: Colors.transparent,
-            ),
+            divider,
             SizedBox(
-              width: PowerMultiColumnWidths.columnWidths[2],
+              width: DataOutletColumnWidths.columnWidths[2],
+              child: const Text("Name"),
+            ),
+            divider,
+            SizedBox(
+              width: DataOutletColumnWidths.columnWidths[3],
+              child: const Text("Type"),
+            ),
+            divider,
+            SizedBox(
+              width: DataOutletColumnWidths.columnWidths[4],
+              child: const Text("Sneak Name"),
+            ),
+            divider,
+            SizedBox(
+              width: DataOutletColumnWidths.columnWidths[5],
+              child: const Text("Sneak Patch"),
+            ),
+            divider,
+            SizedBox(
+              width: DataOutletColumnWidths.columnWidths[6],
               child: const Text("Location"),
-            ),
-            const VerticalDivider(
-              width: 16,
-              color: Colors.transparent,
             ),
           ],
         ),

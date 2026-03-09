@@ -1,15 +1,15 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:sidekick/screens/racks/power_multi_item.dart';
+import 'package:sidekick/screens/racks/data_outlet_item.dart';
 import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
 import 'package:sidekick/view_models/racks_screen_view_model.dart';
 
 const double _kSidebarWidth = 360;
 
-class Sidebar extends StatelessWidget {
+class DataRacksSidebar extends StatelessWidget {
   final RacksScreenViewModel viewModel;
-  final SlotAssignmentController<String, PowerMultiOutletViewModel>
+  final SlotAssignmentController<String, DataOutletViewModel>
       assignmentController;
-  const Sidebar({
+  const DataRacksSidebar({
     super.key,
     required this.viewModel,
     required this.assignmentController,
@@ -22,10 +22,10 @@ class Sidebar extends StatelessWidget {
       child: Card(
         padding: EdgeInsets.zero,
         child: ListView.builder(
-          itemCount: viewModel.sidebarItems.length,
+          itemCount: viewModel.powerSidebarItems.length,
           itemBuilder: (context, index) {
-            final item = viewModel.sidebarItems[index];
-            return _PowerMultiLocationItem(
+            final item = viewModel.dataSidebarItems[index];
+            return _DataLocationItem(
               key: Key(item.location.uid),
               vm: item,
               assignmentController: assignmentController,
@@ -37,12 +37,12 @@ class Sidebar extends StatelessWidget {
   }
 }
 
-class _PowerMultiLocationItem extends StatelessWidget {
-  final PowerMultiSidebarLocation vm;
-  final SlotAssignmentController<String, PowerMultiOutletViewModel>
+class _DataLocationItem extends StatelessWidget {
+  final DataOutletSidebarLocation vm;
+  final SlotAssignmentController<String, DataOutletViewModel>
       assignmentController;
 
-  const _PowerMultiLocationItem({
+  const _DataLocationItem({
     super.key,
     required this.vm,
     required this.assignmentController,
@@ -68,19 +68,19 @@ class _PowerMultiLocationItem extends StatelessWidget {
               ),
             )),
 
-        // Location Hoists.
+        // Location Outlets.
         ListView.builder(
           padding: EdgeInsets.zero,
           shrinkWrap: true,
           primary: false,
           itemCount: vm.children.length,
           itemBuilder: (context, index) {
-            final multi = vm.children[index];
-            return AvailableItem<String, PowerMultiOutletViewModel>(
-              key: Key(multi.uid),
+            final outlet = vm.children[index];
+            return AvailableItem<String, DataOutletViewModel>(
+              key: Key(outlet.uid),
               controller: assignmentController,
-              id: multi.uid,
-              selectionIndex: multi.selectionIndex,
+              id: outlet.uid,
+              selectionIndex: outlet.selectionIndex,
               builder: (context, item, selected) =>
                   _contentsBuilder(context, item, selected, index),
             );
@@ -92,16 +92,18 @@ class _PowerMultiLocationItem extends StatelessWidget {
 
   Widget _contentsBuilder(
       BuildContext context,
-      ItemData<String, PowerMultiOutletViewModel>? item,
+      ItemData<String, DataOutletViewModel>? item,
       bool selected,
       int localIndex) {
     if (item == null) {
       return const Text("-");
     }
-    return PowerMultiItem(
+    return DataOutletItem(
       assigned: item.item.assigned,
-      name: item.item.multi.name,
+      name: item.item.patch.name,
       selected: selected,
+      universe: item.item.patch.universe,
+      parentMultiName: item.item.parentMulti?.name ?? '',
     );
   }
 }

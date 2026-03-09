@@ -98,7 +98,7 @@ class _HomeState extends State<Home> {
                 _NavigationItem(
                   label: Text("Diagnostics"),
                   child: Icon(Icons.bug_report),
-                )
+                ),
               ],
             ),
           ],
@@ -136,6 +136,24 @@ class _NavigationItem extends StatelessWidget implements NavigationBarItem {
       selectedStyle: const ButtonStyle.fixed(density: ButtonDensity.icon),
       label: label,
       child: child,
+    );
+  }
+
+  @override
+  bool get selectable => true;
+}
+
+class _SubNavigationItem extends StatelessWidget implements NavigationBarItem {
+  final Widget label;
+
+  const _SubNavigationItem({
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return NavigationItem(
+      child: label,
     );
   }
 

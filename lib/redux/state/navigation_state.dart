@@ -17,6 +17,7 @@ class NavigationState {
   final Set<String> selectedPowerMultiOutletIds;
   final Set<String> selectedPowerMultiChannelIds;
   final bool isFeedsDrawerOpen;
+  final int selectedRacksTabIndex;
 
   NavigationState({
     required this.selectedMultiOutlet,
@@ -34,6 +35,7 @@ class NavigationState {
     required this.selectedPowerMultiOutletIds,
     required this.selectedPowerMultiChannelIds,
     required this.isFeedsDrawerOpen,
+    required this.selectedRacksTabIndex,
   });
 
   const NavigationState.initial()
@@ -51,7 +53,8 @@ class NavigationState {
         selectedHoistChannelIds = const {},
         selectedPowerMultiOutletIds = const {},
         selectedPowerMultiChannelIds = const {},
-        isFeedsDrawerOpen = false;
+        isFeedsDrawerOpen = false,
+        selectedRacksTabIndex = 0;
 
   NavigationState copyWith({
     String? selectedMultiOutlet,
@@ -69,6 +72,7 @@ class NavigationState {
     Set<String>? selectedPowerMultiOutletIds,
     Set<String>? selectedPowerMultiChannelIds,
     bool? isFeedsDrawerOpen,
+    int? selectedRacksTabIndex,
   }) {
     return NavigationState(
       selectedMultiOutlet: selectedMultiOutlet ?? this.selectedMultiOutlet,
@@ -90,6 +94,8 @@ class NavigationState {
       selectedPowerMultiChannelIds:
           selectedPowerMultiChannelIds ?? this.selectedPowerMultiChannelIds,
       isFeedsDrawerOpen: isFeedsDrawerOpen ?? this.isFeedsDrawerOpen,
+      selectedRacksTabIndex:
+          selectedRacksTabIndex ?? this.selectedRacksTabIndex,
     );
   }
 }

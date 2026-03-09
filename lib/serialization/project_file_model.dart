@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
+import 'package:sidekick/redux/models/data_rack_model.dart';
+import 'package:sidekick/redux/models/data_rack_type_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/hoist_controller_model.dart';
@@ -39,6 +41,8 @@ class ProjectFileModel {
   final List<PowerFeedModel> powerFeeds;
   final List<PowerRackModel> powerRacks;
   final List<PowerRackTypeModel> powerRackTypes;
+  final List<DataRackModel> dataRacks;
+  final List<DataRackTypeModel> dataRackTypes;
 
   ProjectFileModel({
     required this.metadata,
@@ -60,6 +64,8 @@ class ProjectFileModel {
     required this.powerFeeds,
     required this.powerRacks,
     required this.powerRackTypes,
+    required this.dataRackTypes,
+    required this.dataRacks,
   });
 
   ProjectFileModel copyWith({
@@ -82,6 +88,8 @@ class ProjectFileModel {
     List<PowerFeedModel>? powerFeeds,
     List<PowerRackModel>? powerRacks,
     List<PowerRackTypeModel>? powerRackTypes,
+    List<DataRackModel>? dataRacks,
+    List<DataRackTypeModel>? dataRackTypes,
   }) {
     return ProjectFileModel(
       metadata: metadata ?? this.metadata,
@@ -103,6 +111,8 @@ class ProjectFileModel {
       powerFeeds: powerFeeds ?? this.powerFeeds,
       powerRacks: powerRacks ?? this.powerRacks,
       powerRackTypes: powerRackTypes ?? this.powerRackTypes,
+      dataRacks: dataRacks ?? this.dataRacks,
+      dataRackTypes: dataRackTypes ?? this.dataRackTypes,
     );
   }
 
@@ -127,6 +137,8 @@ class ProjectFileModel {
       'powerFeeds': powerFeeds.map((x) => x.toMap()).toList(),
       'powerRacks': powerRacks.map((x) => x.toMap()).toList(),
       'powerRackTypes': powerRackTypes.map((x) => x.toMap()).toList(),
+      'dataRackTypes': dataRackTypes.map((x) => x.toMap()).toList(),
+      'dataRacks': dataRacks.map((x) => x.toMap()).toList(),
     };
   }
 
@@ -206,6 +218,13 @@ class ProjectFileModel {
         (map['powerRackTypes'] ?? []).map<PowerRackTypeModel>(
             (x) => PowerRackTypeModel.fromMap(x as Map<String, dynamic>)),
       ),
+      dataRacks: List<DataRackModel>.from((map['dataRacks'] ?? [])
+          .map<DataRackModel>(
+              (x) => DataRackModel.fromMap(x as Map<String, dynamic>))),
+      dataRackTypes: List<DataRackTypeModel>.from(
+        (map['dataRackTypes'] ?? []).map<DataRackTypeModel>(
+            (x) => DataRackTypeModel.fromMap(x as Map<String, dynamic>)),
+      ),
     );
   }
 
@@ -234,6 +253,8 @@ class ProjectFileModel {
       powerFeeds: powerFeeds.toModelMap(),
       powerRacks: powerRacks.toModelMap(),
       powerRackTypes: powerRackTypes.toModelMap(),
+      dataRackTypes: dataRackTypes.toModelMap(),
+      dataRacks: dataRacks.toModelMap(),
     );
   }
 }
