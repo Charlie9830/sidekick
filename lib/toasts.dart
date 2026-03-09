@@ -39,7 +39,7 @@ void showGenericErrorToast(
       context: context,
       builder: (context, overlay) => SurfaceCard(
               child: Basic(
-            leading: const Icon(Icons.error),
+            leading: const Icon(Icons.error, color: Colors.red),
             title: Text(title),
             subtitle: subtitle != null ? Text(subtitle) : null,
             trailing: extendedMessage != null

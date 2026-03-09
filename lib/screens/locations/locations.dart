@@ -49,7 +49,7 @@ class _LocationsState extends State<Locations> {
         key: locationsPageStorageKey,
         horizontalDetails: _scrollableDetails,
         pinnedRowCount: 1,
-        columnCount: 9,
+        columnCount: 8,
         rowCount: widget.vm.itemVms.length + 1,
         columnBuilder: _columnBuilder,
         rowBuilder: (index) => _rowBuilder(context, index),

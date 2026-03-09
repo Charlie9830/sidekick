@@ -16,12 +16,14 @@ class RacksScreenViewModel {
   final List<PowerMultiSidebarLocation> sidebarItems;
   final List<PowerRackViewModel> powerRacks;
   final void Function() onAddPowerRack;
+  final void Function(Set<String> selectedMultiIds) onUnpatchPowerMultis;
 
   RacksScreenViewModel({
     required this.assignableItems,
     required this.sidebarItems,
     required this.powerRacks,
     required this.onAddPowerRack,
+    required this.onUnpatchPowerMultis,
   });
 }
 

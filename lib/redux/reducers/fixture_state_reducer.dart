@@ -6,6 +6,7 @@ import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/perform_data_patch.dart';
 import 'package:sidekick/perform_power_patch.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
+import 'package:sidekick/redux/models/built_in_power_rack_types.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
@@ -13,6 +14,8 @@ import 'package:sidekick/redux/models/hoist_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
+import 'package:sidekick/redux/models/power_rack_model.dart';
+import 'package:sidekick/redux/models/power_rack_type_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
@@ -129,7 +132,6 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       balanceTolerance: state.balanceTolerance,
       powerRacks: state.powerRacks,
     );
-
     return state.copyWith(
         fixtures: FixtureModel.sort(powerPatch.fixtures, a.locations),
         locations: a.locations,

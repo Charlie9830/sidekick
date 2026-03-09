@@ -301,6 +301,16 @@ ThunkAction<AppState> deletePowerRack(
     );
 
     if (dialogResult == true) {
+      final updatedPowerMultis = store.state.fixtureState.powerMultiOutlets
+          .clone()
+        ..updateAll((multiId, existing) =>
+            existing.parentRack.rackId == rack.uid
+                ? existing.copyWith(
+                    parentRack: const PowerMultiRackAssignment.unassigned())
+                : existing);
+
+      store.dispatch(SetPowerMultiOutlets(updatedPowerMultis));
+
       store.dispatch(SetPowerRacks(
         store.state.fixtureState.powerRacks.clone()..remove(rack.uid),
       ));
@@ -378,6 +388,21 @@ ThunkAction<AppState> unpatchPowerMulti(
               (existing) => existing.copyWith(
                     parentRack: const PowerMultiRackAssignment.unassigned(),
                   ))));
+  };
+}
+
+ThunkAction<AppState> unpatchPowerMultis(Set<String> powerMultiIds) {
+  return (Store<AppState> store) async {
+    if (powerMultiIds.isEmpty) {
+      return;
+    }
+
+    store.dispatch(SetPowerMultiOutlets(
+        store.state.fixtureState.powerMultiOutlets.clone()
+          ..updateAll((multiId, existing) => powerMultiIds.contains(multiId)
+              ? existing.copyWith(
+                  parentRack: const PowerMultiRackAssignment.unassigned())
+              : existing)));
   };
 }
 
@@ -2155,7 +2180,6 @@ ThunkAction<AppState> export(BuildContext context) {
       }
       return;
     }
-
     final existingFileNames = await outputPaths.getAlreadyExistingFileNames();
 
     if (existingFileNames.isNotEmpty) {
@@ -2174,6 +2198,17 @@ ThunkAction<AppState> export(BuildContext context) {
           return;
         }
       }
+    }
+
+    if (store.state.fixtureState.powerRacks.isEmpty) {
+      if (context.mounted) {
+        showGenericErrorToast(
+            context: context,
+            title: 'No Power racks',
+            subtitle: 'No Power racks have been created yet.');
+      }
+
+      return;
     }
 
     final referenceDataExcel = Excel.createExcel();

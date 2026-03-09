@@ -51,6 +51,8 @@ class RacksContainer extends StatelessWidget {
                 ),
               ),
             ),
+            onUnpatchPowerMultis: (selectedMultiIds) =>
+                store.dispatch(unpatchPowerMultis(selectedMultiIds)),
             powerRacks: selectPowerRacks(context: context, store: store),
             sidebarItems:
                 selectPowerMultiSidebarItems(context: context, store: store),
