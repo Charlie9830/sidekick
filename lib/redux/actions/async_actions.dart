@@ -2425,6 +2425,8 @@ ThunkAction<AppState> export(BuildContext context) {
       dataOutlets: store.state.fixtureState.dataPatches.values,
       locations: store.state.fixtureState.locations,
       cables: store.state.fixtureState.cables,
+      dataRackTypes: store.state.fixtureState.dataRackTypes,
+      dataRacks: store.state.fixtureState.dataRacks,
     );
 
     createDataMultiSheet(
@@ -2433,6 +2435,7 @@ ThunkAction<AppState> export(BuildContext context) {
       locations: store.state.fixtureState.locations,
       cables: store.state.fixtureState.cables,
       dataMultis: store.state.fixtureState.dataMultis,
+      dataRacks: store.state.fixtureState.dataRacks,
     );
 
     referenceDataExcel.delete('Sheet1');
