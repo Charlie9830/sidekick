@@ -33,6 +33,8 @@ void createPowerPatchSheet(
     TextCellValue('Location'),
   ]);
 
+  final contentRows = <List<CellValue>>[];
+
   final powerMultisByRack =
       powerMultis.values.groupListsBy((multi) => multi.parentRack.rackId);
 
@@ -40,53 +42,59 @@ void createPowerPatchSheet(
     final multis = (powerMultisByRack[rack.uid] ?? [])
         .sorted((a, b) => a.parentRack.channel - b.parentRack.channel);
 
-    final rackType = powerRackTypes[rack.typeId];
+    final multisByChannel = Map<int, PowerMultiOutletModel>.fromEntries(
+        multis.map((multi) => MapEntry(multi.parentRack.channel, multi)));
 
-    int localOutletNumber = 1;
+    final rackType = powerRackTypes[rack.typeId]!;
 
-    for (final multi in multis) {
-      final location = locations[multi.locationId]!;
+    for (int multiOutletIndex = 0;
+        multiOutletIndex < rackType.multiOutletCount;
+        multiOutletIndex++) {
+      final multiOutletChannel = multiOutletIndex + 1;
+      final multi = multisByChannel[multiOutletChannel];
+      final rackNumber = rackIndex + 1;
 
-      for (final outlet in multi.children) {
-        final rackNumber = rackIndex + 1;
-        final outletNumber = localOutletNumber++;
+      for (int outletIndex = 0;
+          outletIndex < rackType.multiWayDivisor;
+          outletIndex++) {
+        final outlet = multi?.children.elementAtOrNull(outletIndex);
+        final multiPatchNumber = outletIndex + 1;
+        final rackOutletNumber =
+            ((multiOutletIndex * rackType.multiWayDivisor) + outletIndex) + 1;
 
-        powerPatchSheet.appendRow([
-          // Rack Name
+        contentRows.add([
           TextCellValue(rack.name),
-
-          // Rack Type
-          TextCellValue(rackType?.name ?? ''),
-
-          // Rack Number
+          TextCellValue(rackType.name),
           IntCellValue(rackNumber),
-
-          // Rack Outlet Number
-          IntCellValue(outletNumber),
-
-          // Combined Rack Number and Outlet Number
-          TextCellValue('$rackNumber-$outletNumber'),
-
-          // Multi name
-          TextCellValue(multi.name),
+          IntCellValue(rackOutletNumber),
+          TextCellValue('$rackNumber-$rackOutletNumber'),
+          TextCellValue(multi?.name ?? ''),
 
           // Multi Patch
-          IntCellValue(outlet.multiPatch),
+          IntCellValue(multiPatchNumber),
 
           // Fixture Name
-          TextCellValue(formatFixtureType(
-              outlet.fixtureIds.map((id) => fixtures[id]!).toList(),
-              fixtureTypes)),
+          TextCellValue(outlet == null
+              ? ''
+              : formatFixtureType(
+                  outlet.fixtureIds.map((id) => fixtures[id]!).toList(),
+                  fixtureTypes)),
 
           // Fixture ID
-          TextCellValue(_formatFixtureNumbers(
-              outlet.fixtureIds.map((id) => fixtures[id]!.fid))),
+          TextCellValue(outlet == null
+              ? ''
+              : _formatFixtureNumbers(
+                  outlet.fixtureIds.map((id) => fixtures[id]!.fid))),
 
           // Location
-          TextCellValue(location.name)
+          TextCellValue(locations[multi?.locationId]?.name ?? ''),
         ]);
       }
     }
+  }
+
+  for (final row in contentRows) {
+    powerPatchSheet.appendRow(row);
   }
 }
 
