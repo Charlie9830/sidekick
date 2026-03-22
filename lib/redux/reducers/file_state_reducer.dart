@@ -1,9 +1,22 @@
+import 'package:collection/collection.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/state/file_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:path/path.dart' as p;
 
 FileState fileStateReducer(FileState state, dynamic a) {
+  if (a is SetIsValidatingExportData) {
+    return state.copyWith(
+      isValidatingExportData: a.value,
+    );
+  }
+  if (a is SetExportErrors) {
+    return state.copyWith(
+      isValidatingExportData: false,
+      exportErrors: a.errors.sorted((a, b) => b.level.index - a.level.index),
+    );
+  }
+
   if (a is NewProject) {
     return state.copyWith(
       fixturePatchImportPath: '',

@@ -4,6 +4,7 @@ import 'package:sidekick/enums.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/data_rack_model.dart';
+import 'package:sidekick/redux/models/export_error_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/hoist_controller_model.dart';
@@ -19,6 +20,18 @@ import 'package:sidekick/redux/models/power_rack_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
+
+class SetIsValidatingExportData {
+  final bool value;
+
+  SetIsValidatingExportData(this.value);
+}
+
+class SetExportErrors {
+  final List<ExportErrorModel> errors;
+
+  SetExportErrors(this.errors);
+}
 
 class SetDataPatches {
   final Map<String, DataPatchModel> patches;

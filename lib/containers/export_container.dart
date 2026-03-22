@@ -33,6 +33,10 @@ class ExportContainer extends StatelessWidget {
           onOpenAfterExportChanged: (newValue) =>
               store.dispatch(SetOpenAfterExport(newValue!)),
           openAfterExport: store.state.navstate.openAfterExport,
+          onValidateButtonPressed: () =>
+              store.dispatch(performExportDataValidation()),
+          exportErrors: store.state.fileState.exportErrors,
+          isValidating: store.state.fileState.isValidatingExportData,
         );
       },
     );

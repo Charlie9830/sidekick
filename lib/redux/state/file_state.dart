@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:sidekick/redux/models/export_error_model.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 
 class FileState {
@@ -10,6 +11,8 @@ class FileState {
   final bool isFixtureTypeDatabasePathValid;
   final String fixtureMappingFilePath;
   final String comparisonFilePath;
+  final List<ExportErrorModel> exportErrors;
+  final bool isValidatingExportData;
 
   FileState({
     this.fixturePatchImportPath = "",
@@ -20,6 +23,8 @@ class FileState {
     this.isFixtureTypeDatabasePathValid = false,
     this.fixtureMappingFilePath = '',
     this.comparisonFilePath = '',
+    this.exportErrors = const [],
+    this.isValidatingExportData = false,
   });
 
   const FileState.initial()
@@ -30,7 +35,9 @@ class FileState {
         projectMetadata = const ProjectFileMetadataModel.initial(),
         isFixtureTypeDatabasePathValid = false,
         fixtureMappingFilePath = '',
-        comparisonFilePath = '';
+        comparisonFilePath = '',
+        exportErrors = const [],
+        isValidatingExportData = false;
 
   FileState copyWith({
     String? fixturePatchImportPath,
@@ -41,6 +48,8 @@ class FileState {
     bool? isFixtureTypeDatabasePathValid,
     String? fixtureMappingFilePath,
     String? comparisonFilePath,
+    List<ExportErrorModel>? exportErrors,
+    bool? isValidatingExportData,
   }) {
     return FileState(
       fixturePatchImportPath:
@@ -56,6 +65,9 @@ class FileState {
       fixtureMappingFilePath:
           fixtureMappingFilePath ?? this.fixtureMappingFilePath,
       comparisonFilePath: comparisonFilePath ?? this.comparisonFilePath,
+      exportErrors: exportErrors ?? this.exportErrors,
+      isValidatingExportData:
+          isValidatingExportData ?? this.isValidatingExportData,
     );
   }
 }

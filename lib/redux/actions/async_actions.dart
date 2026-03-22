@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:excel/excel.dart';
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:redux/redux.dart';
@@ -14,11 +15,13 @@ import 'package:shadcn_flutter/shadcn_flutter.dart' hide IndexedSlot;
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/data_rack_model.dart';
 import 'package:sidekick/redux/models/data_rack_type_model.dart';
+import 'package:sidekick/redux/models/export_error_model.dart';
 import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_rack_type_model.dart';
+import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/screens/locations/power_feed_manager.dart';
-import 'package:sidekick/screens/racks/data_racks_assignment.dart';
 import 'package:sidekick/utils/packable_list.dart';
+import 'package:sidekick/validate_export_data.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:sidekick/assert_sneak_child_spares.dart';
@@ -81,6 +84,14 @@ import 'package:sidekick/serialization/deserialize_project_file.dart';
 import 'package:sidekick/serialization/serialize_project_file.dart';
 import 'package:sidekick/toasts.dart';
 import 'package:sidekick/utils/get_uid.dart';
+
+ThunkAction<AppState> performExportDataValidation() {
+  return (Store<AppState> store) async {
+    store.dispatch(SetIsValidatingExportData(true));
+    final result = await _validateExportData(store.state.fixtureState);
+    store.dispatch(SetExportErrors(result));
+  };
+}
 
 ThunkAction<AppState> updatePowerRackFeed(String feedId, String targetRackId) {
   return (Store<AppState> store) async {
@@ -2385,15 +2396,27 @@ ThunkAction<AppState> export(BuildContext context) {
       }
     }
 
-    if (store.state.fixtureState.powerRacks.isEmpty) {
-      if (context.mounted) {
-        showGenericErrorToast(
-            context: context,
-            title: 'No Power racks',
-            subtitle: 'No Power racks have been created yet.');
-      }
+    store.dispatch(SetIsValidatingExportData(true));
+    final validationResult =
+        await _validateExportData(store.state.fixtureState);
 
-      return;
+    store.dispatch(SetExportErrors(validationResult));
+
+    if (validationResult.isNotEmpty) {
+      if (context.mounted) {
+        final dialogResult = await showGenericDialog(
+          context: context,
+          title: 'Project contains Errors',
+          message:
+              'Your project contains errors, are you sure you want to export?',
+          affirmativeText: 'Export',
+          declineText: 'Cancel',
+        );
+
+        if (dialogResult == null || dialogResult == false) {
+          return;
+        }
+      }
     }
 
     final referenceDataExcel = Excel.createExcel();
@@ -2645,4 +2668,9 @@ int _findNextAvailableSequenceNumber(List<int> sequenceNumbers) {
   }
 
   return sortedSequenceNumbers.last + 1;
+}
+
+Future<List<ExportErrorModel>> _validateExportData(FixtureState state) async {
+  return await compute<FixtureState, List<ExportErrorModel>>(
+      (message) => validateExportData(message), state);
 }

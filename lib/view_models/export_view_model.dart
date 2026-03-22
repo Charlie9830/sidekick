@@ -1,3 +1,4 @@
+import 'package:sidekick/redux/models/export_error_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 
 class ExportViewModel {
@@ -9,6 +10,9 @@ class ExportViewModel {
   final void Function(String newValue) onProjectNameChanged;
   final bool openAfterExport;
   final void Function(bool? newValue) onOpenAfterExportChanged;
+  final void Function() onValidateButtonPressed;
+  final List<ExportErrorModel> exportErrors;
+  final bool isValidating;
 
   ExportViewModel({
     required this.locations,
@@ -19,5 +23,8 @@ class ExportViewModel {
     required this.onProjectNameChanged,
     required this.onOpenAfterExportChanged,
     required this.openAfterExport,
+    required this.onValidateButtonPressed,
+    required this.exportErrors,
+    required this.isValidating,
   });
 }

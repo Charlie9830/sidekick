@@ -153,6 +153,14 @@ class CurrentDraw {
     return CurrentDraw(load.a, load.b, load.c);
   }
 
+  CurrentDraw addedWith(CurrentDraw other) {
+    return copyWith(
+      l1: l1 + other.l1,
+      l2: l2 + other.l2,
+      l3: l3 + other.l3,
+    );
+  }
+
   CurrentDraw copyWith({
     double? l1,
     double? l2,
@@ -163,10 +171,6 @@ class CurrentDraw {
       l2 ?? this.l2,
       l3 ?? this.l3,
     );
-  }
-
-  CurrentDraw addedWith(CurrentDraw other) {
-    return copyWith(l1: l1 + other.l1, l2: l2 + other.l2, l3: l3 + other.l3);
   }
 }
 
