@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/widgets/blur_listener.dart';
 
 typedef OnBlurCallback = void Function(String newValue);
 
@@ -84,45 +85,49 @@ class PropertyFieldState extends State<PropertyField> {
 
   @override
   Widget build(BuildContext context) {
-    return layoutInput(
-        context: context,
-        label: widget.label,
-        labelPosition: widget.labelAlign,
-        error: widget.error,
-        child: TextField(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
-          controller: _controller,
-          scrollController: _scrollController,
-          autocorrect: widget.autofocus,
-          enabled: widget.enabled,
-          autofocus: widget.autofocus,
-          focusNode: _focusNode,
-          inputFormatters: widget.inputFormatters,
-          hintText: widget.hintText,
-          textAlign: widget.textAlign,
-          border: widget.error != null
-              ? Border.all(
-                  color: Colors.red, style: BorderStyle.solid, width: 2)
-              : null,
-          onEditingComplete: () => _handleSubmit(),
-          onTapOutside: (e) => _handleSubmit(),
-          features: [
-            // Suffix
-            if (widget.suffix.isNotEmpty)
-              InputFeature.trailing(
-                  Text(widget.suffix,
-                      style: Theme.of(context)
-                          .typography
-                          .normal
-                          .copyWith(color: Colors.gray)),
-                  skipFocusTraversal: true,
-                  visibility: InputFeatureVisibility.always)
-          ],
-        ));
+    return BlurListener(
+      onBlur: _handleSubmit,
+      child: layoutInput(
+          context: context,
+          label: widget.label,
+          labelPosition: widget.labelAlign,
+          error: widget.error,
+          child: TextField(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
+            controller: _controller,
+            scrollController: _scrollController,
+            autocorrect: widget.autofocus,
+            enabled: widget.enabled,
+            autofocus: widget.autofocus,
+            focusNode: _focusNode,
+            inputFormatters: widget.inputFormatters,
+            hintText: widget.hintText,
+            textAlign: widget.textAlign,
+            border: widget.error != null
+                ? Border.all(
+                    color: Colors.red, style: BorderStyle.solid, width: 2)
+                : null,
+            onEditingComplete: () => _handleSubmit(),
+            onTapOutside: (e) => _handleSubmit(),
+            features: [
+              // Suffix
+              if (widget.suffix.isNotEmpty)
+                InputFeature.trailing(
+                    Text(widget.suffix,
+                        style: Theme.of(context)
+                            .typography
+                            .normal
+                            .copyWith(color: Colors.gray)),
+                    skipFocusTraversal: true,
+                    visibility: InputFeatureVisibility.always)
+            ],
+          )),
+    );
   }
 
   void _handleSubmit() {
     widget.onBlur?.call(_controller.text);
+    _focusNode.unfocus();
 
     //_focusNode.nextFocus();
   }
