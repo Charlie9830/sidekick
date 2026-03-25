@@ -225,6 +225,7 @@ class _SequencerDialogState extends State<SequencerDialog> {
                                       FilteringTextInputFormatter.digitsOnly
                                     ],
                                     onBlur: (_) => _enumerate(),
+                                    traverseFocusOnEnterKey: false,
                                   ),
                                 ),
                               ],

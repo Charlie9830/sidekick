@@ -25,6 +25,7 @@ class PropertyField extends StatefulWidget {
   final bool enabled;
   final LabelAlign labelAlign;
   final String? error;
+  final bool traverseFocusOnEnterKey;
 
   const PropertyField({
     Key? key,
@@ -42,6 +43,7 @@ class PropertyField extends StatefulWidget {
     this.scrollController,
     this.labelAlign = LabelAlign.start,
     this.error,
+    this.traverseFocusOnEnterKey = true,
   }) : super(key: key);
 
   @override
@@ -71,6 +73,12 @@ class PropertyFieldState extends State<PropertyField> {
         _handleSubmit();
       }
 
+      if (event is KeyDownEvent &&
+          event.logicalKey == LogicalKeyboardKey.enter &&
+          widget.traverseFocusOnEnterKey == true) {
+        _focusNode.nextFocus();
+      }
+
       return KeyEventResult.ignored;
     };
   }
@@ -86,7 +94,7 @@ class PropertyFieldState extends State<PropertyField> {
   @override
   Widget build(BuildContext context) {
     return BlurListener(
-      onBlur: _handleSubmit,
+      onBlur: _handleBlur,
       child: layoutInput(
           context: context,
           label: widget.label,
@@ -108,7 +116,7 @@ class PropertyFieldState extends State<PropertyField> {
                     color: Colors.red, style: BorderStyle.solid, width: 2)
                 : null,
             onEditingComplete: () => _handleSubmit(),
-            onTapOutside: (e) => _handleSubmit(),
+            onTapOutside: (e) => _handleBlur(),
             features: [
               // Suffix
               if (widget.suffix.isNotEmpty)
@@ -125,11 +133,12 @@ class PropertyFieldState extends State<PropertyField> {
     );
   }
 
+  void _handleBlur() {
+    widget.onBlur?.call(_controller.text);
+  }
+
   void _handleSubmit() {
     widget.onBlur?.call(_controller.text);
-    _focusNode.unfocus();
-
-    //_focusNode.nextFocus();
   }
 
   @override
