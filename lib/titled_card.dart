@@ -15,10 +15,7 @@ class TitledCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(title).h4,
-        ),
+        CardTitle(title: title),
         Card(
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -26,6 +23,23 @@ class TitledCard extends StatelessWidget {
           ),
         )
       ],
+    );
+  }
+}
+
+class CardTitle extends StatelessWidget {
+  const CardTitle({
+    super.key,
+    required this.title,
+  });
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(title).h4,
     );
   }
 }

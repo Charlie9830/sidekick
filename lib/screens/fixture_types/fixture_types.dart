@@ -1,5 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/screens/fixture_types/fixture_type_data_table.dart';
+import 'package:sidekick/screens/fixture_types/fixture_type_pools.dart';
 import 'package:sidekick/view_models/fixture_types_view_model.dart';
 import 'package:sidekick/widgets/toolbar.dart';
 
@@ -17,6 +18,20 @@ class FixtureTypes extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
+        NavigationBar(
+          index: vm.tabIndex,
+          onSelected: (index) => vm.onTabChanged(index),
+          alignment: NavigationBarAlignment.start,
+          expands: false,
+          children: const [
+            NavigationItem(
+              child: Text('Fixture Types'),
+            ),
+            NavigationItem(
+              child: Text('Pools'),
+            )
+          ],
+        ),
         Toolbar(
             child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -33,10 +48,12 @@ class FixtureTypes extends StatelessWidget {
           ],
         )),
         Expanded(
-          child: FixtureTypeDataTable(
-            items: vm.itemVms,
-          ),
-        ),
+            child: switch (vm.tabIndex) {
+          0 => FixtureTypeDataTable(
+              items: vm.fixtureTypeVms,
+            ),
+          _ => FixtureTypePools(viewModel: vm)
+        }),
       ],
     );
   }

@@ -16,6 +16,7 @@ import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/data_rack_model.dart';
 import 'package:sidekick/redux/models/data_rack_type_model.dart';
 import 'package:sidekick/redux/models/export_error_model.dart';
+import 'package:sidekick/redux/models/fixture_type_pool_model.dart';
 import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_rack_type_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
@@ -84,6 +85,17 @@ import 'package:sidekick/serialization/deserialize_project_file.dart';
 import 'package:sidekick/serialization/serialize_project_file.dart';
 import 'package:sidekick/toasts.dart';
 import 'package:sidekick/utils/get_uid.dart';
+
+ThunkAction<AppState> createFixtureTypePool() {
+  return (Store<AppState> store) async {
+    final newPool =
+        FixtureTypePoolModel(uid: getUid(), name: 'New Pool', items: {});
+
+    store.dispatch(SetFixtureTypePools(
+        store.state.fixtureState.fixtureTypePools.clone()
+          ..addAll({newPool.uid: newPool})));
+  };
+}
 
 ThunkAction<AppState> performExportDataValidation() {
   return (Store<AppState> store) async {
@@ -903,6 +915,7 @@ ThunkAction<AppState> showLocationOverridesDialog(
         fullScreen: true,
         builder: (context) => LocationOverridesDialog(
             initialLocationId: locationId,
+            fixtureTypePools: store.state.fixtureState.fixtureTypePools,
             locations: store.state.fixtureState.locations,
             fixtures: store.state.fixtureState.fixtures,
             fixtureTypes: store.state.fixtureState.fixtureTypes,

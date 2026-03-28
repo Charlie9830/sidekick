@@ -4,19 +4,23 @@ import 'dart:convert';
 class LocationOverrideModel {
   final OptionalInt maxSequenceBreak;
   final Map<String, int> maxPairings;
+  final Set<String> enabledFixtureTypePoolIds;
 
   LocationOverrideModel({
     this.maxPairings = const {},
     this.maxSequenceBreak = const OptionalInt.unset(),
+    this.enabledFixtureTypePoolIds = const {},
   });
 
   const LocationOverrideModel.none()
       : maxPairings = const {},
-        maxSequenceBreak = const OptionalInt.unset();
+        maxSequenceBreak = const OptionalInt.unset(),
+        enabledFixtureTypePoolIds = const {};
 
   bool get hasOverrides =>
       maxSequenceBreak != const LocationOverrideModel.none().maxSequenceBreak ||
-      maxPairings.isNotEmpty;
+      maxPairings.isNotEmpty ||
+      enabledFixtureTypePoolIds.isNotEmpty;
 
   int getMaxPairings({required String typeId, required int valueIfAbsent}) {
     return maxPairings[typeId] ?? valueIfAbsent;
@@ -25,10 +29,13 @@ class LocationOverrideModel {
   LocationOverrideModel copyWith({
     OptionalInt? maxSequenceBreak,
     Map<String, int>? maxPairings,
+    Set<String>? enabledFixtureTypePoolIds,
   }) {
     return LocationOverrideModel(
       maxSequenceBreak: maxSequenceBreak ?? this.maxSequenceBreak,
       maxPairings: maxPairings ?? this.maxPairings,
+      enabledFixtureTypePoolIds:
+          enabledFixtureTypePoolIds ?? this.enabledFixtureTypePoolIds,
     );
   }
 
@@ -36,6 +43,7 @@ class LocationOverrideModel {
     return <String, dynamic>{
       'maxSequenceBreak': maxSequenceBreak.toMap(),
       'maxPairings': maxPairings,
+      'enabledFixtureTypePoolIds': enabledFixtureTypePoolIds.toList(),
     };
   }
 
@@ -44,6 +52,8 @@ class LocationOverrideModel {
       maxSequenceBreak:
           OptionalInt.fromMap(map['maxSequenceBreak'] as Map<String, dynamic>),
       maxPairings: Map<String, int>.from(map['maxPairings'] ?? <String, int>{}),
+      enabledFixtureTypePoolIds:
+          Set<String>.from(map['enabledFixtureTypePoolIds'] ?? <String>[]),
     );
 
     return raw.maxSequenceBreak.value == null && raw.maxPairings.isEmpty

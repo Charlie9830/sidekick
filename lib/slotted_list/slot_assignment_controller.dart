@@ -264,6 +264,7 @@ class Slot<K, V> extends StatelessWidget {
   final int? selectionIndex;
   final ItemBuilder<K, V> builder;
   final void Function(List<K> itemIds) onItemsLanded;
+  final SlotAssignmentController<K, V>? controller;
 
   const Slot({
     super.key,
@@ -273,32 +274,34 @@ class Slot<K, V> extends StatelessWidget {
     required this.onItemsLanded,
     this.selectionIndex,
     this.slotIndexScope = '',
+    this.controller,
   });
 
   @override
   Widget build(BuildContext context) {
-    final controller = SlotAssignmentScope.of<K, V>(context);
+    final assignmentController =
+        controller ?? SlotAssignmentScope.of<K, V>(context);
     return ListenableBuilder(
-        listenable: controller,
+        listenable: assignmentController,
         builder: (context, _) {
           final item = assignedItemId != null
-              ? controller.itemsById[assignedItemId]
+              ? assignmentController.itemsById[assignedItemId]
               : null;
 
           final child = builder(context, item,
-              controller.selectedPlacedIds.contains(assignedItemId));
+              assignmentController.selectedPlacedIds.contains(assignedItemId));
           return _wrapActivatedBorder(
-            controller: controller,
+            controller: assignmentController,
             slotIndex: slotIndex,
             slotIndexScope: slotIndexScope,
             child: _wrapDragTarget(
-              controller: controller,
+              controller: assignmentController,
               child: _wrapSelectionListener(
                 item: item,
                 selectionIndex: selectionIndex,
                 child: _wrapDraggable(
                   child: child,
-                  controller: controller,
+                  controller: assignmentController,
                   item: item,
                 ),
               ),

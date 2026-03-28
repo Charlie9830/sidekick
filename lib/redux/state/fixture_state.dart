@@ -7,6 +7,7 @@ import 'package:sidekick/redux/models/data_rack_model.dart';
 import 'package:sidekick/redux/models/data_rack_type_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
+import 'package:sidekick/redux/models/fixture_type_pool_model.dart';
 import 'package:sidekick/redux/models/hoist_controller_model.dart';
 import 'package:sidekick/redux/models/hoist_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
@@ -39,6 +40,7 @@ class FixtureState {
   final Map<String, PowerRackTypeModel> powerRackTypes;
   final Map<String, DataRackModel> dataRacks;
   final Map<String, DataRackTypeModel> dataRackTypes;
+  final Map<String, FixtureTypePoolModel> fixtureTypePools;
 
   FixtureState({
     required this.fixtures,
@@ -61,6 +63,7 @@ class FixtureState {
     required this.powerRackTypes,
     required this.dataRackTypes,
     required this.dataRacks,
+    required this.fixtureTypePools,
   });
 
   const FixtureState.initial()
@@ -79,6 +82,7 @@ class FixtureState {
         hoists = const {},
         hoistControllers = const {},
         hoistMultis = const {},
+        fixtureTypePools = const {},
         powerFeeds = const {
           PowerFeedModel.kDefaultPowerFeedId: PowerFeedModel.defaultFeed(),
         },
@@ -108,6 +112,7 @@ class FixtureState {
     Map<String, PowerRackTypeModel>? powerRackTypes,
     Map<String, DataRackModel>? dataRacks,
     Map<String, DataRackTypeModel>? dataRackTypes,
+    Map<String, FixtureTypePoolModel>? fixtureTypePools,
   }) {
     return FixtureState(
       fixtures: fixtures ?? this.fixtures,
@@ -130,6 +135,7 @@ class FixtureState {
       powerRackTypes: powerRackTypes ?? this.powerRackTypes,
       dataRacks: dataRacks ?? this.dataRacks,
       dataRackTypes: dataRackTypes ?? this.dataRackTypes,
+      fixtureTypePools: fixtureTypePools ?? this.fixtureTypePools,
     );
   }
 }

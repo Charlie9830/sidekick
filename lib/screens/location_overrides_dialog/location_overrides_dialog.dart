@@ -1,13 +1,16 @@
 import 'package:collection/collection.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/extension_methods/clone_map.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
+import 'package:sidekick/redux/models/fixture_type_pool_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/location_override_model.dart';
 import 'package:sidekick/screens/fixture_types/fixture_type_data_table.dart';
 import 'package:sidekick/shad_list_item.dart';
 import 'package:sidekick/simple_tooltip.dart';
+import 'package:sidekick/titled_card.dart';
 import 'package:sidekick/view_models/fixture_types_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';
 import 'package:sidekick/widgets/property_field.dart';
@@ -16,6 +19,7 @@ class LocationOverridesDialog extends StatefulWidget {
   final Map<String, LocationModel> locations;
   final Map<String, FixtureModel> fixtures;
   final Map<String, FixtureTypeModel> fixtureTypes;
+  final Map<String, FixtureTypePoolModel> fixtureTypePools;
   final String initialLocationId;
   final int globalMaxSequenceBreak;
 
@@ -26,6 +30,7 @@ class LocationOverridesDialog extends StatefulWidget {
     required this.fixtures,
     required this.fixtureTypes,
     required this.globalMaxSequenceBreak,
+    required this.fixtureTypePools,
   });
 
   @override
@@ -48,34 +53,6 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
     _fixtureQtyLookup = _buildFixtureQtyLookup();
 
     super.initState();
-  }
-
-  Map<String, _LocationFixtureQty> _buildFixtureQtyLookup() {
-    return Map<String, _LocationFixtureQty>.fromEntries(widget.fixtures.values
-        .groupListsBy((fixture) => fixture.locationId)
-        .entries
-        .map((entry) {
-      final locationId = entry.key;
-      final fixtures = entry.value;
-
-      // Create a map of <String, int> which represents <FixtureTypeID, qty of Fixtures with that Fixture type ID>.
-      final fixtureQtysByTypeId = fixtures.fold<Map<String, int>>(
-          <String, int>{},
-          (map, current) => map
-            ..update(
-              current.typeId,
-              (value) =>
-                  value +
-                  1, // TypeId already exists in map. So iterate the existing value.
-              ifAbsent: () =>
-                  1, // TypeId doesn't exist in map, so create an entry starting at 1.
-            ));
-
-      return MapEntry(
-        locationId,
-        _LocationFixtureQty(fixtureQtysByTypeId),
-      );
-    }));
   }
 
   @override
@@ -116,138 +93,123 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Sidebar
-            SizedBox(
-              width: 240,
-              child: Card(
-                  padding: EdgeInsets.zero,
-                  child: ListView.builder(
-                    itemCount: locationsList.length,
-                    itemBuilder: (context, index) {
-                      final location = locationsList[index];
-
-                      return HoverRegionBuilder(builder: (context, isHovering) {
-                        return ShadListItem(
-                          title: Text(location.name),
-                          selected: location.uid == _selectedLocationId,
-                          onTap: () => setState(
-                              () => _selectedLocationId = location.uid),
-                          leading: location.overrides.hasOverrides
-                              ? const Icon(Icons.check_circle,
-                                  size: 12, color: Colors.teal)
-                              : null,
-                          trailing: _clipboard != null &&
-                                  (isHovering ||
-                                      location.uid == _selectedLocationId)
-                              ? SizedBox(
-                                  width: 84,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      SimpleTooltip(
-                                        message: _clipboard != null
-                                            ? 'Paste settings from ${_clipboard!.sourceLocationName}.'
-                                            : '',
-                                        child: IconButton.ghost(
-                                          icon: const Icon(Icons.paste),
-                                          size: ButtonSize.small,
-                                          onPressed: _clipboard == null
-                                              ? null
-                                              : () =>
-                                                  _handlePaste(location.uid),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : null,
-                        );
-                      });
-                    },
-                  )),
+            _Sidebar(
+              locationsList: locationsList,
+              selectedLocationId: _selectedLocationId,
+              onLocationSelected: (id) =>
+                  setState(() => _selectedLocationId = id),
+              onPaste: _handlePaste,
+              clipboard: _clipboard,
             ),
 
-            // Content
+            // Content Zone
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  spacing: 4,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(selectedLocation?.name ?? 'Location',
-                          style: Theme.of(context).typography.lead),
-                    ),
-                    const SizedBox(height: 8),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: 124,
-                            child: PropertyField(
-                              textAlign: TextAlign.center,
-                              label: 'Max Piggyback Break',
-                              value: selectedLocation
-                                      ?.overrides.maxSequenceBreak.value
-                                      ?.toString() ??
-                                  widget.globalMaxSequenceBreak.toString(),
-                              onBlur: _handleMaxSequenceBreakChanged,
-                            ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _FloatingContentToolbar(
+                      selectedLocation: selectedLocation,
+                      globalMaxSequenceBreak: widget.globalMaxSequenceBreak,
+                      onMaxSequenceBreakChanged: _handleMaxSequenceBreakChanged,
+                      onMaxSequenceBreakUnset: _handleMaxSequenceBreakUnset,
+                      onPaste: _handlePaste,
+                      clipboard: _clipboard,
+                      onCopyButtonPressed: (locationName, overrideContents) =>
+                          setState(() => _clipboard = _ClipboardContents(
+                              sourceLocationName: locationName,
+                              content: overrideContents.copyWith()))),
+                  const CardTitle(title: 'Types'),
+                  Expanded(
+                      flex: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Card(
+                          child: _FixtureOverrides(
+                            fixtureOverrides: overrideViewModels,
                           ),
-                          if (selectedLocation
-                                  ?.overrides.maxSequenceBreak.value !=
-                              null)
-                            SimpleTooltip(
-                              message: 'Reset override',
-                              child: IconButton.ghost(
-                                icon: const Icon(Icons.clear),
-                                onPressed: _handleMaxSequenceBreakUnset,
-                              ),
-                            ),
-                          const Spacer(),
-                          OutlineButton(
-                            leading: const Icon(Icons.copy),
-                            onPressed: selectedLocation == null
-                                ? null
-                                : () {
-                                    setState(() {
-                                      _clipboard = _ClipboardContents(
-                                          sourceLocationName:
-                                              selectedLocation.name,
-                                          content: selectedLocation.overrides
-                                              .copyWith());
-                                    });
-                                  },
-                            child: const Text('Copy'),
-                          ),
-                          const SizedBox(width: 8),
-                          OutlineButton(
-                            leading: const Icon(Icons.paste),
-                            onPressed: _clipboard != null
-                                ? () => _handlePaste(_selectedLocationId)
-                                : null,
-                            child: const Text('Paste'),
-                          )
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Expanded(
-                      child: _FixtureOverrides(
-                        fixtureOverrides: overrideViewModels,
-                      ),
-                    ),
-                  ],
-                ),
+                        ),
+                      )),
+                  const CardTitle(title: 'Pools'),
+                  Expanded(
+                      flex: 1,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Card(
+                          child: _PoolConfiguration(
+                              pools: widget.fixtureTypePools.values.toList(),
+                              enabledFixtureTypePoolIds: selectedLocation
+                                      ?.overrides.enabledFixtureTypePoolIds ??
+                                  {},
+                              fixtureTypes: widget.fixtureTypes,
+                              onPoolEnableChanged: (poolId, enabled) =>
+                                  _handlePoolEnableStateChanged(
+                                      selectedLocation: selectedLocation,
+                                      poolId: poolId,
+                                      enabled: enabled)),
+                        ),
+                      )),
+                ],
               ),
             ),
           ],
         );
       }),
     );
+  }
+
+  void _handlePoolEnableStateChanged({
+    required LocationModel? selectedLocation,
+    required String poolId,
+    required bool enabled,
+  }) {
+    if (selectedLocation == null) {
+      return;
+    }
+
+    final updatedLocations = _locations.clone()
+      ..update(
+        selectedLocation.uid,
+        (existing) => existing.copyWith(
+          overrides: existing.overrides.copyWith(
+            enabledFixtureTypePoolIds: enabled == true
+                ? {...existing.overrides.enabledFixtureTypePoolIds, poolId}
+                : (existing.overrides.enabledFixtureTypePoolIds.toSet()
+                  ..remove(poolId)),
+          ),
+        ),
+      );
+
+    setState(() {
+      _locations = updatedLocations;
+    });
+  }
+
+  Map<String, _LocationFixtureQty> _buildFixtureQtyLookup() {
+    return Map<String, _LocationFixtureQty>.fromEntries(widget.fixtures.values
+        .groupListsBy((fixture) => fixture.locationId)
+        .entries
+        .map((entry) {
+      final locationId = entry.key;
+      final fixtures = entry.value;
+
+      // Create a map of <String, int> which represents <FixtureTypeID, qty of Fixtures with that Fixture type ID>.
+      final fixtureQtysByTypeId = fixtures.fold<Map<String, int>>(
+          <String, int>{},
+          (map, current) => map
+            ..update(
+              current.typeId,
+              (value) =>
+                  value +
+                  1, // TypeId already exists in map. So iterate the existing value.
+              ifAbsent: () =>
+                  1, // TypeId doesn't exist in map, so create an entry starting at 1.
+            ));
+
+      return MapEntry(
+        locationId,
+        _LocationFixtureQty(fixtureQtysByTypeId),
+      );
+    }));
   }
 
   void _handlePaste(String locationId) {
@@ -408,6 +370,90 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
   }
 }
 
+class _FloatingContentToolbar extends StatelessWidget {
+  final LocationModel? selectedLocation;
+  final int globalMaxSequenceBreak;
+  final void Function(String newValue) onMaxSequenceBreakChanged;
+  final void Function() onMaxSequenceBreakUnset;
+  final void Function(
+          String locationName, LocationOverrideModel overrideContent)
+      onCopyButtonPressed;
+  final void Function(String locationId) onPaste;
+  final _ClipboardContents? clipboard;
+
+  const _FloatingContentToolbar({
+    super.key,
+    required this.selectedLocation,
+    required this.globalMaxSequenceBreak,
+    required this.onMaxSequenceBreakChanged,
+    required this.onMaxSequenceBreakUnset,
+    required this.onCopyButtonPressed,
+    required this.clipboard,
+    required this.onPaste,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(selectedLocation?.name ?? 'Location',
+              style: Theme.of(context).typography.lead),
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.only(left: 8.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 124,
+                child: PropertyField(
+                  textAlign: TextAlign.center,
+                  label: 'Max Piggyback Break',
+                  value: selectedLocation?.overrides.maxSequenceBreak.value
+                          ?.toString() ??
+                      globalMaxSequenceBreak.toString(),
+                  onBlur: onMaxSequenceBreakChanged,
+                ),
+              ),
+              if (selectedLocation?.overrides.maxSequenceBreak.value != null)
+                SimpleTooltip(
+                  message: 'Reset override',
+                  child: IconButton.ghost(
+                    icon: const Icon(Icons.clear),
+                    onPressed: onMaxSequenceBreakUnset,
+                  ),
+                ),
+              const Spacer(),
+              OutlineButton(
+                leading: const Icon(Icons.copy),
+                onPressed: selectedLocation == null
+                    ? null
+                    : () => onCopyButtonPressed(
+                          selectedLocation!.name,
+                          selectedLocation!.overrides,
+                        ),
+                child: const Text('Copy'),
+              ),
+              const SizedBox(width: 8),
+              OutlineButton(
+                leading: const Icon(Icons.paste),
+                onPressed: clipboard != null && selectedLocation != null
+                    ? () => onPaste(selectedLocation!.uid)
+                    : null,
+                child: const Text('Paste'),
+              )
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _FixtureOverrideViewModel {
   final FixtureTypeModel fixtureType;
   final int? maxPairings;
@@ -433,8 +479,7 @@ class _FixtureOverrides extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-        child: FixtureTypeDataTable(
+    return FixtureTypeDataTable(
       items: fixtureOverrides
           .map((override) => FixtureTypeViewModel(
                 qty: override.typeCountInLocation,
@@ -446,7 +491,7 @@ class _FixtureOverrides extends StatelessWidget {
                 onMaxPairingsOverrideUnset: override.onMaxPairingsUnset,
               ))
           .toList(),
-    ));
+    );
   }
 }
 
@@ -464,4 +509,121 @@ class _LocationFixtureQty {
   final Map<String, int> qtysByFixtureTypeId;
 
   _LocationFixtureQty(this.qtysByFixtureTypeId);
+}
+
+class _Sidebar extends StatelessWidget {
+  final List<LocationModel> locationsList;
+  final String selectedLocationId;
+  final void Function(String locationId) onLocationSelected;
+  final void Function(String locationId) onPaste;
+  final _ClipboardContents? clipboard;
+
+  const _Sidebar(
+      {super.key,
+      required this.locationsList,
+      required this.selectedLocationId,
+      required this.onLocationSelected,
+      required this.clipboard,
+      required this.onPaste});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 240,
+      child: Card(
+          padding: EdgeInsets.zero,
+          child: ListView.builder(
+            itemCount: locationsList.length,
+            itemBuilder: (context, index) {
+              final location = locationsList[index];
+
+              return HoverRegionBuilder(builder: (context, isHovering) {
+                return ShadListItem(
+                  title: Text(location.name),
+                  selected: location.uid == selectedLocationId,
+                  onTap: () => onLocationSelected(location.uid),
+                  leading: location.overrides.hasOverrides
+                      ? const Icon(Icons.check_circle,
+                          size: 12, color: Colors.teal)
+                      : null,
+                  trailing: clipboard != null &&
+                          (isHovering || location.uid == selectedLocationId)
+                      ? SizedBox(
+                          width: 84,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              SimpleTooltip(
+                                message: clipboard != null
+                                    ? 'Paste settings from ${clipboard!.sourceLocationName}.'
+                                    : '',
+                                child: IconButton.ghost(
+                                  icon: const Icon(Icons.paste),
+                                  size: ButtonSize.small,
+                                  onPressed: clipboard == null
+                                      ? null
+                                      : () => onPaste(location.uid),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : null,
+                );
+              });
+            },
+          )),
+    );
+  }
+}
+
+class _PoolConfiguration extends StatelessWidget {
+  final List<FixtureTypePoolModel> pools;
+  final Map<String, FixtureTypeModel> fixtureTypes;
+  final Set<String> enabledFixtureTypePoolIds;
+  final void Function(String poolId, bool enabled) onPoolEnableChanged;
+
+  const _PoolConfiguration({
+    super.key,
+    required this.pools,
+    required this.enabledFixtureTypePoolIds,
+    required this.onPoolEnableChanged,
+    required this.fixtureTypes,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: pools.length,
+      itemBuilder: (context, index) {
+        final pool = pools[index];
+
+        return Row(
+          children: [
+            Checkbox(
+              state: enabledFixtureTypePoolIds.contains(pool.uid)
+                  ? CheckboxState.checked
+                  : CheckboxState.unchecked,
+              onChanged: (state) => onPoolEnableChanged(
+                pool.uid,
+                state == CheckboxState.checked ? true : false,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(pool.name),
+            const SizedBox(width: 24),
+            Text(_buildChildFixtureSlug(pool, fixtureTypes),
+                style: Theme.of(context).typography.thin)
+          ],
+        );
+      },
+    );
+  }
+
+  String _buildChildFixtureSlug(
+      FixtureTypePoolModel pool, Map<String, FixtureTypeModel> fixtureTypes) {
+    return pool.items.values
+        .map((item) => '${item.qty}x ${fixtureTypes[item.typeId]?.shortName}')
+        .join(', ');
+  }
 }

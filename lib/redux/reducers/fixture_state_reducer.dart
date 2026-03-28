@@ -9,6 +9,7 @@ import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/fixture_type_pool_model.dart';
 import 'package:sidekick/redux/models/hoist_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
@@ -16,6 +17,150 @@ import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 
 FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
+  if (a is ReorderFixtureTypePools) {
+    int oldIndex = a.oldIndex;
+    int newIndex = a.newIndex;
+
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+
+    final items = state.fixtureTypePools.values.toList();
+
+    final item = items.removeAt(oldIndex);
+    items.insert(newIndex, item);
+
+    return state.copyWith(fixtureTypePools: items.toModelMap());
+  }
+
+  if (a is DeleteFixtureTypePool) {
+    final updatedPools = state.fixtureTypePools.clone()..remove(a.poolId);
+
+    final powerPatch = performPowerPatch(
+      fixtures: state.fixtures,
+      fixtureTypes: state.fixtureTypes,
+      powerMultiOutlets: state.powerMultiOutlets,
+      locations: state.locations,
+      maxSequenceBreak: state.maxSequenceBreak,
+      balanceTolerance: state.balanceTolerance,
+      powerRacks: state.powerRacks,
+      fixtureTypePools: updatedPools,
+    );
+
+    return state.copyWith(
+      fixtureTypePools: updatedPools,
+      powerMultiOutlets: powerPatch.powerMultiOutlets,
+      fixtures: powerPatch.fixtures,
+    );
+  }
+
+  if (a is RemoveFixtureTypePoolEntry) {
+    final updatedPools = state.fixtureTypePools.clone()
+      ..update(
+          a.poolId,
+          (existing) => existing.copyWith(
+              items: existing.items.clone()..remove(a.typeId)));
+
+    final powerPatch = performPowerPatch(
+      fixtures: state.fixtures,
+      fixtureTypes: state.fixtureTypes,
+      powerMultiOutlets: state.powerMultiOutlets,
+      locations: state.locations,
+      maxSequenceBreak: state.maxSequenceBreak,
+      balanceTolerance: state.balanceTolerance,
+      powerRacks: state.powerRacks,
+      fixtureTypePools: updatedPools,
+    );
+
+    return state.copyWith(
+      fixtureTypePools: updatedPools,
+      powerMultiOutlets: powerPatch.powerMultiOutlets,
+      fixtures: powerPatch.fixtures,
+    );
+  }
+
+  if (a is UpdateFixtureTypePoolEntryQty) {
+    final updatedPools = state.fixtureTypePools.clone()
+      ..update(
+          a.poolId,
+          (existingPool) => existingPool.copyWith(
+              items: existingPool.items.clone()
+                ..update(
+                    a.typeId,
+                    (existingEntry) => existingEntry.copyWith(
+                        qty: int.tryParse(a.newValue.trim())))));
+
+    final powerPatch = performPowerPatch(
+      fixtures: state.fixtures,
+      fixtureTypes: state.fixtureTypes,
+      powerMultiOutlets: state.powerMultiOutlets,
+      locations: state.locations,
+      maxSequenceBreak: state.maxSequenceBreak,
+      balanceTolerance: state.balanceTolerance,
+      powerRacks: state.powerRacks,
+      fixtureTypePools: updatedPools,
+    );
+
+    return state.copyWith(
+      fixtureTypePools: updatedPools,
+      powerMultiOutlets: powerPatch.powerMultiOutlets,
+      fixtures: powerPatch.fixtures,
+    );
+  }
+
+  if (a is UpdateFixtureTypePoolName) {
+    return state.copyWith(
+        fixtureTypePools: state.fixtureTypePools.clone()
+          ..update(a.poolId,
+              (existing) => existing.copyWith(name: a.newValue.trim())));
+  }
+
+  if (a is AddFixtureTypesToPool) {
+    final updatedPools = state.fixtureTypePools.clone()
+      ..update(
+          a.poolId,
+          (existing) => existing.copyWith(
+              items: existing.items.clone()
+                ..addEntries(a.typeIds.map((id) => MapEntry(
+                    id, FixtureTypePoolEntryModel(typeId: id, qty: 1))))));
+
+    final powerPatch = performPowerPatch(
+      fixtures: state.fixtures,
+      fixtureTypes: state.fixtureTypes,
+      powerMultiOutlets: state.powerMultiOutlets,
+      locations: state.locations,
+      maxSequenceBreak: state.maxSequenceBreak,
+      balanceTolerance: state.balanceTolerance,
+      powerRacks: state.powerRacks,
+      fixtureTypePools: updatedPools,
+    );
+
+    return state.copyWith(
+      fixtureTypePools: updatedPools,
+      powerMultiOutlets: powerPatch.powerMultiOutlets,
+      fixtures: powerPatch.fixtures,
+    );
+  }
+
+  if (a is SetFixtureTypePools) {
+    final powerPatch = performPowerPatch(
+      fixtures: state.fixtures,
+      fixtureTypes: state.fixtureTypes,
+      powerMultiOutlets: state.powerMultiOutlets,
+      locations: state.locations,
+      maxSequenceBreak: state.maxSequenceBreak,
+      balanceTolerance: state.balanceTolerance,
+      powerRacks: state.powerRacks,
+      fixtureTypePools: a.value,
+    );
+
+    return state.copyWith(
+      fixtureTypePools: a.value,
+      powerMultiOutlets: powerPatch.powerMultiOutlets,
+      fixtures: powerPatch.fixtures,
+    );
+  }
+
   if (a is SetDataPatches) {
     final patches = assertDataPatchState(a.patches, state.locations);
 
@@ -50,6 +195,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       maxSequenceBreak: state.maxSequenceBreak,
       balanceTolerance: state.balanceTolerance,
       powerRacks: a.racks,
+      fixtureTypePools: state.fixtureTypePools,
     );
 
     return state.copyWith(
@@ -68,6 +214,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       maxSequenceBreak: state.maxSequenceBreak,
       balanceTolerance: state.balanceTolerance,
       powerRacks: a.racks,
+      fixtureTypePools: state.fixtureTypePools,
     );
 
     return state.copyWith(
@@ -162,6 +309,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       locations: a.locations,
       maxSequenceBreak: state.maxSequenceBreak,
       balanceTolerance: state.balanceTolerance,
+      fixtureTypePools: state.fixtureTypePools,
       powerRacks: state.powerRacks,
     );
     return state.copyWith(
@@ -327,6 +475,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       maxSequenceBreak: state.maxSequenceBreak,
       balanceTolerance: state.balanceTolerance,
       powerRacks: state.powerRacks,
+      fixtureTypePools: state.fixtureTypePools,
     );
 
     return state.copyWith(
@@ -381,6 +530,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       maxSequenceBreak: state.maxSequenceBreak,
       balanceTolerance: state.balanceTolerance,
       powerRacks: state.powerRacks,
+      fixtureTypePools: state.fixtureTypePools,
     );
 
     return state.copyWith(
@@ -401,6 +551,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       maxSequenceBreak: state.maxSequenceBreak,
       balanceTolerance: state.balanceTolerance,
       powerRacks: state.powerRacks,
+      fixtureTypePools: state.fixtureTypePools,
     );
 
     return state.copyWith(
@@ -433,6 +584,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       maxSequenceBreak: state.maxSequenceBreak,
       balanceTolerance: state.balanceTolerance,
       powerRacks: state.powerRacks,
+      fixtureTypePools: state.fixtureTypePools,
     );
 
     return state.copyWith(
@@ -452,6 +604,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       maxSequenceBreak: state.maxSequenceBreak,
       balanceTolerance: tolerance,
       powerRacks: state.powerRacks,
+      fixtureTypePools: state.fixtureTypePools,
     );
 
     return state.copyWith(
@@ -473,6 +626,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
       maxSequenceBreak: maxSequenceBreak,
       balanceTolerance: state.balanceTolerance,
       powerRacks: state.powerRacks,
+      fixtureTypePools: state.fixtureTypePools,
     );
 
     return state.copyWith(

@@ -13,6 +13,7 @@ import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/balancer/power_span.dart';
 import 'package:sidekick/balancer/shared_utils.dart';
 import 'package:sidekick/extension_methods/queue_pop.dart';
+import 'package:sidekick/redux/models/fixture_type_pool_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/balancer/models/balancer_outlet_model.dart';
 import 'package:sidekick/utils/electrical_equations.dart';
@@ -34,12 +35,14 @@ class NaiveBalancer implements Balancer {
     required List<BalancerFixtureModel> fixtures,
     required List<PowerMultiOutletModel> multiOutlets,
     required Map<String, BalancerLocationModel> locations,
+    required Map<String, FixtureTypePoolModel> allFixtureTypePools,
     double maxAmpsPerCircuit = 16,
     int globalMaxSequenceBreak = 4,
   }) {
     // Generate Patches.
     final patchesByLocationId = _generatePatches(
       fixtures: fixtures,
+      allFixtureTypePools: allFixtureTypePools,
       maxAmpsPerCircuit: maxAmpsPerCircuit,
       globalMaxSequenceBreak: globalMaxSequenceBreak,
       locations: locations,
@@ -176,6 +179,7 @@ class NaiveBalancer implements Balancer {
   // Used to index by Power Span. but that is contained to just Piggybacking now.
   Map<String, List<BalancerPowerPatchModel>> _generatePatches({
     required List<BalancerFixtureModel> fixtures,
+    required Map<String, FixtureTypePoolModel> allFixtureTypePools,
     required double maxAmpsPerCircuit,
     required int globalMaxSequenceBreak,
     required Map<String, BalancerLocationModel> locations,
@@ -188,6 +192,7 @@ class NaiveBalancer implements Balancer {
                 span,
                 performPiggybacking(
                   fixtures: span.fixtures,
+                  allFixtureTypePools: allFixtureTypePools,
                   globalMaxSequenceBreak: globalMaxSequenceBreak,
                   locations: locations,
                 ))));

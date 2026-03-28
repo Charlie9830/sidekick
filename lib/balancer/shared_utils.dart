@@ -1,107 +1,130 @@
+import 'package:collection/collection.dart';
 import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
 import 'package:sidekick/balancer/models/balancer_location_model.dart';
 import 'package:sidekick/balancer/models/balancer_power_patch_model.dart';
+import 'package:sidekick/redux/models/fixture_type_pool_model.dart';
 
-///
-/// Given a list of [FixtureModel]'s, will return a List of [BalancerPowerPatchModel] with the fixtures
-/// piggybacked together, where possible, given the constraints of [globalMaxSequenceBreak] and [FixtureModel.maxAllowedPiggybacks].
-///
 List<BalancerPowerPatchModel> performPiggybacking({
   required List<BalancerFixtureModel> fixtures,
   required int globalMaxSequenceBreak,
   required Map<String, BalancerLocationModel> locations,
+  required Map<String, FixtureTypePoolModel> allFixtureTypePools,
 }) {
-  final Set<String> assignedFixtureUids = {};
-  final List<BalancerPowerPatchModel> patches = [];
-  int fixtureIndex = 0;
+  final assigned = <String>{};
+  final patches = <BalancerPowerPatchModel>[];
 
-  while (patches.length <= assignedFixtureUids.length &&
-      fixtureIndex < fixtures.length) {
-    BalancerFixtureModel currentFixture = fixtures[fixtureIndex];
+  for (int i = 0; i < fixtures.length; i++) {
+    final base = fixtures[i];
 
-    if (assignedFixtureUids.contains(currentFixture.uid)) {
-      // Fixture has already been assigned to a patch.
-      fixtureIndex++;
-      continue;
-    }
+    // Check if we haven't already assigned this Fixture to an earlier Patch.
+    if (assigned.contains(base.uid)) continue;
 
-    // Create a Patch element with the current fixture added to it.
-    BalancerPowerPatchModel patch = BalancerPowerPatchModel(fixtures: [
-      currentFixture,
-    ]);
+    // Fetch Location specific overrides (if any)
+    final locationOverride = locations[base.locationId]?.overrides;
 
-    // Collect and apply any location specific patch settings we have to the fixture type.
-    final currentLocationOverride =
-        locations[currentFixture.locationId]?.overrides;
-    currentFixture = currentFixture.copyWith(
-        type: currentFixture.type.copyWith(
-            maxPiggybacks:
-                currentLocationOverride?.maxPairings[currentFixture.type.uid]));
+    // Optionally apply location specific overrides.
+    final baseFixture = base.copyWith(
+      type: base.type.copyWith(
+        maxPiggybacks: locationOverride?.maxPairings[base.type.uid],
+      ),
+    );
 
-    // Determine if we are adhearing to the Global max Sequence break, or a Location specific one.
-    final currentMaxSequenceBreak =
-        currentLocationOverride?.maxSequenceBreak.value ??
-            globalMaxSequenceBreak;
+    // Optionally apply Location specific Max Sequence break.
+    final maxSequenceBreak =
+        locationOverride?.maxSequenceBreak.value ?? globalMaxSequenceBreak;
 
-    if (currentFixture.type.canPiggyback == false) {
-      // Current Fixture can't Piggyback with anything else. So we are done here.
-      patches.add(patch);
+    // Collect any Fixture Type Pools that are enabled for this location.
+    final availableFixtureTypePools = locationOverride
+            ?.enabledFixtureTypePoolIds
+            .map((id) => allFixtureTypePools[id])
+            .nonNulls
+            .toList() ??
+        [];
 
-      assignedFixtureUids.add(currentFixture.uid);
+    // Maintain a list of Fixtures that are candidates for getting grouped into this patch.
+    // Add the the base fixture to that list.
+    final candidateFixtures = <BalancerFixtureModel>[baseFixture];
+    assigned.add(baseFixture.uid);
 
-      fixtureIndex++;
-      continue;
-    }
+    // Collect the first Fixture Type Pool (if any) that is compatiable with the base fixture.
+    final pool = availableFixtureTypePools.firstWhereOrNull(
+      (p) => p.containsFixtureType(baseFixture.type.uid),
+    );
 
-    int sequenceOffset = 0;
-    while (true) {
-      sequenceOffset++;
+    // Look ahead For loop.
+    for (int j = i + 1; j < fixtures.length; j++) {
+      final candidate = fixtures[j];
 
-      final candidateFixture =
-          fixtures.elementAtOrNull(fixtureIndex + sequenceOffset);
+      // Check if the candidate fixture has not already been assigned to an earlier patch.
+      if (assigned.contains(candidate.uid)) continue;
 
-      if (candidateFixture == null) {
-        // No more candidate fixtures.
+      final sequenceOffset = j - i;
+
+      // Collect some comparisons between the base and candidate fixtures.
+      final sameType = candidate.type.uid == baseFixture.type.uid;
+      final poolMatch = pool?.containsFixtureType(candidate.type.uid) ?? false;
+
+      final withinSequence = sequenceOffset <= maxSequenceBreak ||
+          _isContiguous([candidateFixtures.last, candidate]);
+
+      // Check that we haven't strayed beyond the MaxSequenceBreak.
+      if (!withinSequence) break;
+
+      // We have a Pool match, atleast in theory.
+      if (poolMatch) {
+        // Check that we aren't breaking the Max Pool Item quantity.
+        final valid = pool!.satisfiesMaxPoolQuantity([
+          ...candidateFixtures.map((f) => f.type.uid),
+          candidate.type.uid,
+        ]);
+        if (!valid) break;
+
+        // All good to collect into a Pool.
+        candidateFixtures.add(candidate);
+        assigned.add(candidate.uid);
+        continue;
+      }
+
+      // No matching pool available and fixtures aren't of same type. So break.
+      if (!sameType) break;
+
+      if (candidateFixtures.length + 1 > baseFixture.type.maxPiggybacks) {
+        // Adding the candidate fixture would violate max piggybacks.
         break;
       }
 
-      final fixtureTypesMatch =
-          candidateFixture.type.uid == currentFixture.type.uid;
-      final satisfiesMaxPiggybacks =
-          patch.fixtures.length + 1 <= currentFixture.type.maxPiggybacks;
-      final allowedToOverrideMaxSequenceBreak =
-          patch.isContiguousWith(candidateFixture) == true;
-      final satisfiesMaxSequenceBreak =
-          sequenceOffset <= currentMaxSequenceBreak;
-
-      // Check if we violate the "Critical" Conditions first, these are the unbreakable decrees.
-      // 1. We can never Pair fixtures of differing types.
-      // 2. We can never pair fixtures beyond their maxPiggyback count.
-      if (fixtureTypesMatch == false) {
-        continue;
-      }
-
-      if (satisfiesMaxPiggybacks == false) {
-        break;
-      }
-
-      // Now check if we violate any of the more lenient rules, then act accordingly.
-      if (satisfiesMaxSequenceBreak) {
-        patch.fixtures.add(candidateFixture);
-        continue;
-      }
-
-      if (allowedToOverrideMaxSequenceBreak) {
-        patch.fixtures.add(candidateFixture);
-        continue;
-      }
+      candidateFixtures.add(candidate);
+      assigned.add(candidate.uid);
     }
 
-    // Add the Patch to the buffer list, add the fixture UIDs to the assignedIds set and iterate.
-    patches.add(patch);
-    assignedFixtureUids.addAll(patch.fixtures.map((fixture) => fixture.uid));
-    fixtureIndex++;
+    patches.add(BalancerPowerPatchModel(fixtures: candidateFixtures));
   }
 
   return patches;
+}
+
+bool _isContiguous(List<BalancerFixtureModel> fixtures) {
+  if (fixtures.isEmpty || fixtures.length == 1) {
+    return false;
+  }
+
+  final contiguousFixtures = fixtures.whereIndexed((index, current) {
+    if (index == 0) {
+      return true;
+    }
+
+    final BalancerFixtureModel? previous = fixtures.elementAtOrNull(index - 1);
+
+    if (previous == null) {
+      return true;
+    }
+
+    if (previous.type.uid != current.type.uid) {
+      return false;
+    }
+
+    return previous.sequence == current.sequence - 1;
+  });
+
+  return contiguousFixtures.length == fixtures.length;
 }

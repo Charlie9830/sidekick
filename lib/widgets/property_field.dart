@@ -183,12 +183,14 @@ Widget layoutInput(
       child,
       if (label.isNotEmpty)
         Text(label,
+            textAlign: TextAlign.center,
             style: Theme.of(context)
                 .typography
                 .xSmall
                 .copyWith(color: Colors.gray)),
       if (error != null)
         Text(error,
+            textAlign: TextAlign.center,
             style:
                 Theme.of(context).typography.xSmall.copyWith(color: Colors.red))
     ],

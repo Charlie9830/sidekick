@@ -8,6 +8,7 @@ import 'package:sidekick/redux/models/data_rack_model.dart';
 import 'package:sidekick/redux/models/data_rack_type_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
+import 'package:sidekick/redux/models/fixture_type_pool_model.dart';
 import 'package:sidekick/redux/models/hoist_controller_model.dart';
 import 'package:sidekick/redux/models/hoist_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
@@ -43,6 +44,7 @@ class ProjectFileModel {
   final List<PowerRackTypeModel> powerRackTypes;
   final List<DataRackModel> dataRacks;
   final List<DataRackTypeModel> dataRackTypes;
+  final List<FixtureTypePoolModel> fixtureTypePools;
 
   ProjectFileModel({
     required this.metadata,
@@ -66,6 +68,7 @@ class ProjectFileModel {
     required this.powerRackTypes,
     required this.dataRackTypes,
     required this.dataRacks,
+    required this.fixtureTypePools,
   });
 
   ProjectFileModel copyWith({
@@ -90,6 +93,7 @@ class ProjectFileModel {
     List<PowerRackTypeModel>? powerRackTypes,
     List<DataRackModel>? dataRacks,
     List<DataRackTypeModel>? dataRackTypes,
+    List<FixtureTypePoolModel>? fixtureTypePools,
   }) {
     return ProjectFileModel(
       metadata: metadata ?? this.metadata,
@@ -113,6 +117,7 @@ class ProjectFileModel {
       powerRackTypes: powerRackTypes ?? this.powerRackTypes,
       dataRacks: dataRacks ?? this.dataRacks,
       dataRackTypes: dataRackTypes ?? this.dataRackTypes,
+      fixtureTypePools: fixtureTypePools ?? this.fixtureTypePools,
     );
   }
 
@@ -139,93 +144,93 @@ class ProjectFileModel {
       'powerRackTypes': powerRackTypes.map((x) => x.toMap()).toList(),
       'dataRackTypes': dataRackTypes.map((x) => x.toMap()).toList(),
       'dataRacks': dataRacks.map((x) => x.toMap()).toList(),
+      'fixtureTypePools': fixtureTypePools.map((x) => x.toMap()).toList(),
     };
   }
 
   factory ProjectFileModel.fromMap(Map<String, dynamic> map) {
     return ProjectFileModel(
-      metadata: ProjectFileMetadataModel.fromMap(
-          map['metadata'] as Map<String, dynamic>),
-      fixtures: List<FixtureModel>.from(
-        (map['fixtures'] as List<dynamic>).map<FixtureModel>(
-          (x) => FixtureModel.fromMap(x as Map<String, dynamic>),
+        metadata: ProjectFileMetadataModel.fromMap(
+            map['metadata'] as Map<String, dynamic>),
+        fixtures: List<FixtureModel>.from(
+          (map['fixtures'] as List<dynamic>).map<FixtureModel>(
+            (x) => FixtureModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      powerMultiOutlets: List<PowerMultiOutletModel>.from(
-        (map['powerMultiOutlets'] as List<dynamic>).map<PowerMultiOutletModel>(
-          (x) => PowerMultiOutletModel.fromMap(x as Map<String, dynamic>),
+        powerMultiOutlets: List<PowerMultiOutletModel>.from(
+          (map['powerMultiOutlets'] as List<dynamic>)
+              .map<PowerMultiOutletModel>(
+            (x) => PowerMultiOutletModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      dataMultis: List<DataMultiModel>.from(
-        (map['dataMultis'] as List<dynamic>).map<DataMultiModel>(
-          (x) => DataMultiModel.fromMap(x as Map<String, dynamic>),
+        dataMultis: List<DataMultiModel>.from(
+          (map['dataMultis'] as List<dynamic>).map<DataMultiModel>(
+            (x) => DataMultiModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      dataPatches: List<DataPatchModel>.from(
-        (map['dataPatches'] as List<dynamic>).map<DataPatchModel>(
-          (x) => DataPatchModel.fromMap(x as Map<String, dynamic>),
+        dataPatches: List<DataPatchModel>.from(
+          (map['dataPatches'] as List<dynamic>).map<DataPatchModel>(
+            (x) => DataPatchModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      locations: List<LocationModel>.from(
-        (map['locations'] as List<dynamic>).map<LocationModel>(
-          (x) => LocationModel.fromMap(x as Map<String, dynamic>),
+        locations: List<LocationModel>.from(
+          (map['locations'] as List<dynamic>).map<LocationModel>(
+            (x) => LocationModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      looms: List<LoomModel>.from(
-        (map['looms'] as List<dynamic>).map<LoomModel>(
-          (x) => LoomModel.fromMap(x as Map<String, dynamic>),
+        looms: List<LoomModel>.from(
+          (map['looms'] as List<dynamic>).map<LoomModel>(
+            (x) => LoomModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      cables: List<CableModel>.from(
-        (map['cables'] ?? []).map<CableModel>(
-          (x) => CableModel.fromMap(x as Map<String, dynamic>),
+        cables: List<CableModel>.from(
+          (map['cables'] ?? []).map<CableModel>(
+            (x) => CableModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      maxSequenceBreak: (map['maxSequenceBreak'] ?? 0) as int,
-      balanceTolerance: (map['balanceTolerance'] ?? 0.0) as double,
-      defaultPowerMulti:
-          CableType.values.byName(map['type'] ?? CableType.socapex.name),
-      loomStock: List<LoomStockModel>.from(
-        (map['loomStock'] ?? []).map<LoomStockModel>(
-          (x) => LoomStockModel.fromMap(x as Map<String, dynamic>),
+        maxSequenceBreak: (map['maxSequenceBreak'] ?? 0) as int,
+        balanceTolerance: (map['balanceTolerance'] ?? 0.0) as double,
+        defaultPowerMulti:
+            CableType.values.byName(map['type'] ?? CableType.socapex.name),
+        loomStock: List<LoomStockModel>.from(
+          (map['loomStock'] ?? []).map<LoomStockModel>(
+            (x) => LoomStockModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      fixtureTypes: List<FixtureTypeModel>.from((map['fixtureTypes'] ?? [])
-          .map<FixtureTypeModel>(
-              (x) => FixtureTypeModel.fromMap(x as Map<String, dynamic>))),
-      hoists: List<HoistModel>.from(
-        (map['hoists'] ?? []).map<HoistModel>(
-          (x) => HoistModel.fromMap(x as Map<String, dynamic>),
+        fixtureTypes: List<FixtureTypeModel>.from((map['fixtureTypes'] ?? [])
+            .map<FixtureTypeModel>(
+                (x) => FixtureTypeModel.fromMap(x as Map<String, dynamic>))),
+        hoists: List<HoistModel>.from(
+          (map['hoists'] ?? []).map<HoistModel>(
+            (x) => HoistModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      hoistControllers: List<HoistControllerModel>.from(
-        (map['hoistControllers'] ?? []).map<HoistControllerModel>(
-          (x) => HoistControllerModel.fromMap(x as Map<String, dynamic>),
+        hoistControllers: List<HoistControllerModel>.from(
+          (map['hoistControllers'] ?? []).map<HoistControllerModel>(
+            (x) => HoistControllerModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      hoistMultis: List<HoistMultiModel>.from(
-        (map['hoistMultis'] ?? []).map<HoistMultiModel>(
-          (x) => HoistMultiModel.fromMap(x as Map<String, dynamic>),
+        hoistMultis: List<HoistMultiModel>.from(
+          (map['hoistMultis'] ?? []).map<HoistMultiModel>(
+            (x) => HoistMultiModel.fromMap(x as Map<String, dynamic>),
+          ),
         ),
-      ),
-      powerFeeds: List<PowerFeedModel>.from((map['powerFeeds'] ?? [])
-          .map<PowerFeedModel>(
-              (x) => PowerFeedModel.fromMap(x as Map<String, dynamic>))),
-      powerRacks: List<PowerRackModel>.from((map['powerRacks'] ?? [])
-          .map<PowerRackModel>(
-              (x) => PowerRackModel.fromMap(x as Map<String, dynamic>))),
-      powerRackTypes: List<PowerRackTypeModel>.from(
-        (map['powerRackTypes'] ?? []).map<PowerRackTypeModel>(
-            (x) => PowerRackTypeModel.fromMap(x as Map<String, dynamic>)),
-      ),
-      dataRacks: List<DataRackModel>.from((map['dataRacks'] ?? [])
-          .map<DataRackModel>(
-              (x) => DataRackModel.fromMap(x as Map<String, dynamic>))),
-      dataRackTypes: List<DataRackTypeModel>.from(
-        (map['dataRackTypes'] ?? []).map<DataRackTypeModel>(
-            (x) => DataRackTypeModel.fromMap(x as Map<String, dynamic>)),
-      ),
-    );
+        powerFeeds: List<PowerFeedModel>.from((map['powerFeeds'] ?? [])
+            .map<PowerFeedModel>(
+                (x) => PowerFeedModel.fromMap(x as Map<String, dynamic>))),
+        powerRacks: List<PowerRackModel>.from((map['powerRacks'] ?? [])
+            .map<PowerRackModel>(
+                (x) => PowerRackModel.fromMap(x as Map<String, dynamic>))),
+        powerRackTypes: List<PowerRackTypeModel>.from(
+          (map['powerRackTypes'] ?? []).map<PowerRackTypeModel>(
+              (x) => PowerRackTypeModel.fromMap(x as Map<String, dynamic>)),
+        ),
+        dataRacks: List<DataRackModel>.from((map['dataRacks'] ?? []).map<DataRackModel>((x) => DataRackModel.fromMap(x as Map<String, dynamic>))),
+        dataRackTypes: List<DataRackTypeModel>.from(
+          (map['dataRackTypes'] ?? []).map<DataRackTypeModel>(
+              (x) => DataRackTypeModel.fromMap(x as Map<String, dynamic>)),
+        ),
+        fixtureTypePools: List<FixtureTypePoolModel>.from((map['fixtureTypePools'] ?? []).map<FixtureTypePoolModel>((x) => FixtureTypePoolModel.fromMap(x as Map<String, dynamic>))));
   }
 
   String toJson() => json.encode(toMap());
@@ -255,6 +260,7 @@ class ProjectFileModel {
       powerRackTypes: powerRackTypes.toModelMap(),
       dataRackTypes: dataRackTypes.toModelMap(),
       dataRacks: dataRacks.toModelMap(),
+      fixtureTypePools: fixtureTypePools.toModelMap(),
     );
   }
 }

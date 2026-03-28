@@ -9,6 +9,7 @@ import 'package:sidekick/extension_methods/clone_map.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
+import 'package:sidekick/redux/models/fixture_type_pool_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
@@ -31,6 +32,7 @@ PowerPatchResult performPowerPatch({
   required Map<String, PowerMultiOutletModel> powerMultiOutlets,
   required Map<String, LocationModel> locations,
   required Map<String, PowerRackModel> powerRacks,
+  required Map<String, FixtureTypePoolModel> fixtureTypePools,
   required int maxSequenceBreak,
   required double balanceTolerance,
 }) {
@@ -43,6 +45,7 @@ PowerPatchResult performPowerPatch({
         .map((fixture) => BalancerFixtureModel.fromFixture(
             fixture: fixture, type: fixtureTypes[fixture.typeId]!))
         .toList(),
+    allFixtureTypePools: fixtureTypePools,
     multiOutlets: powerMultiOutlets.values.toList(),
     globalMaxSequenceBreak: maxSequenceBreak,
     locations: Map<String, BalancerLocationModel>.from(locations.map(

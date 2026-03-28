@@ -7,6 +7,7 @@ import 'package:sidekick/redux/models/data_rack_model.dart';
 import 'package:sidekick/redux/models/export_error_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
+import 'package:sidekick/redux/models/fixture_type_pool_model.dart';
 import 'package:sidekick/redux/models/hoist_controller_model.dart';
 import 'package:sidekick/redux/models/hoist_model.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
@@ -20,6 +21,67 @@ import 'package:sidekick/redux/models/power_rack_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
+
+class ReorderFixtureTypePools {
+  final int oldIndex;
+  final int newIndex;
+
+  ReorderFixtureTypePools({
+    required this.oldIndex,
+    required this.newIndex,
+  });
+}
+
+class DeleteFixtureTypePool {
+  final String poolId;
+
+  DeleteFixtureTypePool(this.poolId);
+}
+
+class RemoveFixtureTypePoolEntry {
+  final String poolId;
+  final String typeId;
+
+  RemoveFixtureTypePoolEntry({
+    required this.poolId,
+    required this.typeId,
+  });
+}
+
+class UpdateFixtureTypePoolEntryQty {
+  final String poolId;
+  final String typeId;
+  final String newValue;
+
+  UpdateFixtureTypePoolEntryQty({
+    required this.poolId,
+    required this.typeId,
+    required this.newValue,
+  });
+}
+
+class AddFixtureTypesToPool {
+  final String poolId;
+  final List<String> typeIds;
+
+  AddFixtureTypesToPool({
+    required this.poolId,
+    required this.typeIds,
+  });
+}
+
+class UpdateFixtureTypePoolName {
+  final String poolId;
+  final String newValue;
+
+  UpdateFixtureTypePoolName(this.poolId, this.newValue);
+}
+
+class SetFixtureTypePools {
+  final Map<String, FixtureTypePoolModel> value;
+
+  SetFixtureTypePools(this.value);
+}
 
 class SetIsValidatingExportData {
   final bool value;
@@ -43,6 +105,12 @@ class SetDataRacks {
   final Map<String, DataRackModel> racks;
 
   SetDataRacks(this.racks);
+}
+
+class SetSelectedFixtureTypeIds {
+  final Set<String> value;
+
+  SetSelectedFixtureTypeIds(this.value);
 }
 
 class SetSelectedRacksTabIndex {
@@ -384,6 +452,12 @@ class SetSelectedCableIds {
   final Set<String> ids;
 
   SetSelectedCableIds(this.ids);
+}
+
+class SetFixtureTypesTabIndex {
+  final int value;
+
+  SetFixtureTypesTabIndex(this.value);
 }
 
 class SetShowAllFixtureTypes {
