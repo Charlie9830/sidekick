@@ -382,7 +382,6 @@ class _FloatingContentToolbar extends StatelessWidget {
   final _ClipboardContents? clipboard;
 
   const _FloatingContentToolbar({
-    super.key,
     required this.selectedLocation,
     required this.globalMaxSequenceBreak,
     required this.onMaxSequenceBreakChanged,
@@ -521,8 +520,7 @@ class _Sidebar extends StatelessWidget {
   final _ClipboardContents? clipboard;
 
   const _Sidebar(
-      {super.key,
-      required this.locationsList,
+      {required this.locationsList,
       required this.selectedLocationId,
       required this.onLocationSelected,
       required this.clipboard,
@@ -586,7 +584,6 @@ class _PoolConfiguration extends StatelessWidget {
   final void Function(String poolId, bool enabled) onPoolEnableChanged;
 
   const _PoolConfiguration({
-    super.key,
     required this.pools,
     required this.enabledFixtureTypePoolIds,
     required this.onPoolEnableChanged,

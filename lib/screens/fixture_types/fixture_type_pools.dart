@@ -48,7 +48,6 @@ class _Sidebar extends StatelessWidget {
   final FixtureTypesViewModel viewModel;
 
   const _Sidebar({
-    super.key,
     required this.viewModel,
     required SlotAssignmentController<String, FixtureTypeModel> controller,
   }) : _controller = controller;
@@ -89,7 +88,6 @@ class _Body extends StatelessWidget {
   final SlotAssignmentController<String, FixtureTypeModel>
       slotAssignmentController;
   const _Body({
-    super.key,
     required this.vm,
     required this.slotAssignmentController,
   });
@@ -231,7 +229,7 @@ class _PoolItem extends StatelessWidget {
 
 class _PoolChild extends StatelessWidget {
   final FixtureTypePoolEntryViewModel vm;
-  const _PoolChild({super.key, required this.vm});
+  const _PoolChild({required this.vm});
 
   @override
   Widget build(BuildContext context) {

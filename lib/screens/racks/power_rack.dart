@@ -3,7 +3,6 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:sidekick/editable_text_field.dart';
 
-import 'package:sidekick/screens/hoists/hoist_controller_column_widths.dart';
 import 'package:sidekick/screens/racks/power_multi_channel_content.dart';
 import 'package:sidekick/screens/racks/power_multi_column_widths.dart';
 import 'package:sidekick/slotted_list/slot_assignment_controller.dart';

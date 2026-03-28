@@ -1,7 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/screens/racks/data_racks_assignment.dart';
 import 'package:sidekick/screens/racks/data_racks_sidebar.dart';
-import 'package:sidekick/screens/racks/power_racks_assignment.dart';
 import 'package:sidekick/sidebar_content_scaffold.dart';
 import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
 import 'package:sidekick/view_models/racks_screen_view_model.dart';

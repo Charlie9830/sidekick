@@ -90,7 +90,6 @@ class _ExportErrors extends StatelessWidget {
   final bool isValidating;
 
   const _ExportErrors({
-    super.key,
     required this.errors,
     required this.onRefreshPressed,
     required this.isValidating,
@@ -122,7 +121,7 @@ class _ExportErrors extends StatelessWidget {
 
 class _ExportErrorItem extends StatelessWidget {
   final ExportErrorModel errorItem;
-  const _ExportErrorItem({super.key, required this.errorItem});
+  const _ExportErrorItem({required this.errorItem});
 
   @override
   Widget build(BuildContext context) {
