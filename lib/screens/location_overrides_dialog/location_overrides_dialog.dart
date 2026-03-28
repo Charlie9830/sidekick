@@ -423,6 +423,7 @@ class _FloatingContentToolbar extends StatelessWidget {
                 SimpleTooltip(
                   message: 'Reset override',
                   child: IconButton.ghost(
+                    size: ButtonSize.small,
                     icon: const Icon(Icons.clear),
                     onPressed: onMaxSequenceBreakUnset,
                   ),
@@ -483,6 +484,7 @@ class _FixtureOverrides extends StatelessWidget {
       items: fixtureOverrides
           .map((override) => FixtureTypeViewModel(
                 qty: override.typeCountInLocation,
+                isMaxPairingsOverriden: override.maxPairings != null,
                 type: override.fixtureType.copyWith(
                     maxPiggybacks: override
                         .maxPairings), // Override the max Piggybacks value if we have an active override.

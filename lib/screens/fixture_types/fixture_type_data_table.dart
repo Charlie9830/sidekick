@@ -86,10 +86,22 @@ class FixtureTypeDataTable extends StatelessWidget {
         ),
       _Columns.qty =>
         Align(alignment: Alignment.center, child: Text(item.qty.toString())),
-      _Columns.maxPiggybacks => PropertyField(
-          value: item.type.maxPiggybacks.toString(),
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          onBlur: (newValue) => item.onMaxPairingsChanged(newValue),
+      _Columns.maxPiggybacks => Row(
+          children: [
+            Expanded(
+              child: PropertyField(
+                value: item.type.maxPiggybacks.toString(),
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                onBlur: (newValue) => item.onMaxPairingsChanged(newValue),
+              ),
+            ),
+            if (item.isMaxPairingsOverriden)
+              IconButton.ghost(
+                size: ButtonSize.small,
+                icon: const Icon(Icons.clear),
+                onPressed: item.onMaxPairingsOverrideUnset,
+              )
+          ],
         ),
       _Columns.fixtureAmps =>
         Align(alignment: Alignment.center, child: Text('${item.type.amps}A')),

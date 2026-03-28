@@ -36,11 +36,13 @@ class FixtureTypeViewModel extends ModelCollectionMember {
   final void Function(String newValue)? onShortNameChanged;
   final void Function(String newValue) onMaxPairingsChanged;
   final void Function()? onMaxPairingsOverrideUnset;
+  final bool isMaxPairingsOverriden;
 
   FixtureTypeViewModel({
     required this.type,
     required this.qty,
     required this.onMaxPairingsChanged,
+    this.isMaxPairingsOverriden = false,
     this.onShortNameChanged,
     this.onMaxPairingsOverrideUnset,
   });
