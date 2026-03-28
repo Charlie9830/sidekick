@@ -1,5 +1,4 @@
 import 'package:flutter/services.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/editable_text_field.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';

@@ -72,6 +72,7 @@ PowerPatchResult performPowerPatch({
 
   final balancedMultiOutlets = unbalancedMultiOutletsByPowerFeedId.entries
       .map((entry) {
+        // ignore: unused_local_variable
         final feedId = entry
             .key; // TODO: Keep this handy, we may use it to then lookup feed specific properties, like balance tolerance.
         final associatedOutlets = entry.value;
