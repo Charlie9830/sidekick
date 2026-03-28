@@ -4,6 +4,12 @@ import 'package:sidekick/widgets/blur_listener.dart';
 
 typedef OnBlurCallback = void Function(String newValue);
 
+enum PropertyFieldSubmitAction {
+  next,
+  unfocus,
+  none,
+}
+
 enum LabelAlign {
   start,
   center,
@@ -25,7 +31,7 @@ class PropertyField extends StatefulWidget {
   final bool enabled;
   final LabelAlign labelAlign;
   final String? error;
-  final bool traverseFocusOnEnterKey;
+  final PropertyFieldSubmitAction submitAction;
 
   const PropertyField({
     Key? key,
@@ -43,7 +49,7 @@ class PropertyField extends StatefulWidget {
     this.scrollController,
     this.labelAlign = LabelAlign.start,
     this.error,
-    this.traverseFocusOnEnterKey = true,
+    this.submitAction = PropertyFieldSubmitAction.next,
   }) : super(key: key);
 
   @override
@@ -54,29 +60,30 @@ class PropertyFieldState extends State<PropertyField> {
   late TextEditingController _controller;
   late ScrollController _scrollController;
   late FocusNode _focusNode;
+  String? _lastNotifiedValue;
 
   @override
   void initState() {
     super.initState();
     _controller =
         widget.controller ?? TextEditingController(text: widget.value);
-
-    _scrollController = _scrollController = widget.scrollController ??
-        ScrollController(
-            keepScrollOffset:
-                false); // Stops the TextField trying to re establish it's scroll position from an ancestor PageStorage.
+    _scrollController =
+        widget.scrollController ?? ScrollController(keepScrollOffset: false);
+    // Stops the TextField trying to re establish it's scroll position from an ancestor PageStorage.
     // When this happens, it triggers funky animations.
 
     _focusNode = widget.focusNode ?? FocusNode();
     _focusNode.onKeyEvent = (node, event) {
-      if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.tab) {
+      if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+      if (event.logicalKey == LogicalKeyboardKey.tab) {
         _handleSubmit();
+        return KeyEventResult.handled;
       }
 
-      if (event is KeyDownEvent &&
-          event.logicalKey == LogicalKeyboardKey.enter &&
-          widget.traverseFocusOnEnterKey == true) {
-        _focusNode.nextFocus();
+      if (event.logicalKey == LogicalKeyboardKey.enter) {
+        _handleSubmit();
+        return KeyEventResult.handled;
       }
 
       return KeyEventResult.ignored;
@@ -88,6 +95,7 @@ class PropertyFieldState extends State<PropertyField> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.value != widget.value) {
       _controller.text = widget.value ?? '';
+      _lastNotifiedValue = null;
     }
   }
 
@@ -104,7 +112,7 @@ class PropertyFieldState extends State<PropertyField> {
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
             controller: _controller,
             scrollController: _scrollController,
-            autocorrect: widget.autofocus,
+            autocorrect: false,
             enabled: widget.enabled,
             autofocus: widget.autofocus,
             focusNode: _focusNode,
@@ -133,12 +141,27 @@ class PropertyFieldState extends State<PropertyField> {
     );
   }
 
+  void _notifyIfChanged() {
+    final newValue = _controller.text;
+    // Only notify if the value is different from the initial value AND different from what we last sent.
+    if (newValue != (widget.value ?? '') && newValue != _lastNotifiedValue) {
+      _lastNotifiedValue = newValue;
+      widget.onBlur?.call(newValue);
+    }
+  }
+
   void _handleBlur() {
-    widget.onBlur?.call(_controller.text);
+    _notifyIfChanged();
   }
 
   void _handleSubmit() {
-    widget.onBlur?.call(_controller.text);
+    _notifyIfChanged();
+
+    if (widget.submitAction == PropertyFieldSubmitAction.next) {
+      _focusNode.nextFocus();
+    } else if (widget.submitAction == PropertyFieldSubmitAction.unfocus) {
+      _focusNode.unfocus();
+    }
   }
 
   @override

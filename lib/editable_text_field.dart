@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/widgets/blur_listener.dart';
+import 'package:sidekick/widgets/property_field.dart';
 
 class EditableTextField extends StatefulWidget {
   final String value;
@@ -17,6 +18,7 @@ class EditableTextField extends StatefulWidget {
   final bool enabled;
   final ScrollController? scrollController;
   final FocusNode? focusNode;
+  final PropertyFieldSubmitAction submitAction;
 
   const EditableTextField({
     super.key,
@@ -34,6 +36,7 @@ class EditableTextField extends StatefulWidget {
     this.hintStyle,
     this.scrollController,
     this.focusNode,
+    this.submitAction = PropertyFieldSubmitAction.unfocus,
   });
 
   @override
@@ -41,12 +44,14 @@ class EditableTextField extends StatefulWidget {
 }
 
 class _EditableTextFieldState extends State<EditableTextField> {
-  late final TextEditingController _controller;
-  late final ScrollController _scrollController;
-  late final FocusNode _focusNode;
+  late TextEditingController _controller;
+  late ScrollController _scrollController;
+  late FocusNode _focusNode;
+  String? _lastNotifiedValue;
 
   @override
   void initState() {
+    super.initState();
     _controller = TextEditingController(text: widget.value);
 
     _scrollController = widget.scrollController ??
@@ -56,27 +61,40 @@ class _EditableTextFieldState extends State<EditableTextField> {
     // When this happens, it triggers funky animations.
 
     _focusNode = widget.focusNode ?? FocusNode();
+    _focusNode.onKeyEvent = (node, event) {
+      if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
-    super.initState();
+      if (event.logicalKey == LogicalKeyboardKey.tab) {
+        _handleSubmit();
+        return KeyEventResult.handled;
+      }
+
+      if (event.logicalKey == LogicalKeyboardKey.enter) {
+        _handleSubmit();
+        return KeyEventResult.handled;
+      }
+
+      return KeyEventResult.ignored;
+    };
   }
 
   @override
   void didUpdateWidget(covariant EditableTextField oldWidget) {
+    super.didUpdateWidget(oldWidget);
     if (widget.value != oldWidget.value) {
       _controller.text = widget.value;
+      _lastNotifiedValue = null;
     }
-
-    super.didUpdateWidget(oldWidget);
   }
 
   @override
   Widget build(BuildContext context) {
     return BlurListener(
-      onBlur: () => widget.onChanged?.call(_controller.text),
+      onBlur: _handleBlur,
       onFocus: () {
         if (widget.selectAllOnFocus) {
-          _controller.selection =
-              TextSelection(baseOffset: 0, extentOffset: widget.value.length);
+          _controller.selection = TextSelection(
+              baseOffset: 0, extentOffset: _controller.text.length);
         }
       },
       child: TextField(
@@ -85,13 +103,14 @@ class _EditableTextFieldState extends State<EditableTextField> {
         enabled: widget.enabled,
         controller: _controller,
         scrollController: _scrollController,
+        autocorrect: false,
         textAlign: widget.textAlign ?? TextAlign.start,
         style: widget.style,
         inputFormatters: widget.inputFormatters,
         cursorHeight: widget.cursorHeight,
         hintText: widget.hintText,
         decoration: _defaultDecoration(),
-        onEditingComplete: () => _focusNode.unfocus(),
+        onEditingComplete: _handleSubmit,
         padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
         features: [
           // Prefix
@@ -119,6 +138,29 @@ class _EditableTextFieldState extends State<EditableTextField> {
         ],
       ),
     );
+  }
+
+  void _notifyIfChanged() {
+    final newValue = _controller.text;
+    // Only notify if the value is different from the initial value AND different from what we last sent.
+    if (newValue != widget.value && newValue != _lastNotifiedValue) {
+      _lastNotifiedValue = newValue;
+      widget.onChanged?.call(newValue);
+    }
+  }
+
+  void _handleBlur() {
+    _notifyIfChanged();
+  }
+
+  void _handleSubmit() {
+    _notifyIfChanged();
+
+    if (widget.submitAction == PropertyFieldSubmitAction.next) {
+      _focusNode.nextFocus();
+    } else if (widget.submitAction == PropertyFieldSubmitAction.unfocus) {
+      _focusNode.unfocus();
+    }
   }
 
   BoxDecoration _defaultDecoration() {
