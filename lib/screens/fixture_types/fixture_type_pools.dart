@@ -22,8 +22,9 @@ class _FixtureTypePoolsState extends State<FixtureTypePools> {
 
   @override
   void initState() {
-    _controller =
-        SlotAssignmentController(itemsById: widget.viewModel.itemsById);
+    _controller = SlotAssignmentController(
+        itemsById: widget.viewModel.itemsById,
+        highlightPolicy: HighlightPolicy.primaryOnly);
     super.initState();
   }
 
@@ -143,80 +144,80 @@ class _PoolItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Slot<String, FixtureTypeModel>(
-          controller: slotAssignmentController,
-          slotIndex: index,
-          onItemsLanded: (ids) => vm.onAddFixturesToPool(ids),
-          assignedItemId: null,
-          builder: (context, item, activated) {
-            return Card(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      SizedBox(
-                        width: 400,
-                        child: EditableTextField(
-                          value: vm.pool.name,
-                          hintText: 'Pool Name',
-                          style: Theme.of(context).typography.large,
-                          onChanged: (newValue) => vm.onNameChanged(newValue),
+    return Slot<String, FixtureTypeModel>(
+        controller: slotAssignmentController,
+        slotIndex: index,
+        onItemsLanded: (ids) => vm.onAddFixturesToPool(ids),
+        assignedItemId:
+            null, // It is safe for this to remain Null. We don't really use the specific Assigned item API.
+        builder: (context, item, activated) {
+          return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Card(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        SizedBox(
+                          width: 400,
+                          child: EditableTextField(
+                            value: vm.pool.name,
+                            hintText: 'Pool Name',
+                            style: Theme.of(context).typography.large,
+                            onChanged: (newValue) => vm.onNameChanged(newValue),
+                          ),
                         ),
-                      ),
-                      const Spacer(),
-                      Text('${_calculateTotalPoolDraw(vm)}A'),
-                      const SizedBox(
+                        const Spacer(),
+                        Text('${_calculateTotalPoolDraw(vm)}A'),
+                        const SizedBox(
+                          height: 48,
+                          child: VerticalDivider(width: 16),
+                        ),
+                        SimpleTooltip(
+                          message: 'Reorder Pool',
+                          child: ReorderableDragStartListener(
+                            index: index,
+                            child: const Icon(Icons.drag_handle),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        SimpleTooltip(
+                          message: 'Delete pool',
+                          child: IconButton.destructive(
+                            icon: const Icon(Icons.delete),
+                            size: ButtonSize.small,
+                            onPressed: vm.onPoolDeleted,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (vm.childVms.isEmpty)
+                      Container(
+                        alignment: Alignment.center,
                         height: 48,
-                        child: VerticalDivider(width: 16),
+                        child: Text(
+                            'Drag Fixture Types here to add them into this pool',
+                            style: Theme.of(context).typography.small.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .mutedForeground,
+                                )),
                       ),
-                      SimpleTooltip(
-                        message: 'Reorder Pool',
-                        child: ReorderableDragStartListener(
-                          index: index,
-                          child: const Icon(Icons.drag_handle),
-                        ),
+                    if (vm.childVms.isNotEmpty)
+                      const Divider(
+                        height: 16,
                       ),
-                      const SizedBox(width: 8),
-                      SimpleTooltip(
-                        message: 'Delete pool',
-                        child: IconButton.destructive(
-                          icon: const Icon(Icons.delete),
-                          size: ButtonSize.small,
-                          onPressed: vm.onPoolDeleted,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (vm.childVms.isEmpty)
-                    Container(
-                      alignment: Alignment.center,
-                      height: 48,
-                      child: Text(
-                          'Drag Fixture Types here to add them into this pool',
-                          style: Theme.of(context).typography.small.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .mutedForeground,
-                              )),
-                    ),
-                  if (vm.childVms.isNotEmpty)
-                    const Divider(
-                      height: 16,
-                    ),
-                  ...vm.childVms
-                      .map((child) => _PoolChild(
-                            vm: child,
-                          ))
-                      .toList()
-                ],
-              ),
-            );
-          }),
-    );
+                    ...vm.childVms
+                        .map((child) => _PoolChild(
+                              vm: child,
+                            ))
+                        .toList()
+                  ],
+                ),
+              ));
+        });
   }
 
   double _calculateTotalPoolDraw(FixtureTypePoolViewModel vm) {

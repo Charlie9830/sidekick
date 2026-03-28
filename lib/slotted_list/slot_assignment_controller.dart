@@ -8,10 +8,16 @@ import 'package:sidekick/item_selection/item_selection_container.dart';
 import 'package:sidekick/item_selection/item_selection_listener.dart';
 import 'package:sidekick/item_selection/item_selection_messenger.dart';
 
+enum HighlightPolicy {
+  allSelected,
+  primaryOnly,
+}
+
 class SlotAssignmentController<K, V> extends ChangeNotifier {
   Map<K, ItemData<K, V>> itemsById;
   Set<K> selectedAvailableIds = {};
   Set<K> selectedPlacedIds = {};
+  final HighlightPolicy highlightPolicy;
   final void Function(Set<K> selectedAvailableIds, Set<K> selectedPlacedIds)?
       onSelectionChanged;
   ValueNotifier<Set<SlotPosition>> highlightedSlots = ValueNotifier({});
@@ -19,6 +25,7 @@ class SlotAssignmentController<K, V> extends ChangeNotifier {
   SlotAssignmentController({
     required this.itemsById,
     this.onSelectionChanged,
+    this.highlightPolicy = HighlightPolicy.allSelected,
   });
 
   void setItems(Map<K, ItemData<K, V>> itemsById) {
@@ -47,6 +54,11 @@ class SlotAssignmentController<K, V> extends ChangeNotifier {
   }
 
   void updateDragHover(SlotPosition slotIndex) {
+    if (highlightPolicy == HighlightPolicy.primaryOnly) {
+      highlightedSlots.value = {slotIndex};
+      return;
+    }
+
     final selectedItemCount =
         max(selectedPlacedIds.length, selectedAvailableIds.length);
 
