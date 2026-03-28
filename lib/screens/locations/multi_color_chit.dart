@@ -80,7 +80,7 @@ class ColorPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(ColorPainter oldDelegate) => false;
+  bool shouldRepaint(ColorPainter oldDelegate) => oldDelegate.colors != colors;
 
   @override
   bool shouldRebuildSemantics(ColorPainter oldDelegate) => false;
