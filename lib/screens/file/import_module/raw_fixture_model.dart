@@ -19,6 +19,12 @@ class RawFixtureModel {
   final List<MultipleMatchError> modeMappingErrors;
   final List<FixtureMappingError> typeMappingErrors;
   final String generatedLocationId;
+  final double x;
+  final double y;
+  final double z;
+  final double rotationX;
+  final double rotationY;
+  final double rotationZ;
 
   RawFixtureModel({
     required this.fixtureId,
@@ -37,6 +43,12 @@ class RawFixtureModel {
     this.modeMappingErrors = const [],
     this.typeMappingErrors = const [],
     this.generatedLocationId = '',
+    this.x = 0,
+    this.y = 0,
+    this.z = 0,
+    this.rotationX = 0,
+    this.rotationY = 0,
+    this.rotationZ = 0,
   });
 
   RawFixtureModel copyWith({
@@ -56,6 +68,12 @@ class RawFixtureModel {
     List<MultipleMatchError>? modeMappingErrors,
     List<FixtureMappingError>? typeMappingErrors,
     String? generatedLocationId,
+    double? x,
+    double? y,
+    double? z,
+    double? rotationX,
+    double? rotationY,
+    double? rotationZ,
   }) {
     return RawFixtureModel(
       mvrId: mvrId ?? this.mvrId,
@@ -75,6 +93,12 @@ class RawFixtureModel {
       modeMappingErrors: modeMappingErrors ?? this.modeMappingErrors,
       typeMappingErrors: typeMappingErrors ?? this.typeMappingErrors,
       generatedLocationId: generatedLocationId ?? this.generatedLocationId,
+      x: x ?? this.x,
+      y: y ?? this.y,
+      z: z ?? this.z,
+      rotationX: rotationX ?? this.rotationX,
+      rotationY: rotationY ?? this.rotationY,
+      rotationZ: rotationZ ?? this.rotationZ,
     );
   }
 }

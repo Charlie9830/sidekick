@@ -17,6 +17,13 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
   final String locationId;
   final String mode;
   final String powerPatch;
+  final bool hasMatrixData;
+  final double x;
+  final double y;
+  final double z;
+  final double rotationX;
+  final double rotationY;
+  final double rotationZ;
 
   FixtureModel({
     this.uid = '',
@@ -27,6 +34,13 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
     this.locationId = '',
     this.mode = '',
     this.powerPatch = '',
+    this.hasMatrixData = false,
+    this.x = 0,
+    this.y = 0,
+    this.z = 0,
+    this.rotationX = 0,
+    this.rotationY = 0,
+    this.rotationZ = 0,
   });
 
   LocationModel lookupLocation(Map<String, LocationModel> locations) {
@@ -40,8 +54,15 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
     DMXAddressModel? dmxAddress,
     String? typeId,
     String? locationId,
-    String? powerPatch,
     String? mode,
+    String? powerPatch,
+    bool? hasMatrixData,
+    double? x,
+    double? y,
+    double? z,
+    double? rotationX,
+    double? rotationY,
+    double? rotationZ,
   }) {
     return FixtureModel(
       uid: uid ?? this.uid,
@@ -52,6 +73,13 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
       locationId: locationId ?? this.locationId,
       mode: mode ?? this.mode,
       powerPatch: powerPatch ?? this.powerPatch,
+      hasMatrixData: hasMatrixData ?? this.hasMatrixData,
+      x: x ?? this.x,
+      y: y ?? this.y,
+      z: z ?? this.z,
+      rotationX: rotationX ?? this.rotationX,
+      rotationY: rotationY ?? this.rotationY,
+      rotationZ: rotationZ ?? this.rotationZ,
     );
   }
 
@@ -65,6 +93,13 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
       'locationId': locationId,
       'mode': mode,
       'powerPatch': powerPatch,
+      'x': x,
+      'y': y,
+      'z': z,
+      'rotationX': rotationX,
+      'rotationY': rotationY,
+      'rotationZ': rotationZ,
+      'hasMatrixData': hasMatrixData,
     };
   }
 
@@ -78,6 +113,13 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
       locationId: map['locationId'] ?? '',
       powerPatch: map['powerPatch'] is String ? map['powerPatch'] : '',
       mode: map['mode'] ?? '',
+      x: map['x'] ?? 0,
+      y: map['y'] ?? 0,
+      z: map['z'] ?? 0,
+      rotationX: map['rotationX'] ?? 0,
+      rotationY: map['rotationY'] ?? 0,
+      rotationZ: map['rotationZ'] ?? 0,
+      hasMatrixData: map['hasMatrixData'] ?? false,
     );
   }
 

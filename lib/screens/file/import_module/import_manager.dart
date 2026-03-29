@@ -541,6 +541,13 @@ class _ImportManagerState extends State<ImportManager> {
             ? incomingFixture.mvrLocationId
             : incomingFixture.generatedLocationId,
         sequence: existing?.sequence ?? index + 1,
+        hasMatrixData: _importSettings.source == PatchSource.mvr,
+        x: incomingFixture.x,
+        y: incomingFixture.y,
+        z: incomingFixture.z,
+        rotationX: incomingFixture.x,
+        rotationY: incomingFixture.y,
+        rotationZ: incomingFixture.z,
       );
     }).toList();
 

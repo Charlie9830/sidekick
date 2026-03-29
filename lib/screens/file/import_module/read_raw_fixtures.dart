@@ -163,6 +163,12 @@ RawFixtureModel _mapFixture({
     fixtureIdString: fixture.fixtureId,
     fixtureMode: fixture.gdtfMode,
     fixtureType: fixture.gdtfSpec,
+    x: fixture.matrix.x,
+    y: fixture.matrix.y,
+    z: fixture.matrix.z,
+    rotationX: fixture.matrix.rotationX,
+    rotationY: fixture.matrix.rotationY,
+    rotationZ: fixture.matrix.rotationZ,
     address:
         DMXAddressModel.fromGlobal(fixture.addresses.singleGlobalAddress ?? 0),
     mvrLocationId: switch (locationSource) {
