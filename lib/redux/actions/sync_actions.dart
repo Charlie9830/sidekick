@@ -22,6 +22,12 @@ import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
 
+class SetBreakoutCablingLocationId {
+  final String value;
+
+  SetBreakoutCablingLocationId(this.value);
+}
+
 class ReorderFixtureTypePools {
   final int oldIndex;
   final int newIndex;

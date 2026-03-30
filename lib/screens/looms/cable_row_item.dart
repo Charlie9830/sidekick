@@ -261,6 +261,7 @@ class CableRowItem extends StatelessWidget {
         const Icon(Icons.construction, size: 16, color: Colors.gray),
       CableType.hoistMulti =>
         const Icon(Icons.view_module_outlined, color: Colors.gray),
+      CableType.au10a => const SizedBox(),
       CableType.unknown => const SizedBox(),
     };
   }

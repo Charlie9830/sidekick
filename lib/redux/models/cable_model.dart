@@ -12,6 +12,7 @@ enum CableType {
   dmx,
   hoist,
   hoistMulti,
+  au10a,
 }
 
 enum CableClass {

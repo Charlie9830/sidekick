@@ -32,6 +32,7 @@ dependencies:
   collection: ^1.18.0
   cupertino_icons: ^1.0.2
   desktop_drop: ^0.6.0
+  directed_graph: ^0.5.5
   easy_stepper: ^0.8.5+1
   excel: ^4.0.6
   file_selector: ^1.1.0
@@ -39,6 +40,9 @@ dependencies:
     sdk: flutter
   flutter_redux: ^0.10.0
   flutter_svg: ^2.0.17
+  graphite: ^1.2.1
+  graphs: ^2.3.2
+  graphview: ^1.5.1
   material_table_view: ^5.4.0
   mvr:
     path: ../mvr/

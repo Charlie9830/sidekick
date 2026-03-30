@@ -44,6 +44,7 @@ class CableTypeSelect extends StatelessWidget {
       CableType.dmx => 'DMX',
       CableType.hoist => 'Motor',
       CableType.hoistMulti => 'Motor Multi',
+      CableType.au10a => '10A Extension'
     };
   }
 }

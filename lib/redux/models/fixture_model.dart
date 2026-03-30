@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:collection/collection.dart';
 
@@ -172,5 +173,12 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
   @override
   int compareTo(other) {
     return sequence - other.sequence;
+  }
+
+  double distanceTo(FixtureModel other) {
+    final dx = x - other.x;
+    final dy = y - other.y;
+    final dz = z - other.z;
+    return sqrt(dx * dx + dy * dy + dz * dz);
   }
 }

@@ -1,3 +1,4 @@
+import 'package:sidekick/containers/breakout_cabling_container.dart';
 import 'package:sidekick/containers/diagnostics_container.dart';
 import 'package:sidekick/containers/export_container.dart';
 import 'package:sidekick/containers/file_container.dart';
@@ -76,6 +77,10 @@ class _HomeState extends State<Home> {
                   child: Icon(Icons.cable),
                 ),
                 _NavigationItem(
+                  label: Text('Breakout Cabling'),
+                  child: Icon(Icons.auto_graph),
+                ),
+                _NavigationItem(
                   label: Text('Locations'),
                   child: Icon(Icons.location_pin),
                 ),
@@ -131,12 +136,13 @@ class _HomeState extends State<Home> {
             3 => const RacksContainer(),
             4 => const HoistsContainer(),
             5 => const LoomsContainer(),
-            6 => const LocationsContainer(),
-            7 => const FixtureTypesContainer(),
-            8 => const ExportContainer(),
-            9 => const DiffingScreenContainer(),
-            10 => const TheLab(),
-            11 => const DiagnosticsContainer(),
+            6 => const BreakoutCablingContainer(),
+            7 => const LocationsContainer(),
+            8 => const FixtureTypesContainer(),
+            9 => const ExportContainer(),
+            10 => const DiffingScreenContainer(),
+            11 => const TheLab(),
+            12 => const DiagnosticsContainer(),
             _ => throw "Missing Switch clause for index $_tabIndex",
           }),
     );

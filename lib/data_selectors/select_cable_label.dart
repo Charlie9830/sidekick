@@ -34,6 +34,7 @@ String selectCableLabel({
     CableType.dmx => _selectDMXLabel(dataPatches[cable.outletId]),
     CableType.hoist => _selectSingleHoistLabel(hoistOutlets[cable.outletId]),
     CableType.hoistMulti => _selectHoistMultiLabel(hoistMultis[cable.outletId]),
+    CableType.au10a => '',
     CableType.unknown => throw UnimplementedError(),
   };
 }

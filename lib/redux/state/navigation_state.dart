@@ -20,6 +20,7 @@ class NavigationState {
   final int selectedRacksTabIndex;
   final Set<String> selectedFixtureTypeIds;
   final int fixtureTypesTabIndex;
+  final String selectedBreakoutCablingLocationId;
 
   NavigationState({
     required this.selectedMultiOutlet,
@@ -40,6 +41,7 @@ class NavigationState {
     required this.selectedRacksTabIndex,
     required this.selectedFixtureTypeIds,
     required this.fixtureTypesTabIndex,
+    required this.selectedBreakoutCablingLocationId,
   });
 
   const NavigationState.initial()
@@ -60,7 +62,8 @@ class NavigationState {
         isFeedsDrawerOpen = false,
         selectedRacksTabIndex = 0,
         selectedFixtureTypeIds = const {},
-        fixtureTypesTabIndex = 0;
+        fixtureTypesTabIndex = 0,
+        selectedBreakoutCablingLocationId = '';
 
   NavigationState copyWith({
     String? selectedMultiOutlet,
@@ -81,6 +84,7 @@ class NavigationState {
     int? selectedRacksTabIndex,
     Set<String>? selectedFixtureTypeIds,
     int? fixtureTypesTabIndex,
+    String? selectedBreakoutCablingLocationId,
   }) {
     return NavigationState(
       selectedMultiOutlet: selectedMultiOutlet ?? this.selectedMultiOutlet,
@@ -107,6 +111,8 @@ class NavigationState {
       selectedFixtureTypeIds:
           selectedFixtureTypeIds ?? this.selectedFixtureTypeIds,
       fixtureTypesTabIndex: fixtureTypesTabIndex ?? this.fixtureTypesTabIndex,
+      selectedBreakoutCablingLocationId: selectedBreakoutCablingLocationId ??
+          this.selectedBreakoutCablingLocationId,
     );
   }
 }

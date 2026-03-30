@@ -247,6 +247,7 @@ String _getTypeLabel(CableType type, int localNumber,
     CableType.wieland6way => '6way $localNumber',
     CableType.hoist => 'Motor $localNumber',
     CableType.hoistMulti => 'Motor Multi $localNumber',
+    CableType.au10a => '',
     CableType.unknown => "Unknown",
   };
 }
