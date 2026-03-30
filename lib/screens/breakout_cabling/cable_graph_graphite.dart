@@ -17,7 +17,7 @@ class CableGraphGraphite extends StatefulWidget {
 
 class _CableGraphGraphiteState extends State<CableGraphGraphite> {
   List<NodeInput> _buildNodes() {
-    final fixtures = widget.vm.locationFixtureVms
+    final fixtures = widget.vm.locationFixtureVms.values
         .map((vm) => vm.fixture)
         .sorted((a, b) => a.sequence - b.sequence);
     final fixturePatchChains =
