@@ -2,7 +2,6 @@ import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
-import 'package:sidekick/view_models/fixture_table_view_model.dart';
 
 class BreakoutCablingViewModel {
   final String selectedLocationId;

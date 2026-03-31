@@ -59,7 +59,7 @@ class CableView extends StatelessWidget {
                                   edge.to.fixture.x, edge.to.fixture.y),
                               label:
                                   '${(edge.edge.cableLength * 0.001).floor()}m'),
-                          _ => Text('Woops'),
+                          _ => const Text('Woops'),
                         });
                       }),
                     Positioned(
@@ -233,7 +233,7 @@ class ViewportTransformer {
 
 class _FixtureNode extends StatelessWidget {
   final FixtureViewModel vm;
-  const _FixtureNode({super.key, required this.vm});
+  const _FixtureNode({required this.vm});
 
   @override
   Widget build(BuildContext context) {
@@ -271,8 +271,7 @@ class _PowerCableEdge extends StatelessWidget {
   final Offset from;
   final Offset to;
   final String? label;
-  const _PowerCableEdge(
-      {super.key, required this.from, required this.to, this.label});
+  const _PowerCableEdge({required this.from, required this.to, this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -290,8 +289,7 @@ class _DataCableEdge extends StatelessWidget {
   final Offset from;
   final Offset to;
   final String? label;
-  const _DataCableEdge(
-      {super.key, required this.from, required this.to, this.label});
+  const _DataCableEdge({required this.from, required this.to, this.label});
 
   @override
   Widget build(BuildContext context) {

@@ -91,13 +91,13 @@ class OutletTable extends StatelessWidget {
 
 class _PoolChip extends StatelessWidget {
   final String poolName;
-  const _PoolChip({super.key, required this.poolName});
+  const _PoolChip({required this.poolName});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-        margin: EdgeInsets.only(right: 8),
-        padding: EdgeInsets.all(4),
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.all(4),
         alignment: Alignment.center,
         color: Colors.neutral.shade700,
         child: Text(poolName, style: Theme.of(context).typography.xSmall));
