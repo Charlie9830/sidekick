@@ -597,23 +597,26 @@ class _PoolConfiguration extends StatelessWidget {
       itemBuilder: (context, index) {
         final pool = pools[index];
 
-        return Row(
-          children: [
-            Checkbox(
-              state: enabledFixtureTypePoolIds.contains(pool.uid)
-                  ? CheckboxState.checked
-                  : CheckboxState.unchecked,
-              onChanged: (state) => onPoolEnableChanged(
-                pool.uid,
-                state == CheckboxState.checked ? true : false,
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Row(
+            children: [
+              Checkbox(
+                state: enabledFixtureTypePoolIds.contains(pool.uid)
+                    ? CheckboxState.checked
+                    : CheckboxState.unchecked,
+                onChanged: (state) => onPoolEnableChanged(
+                  pool.uid,
+                  state == CheckboxState.checked ? true : false,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Text(pool.name),
-            const SizedBox(width: 24),
-            Text(_buildChildFixtureSlug(pool, fixtureTypes),
-                style: Theme.of(context).typography.thin)
-          ],
+              const SizedBox(width: 8),
+              Text(pool.name),
+              const SizedBox(width: 24),
+              Text(_buildChildFixtureSlug(pool, fixtureTypes),
+                  style: Theme.of(context).typography.thin)
+            ],
+          ),
         );
       },
     );
