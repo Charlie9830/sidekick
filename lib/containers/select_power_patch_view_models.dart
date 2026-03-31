@@ -26,14 +26,23 @@ List<PowerPatchRowViewModel> selectPowerPatchViewModels(
                   .map(
                     (outlet) => PowerOutletVM(
                         outlet: outlet,
+                        poolName: outlet.fixtureTypePoolId.isNotEmpty
+                            ? store
+                                    .state
+                                    .fixtureState
+                                    .fixtureTypePools[outlet.fixtureTypePoolId]
+                                    ?.name ??
+                                ''
+                            : '',
                         fixtureVms: outlet.fixtureIds.map((id) {
                           final fixture =
                               store.state.fixtureState.fixtures[id]!;
 
                           return FixtureOutletVM(
-                              fixture: fixture,
-                              type: store.state.fixtureState
-                                  .fixtureTypes[fixture.typeId]!);
+                            fixture: fixture,
+                            type: store.state.fixtureState
+                                .fixtureTypes[fixture.typeId]!,
+                          );
                         }).toList()),
                   )
                   .toList())),

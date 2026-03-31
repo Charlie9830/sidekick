@@ -4,6 +4,7 @@ import 'package:sidekick/classes/numeric_span.dart';
 import 'package:sidekick/excel/format_fixture_type.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
+import 'package:sidekick/redux/models/fixture_type_pool_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_rack_model.dart';
@@ -16,7 +17,8 @@ void createPowerPatchSheet(
     required Map<String, PowerRackTypeModel> powerRackTypes,
     required Map<String, LocationModel> locations,
     required Map<String, FixtureModel> fixtures,
-    required Map<String, FixtureTypeModel> fixtureTypes}) {
+    required Map<String, FixtureTypeModel> fixtureTypes,
+    required Map<String, FixtureTypePoolModel> fixtureTypePools}) {
   final powerPatchSheet = excel['Power Patch'];
 
   // Header Rows
@@ -76,9 +78,12 @@ void createPowerPatchSheet(
           // Fixture Name
           TextCellValue(outlet == null
               ? ''
-              : formatFixtureType(
-                  outlet.fixtureIds.map((id) => fixtures[id]!).toList(),
-                  fixtureTypes)),
+              : outlet.fixtureTypePoolId.isNotEmpty
+                  ? _formatFixtureTypePool(
+                      outlet.fixtureTypePoolId, fixtureTypePools)
+                  : formatFixtureType(
+                      outlet.fixtureIds.map((id) => fixtures[id]!).toList(),
+                      fixtureTypes)),
 
           // Fixture ID
           TextCellValue(outlet == null
@@ -96,6 +101,11 @@ void createPowerPatchSheet(
   for (final row in contentRows) {
     powerPatchSheet.appendRow(row);
   }
+}
+
+String _formatFixtureTypePool(
+    String poolId, Map<String, FixtureTypePoolModel> fixtureTypePools) {
+  return fixtureTypePools[poolId]?.name ?? '-POOL ERROR-';
 }
 
 String _formatFixtureNumbers(Iterable<int> fixtureIds) {

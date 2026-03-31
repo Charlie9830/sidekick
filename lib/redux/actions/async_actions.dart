@@ -2441,6 +2441,7 @@ ThunkAction<AppState> export(BuildContext context) {
       fixtureTypes: store.state.fixtureState.fixtureTypes,
       powerRackTypes: store.state.fixtureState.powerRackTypes,
       powerRacks: store.state.fixtureState.powerRacks,
+      fixtureTypePools: store.state.fixtureState.fixtureTypePools,
     );
 
     createColorLookupSheet(
@@ -2454,6 +2455,7 @@ ThunkAction<AppState> export(BuildContext context) {
       fixtures: store.state.fixtureState.fixtures,
       fixtureTypes: store.state.fixtureState.fixtureTypes,
       powerMultis: store.state.fixtureState.powerMultiOutlets,
+      fixtureTypePools: store.state.fixtureState.fixtureTypePools,
     );
 
     createDataPatchSheet(

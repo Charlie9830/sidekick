@@ -1,4 +1,7 @@
+import 'dart:collection';
+
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sidekick/assert_outlet_name_and_number.dart';
 import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
 import 'package:sidekick/balancer/models/balancer_location_model.dart';
@@ -81,6 +84,7 @@ PowerPatchResult performPowerPatch({
           unbalancedMultiOutlets: associatedOutlets,
           balancer: balancer,
           balanceTolerance: balanceTolerance,
+          fixtures: sortedFixtures.values.toList(),
         );
       })
       .flattened
@@ -138,6 +142,7 @@ Map<String, PowerMultiOutletModel> _assertPowerMultiState(
 
 List<PowerMultiOutletModel> _balanceOutlets({
   required List<BalancerMultiOutletModel> unbalancedMultiOutlets,
+  required List<FixtureModel> fixtures,
   required NaiveBalancer balancer,
   required double balanceTolerance,
 }) {
@@ -152,7 +157,11 @@ List<PowerMultiOutletModel> _balanceOutlets({
     return multiOutlet.copyWith(children: balanceResult.outlets);
   });
 
-  return balancedMultiOutlets.map((balancerMultiOutlet) {
+  final fixtureQueuesByType = fixtures
+      .groupListsBy((fix) => fix.typeId)
+      .map((key, value) => MapEntry(key, Queue<FixtureModel>.from(value)));
+
+  final recombinedPowerMultis = balancedMultiOutlets.map((balancerMultiOutlet) {
     return PowerMultiOutletModel(
         uid: balancerMultiOutlet.uid,
         locationId: balancerMultiOutlet.locationId,
@@ -160,14 +169,34 @@ List<PowerMultiOutletModel> _balanceOutlets({
         parentRack: balancerMultiOutlet.parentRack,
         children: balancerMultiOutlet.children
             .map((balancerOutlet) => PowerOutletModel(
+                fixtureTypePoolId: balancerOutlet.fixtureTypePoolId,
                 phase: balancerOutlet.phase,
                 multiPatch: balancerOutlet.multiPatch,
+
+                // Oh boy... If you're here something has likely gone really wrong.
+                // To make phase balancing more robust, we essentially only balance based on Fixture Types, in other words we throw out the actual Fixture uids and only balance based on
+                // qtys on FixtureTypes. The step below remarries the Fixtures back to their assigned outlets by iterating through in order.
+                // If the Qty or order of the MultiOutlets or the PowerPatches has changed since the begining of this call of the Balancer, then that will cause all sort of Havoc.
                 fixtureIds: balancerOutlet.child.fixtures
-                    .map((fixture) => fixture.uid)
+                    .map((intermediate) =>
+                        fixtureQueuesByType[intermediate.type.uid]!
+                            .removeFirst()
+                            .uid)
                     .toList(),
                 load: balancerOutlet.child.amps))
             .toList());
   }).toList();
+
+  // A couple of asserts to ensure we haven't absolutely cooked the goose.
+  assert(
+      fixtureQueuesByType.values.every((i) => i.isEmpty),
+      'Not all fixtureQueuesByType were flushed. This suggests their is a Critical error in Power patch generation.'
+      '\n'
+      'This is likely caused by a bad re-marrying of Fixture Types to their respective Fixture Ids'
+      '\n'
+      'A likely cause of this is that the PowerMultiOutlets or their Children outlets have had their qty changed during the phase balancing process');
+
+  return recombinedPowerMultis;
 }
 
 List<PowerMultiOutletModel> _applyDefaultMultiOutletNames({

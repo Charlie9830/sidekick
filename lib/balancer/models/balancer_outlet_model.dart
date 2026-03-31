@@ -1,5 +1,5 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:sidekick/balancer/models/balancer_power_patch_model.dart';
-
 
 class BalancerOutletModel {
   final int phase;
@@ -8,16 +8,17 @@ class BalancerOutletModel {
   final String multiOutletId;
   final String locationId;
   final int multiPatch;
+  final String fixtureTypePoolId;
 
-  BalancerOutletModel({
-    required this.phase,
-    required this.child,
-    required this.multiOutletId,
-    required this.multiPatch,
-    required this.locationId,
-    this.isSpare = false,
-  });
-  
+  BalancerOutletModel(
+      {required this.phase,
+      required this.child,
+      required this.multiOutletId,
+      required this.multiPatch,
+      required this.locationId,
+      this.isSpare = false,
+      required this.fixtureTypePoolId});
+
   BalancerOutletModel copyWith({
     int? phase,
     BalancerPowerPatchModel? child,
@@ -25,6 +26,7 @@ class BalancerOutletModel {
     String? multiOutletId,
     String? locationId,
     int? multiPatch,
+    String? fixtureTypePoolId,
   }) {
     return BalancerOutletModel(
       phase: phase ?? this.phase,
@@ -33,6 +35,7 @@ class BalancerOutletModel {
       multiOutletId: multiOutletId ?? this.multiOutletId,
       locationId: locationId ?? this.locationId,
       multiPatch: multiPatch ?? this.multiPatch,
+      fixtureTypePoolId: fixtureTypePoolId ?? this.fixtureTypePoolId,
     );
   }
 }

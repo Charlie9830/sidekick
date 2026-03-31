@@ -100,10 +100,12 @@ class MultiOutletRowViewModel extends PowerPatchRowViewModel {
 class PowerOutletVM with DiffComparable {
   final PowerOutletModel outlet;
   final List<FixtureOutletVM> fixtureVms;
+  final String poolName;
 
   PowerOutletVM({
     required this.outlet,
     required this.fixtureVms,
+    required this.poolName,
   });
 
   @override

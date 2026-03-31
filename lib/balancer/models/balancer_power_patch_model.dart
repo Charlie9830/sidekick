@@ -1,14 +1,18 @@
-import 'package:collection/collection.dart';
-import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:sidekick/balancer/models/balancer_intermediate_fixture_model.dart';
 
 class BalancerPowerPatchModel {
-  final List<BalancerFixtureModel> fixtures;
+  final List<IntermediateFixtureModel> fixtures;
+  final String fixtureTypePoolId;
 
   BalancerPowerPatchModel({
     this.fixtures = const [],
+    required this.fixtureTypePoolId,
   });
 
-  BalancerPowerPatchModel.empty() : fixtures = const [];
+  BalancerPowerPatchModel.empty()
+      : fixtures = const [],
+        fixtureTypePoolId = '';
 
   bool get isEmpty => fixtures.isEmpty;
 
@@ -19,63 +23,12 @@ class BalancerPowerPatchModel {
       .fold(0, (value, element) => value + element);
 
   BalancerPowerPatchModel copyWith({
-    List<BalancerFixtureModel>? fixtures,
+    List<IntermediateFixtureModel>? fixtures,
+    String? fixtureTypePoolId,
   }) {
     return BalancerPowerPatchModel(
       fixtures: fixtures ?? this.fixtures,
+      fixtureTypePoolId: fixtureTypePoolId ?? this.fixtureTypePoolId,
     );
-  }
-
-  /// Returns true if all Fixtures in the [fixtueres] property are contigously sequenced, that is to say, that each fixture
-  /// follows the next one without any breaks in the sequence number. Additionally checks that all fixtures in the collection match
-  /// the same Fixture Type.
-  bool isContiguous() {
-    if (fixtures.isEmpty || fixtures.length == 1) {
-      return false;
-    }
-
-    final contiguousFixtures = fixtures.whereIndexed((index, current) {
-      if (index == 0) {
-        return true;
-      }
-      
-      final BalancerFixtureModel? previous =
-          fixtures.elementAtOrNull(index - 1);
-
-      if (previous == null) {
-        return true;
-      }
-
-      if (previous.type.uid != current.type.uid) {
-        return false;
-      }
-
-      return previous.sequence == current.sequence - 1;
-    });
-
-    return contiguousFixtures.length == fixtures.length;
-  }
-
-  /// See [isContiguous]. Proxy calls [isContiguous] with the [candidate] appended to the [fixtures] collection.
-  bool isContiguousWith(BalancerFixtureModel candidate) {
-    return copyWith(fixtures: [...fixtures, candidate]).isContiguous();
-  }
-
-  int compareByFid(BalancerPowerPatchModel other) {
-    const maxInt = 0x7FFFFFFFFFFFFFFF;
-
-    final a = fixtures.isEmpty ? maxInt : fixtures.first.fid;
-    final b = other.fixtures.isEmpty ? maxInt : other.fixtures.first.fid;
-
-    return a - b;
-  }
-
-  int compareBySequence(BalancerPowerPatchModel other) {
-    const maxInt = 0x7FFFFFFFFFFFFFFF;
-
-    final a = fixtures.isEmpty ? maxInt : fixtures.first.sequence;
-    final b = other.fixtures.isEmpty ? maxInt : other.fixtures.first.sequence;
-
-    return a - b;
   }
 }

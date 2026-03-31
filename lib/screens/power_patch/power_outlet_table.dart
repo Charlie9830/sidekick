@@ -34,7 +34,6 @@ class OutletTable extends StatelessWidget {
           },
           children: outletVM.mapIndexed((index, vm) {
             final currentDelta = outletDeltas?.elementAtOrNull(index);
-
             return mat.TableRow(children: [
               // Multi Patch
               Center(
@@ -49,10 +48,18 @@ class OutletTable extends StatelessWidget {
                 child: DiffStateOverlay(
                   diff: currentDelta?.properties
                       .lookup(PropertyDeltaName.fixtureType),
-                  child: Text(vm.fixtureVms
-                      .map((fixtureVm) => fixtureVm.type.shortName)
-                      .toSet()
-                      .join(", ")),
+                  child: mat.Row(
+                    children: [
+                      mat.Expanded(
+                        child: Text(vm.fixtureVms
+                            .map((fixtureVm) => fixtureVm.type.shortName)
+                            .toSet()
+                            .join(", ")),
+                      ),
+                      if (vm.poolName.isNotEmpty)
+                        _PoolChip(poolName: vm.poolName)
+                    ],
+                  ),
                 ),
               ),
               // Fixture Ids
@@ -79,5 +86,20 @@ class OutletTable extends StatelessWidget {
             ]);
           }).toList()),
     );
+  }
+}
+
+class _PoolChip extends StatelessWidget {
+  final String poolName;
+  const _PoolChip({super.key, required this.poolName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        margin: EdgeInsets.only(right: 8),
+        padding: EdgeInsets.all(4),
+        alignment: Alignment.center,
+        color: Colors.neutral.shade700,
+        child: Text(poolName, style: Theme.of(context).typography.xSmall));
   }
 }

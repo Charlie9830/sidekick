@@ -5,6 +5,7 @@ class PowerOutletModel {
   final bool isSpare;
   final int multiPatch;
   final List<String> fixtureIds;
+  final String fixtureTypePoolId;
   final double load;
 
   PowerOutletModel({
@@ -12,6 +13,7 @@ class PowerOutletModel {
     required this.multiPatch,
     required this.fixtureIds,
     required this.load,
+    required this.fixtureTypePoolId,
     this.isSpare = false,
   });
 
@@ -20,7 +22,8 @@ class PowerOutletModel {
     required this.multiPatch,
   })  : isSpare = true,
         load = 0,
-        fixtureIds = [];
+        fixtureIds = [],
+        fixtureTypePoolId = '';
 
   PowerOutletModel copyWith({
     int? phase,
@@ -30,6 +33,7 @@ class PowerOutletModel {
     int? multiPatch,
     List<String>? fixtureIds,
     double? load,
+    String? fixtureTypePoolId,
   }) {
     return PowerOutletModel(
       phase: phase ?? this.phase,
@@ -37,6 +41,7 @@ class PowerOutletModel {
       multiPatch: multiPatch ?? this.multiPatch,
       fixtureIds: fixtureIds ?? this.fixtureIds,
       load: load ?? this.load,
+      fixtureTypePoolId: fixtureTypePoolId ?? this.fixtureTypePoolId,
     );
   }
 
@@ -47,6 +52,7 @@ class PowerOutletModel {
       'multiPatch': multiPatch,
       'fixtureIds': fixtureIds,
       'load': load,
+      'fixtureTypePoolId': fixtureTypePoolId,
     };
   }
 
@@ -57,6 +63,7 @@ class PowerOutletModel {
       multiPatch: map['multiPatch']?.toInt() ?? 0,
       fixtureIds: List<String>.from(map['fixtureIds']),
       load: map['load']?.toDouble() ?? 0.0,
+      fixtureTypePoolId: map['fixtureTypePoolId'] ?? '',
     );
   }
 

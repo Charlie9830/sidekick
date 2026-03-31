@@ -6,6 +6,7 @@ import 'package:sidekick/balancer/asserts/asserts.dart';
 import 'package:sidekick/balancer/balancer_base.dart';
 import 'package:sidekick/balancer/balancer_result.dart';
 import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
+import 'package:sidekick/balancer/models/balancer_intermediate_fixture_model.dart';
 import 'package:sidekick/balancer/models/balancer_location_model.dart';
 import 'package:sidekick/balancer/models/balancer_multi_outlet_model.dart';
 import 'package:sidekick/balancer/models/balancer_power_patch_model.dart';
@@ -94,13 +95,15 @@ class NaiveBalancer implements Balancer {
           continue;
         }
 
-        final outlets = patchSlice.mapIndexed((index, patch) =>
-            BalancerOutletModel(
-                child: patch,
-                locationId: locationId,
-                multiOutletId: multiOutlet.uid,
-                phase: getPhaseFromIndex(index),
-                multiPatch: getMultiPatchFromIndex(index)));
+        final outlets = patchSlice.mapIndexed(
+          (index, patch) => BalancerOutletModel(
+              child: patch,
+              locationId: locationId,
+              multiOutletId: multiOutlet.uid,
+              phase: getPhaseFromIndex(index),
+              multiPatch: getMultiPatchFromIndex(index),
+              fixtureTypePoolId: patch.fixtureTypePoolId),
+        );
 
         updatedMultis.add(multiOutlet.copyWith(
           children: outlets.toList(),
@@ -159,17 +162,7 @@ class NaiveBalancer implements Balancer {
       // Update the running Phase Totals.
       currentLoad += _calculatePhaseLoading(balancedSlice);
 
-      // Before we return this slice. Run some cleanup functions on it in order.
-      // We first declare these functions in a list, then run them sequentially daisy chaining their results with the .fold function.
-
-      final cleanupFunctions = <CleanupFunction>[
-        _assertCrossPhaseNumericOrdering,
-        _assertInterPhaseNumericOrdering,
-        _assertUnevenPiggybackOrdering,
-      ];
-
-      return cleanupFunctions.fold(
-          balancedSlice, (value, cleanupFunc) => cleanupFunc(value));
+      return balancedSlice;
     }).toList();
 
     return BalancerResult(rawSlices.flattened.toList(), currentLoad);
@@ -191,7 +184,14 @@ class NaiveBalancer implements Balancer {
             powerSpans.map((span) => MapEntry(
                 span,
                 performPiggybacking(
-                  fixtures: span.fixtures,
+                  fixtures: span.fixtures
+                      .map((fixture) => IntermediateFixtureModel(
+                            type: fixture.type,
+                            locationId: fixture.locationId,
+                            sequence: fixture.sequence,
+                            ephemeralId: getUid(),
+                          ))
+                      .toList(),
                   allFixtureTypePools: allFixtureTypePools,
                   globalMaxSequenceBreak: globalMaxSequenceBreak,
                   locations: locations,
@@ -439,11 +439,15 @@ List<BalancerOutletModel> _swapOutletChildren(
   final outletA = clone[indexA].copyWith();
   final outletB = clone[indexB].copyWith();
 
-  // Swap the children over, Make sure to swap the Spare status flag as well.
-  clone[indexA] =
-      outletA.copyWith(child: outletB.child, isSpare: outletB.isSpare);
-  clone[indexB] =
-      outletB.copyWith(child: outletA.child, isSpare: outletA.isSpare);
+  // Swap the children over, Make sure to swap the Spare status and the fixtureTypePoolId flag as well.
+  clone[indexA] = outletA.copyWith(
+      child: outletB.child,
+      isSpare: outletB.isSpare,
+      fixtureTypePoolId: outletB.fixtureTypePoolId);
+  clone[indexB] = outletB.copyWith(
+      child: outletA.child,
+      isSpare: outletA.isSpare,
+      fixtureTypePoolId: outletA.fixtureTypePoolId);
 
   return clone;
 }
@@ -460,194 +464,4 @@ PhaseLoad _calculatePhaseLoading(List<BalancerOutletModel> slice) {
   }
 
   return PhaseLoad(loads[0], loads[1], loads[2]);
-}
-
-List<BalancerOutletModel> _assertUnevenPiggybackOrdering(
-    List<BalancerOutletModel> slice) {
-  // We can end up in a situation where we have Uneven Piggybacking, this is generally triggered by a slice having a given qty of piggybackable fixtures
-  // which then aren't evenly divisible by that Fixtures maxPiggyback ammount.
-  // EG:
-  /*
-    // Circuit      Type        Fixture ID's
-      --------------------------------------
-      1            Strike x3   102, 103, 104
-      2            Strike x1   101
-      -------------------------------------
-    In reality, fixture 101 should be appearing first, we can't just swap it as it would upset the balance,
-    therefore we need to Bit shift 101 into circuit one and Bit shift 104 off onto circuit 2.
-    */
-
-  // Query to determine if we could possibly have this issue present in this slice.
-  final outletsWithPiggybacks = slice.where((outlet) =>
-      outlet.isSpare == false &&
-      outlet.child.isNotEmpty &&
-      outlet.child.fixtures.first.type.canPiggyback);
-
-  // Then Group those by fixture Type.
-  final byFixtureType = outletsWithPiggybacks
-      .groupListsBy((outlet) => outlet.child.fixtures.first.type.uid);
-
-  // Then determine if we have any with uneven piggybacking (ie one circuit has a different qty of fixtures then another)
-  final withUnevenPiggybacking = byFixtureType.entries.where((entry) {
-    final outlets = entry.value;
-
-    return outlets.any((outlet) =>
-        outlet.child.fixtures.length != outlets.first.child.fixtures.length);
-  });
-
-  if (withUnevenPiggybacking.isEmpty) {
-    // No issues present. Business as usual.
-    return slice.toList();
-  }
-
-  // Init a copy of the original slice for us to make changes to.
-  final workingSlice = slice.toList();
-
-  // Iterate through each Fixture group that has uneven piggybacking and make the approriate changes to the workingSlice.
-  for (final entry in withUnevenPiggybacking) {
-    final outlets = entry.value;
-
-    // Capture the original indexes of the outlets, we will use these to re insert into the slice later.
-    final sourceIndexes =
-        outlets.map((outlet) => slice.indexOf(outlet)).toList();
-
-    // Capture how many fixtures were assigned to each outlet.
-    final outletFixtureQtys =
-        outlets.map((outlet) => outlet.child.fixtures.length).toList();
-
-    // Extract the Fixtures and sort them by sequence number.
-    final sortedFixtures = outlets
-        .map((outlet) => outlet.child.fixtures)
-        .flattened
-        .sorted((a, b) => a.sequence - b.sequence);
-
-    // Convert the fixtures into a Queue.
-    final fixturesQueue = Queue<BalancerFixtureModel>.from(sortedFixtures);
-
-    // Re insert the fixtures into the Outlet in a more suitable order, obeying the respective quantities.
-    int i = 0;
-    for (final sourceIndex in sourceIndexes) {
-      final existingOutlet = workingSlice[sourceIndex].copyWith();
-
-      workingSlice[sourceIndex] = existingOutlet.copyWith(
-          child: existingOutlet.child.copyWith(
-        fixtures: fixturesQueue.pop(outletFixtureQtys[i]).toList(),
-      ));
-
-      i++;
-    }
-  }
-
-  return workingSlice;
-}
-
-List<BalancerOutletModel> _assertCrossPhaseNumericOrdering(
-    List<BalancerOutletModel> slice) {
-  // Clone the Input List.
-  final sliceCopy = slice.toList();
-
-  // Group the outlets by amperage. Outlets that have the same amperage can be swapped with eachother
-  // without affect overall phase balance.
-  final outletsByAmperage =
-      sliceCopy.groupListsBy((outlet) => outlet.child.amps);
-
-  if (outletsByAmperage.keys.length == 6) {
-    // All unique Amperages, So cannot continue.
-    return slice;
-  }
-
-  // Instantiate a buffer to store the results. This is because
-  // we will be adding indexes out of order, which we can't use List.Add or list.insert when
-  // they are out of numeric order.
-  final Map<int, BalancerOutletModel> resultBuffer = {};
-
-  // Iterate through each group of Outlets with common amperages.
-  for (var entry in outletsByAmperage.entries.toList()) {
-    final outlets = entry.value;
-
-    // Store the original indexes of the Outlets we will be resorting, so that we can
-    // reference them later when writing into the result buffer.
-    final originIndexes =
-        outlets.map((outlet) => sliceCopy.indexOf(outlet)).toList();
-
-    // Sort the outlets by the Sequence Numeber, then store them as a Queue (Using a queue saves us having to
-    // instantiate another variable for tracking the index).
-    final sortedBySequenceNumber = Queue<BalancerOutletModel>.from(
-        outlets.sorted((a, b) => a.child.compareBySequence(b.child)).toList());
-
-    // Iterate through the origin indexes.
-    for (var originalIndex in originIndexes) {
-      final sourceOutlet = sortedBySequenceNumber.removeFirst();
-
-      // At the Original Index, swap in the new Child and isSpare flag.
-      // We are pulling the SourceOutlet from the sortedByFID queue, which is... well sorted by FID.
-      resultBuffer[originalIndex] = sliceCopy[originalIndex].copyWith(
-        child: sourceOutlet.child,
-        isSpare: sourceOutlet.isSpare,
-      );
-    }
-  }
-
-  // Ensure the keys (indexes) are in numeric order.
-  final sortedKeys = resultBuffer.keys.toList()..sort();
-
-  // Return a simple List.
-  return sortedKeys.map((key) => resultBuffer[key]!).toList();
-}
-
-///
-/// Asserts a numeric ordering of Fixture numbers where possible. Constrained only to outlets that belong on the
-/// same Phase.
-///
-List<BalancerOutletModel> _assertInterPhaseNumericOrdering(
-    List<BalancerOutletModel> slice) {
-  final sliceCopy = slice.toList();
-  final phase1Outlets = sliceCopy.where((outlet) => outlet.phase == 1).toList();
-  final phase2Outlets = sliceCopy.where((outlet) => outlet.phase == 2).toList();
-  final phase3Outlets = sliceCopy.where((outlet) => outlet.phase == 3).toList();
-
-  // Maybe swap children so that Fixture numbers are numerically correct.
-  // Performs modifications in place to [sliceCopy]
-  _maybeNumericallyShuffleSortOutlets(phase1Outlets, sliceCopy);
-  _maybeNumericallyShuffleSortOutlets(phase2Outlets, sliceCopy);
-  _maybeNumericallyShuffleSortOutlets(phase3Outlets, sliceCopy);
-
-  return sliceCopy;
-}
-
-///
-/// Will swap the place of the given [phaseOutlets] in [slice] as long as
-/// Outlets have the same amperage.
-/// Outlets are not spare.
-/// Outlets are not Empty.
-/// The latter outlet has a numerically smaller fixture number then the former outlet.
-/// Modifications are performed in Place to [slice]
-void _maybeNumericallyShuffleSortOutlets(
-    List<BalancerOutletModel> phaseOutlets, List<BalancerOutletModel> slice) {
-  if (phaseOutlets.isEmpty || phaseOutlets.length <= 2) {
-    if (phaseOutlets.length > 2) {
-      throw "phaseOutlets length was greater than 2. Which is odd. ${phaseOutlets.length}";
-    }
-
-    return;
-  }
-
-  final firstOutlet = phaseOutlets.first;
-  final secondOutlet = phaseOutlets.last;
-  if (phaseOutlets.every((outlet) =>
-      outlet.child.amps == firstOutlet.child.amps && outlet.isSpare == false ||
-      outlet.child.isEmpty == false)) {
-    final int seqA = firstOutlet.child.fixtures.isNotEmpty
-        ? firstOutlet.child.fixtures.first.sequence
-        : 0;
-    final int seqB = secondOutlet.child.fixtures.isNotEmpty
-        ? secondOutlet.child.fixtures.first.sequence
-        : 0;
-
-    if (seqA > seqB) {
-      // Swap Outlets.
-      _swapOutletChildren(
-          slice.indexOf(firstOutlet), slice.indexOf(secondOutlet), slice);
-    }
-  }
 }
