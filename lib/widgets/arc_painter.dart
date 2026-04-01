@@ -65,12 +65,12 @@ class ArcPainter extends CustomPainter {
 
     final arcPath = Path();
     arcPath.moveTo(start.dx, start.dy);
+
     arcPath.arcToPoint(
       end,
       radius: arcRadius,
       clockwise: clockwise,
-      // Use largeArc: false to ensure it takes the shortest elliptical path
-      largeArc: false,
+      largeArc: true,
     );
 
     canvas.drawPath(arcPath, paint);

@@ -1,17 +1,17 @@
 import 'package:collection/collection.dart';
 import 'package:sidekick/balancer/models/balancer_intermediate_fixture_model.dart';
 import 'package:sidekick/balancer/models/balancer_location_model.dart';
-import 'package:sidekick/balancer/models/balancer_power_patch_model.dart';
+import 'package:sidekick/balancer/models/patch_contents.dart';
 import 'package:sidekick/redux/models/fixture_type_pool_model.dart';
 
-List<BalancerPowerPatchModel> performPiggybacking({
+List<PatchContents> performPiggybacking({
   required List<IntermediateFixtureModel> fixtures,
   required int globalMaxSequenceBreak,
   required Map<String, BalancerLocationModel> locations,
   required Map<String, FixtureTypePoolModel> allFixtureTypePools,
 }) {
   final assigned = <String>{};
-  final patches = <BalancerPowerPatchModel>[];
+  final patches = <PatchContents>[];
 
   for (int i = 0; i < fixtures.length; i++) {
     final base = fixtures[i];
@@ -60,7 +60,7 @@ List<BalancerPowerPatchModel> performPiggybacking({
         ...poolMatchedFixtures!.map((fix) => fix.ephemeralId)
       });
 
-      patches.add(BalancerPowerPatchModel(
+      patches.add(PatchContents(
           fixtures: poolMatchedFixtures!, fixtureTypePoolId: pool.uid));
       continue;
     }
@@ -99,8 +99,8 @@ List<BalancerPowerPatchModel> performPiggybacking({
       assigned.add(candidate.ephemeralId);
     }
 
-    patches.add(BalancerPowerPatchModel(
-        fixtures: candidateFixtures, fixtureTypePoolId: ''));
+    patches
+        .add(PatchContents(fixtures: candidateFixtures, fixtureTypePoolId: ''));
   }
 
   return patches;

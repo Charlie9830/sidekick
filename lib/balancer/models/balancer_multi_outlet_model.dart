@@ -43,7 +43,8 @@ class BalancerMultiOutletModel implements Comparable<BalancerMultiOutletModel> {
 
   @override
   int compareTo(BalancerMultiOutletModel other) {
-    return number - other.number;
+    return number -
+        other.number; // Ensure this remains the same as [PowerMultiOutletModel]
   }
 
   BalancerMultiOutletModel copyWith({

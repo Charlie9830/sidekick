@@ -1,18 +1,17 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:sidekick/balancer/models/balancer_intermediate_fixture_model.dart';
 
-class BalancerPowerPatchModel {
+class PatchContents {
   final List<IntermediateFixtureModel> fixtures;
   final String fixtureTypePoolId;
 
-  BalancerPowerPatchModel({
+  PatchContents({
     this.fixtures = const [],
     required this.fixtureTypePoolId,
   });
 
-  BalancerPowerPatchModel.empty()
-      : fixtures = const [],
-        fixtureTypePoolId = '';
+  factory PatchContents.empty() {
+    return PatchContents(fixtureTypePoolId: '', fixtures: []);
+  }
 
   bool get isEmpty => fixtures.isEmpty;
 
@@ -22,11 +21,11 @@ class BalancerPowerPatchModel {
       .map((fixture) => fixture.type.amps)
       .fold(0, (value, element) => value + element);
 
-  BalancerPowerPatchModel copyWith({
+  PatchContents copyWith({
     List<IntermediateFixtureModel>? fixtures,
     String? fixtureTypePoolId,
   }) {
-    return BalancerPowerPatchModel(
+    return PatchContents(
       fixtures: fixtures ?? this.fixtures,
       fixtureTypePoolId: fixtureTypePoolId ?? this.fixtureTypePoolId,
     );

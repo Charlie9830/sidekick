@@ -40,7 +40,8 @@ class CableView extends StatelessWidget {
             children: mergedVerticies
                 .map((vertex) {
                   final origin = viewport.transform(
-                      vertex.local.fixture.x, vertex.local.fixture.y);
+                      vertex.local.fixture.screenX,
+                      vertex.local.fixture.screenY);
 
                   return [
                     if (vertex.edges.isNotEmpty)
@@ -49,22 +50,22 @@ class CableView extends StatelessWidget {
                             child: switch (edge.edge.cableType) {
                           CableType.au10a => _PowerCableEdge(
                               from: origin,
-                              to: viewport.transform(
-                                  edge.to.fixture.x, edge.to.fixture.y),
+                              to: viewport.transform(edge.to.fixture.screenX,
+                                  edge.to.fixture.screenY),
                               label:
                                   '${(edge.edge.cableLength * 0.001).floor()}m'),
                           CableType.dmx => _DataCableEdge(
                               from: origin,
-                              to: viewport.transform(
-                                  edge.to.fixture.x, edge.to.fixture.y),
+                              to: viewport.transform(edge.to.fixture.screenX,
+                                  edge.to.fixture.screenY),
                               label:
                                   '${(edge.edge.cableLength * 0.001).floor()}m'),
                           _ => const Text('Woops'),
                         });
                       }),
                     Positioned(
-                      width: 96,
-                      height: 64,
+                      width: 36,
+                      height: 48,
                       left: origin.dx,
                       top: origin.dy,
                       child: FractionalTranslation(
@@ -171,15 +172,15 @@ class _ConcreteEdge {
 /// into logical screen coordinates (Pixels).
 class ViewportTransformer {
   final double scale;
-  final double offsetX;
-  final double offsetY;
+  final double centeringOffsetX;
+  final double centeringOffsetY;
   final double minX;
   final double minY;
 
   ViewportTransformer._({
     required this.scale,
-    required this.offsetX,
-    required this.offsetY,
+    required this.centeringOffsetX,
+    required this.centeringOffsetY,
     required this.minX,
     required this.minY,
   });
@@ -187,12 +188,12 @@ class ViewportTransformer {
   factory ViewportTransformer.fromFixtures({
     required List<FixtureModel> fixtures,
     required BoxConstraints constraints,
-    double padding = 40.0,
+    double padding = 240.0,
   }) {
-    double minX = fixtures.map((f) => f.x).minOrNull ?? 0;
-    double maxX = fixtures.map((f) => f.x).maxOrNull ?? 0;
-    double minY = fixtures.map((f) => f.y).minOrNull ?? 0;
-    double maxY = fixtures.map((f) => f.y).maxOrNull ?? 0;
+    double minX = fixtures.map((f) => f.screenX).minOrNull ?? 0;
+    double maxX = fixtures.map((f) => f.screenX).maxOrNull ?? 0;
+    double minY = fixtures.map((f) => f.screenY).minOrNull ?? 0;
+    double maxY = fixtures.map((f) => f.screenY).maxOrNull ?? 0;
 
     final mmWidth = maxX - minX;
     final mmHeight = maxY - minY;
@@ -216,8 +217,8 @@ class ViewportTransformer {
 
     return ViewportTransformer._(
       scale: scale,
-      offsetX: offsetX,
-      offsetY: offsetY,
+      centeringOffsetX: offsetX,
+      centeringOffsetY: offsetY,
       minX: minX,
       minY: minY,
     );
@@ -225,8 +226,8 @@ class ViewportTransformer {
 
   Offset transform(double x, double y) {
     return Offset(
-      (x - minX) * scale + offsetX,
-      (y - minY) * scale + offsetY,
+      (x - minX) * scale + centeringOffsetX,
+      (y - minY) * scale + centeringOffsetY,
     );
   }
 }
@@ -251,15 +252,16 @@ class _FixtureNode extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(vm.fixture.fid.toString(),
-                style:
-                    Theme.of(context).typography.mono.copyWith(fontSize: 14)),
+            Text(
+              vm.fixture.fid.toString(),
+              style: Theme.of(context).typography.mono.copyWith(fontSize: 10),
+              textAlign: TextAlign.center,
+            ),
             Text(
               vm.fixtureType.shortName,
-              style: Theme.of(context)
-                  .typography
-                  .extraLight
-                  .copyWith(fontSize: 12),
+              style:
+                  Theme.of(context).typography.extraLight.copyWith(fontSize: 6),
+              textAlign: TextAlign.center,
               overflow: TextOverflow.clip,
             )
           ],

@@ -147,7 +147,9 @@ class PowerMultiOutletModel extends Outlet
 
   @override
   int compareTo(PowerMultiOutletModel other) {
-    return number - other.number;
+    return number -
+        other
+            .number; // Ensure this remains the same as [BalancerPowerMultiOutletModel]
   }
 }
 

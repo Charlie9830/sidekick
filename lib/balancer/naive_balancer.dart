@@ -9,7 +9,7 @@ import 'package:sidekick/balancer/models/balancer_fixture_model.dart';
 import 'package:sidekick/balancer/models/balancer_intermediate_fixture_model.dart';
 import 'package:sidekick/balancer/models/balancer_location_model.dart';
 import 'package:sidekick/balancer/models/balancer_multi_outlet_model.dart';
-import 'package:sidekick/balancer/models/balancer_power_patch_model.dart';
+import 'package:sidekick/balancer/models/patch_contents.dart';
 import 'package:sidekick/balancer/phase_load.dart';
 import 'package:sidekick/balancer/power_span.dart';
 import 'package:sidekick/balancer/shared_utils.dart';
@@ -59,8 +59,7 @@ class NaiveBalancer implements Balancer {
           Queue<PowerMultiOutletModel>.from(
               multiOutlets.where((multi) => multi.locationId == locationId));
 
-      final patchesQueue =
-          Queue<BalancerPowerPatchModel>.from(patchesInLocation);
+      final patchesQueue = Queue<PatchContents>.from(patchesInLocation);
 
       while (patchesQueue.isNotEmpty) {
         // Create a new Multi Outlet if we don't have one, otherwise use an existing one.
@@ -84,7 +83,7 @@ class NaiveBalancer implements Balancer {
         if (patchSlice.length < 6) {
           final diff = 6 - patchSlice.length;
           patchSlice.addAll([
-            for (int i = 1; i <= diff; i++) BalancerPowerPatchModel.empty(),
+            for (int i = 1; i <= diff; i++) PatchContents.empty(),
           ]);
         }
 
@@ -97,12 +96,13 @@ class NaiveBalancer implements Balancer {
 
         final outlets = patchSlice.mapIndexed(
           (index, patch) => BalancerOutletModel(
-              child: patch,
-              locationId: locationId,
-              multiOutletId: multiOutlet.uid,
-              phase: getPhaseFromIndex(index),
-              multiPatch: getMultiPatchFromIndex(index),
-              fixtureTypePoolId: patch.fixtureTypePoolId),
+            contents: patch,
+            locationId: locationId,
+            multiOutletId: multiOutlet.uid,
+            phase: getPhaseFromIndex(index),
+            multiPatch: getMultiPatchFromIndex(index),
+            fixtureTypePoolId: patch.fixtureTypePoolId,
+          ),
         );
 
         updatedMultis.add(multiOutlet.copyWith(
@@ -170,7 +170,7 @@ class NaiveBalancer implements Balancer {
 
   // Generates a Map of Patches indexed by their Location Id.
   // Used to index by Power Span. but that is contained to just Piggybacking now.
-  Map<String, List<BalancerPowerPatchModel>> _generatePatches({
+  Map<String, List<PatchContents>> _generatePatches({
     required List<BalancerFixtureModel> fixtures,
     required Map<String, FixtureTypePoolModel> allFixtureTypePools,
     required double maxAmpsPerCircuit,
@@ -179,27 +179,26 @@ class NaiveBalancer implements Balancer {
   }) {
     final powerSpans = PowerSpan.createSpans(fixtures);
 
-    final patchesBySpan =
-        Map<PowerSpan, List<BalancerPowerPatchModel>>.fromEntries(
-            powerSpans.map((span) => MapEntry(
-                span,
-                performPiggybacking(
-                  fixtures: span.fixtures
-                      .map((fixture) => IntermediateFixtureModel(
-                            type: fixture.type,
-                            locationId: fixture.locationId,
-                            sequence: fixture.sequence,
-                            ephemeralId: getUid(),
-                          ))
-                      .toList(),
-                  allFixtureTypePools: allFixtureTypePools,
-                  globalMaxSequenceBreak: globalMaxSequenceBreak,
-                  locations: locations,
-                ))));
+    final patchesBySpan = Map<PowerSpan, List<PatchContents>>.fromEntries(
+        powerSpans.map((span) => MapEntry(
+            span,
+            performPiggybacking(
+              fixtures: span.fixtures
+                  .map((fixture) => IntermediateFixtureModel(
+                        type: fixture.type,
+                        locationId: fixture.locationId,
+                        sequence: fixture.sequence,
+                        ephemeralId: getUid(),
+                      ))
+                  .toList(),
+              allFixtureTypePools: allFixtureTypePools,
+              globalMaxSequenceBreak: globalMaxSequenceBreak,
+              locations: locations,
+            ))));
 
-    final patchesByLocation = Map<String, List<BalancerPowerPatchModel>>.from(
-        patchesBySpan.entries.fold<Map<String, List<BalancerPowerPatchModel>>>(
-            {}, (accum, item) {
+    final patchesByLocation = Map<String, List<PatchContents>>.from(
+        patchesBySpan.entries.fold<Map<String, List<PatchContents>>>({},
+            (accum, item) {
       final currentSpan = item.key;
       final patchesInSpan = item.value;
 
@@ -216,8 +215,7 @@ class NaiveBalancer implements Balancer {
     return patchesByLocation;
   }
 
-  List<BalancerPowerPatchModel> _fillPatchQty(
-      List<BalancerPowerPatchModel> patches) {
+  List<PatchContents> _fillPatchQty(List<PatchContents> patches) {
     final desiredNumberOfPatches = roundUpToNearestMultiBreak(patches.length);
 
     if (patches.length == desiredNumberOfPatches) {
@@ -229,8 +227,8 @@ class NaiveBalancer implements Balancer {
     }
 
     final difference = desiredNumberOfPatches - patches.length;
-    final gapFillers = List<BalancerPowerPatchModel>.generate(
-        difference, (index) => BalancerPowerPatchModel.empty());
+    final gapFillers = List<PatchContents>.generate(
+        difference, (index) => PatchContents.empty());
 
     return patches.toList()..addAll(gapFillers);
   }
@@ -247,7 +245,7 @@ List<BalancerOutletModel> _balanceSlice(
   // Perform a deep Clone of the Slice. This is because later on we capture
   final clonedSlice = slice
       .map((outlet) => outlet.copyWith(
-            child: outlet.child.copyWith(),
+            contents: outlet.contents.copyWith(),
           ))
       .toList();
 
@@ -357,8 +355,8 @@ BalancerResult _selectBestBalancingResult(List<BalancerResult> results) {
 (double a, double b) _calculateSwappedLoad(double totalLoadA, double totalLoadB,
     BalancerOutletModel a, BalancerOutletModel b) {
   return (
-    totalLoadA - a.child.amps + b.child.amps,
-    totalLoadB - b.child.amps + a.child.amps,
+    totalLoadA - a.contents.amps + b.contents.amps,
+    totalLoadB - b.contents.amps + a.contents.amps,
   );
 }
 
@@ -441,11 +439,11 @@ List<BalancerOutletModel> _swapOutletChildren(
 
   // Swap the children over, Make sure to swap the Spare status and the fixtureTypePoolId flag as well.
   clone[indexA] = outletA.copyWith(
-      child: outletB.child,
+      contents: outletB.contents,
       isSpare: outletB.isSpare,
       fixtureTypePoolId: outletB.fixtureTypePoolId);
   clone[indexB] = outletB.copyWith(
-      child: outletA.child,
+      contents: outletA.contents,
       isSpare: outletA.isSpare,
       fixtureTypePoolId: outletA.fixtureTypePoolId);
 
@@ -460,7 +458,7 @@ PhaseLoad _calculatePhaseLoading(List<BalancerOutletModel> slice) {
 
     loads[lookupIndex] = outlet.isSpare
         ? loads[lookupIndex]
-        : outlet.child.amps + loads[lookupIndex];
+        : outlet.contents.amps + loads[lookupIndex];
   }
 
   return PhaseLoad(loads[0], loads[1], loads[2]);
