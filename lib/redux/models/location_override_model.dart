@@ -56,7 +56,9 @@ class LocationOverrideModel {
           Set<String>.from(map['enabledFixtureTypePoolIds'] ?? <String>[]),
     );
 
-    return raw.maxSequenceBreak.value == null && raw.maxPairings.isEmpty
+    return raw.maxSequenceBreak.value == null &&
+            raw.maxPairings.isEmpty &&
+            raw.enabledFixtureTypePoolIds.isEmpty
         ? const LocationOverrideModel.none()
         : raw;
   }
