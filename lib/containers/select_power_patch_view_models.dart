@@ -34,10 +34,10 @@ List<PowerPatchRowViewModel> selectPowerPatchViewModels(
                                     ?.name ??
                                 ''
                             : '',
-                        fixtureVms: outlet.fixtureIds.map((id) {
-                          final fixture =
-                              store.state.fixtureState.fixtures[id]!;
-
+                        fixtureVms: outlet.fixtureIds
+                            .map((id) => store.state.fixtureState.fixtures[id]!)
+                            .sorted()
+                            .map((fixture) {
                           return FixtureOutletVM(
                             fixture: fixture,
                             type: store.state.fixtureState
