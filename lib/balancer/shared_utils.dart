@@ -146,18 +146,23 @@ List<IntermediateFixtureModel>? _tryMatchPoolStrictly({
   for (int j = startIndex; j < fixtures.length; j++) {
     final candidate = fixtures[j];
 
-    if (pool.containsFixtureType(candidate.type.uid) == false) break;
-
-    if (assigned.contains(candidate.ephemeralId)) continue;
-
     final sequenceOffset = j - startIndex;
 
     if (j > startIndex) {
-      final withinSequence = sequenceOffset <= maxSequenceBreak ||
-          _isContiguous([matched.last, candidate]);
+      // For pool matching, we allow a match if the candidate is within the look-ahead
+      // window (maxSequenceBreak) or if it is sequence-contiguous with the last matched item.
+      final bool isContiguous =
+          matched.isNotEmpty && matched.last.sequence == candidate.sequence - 1;
+
+      final withinSequence = sequenceOffset <= maxSequenceBreak || isContiguous;
 
       if (!withinSequence) break;
+    } else {
+      // The very first fixture (at startIndex) must be a member of the pool to initiate a match.
+      if (!pool.containsFixtureType(candidate.type.uid)) return null;
     }
+
+    if (assigned.contains(candidate.ephemeralId)) continue;
 
     if (pool.containsFixtureType(candidate.type.uid)) {
       final requiredQty = pool.items[candidate.type.uid]?.qty ?? 0;

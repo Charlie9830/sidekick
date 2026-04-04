@@ -242,6 +242,10 @@ List<BalancerOutletModel> _balanceSlice(
   required PhaseLoad previousLoadsTotal,
   List<BalancerResult> previousResults = const [],
 }) {
+  if (imbalanceTolerance >= 1) {
+    return slice.toList();
+  }
+
   // Perform a deep Clone of the Slice. This is because later on we capture
   final clonedSlice = slice
       .map((outlet) => outlet.copyWith(
