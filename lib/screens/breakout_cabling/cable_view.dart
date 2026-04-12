@@ -3,169 +3,83 @@ import 'package:collection/collection.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
-import 'package:sidekick/screens/breakout_cabling/build_cabling_graph.dart';
 import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
 import 'package:sidekick/widgets/arc_painter.dart';
 
 class CableView extends StatelessWidget {
-  final Map<String, FixtureViewModel> fixtureVms;
+  final CableViewViewModel vm;
 
-  const CableView({super.key, required this.fixtureVms});
+  const CableView({super.key, required this.vm});
 
   @override
   Widget build(BuildContext context) {
-    if (fixtureVms.isEmpty) {
+    if (vm.nodes.isEmpty) {
       return const SizedBox.shrink();
     }
-
-    final powerVerticies = _getPowerVerticies();
-    final dataVerticies = _getDataVerticies();
-
-    final mergedVerticies = fixtureVms.keys.map((fixtureId) {
-      final powerVertex = powerVerticies[fixtureId];
-      final dataVertex = dataVerticies[fixtureId];
-
-      return _ConcreteVertex.merge(powerVertex, dataVertex);
-    });
-
     return InteractiveViewer(
       child: LayoutBuilder(
         builder: (context, constraints) {
           final viewport = ViewportTransformer.fromFixtures(
-            fixtures: mergedVerticies.map((v) => v.local.fixture).toList(),
+            fixtures: vm.nodes
+                .whereType<FixtureElement>()
+                .map((e) => e.fixtureVm.fixture)
+                .toList(),
             constraints: constraints,
           );
 
-          return Stack(
-            children: mergedVerticies
-                .map((vertex) {
-                  final origin = viewport.transform(
-                      vertex.local.fixture.screenX,
-                      vertex.local.fixture.screenY);
+          return Stack(children: [
+            // Edges (Cables)
+            ...vm.edges.map((edge) {
+              final source = edge.sourceElement;
+              final destination = edge.destinationElement;
+              final sourceOffset =
+                  viewport.transform(source.screenX, source.screenY);
+              final destinationOffset =
+                  viewport.transform(destination.screenX, destination.screenY);
 
-                  return [
-                    if (vertex.edges.isNotEmpty)
-                      ...vertex.edges.map((edge) {
-                        return Positioned.fill(
-                            child: switch (edge.edge.cableType) {
-                          CableType.au10a => _PowerCableEdge(
-                              from: origin,
-                              to: viewport.transform(edge.to.fixture.screenX,
-                                  edge.to.fixture.screenY),
-                              label:
-                                  '${(edge.edge.cableLength * 0.001).floor()}m'),
-                          CableType.dmx => _DataCableEdge(
-                              from: origin,
-                              to: viewport.transform(edge.to.fixture.screenX,
-                                  edge.to.fixture.screenY),
-                              label:
-                                  '${(edge.edge.cableLength * 0.001).floor()}m'),
-                          _ => const Text('Woops'),
-                        });
-                      }),
-                    Positioned(
-                      width: 36,
-                      height: 48,
-                      left: origin.dx,
-                      top: origin.dy,
-                      child: FractionalTranslation(
-                        // Shift the node by half its own size so the coordinate is at its center.
-                        translation: const Offset(-0.5, -0.5),
-                        child: _FixtureNode(
-                            vm: fixtureVms[vertex.local.fixture.uid]!),
-                      ),
+              return Positioned.fill(
+                  child: switch (edge) {
+                CableEdgeElement() => switch (edge.type) {
+                    CableType.unknown => throw UnimplementedError(),
+                    CableType.socapex => throw UnimplementedError(),
+                    CableType.wieland6way => throw UnimplementedError(),
+                    CableType.sneak => throw UnimplementedError(),
+                    CableType.dmx => _DataCableEdge(
+                        from: sourceOffset,
+                        to: destinationOffset,
+                        label: '${edge.length}m'),
+                    CableType.hoist => throw UnimplementedError(),
+                    CableType.hoistMulti => throw UnimplementedError(),
+                    CableType.au10a => _PowerCableEdge(
+                        from: sourceOffset,
+                        to: destinationOffset,
+                        label: '${edge.length}m'),
+                  }
+              });
+            }),
+
+            // Nodes (Fixtures, Headers etc)
+            ...vm.nodes.map((node) {
+              final origin = viewport.transform(node.screenX, node.screenY);
+              return switch (node) {
+                FixtureElement() => Positioned(
+                    width: 24,
+                    height: 24,
+                    left: origin.dx,
+                    top: origin.dy,
+                    child: FractionalTranslation(
+                      // Shift the node by half its own size so the coordinate is at its center.
+                      translation: const Offset(-0.5, -0.5),
+                      child: _FixtureNode(vm: node.fixtureVm),
                     ),
-                  ];
-                })
-                .flattened
-                .toList(),
-          );
+                  )
+              };
+            })
+          ]);
         },
       ),
     );
   }
-
-  Map<String, _ConcreteVertex> _getPowerVerticies() {
-    final powerGraph = buildPowerCableGraph(
-        fixtures: fixtureVms.values
-            .map((i) => i.fixture)
-            .sorted((a, b) => a.sequence - b.sequence));
-
-    return Map<String, _ConcreteVertex>.fromEntries(
-        powerGraph.data.entries.map((entry) {
-      final current = entry.key;
-      final edgeEntries = entry.value.entries;
-
-      return MapEntry(
-          current.fixture.uid,
-          _ConcreteVertex(
-              local: current,
-              edges: edgeEntries
-                  .map(((edgeEntry) => _ConcreteEdge(
-                      edge: edgeEntry.value, from: current, to: edgeEntry.key)))
-                  .toList()));
-    }));
-  }
-
-  Map<String, _ConcreteVertex> _getDataVerticies() {
-    final dataGraph = buildDataCableGraph(
-        fixtures: fixtureVms.values
-            .map((i) => i.fixture)
-            .sorted((a, b) => a.sequence - b.sequence));
-
-    return Map<String, _ConcreteVertex>.fromEntries(
-        dataGraph.data.entries.map((entry) {
-      final current = entry.key;
-      final edgeEntries = entry.value.entries;
-
-      return MapEntry(
-          current.fixture.uid,
-          _ConcreteVertex(
-              local: current,
-              edges: edgeEntries
-                  .map(((edgeEntry) => _ConcreteEdge(
-                      edge: edgeEntry.value, from: current, to: edgeEntry.key)))
-                  .toList()));
-    }));
-  }
-}
-
-class _ConcreteVertex {
-  final FixtureVertex local;
-  final List<_ConcreteEdge> edges;
-
-  _ConcreteVertex({
-    required this.local,
-    required this.edges,
-  });
-
-  factory _ConcreteVertex.merge(_ConcreteVertex? a, _ConcreteVertex? b) {
-    if (a != null) {
-      return _ConcreteVertex(local: a.local, edges: [
-        ...a.edges,
-        if (b != null) ...b.edges,
-      ]);
-    }
-
-    if (b != null) {
-      return _ConcreteVertex(
-          local: b.local, edges: [if (a != null) ...a.edges, ...b.edges]);
-    }
-
-    throw 'Invalid Concrete Vertex merger';
-  }
-}
-
-class _ConcreteEdge {
-  final EdgeData edge;
-  final FixtureVertex from;
-  final FixtureVertex to;
-
-  _ConcreteEdge({
-    required this.edge,
-    required this.from,
-    required this.to,
-  });
 }
 
 /// Helper class to handle the translation of physical fixture coordinates (MM)
@@ -239,7 +153,6 @@ class _FixtureNode extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: const EdgeInsets.all(6),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           shape: BoxShape.rectangle,
@@ -254,13 +167,14 @@ class _FixtureNode extends StatelessWidget {
           children: [
             Text(
               vm.fixture.fid.toString(),
-              style: Theme.of(context).typography.mono.copyWith(fontSize: 10),
+              style: Theme.of(context).typography.mono.copyWith(fontSize: 6),
               textAlign: TextAlign.center,
+              overflow: TextOverflow.clip,
             ),
             Text(
               vm.fixtureType.shortName,
               style:
-                  Theme.of(context).typography.extraLight.copyWith(fontSize: 6),
+                  Theme.of(context).typography.extraLight.copyWith(fontSize: 4),
               textAlign: TextAlign.center,
               overflow: TextOverflow.clip,
             )

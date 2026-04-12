@@ -25,7 +25,7 @@ class BreakoutCabling extends StatelessWidget {
           Expanded(
             flex: 1,
             child: CableView(
-              fixtureVms: vm.locationFixtureVms,
+              vm: vm.cableViewVm,
             ),
           ),
         ],
