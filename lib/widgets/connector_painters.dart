@@ -70,7 +70,7 @@ class ArcPainter extends CustomPainter {
       end,
       radius: arcRadius,
       clockwise: clockwise,
-      largeArc: true,
+      largeArc: false,
     );
 
     canvas.drawPath(arcPath, paint);
@@ -96,7 +96,7 @@ class ArcPainter extends CustomPainter {
 
     const textStyle = TextStyle(
       color: Colors.white,
-      fontSize: 12,
+      fontSize: 6,
     );
 
     final textSpan = TextSpan(text: label, style: textStyle);

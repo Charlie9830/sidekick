@@ -1,3 +1,4 @@
+import 'package:sidekick/cable_graph/cable_graph.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
@@ -40,12 +41,22 @@ class FixtureViewModel implements ModelCollectionMember {
   FixtureViewModel({required this.fixture, required this.fixtureType});
 }
 
+class PowerMultiHeaderViewModel {
+  final CableType type;
+  final String name;
+
+  PowerMultiHeaderViewModel({
+    required this.type,
+    required this.name,
+  });
+}
+
 class CableViewViewModel {
-  final List<NodeElement> nodes;
+  final List<NodeElement> elements;
   final List<EdgeElement> edges;
 
   CableViewViewModel({
-    required this.nodes,
+    required this.elements,
     required this.edges,
   });
 }
@@ -71,6 +82,26 @@ class FixtureElement extends NodeElement {
         );
 }
 
+class LocationElement extends NodeElement {
+  final String locationId;
+
+  LocationElement({
+    required this.locationId,
+    required super.screenX,
+    required super.screenY,
+  });
+}
+
+class PowerMultiHeaderElement extends NodeElement {
+  final PowerMultiHeaderViewModel powerMultiVm;
+
+  PowerMultiHeaderElement({
+    required this.powerMultiVm,
+    required super.screenX,
+    required super.screenY,
+  });
+}
+
 sealed class EdgeElement {
   final NodeElement sourceElement;
   final NodeElement destinationElement;
@@ -84,10 +115,12 @@ sealed class EdgeElement {
 class CableEdgeElement extends EdgeElement {
   final CableType type;
   final double length;
+  final CableRunType runType;
 
   CableEdgeElement(
       {required this.type,
       required this.length,
+      required this.runType,
       required super.destinationElement,
       required super.sourceElement});
 }

@@ -5,6 +5,7 @@ import 'package:redux/redux.dart';
 import 'package:sidekick/cable_graph/cable_graph.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
+import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/breakout_cabling/breakout_cabling.dart';
 import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
@@ -48,39 +49,77 @@ CableViewViewModel _selectCableViewVm({
   required Map<String, FixtureViewModel> fixtureVms,
   required String selectedLocationId,
 }) {
-  final mappedFixtureElements = fixtureVms
-      .map((key, value) => MapEntry(key, FixtureElement(fixtureVm: value)));
+  final elementMap = <String, NodeElement>{};
+  NodeElement mapFixture(Node node) => elementMap.putIfAbsent(
+      node.id, () => FixtureElement(fixtureVm: fixtureVms[node.id]!));
 
-  final locationFixtureNodes = graph.nodes
-      .whereType<FixtureNode>()
-      .where((node) => node.locationId == selectedLocationId);
-  final locationCableEdges = graph.edges
-      .whereType<CableEdge>()
-      .where((edge) => edge.locationId == selectedLocationId);
+  NodeElement mapLocation(LocationNode node) => elementMap.putIfAbsent(
+      node.id,
+      () => LocationElement(
+            locationId: node.locationId,
+            screenX: node.screenX,
+            screenY: node.screenY,
+          ));
+
+  NodeElement mapPowerMulti(PowerMultiHeader node) => elementMap.putIfAbsent(
+      node.id,
+      () => PowerMultiHeaderElement(
+          powerMultiVm: PowerMultiHeaderViewModel(
+              type: CableType.socapex, name: node.outletName),
+          screenX: node.screenX,
+          screenY: node.screenY));
+
+  final locationNode = graph.getNode(selectedLocationId);
+
+  if (locationNode == null) {
+    return CableViewViewModel(elements: [], edges: []);
+  }
+
+  final nodes = graph.walk(root: locationNode);
+
+  print(nodes
+      .map((node) => switch (node) {
+            // TODO: Handle this case.
+            FixtureNode() => 'Fixture',
+            // TODO: Handle this case.
+            PowerMultiHeader() => 'Header',
+            // TODO: Handle this case.
+            LocationNode() => 'Location',
+          })
+      .toList());
+
+  final edges =
+      nodes.fold(<Edge>[], (accum, value) => accum..addAll(value.edges));
 
   return CableViewViewModel(
-      nodes: mappedFixtureElements.isNotEmpty
-          ? locationFixtureNodes
-              .map((node) => mappedFixtureElements[node.id]!)
-              .toList()
-          : [],
-      edges: mappedFixtureElements.isNotEmpty
-          ? locationCableEdges
-              .map((edge) => switch (edge) {
-                    CableEdge e => CableEdgeElement(
-                        type: e.type,
-                        length: e.length,
-                        destinationElement: mappedFixtureElements[e.to]!,
-                        sourceElement: mappedFixtureElements[e.from]!)
-                  })
-              .toList()
-          : []);
+    elements: nodes
+        .map((node) => switch (node) {
+              FixtureNode() => mapFixture(node),
+              PowerMultiHeader() => mapPowerMulti(node),
+              LocationNode() => mapLocation(node),
+            })
+        .toList(),
+    edges: [],
+    // edges: edges
+    //     .map((edge) => switch (edge) {
+    //           CableEdge() => CableEdgeElement(
+    //               type: edge.type,
+    //               length: edge.length,
+    //               runType: edge.runType,
+    //               destinationElement: elementMap[edge.to]!,
+    //               sourceElement: elementMap[edge.from]!)
+    //         })
+    //     .toList(),
+  );
 }
 
 CableGraph _selectCableGraph(Store<AppState> store) {
   return buildCableGraph(
     fixtures: store.state.fixtureState.fixtures,
     fixtureTypes: store.state.fixtureState.fixtureTypes,
+    powerMultis: store.state.fixtureState.powerMultiOutlets,
+    cables: store.state.fixtureState.cables,
+    locations: store.state.fixtureState.locations,
   );
 }
 

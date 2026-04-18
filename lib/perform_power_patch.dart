@@ -181,22 +181,29 @@ List<PowerMultiOutletModel> _mapToMultiOutlets({
 }
 
 Map<String, FixtureModel> _applyPowerPatchData(
-    Map<String, String> powerPatchData, Map<String, FixtureModel> fixtures) {
+    Map<String, _PowerPatchData> powerPatchData,
+    Map<String, FixtureModel> fixtures) {
   return fixtures.clone()
-    ..updateAll((id, fixture) =>
-        fixture.copyWith(powerPatch: powerPatchData[id] ?? ''));
+    ..updateAll((id, fixture) => fixture.copyWith(
+          powerPatch: powerPatchData[id]?.patchLabel ?? '',
+          powerMultiOutletId: powerPatchData[id]?.multiOutletId,
+        ));
 }
 
 // Returns a Map<String, String> where the key is the fixture Id and the value is the formatted Power patch data for the fixture.
-Map<String, String> _extractPowerPatchDataByFixtureId(
+Map<String, _PowerPatchData> _extractPowerPatchDataByFixtureId(
     Map<String, PowerMultiOutletModel> multiOutlets) {
-  return Map<String, String>.fromEntries(multiOutlets.values.map((multi) {
+  return Map<String, _PowerPatchData>.fromEntries(
+      multiOutlets.values.map((multi) {
     final fixtureIdsWithOutlets = multi.children
         .map((outlet) => outlet.fixtureIds.map((id) => (id, outlet)))
         .flattened;
 
-    return fixtureIdsWithOutlets.map((tuple) =>
-        MapEntry(tuple.$1, "${multi.name} - ${tuple.$2.multiPatch}"));
+    return fixtureIdsWithOutlets.map((tuple) => MapEntry(
+        tuple.$1,
+        _PowerPatchData(
+            patchLabel: "${multi.name} - ${tuple.$2.multiPatch}",
+            multiOutletId: multi.uid)));
   }).flattened);
 }
 
@@ -307,4 +314,14 @@ class _ValidationItem {
 
     return null;
   }
+}
+
+class _PowerPatchData {
+  final String patchLabel;
+  final String multiOutletId;
+
+  _PowerPatchData({
+    required this.patchLabel,
+    required this.multiOutletId,
+  });
 }

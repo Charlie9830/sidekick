@@ -18,6 +18,7 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
   final String locationId;
   final String mode;
   final String powerPatch;
+  final String powerMultiOutletId;
   final bool hasMatrixData;
   final double x;
   final double y;
@@ -38,6 +39,7 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
     this.locationId = '',
     this.mode = '',
     this.powerPatch = '',
+    this.powerMultiOutletId = '',
     this.hasMatrixData = false,
     this.x = 0,
     this.y = 0,
@@ -60,6 +62,7 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
     String? locationId,
     String? mode,
     String? powerPatch,
+    String? powerMultiOutletId,
     bool? hasMatrixData,
     double? x,
     double? y,
@@ -77,6 +80,7 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
       locationId: locationId ?? this.locationId,
       mode: mode ?? this.mode,
       powerPatch: powerPatch ?? this.powerPatch,
+      powerMultiOutletId: powerMultiOutletId ?? this.powerMultiOutletId,
       hasMatrixData: hasMatrixData ?? this.hasMatrixData,
       x: x ?? this.x,
       y: y ?? this.y,
@@ -104,6 +108,7 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
       'rotationY': rotationY,
       'rotationZ': rotationZ,
       'hasMatrixData': hasMatrixData,
+      'powerMultiOutletId': powerMultiOutletId,
     };
   }
 
@@ -124,6 +129,7 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
       rotationY: map['rotationY'] ?? 0,
       rotationZ: map['rotationZ'] ?? 0,
       hasMatrixData: map['hasMatrixData'] ?? false,
+      powerMultiOutletId: map['powerMultiOutletId'] ?? '',
     );
   }
 
@@ -182,6 +188,13 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
     final dx = x - other.x;
     final dy = y - other.y;
     final dz = z - other.z;
+    return sqrt(dx * dx + dy * dy + dz * dz);
+  }
+
+  double distanceToCoord(double otherX, double otherY, double otherZ) {
+    final dx = x - otherX;
+    final dy = y - otherY;
+    final dz = z - otherZ;
     return sqrt(dx * dx + dy * dy + dz * dz);
   }
 }

@@ -1,10 +1,11 @@
 import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/cable_graph/cable_graph.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
-import 'package:sidekick/widgets/arc_painter.dart';
+import 'package:sidekick/widgets/connector_painters.dart';
 
 class CableView extends StatelessWidget {
   final CableViewViewModel vm;
@@ -13,14 +14,14 @@ class CableView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (vm.nodes.isEmpty) {
+    if (vm.elements.isEmpty) {
       return const SizedBox.shrink();
     }
     return InteractiveViewer(
       child: LayoutBuilder(
         builder: (context, constraints) {
           final viewport = ViewportTransformer.fromFixtures(
-            fixtures: vm.nodes
+            fixtures: vm.elements
                 .whereType<FixtureElement>()
                 .map((e) => e.fixtureVm.fixture)
                 .toList(),
@@ -41,27 +42,45 @@ class CableView extends StatelessWidget {
                   child: switch (edge) {
                 CableEdgeElement() => switch (edge.type) {
                     CableType.unknown => throw UnimplementedError(),
-                    CableType.socapex => throw UnimplementedError(),
                     CableType.wieland6way => throw UnimplementedError(),
                     CableType.sneak => throw UnimplementedError(),
                     CableType.dmx => _DataCableEdge(
                         from: sourceOffset,
                         to: destinationOffset,
+                        color: Colors.blue,
                         label: '${edge.length}m'),
                     CableType.hoist => throw UnimplementedError(),
                     CableType.hoistMulti => throw UnimplementedError(),
-                    CableType.au10a => _PowerCableEdge(
+                    CableType.au10a || CableType.socapex => _PowerCableEdge(
                         from: sourceOffset,
                         to: destinationOffset,
-                        label: '${edge.length}m'),
+                        label: '${edge.length}m',
+                        width: switch (edge.runType) {
+                          CableRunType.link => 0.75,
+                          CableRunType.fixtureRun => 1,
+                          CableRunType.homeRun => 2,
+                        },
+                        color: switch (edge.runType) {
+                          CableRunType.link => Colors.red.shade800,
+                          CableRunType.fixtureRun => Colors.red,
+                          CableRunType.homeRun => Colors.red.shade300,
+                        }),
                   }
               });
             }),
 
             // Nodes (Fixtures, Headers etc)
-            ...vm.nodes.map((node) {
+            ...vm.elements.map((node) {
               final origin = viewport.transform(node.screenX, node.screenY);
               return switch (node) {
+                LocationElement() => Positioned(
+                    width: 24,
+                    height: 24,
+                    left: origin.dx,
+                    top: origin.dy,
+                    child: const FractionalTranslation(
+                        translation: Offset(-0.5, -0.5),
+                        child: _LocationNode())),
                 FixtureElement() => Positioned(
                     width: 24,
                     height: 24,
@@ -72,7 +91,15 @@ class CableView extends StatelessWidget {
                       translation: const Offset(-0.5, -0.5),
                       child: _FixtureNode(vm: node.fixtureVm),
                     ),
-                  )
+                  ),
+                PowerMultiHeaderElement() => Positioned(
+                    width: 16,
+                    height: 16,
+                    left: origin.dx,
+                    top: origin.dy,
+                    child: FractionalTranslation(
+                        translation: const Offset(-0.5, -0.5),
+                        child: _PowerMultiNode(vm: node.powerMultiVm)))
               };
             })
           ]);
@@ -146,6 +173,18 @@ class ViewportTransformer {
   }
 }
 
+class _LocationNode extends StatelessWidget {
+  const _LocationNode({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(shape: BoxShape.circle),
+      color: Colors.yellow,
+    );
+  }
+}
+
 class _FixtureNode extends StatelessWidget {
   final FixtureViewModel vm;
   const _FixtureNode({required this.vm});
@@ -183,19 +222,56 @@ class _FixtureNode extends StatelessWidget {
   }
 }
 
+class _PowerMultiNode extends StatelessWidget {
+  final PowerMultiHeaderViewModel vm;
+  const _PowerMultiNode({required this.vm});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.red,
+          border: Border.all(
+            color: Theme.of(context).colorScheme.border,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              vm.name,
+              style: Theme.of(context).typography.mono.copyWith(fontSize: 6),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.clip,
+            ),
+          ],
+        ));
+  }
+}
+
 class _PowerCableEdge extends StatelessWidget {
   final Offset from;
   final Offset to;
   final String? label;
-  const _PowerCableEdge({required this.from, required this.to, this.label});
+  final double width;
+  final Color color;
+  const _PowerCableEdge({
+    required this.from,
+    required this.to,
+    this.label,
+    this.width = 1,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ArcConnector(
         start: from,
         end: to,
-        color: Colors.red,
-        width: 2,
+        color: color,
+        width: width,
         label: label,
         arcRadius: const Radius.elliptical(20, 20));
   }
@@ -205,14 +281,20 @@ class _DataCableEdge extends StatelessWidget {
   final Offset from;
   final Offset to;
   final String? label;
-  const _DataCableEdge({required this.from, required this.to, this.label});
+  final Color color;
+  const _DataCableEdge({
+    required this.from,
+    required this.to,
+    this.label,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ArcConnector(
         start: from,
         end: to,
-        color: Colors.blue,
+        color: color,
         width: 2,
         label: label,
         clockwise: false,
