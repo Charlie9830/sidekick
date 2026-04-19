@@ -2,6 +2,7 @@ import 'package:excel/excel.dart';
 import 'package:sidekick/diffing/union_proxy.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
+import 'package:sidekick/redux/models/cable_visibility_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/data_rack_model.dart';
 import 'package:sidekick/redux/models/export_error_model.dart';
@@ -21,6 +22,12 @@ import 'package:sidekick/redux/models/power_rack_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/project_file_model.dart';
+
+class SetBreakoutCableVisibilityState {
+  final CableVisibilityModel value;
+
+  SetBreakoutCableVisibilityState(this.value);
+}
 
 class SetBreakoutCablingLocationId {
   final String value;

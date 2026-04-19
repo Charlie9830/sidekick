@@ -1,7 +1,9 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
+
 import 'package:sidekick/cable_graph/cable_graph.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
@@ -38,6 +40,7 @@ class BreakoutCablingContainer extends StatelessWidget {
               fixtureVms: fixtureVms,
               selectedLocationId:
                   store.state.navstate.selectedBreakoutCablingLocationId,
+              store: store,
             ));
       },
     );
@@ -48,69 +51,95 @@ CableViewViewModel _selectCableViewVm({
   required CableGraph graph,
   required Map<String, FixtureViewModel> fixtureVms,
   required String selectedLocationId,
+  required Store<AppState> store,
 }) {
-  final elementMap = <String, NodeElement>{};
-  NodeElement mapFixture(Node node) => elementMap.putIfAbsent(
-      node.id, () => FixtureElement(fixtureVm: fixtureVms[node.id]!));
-
-  NodeElement mapLocation(LocationNode node) => elementMap.putIfAbsent(
-      node.id,
-      () => LocationElement(
-            locationId: node.locationId,
-            screenX: node.screenX,
-            screenY: node.screenY,
-          ));
-
-  NodeElement mapPowerMulti(PowerMultiHeader node) => elementMap.putIfAbsent(
-      node.id,
-      () => PowerMultiHeaderElement(
-          powerMultiVm: PowerMultiHeaderViewModel(
-              type: CableType.socapex, name: node.outletName),
-          screenX: node.screenX,
-          screenY: node.screenY));
-
   final locationNode = graph.getNode(selectedLocationId);
 
   if (locationNode == null) {
-    return CableViewViewModel(elements: [], edges: []);
+    return CableViewViewModel(
+      elements: [],
+      edges: [],
+      cableVisibility: store.state.navstate.breakoutCableVisibility,
+      onVisibilityChanged: (value) => store.dispatch(
+        SetBreakoutCableVisibilityState(value),
+      ),
+    );
   }
 
-  final nodes = graph.walk(root: locationNode);
+  final nodeElements = <String, NodeElement>{};
+  final edgeElements = <EdgeElement>[];
 
-  print(nodes
-      .map((node) => switch (node) {
-            // TODO: Handle this case.
-            FixtureNode() => 'Fixture',
-            // TODO: Handle this case.
-            PowerMultiHeader() => 'Header',
-            // TODO: Handle this case.
-            LocationNode() => 'Location',
-          })
-      .toList());
+  for (final node in graph.walk(locationNode)) {
+    nodeElements.putIfAbsent(
+        node.id, () => _buildNodeElement(node: node, fixtureVms: fixtureVms));
 
-  final edges =
-      nodes.fold(<Edge>[], (accum, value) => accum..addAll(value.edges));
+    for (final edge in node.edges) {
+      edgeElements.add(_buildEdgeElement(
+          edge: edge,
+          fromElement: nodeElements.putIfAbsent(
+              edge.from,
+              () => _buildNodeElement(
+                  node: graph.getNode(edge.from)!, fixtureVms: fixtureVms)),
+          toElement: nodeElements.putIfAbsent(
+              edge.to,
+              () => _buildNodeElement(
+                  node: graph.getNode(edge.to)!, fixtureVms: fixtureVms))));
+    }
+  }
 
   return CableViewViewModel(
-    elements: nodes
-        .map((node) => switch (node) {
-              FixtureNode() => mapFixture(node),
-              PowerMultiHeader() => mapPowerMulti(node),
-              LocationNode() => mapLocation(node),
-            })
-        .toList(),
-    edges: [],
-    // edges: edges
-    //     .map((edge) => switch (edge) {
-    //           CableEdge() => CableEdgeElement(
-    //               type: edge.type,
-    //               length: edge.length,
-    //               runType: edge.runType,
-    //               destinationElement: elementMap[edge.to]!,
-    //               sourceElement: elementMap[edge.from]!)
-    //         })
-    //     .toList(),
+    elements: nodeElements.values.toList(),
+    edges: edgeElements,
+    cableVisibility: store.state.navstate.breakoutCableVisibility,
+    onVisibilityChanged: (value) => store.dispatch(
+      SetBreakoutCableVisibilityState(value),
+    ),
   );
+}
+
+NodeElement _buildNodeElement({
+  required Node node,
+  required Map<String, FixtureViewModel> fixtureVms,
+}) {
+  return switch (node) {
+    FixtureNode() => FixtureElement(fixtureVm: fixtureVms[node.id]!),
+    PowerMultiHeaderNode() => PowerMultiHeaderElement(
+        screenX: node.screenX,
+        screenY: node.screenY,
+        powerMultiVm: PowerMultiHeaderViewModel(
+            type: node.cableType, name: node.outletName)),
+    LocationNode() => LocationElement(
+        locationId: node.locationId,
+        screenX: node.screenX,
+        screenY: node.screenY),
+    DataMultiHeaderNode() => DataMultiHeaderElement(
+        outletName: node.outletName,
+        screenX: node.screenX,
+        screenY: node.screenY),
+    DataPatchHeaderNode() => DataPatchHeaderElement(
+        outletName: node.outletName,
+        universe: node.universe,
+        screenX: node.screenX,
+        screenY: node.screenY),
+  };
+}
+
+EdgeElement _buildEdgeElement(
+    {required Edge edge,
+    required NodeElement fromElement,
+    required NodeElement toElement}) {
+  return switch (edge) {
+    PsuedoEdge() => PsuedoEdgeElement(
+        fromElement: fromElement,
+        toElement: toElement,
+      ),
+    CableEdge() => CableEdgeElement(
+        type: edge.type,
+        length: edge.length,
+        runType: edge.runType,
+        toElement: toElement,
+        fromElement: fromElement)
+  };
 }
 
 CableGraph _selectCableGraph(Store<AppState> store) {
@@ -120,6 +149,8 @@ CableGraph _selectCableGraph(Store<AppState> store) {
     powerMultis: store.state.fixtureState.powerMultiOutlets,
     cables: store.state.fixtureState.cables,
     locations: store.state.fixtureState.locations,
+    dataMultis: store.state.fixtureState.dataMultis,
+    dataPatches: store.state.fixtureState.dataPatches,
   );
 }
 

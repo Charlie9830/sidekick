@@ -152,3 +152,43 @@ class CableModel extends ModelCollectionMember {
     return _ranking[a.type]! - _ranking[b.type]!;
   }
 }
+
+class CableLengthBreakpoints {
+  static List<double> au10A = [1, 2, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+  static List<double> socapex = [
+    3,
+    5,
+    7.5,
+    10,
+    12.5,
+    15,
+    17.5,
+    20,
+    25,
+    30,
+    35,
+    40,
+    45,
+    50
+  ];
+
+  static List<double> wieland6Way = [
+    3,
+    5,
+    7.5,
+    10,
+    12.5,
+    15,
+    17.5,
+    20,
+    25,
+    30,
+    35,
+    40,
+    45,
+    50
+  ];
+
+  static List<double> dmx = [1, 2, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+  static List<double> true1 = [0.7, 1, 2, 3, 5, 10, 15];
+}

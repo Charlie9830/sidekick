@@ -4,9 +4,11 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 
 import 'package:sidekick/redux/models/cable_model.dart';
+import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 
 sealed class Node {
@@ -59,7 +61,59 @@ class FixtureNode extends Node {
   }
 }
 
-class PowerMultiHeader extends Node {
+class DataMultiHeaderNode extends Node {
+  final String outletId;
+  final String outletName;
+  final String locationId;
+  final double x;
+  final double y;
+  final double z;
+
+  double get screenX => x;
+  double get screenY =>
+      (y * -1) -
+      600; // 2' Offset. // TODO: This is a bit Jank. We should be calculated Screen Coords later on in the Process.
+
+  DataMultiHeaderNode({
+    required this.outletId,
+    required this.outletName,
+    required this.locationId,
+    required this.x,
+    required this.y,
+    required this.z,
+    required super.edges,
+  }) : super(id: outletId);
+}
+
+class DataPatchHeaderNode extends Node {
+  final String outletId;
+  final String outletName;
+  final String parentMultiOutletId;
+  final int universe;
+  final String locationId;
+  final double x;
+  final double y;
+  final double z;
+
+  double get screenX => x;
+  double get screenY =>
+      (y * -1) -
+      600; // 2' Offset. // TODO: This is a bit Jank. We should be calculated Screen Coords later on in the Process.
+
+  DataPatchHeaderNode({
+    required this.outletId,
+    required this.outletName,
+    required this.parentMultiOutletId,
+    required this.universe,
+    required this.locationId,
+    required this.x,
+    required this.y,
+    required this.z,
+    required super.edges,
+  }) : super(id: outletId);
+}
+
+class PowerMultiHeaderNode extends Node {
   final String outletId;
   final String outletName;
   final String locationId;
@@ -69,9 +123,11 @@ class PowerMultiHeader extends Node {
   final double z;
 
   double get screenX => x;
-  double get screenY => y * -1;
+  double get screenY =>
+      (y * -1) -
+      600; // 2' Offset. // TODO: This is a bit Jank. We should be calculated Screen Coords later on in the Process.
 
-  PowerMultiHeader({
+  PowerMultiHeaderNode({
     required this.outletId,
     required this.outletName,
     required this.cableType,
@@ -90,7 +146,7 @@ class LocationNode extends Node {
   final double z;
 
   double get screenX => x;
-  double get screenY => y * -1;
+  double get screenY => (y * -1) - 600; // 2' Offset.
 
   LocationNode({
     required this.locationId,
@@ -122,6 +178,13 @@ class CableEdge extends Edge {
     required this.type,
     required this.locationId,
     required this.runType,
+  });
+}
+
+class PsuedoEdge extends Edge {
+  PsuedoEdge({
+    required super.from,
+    required super.to,
   });
 }
 
@@ -162,39 +225,44 @@ class CableGraph {
     return node;
   }
 
+  void addNodes(Iterable<Node> nodes) {
+    for (final node in nodes) {
+      addNode(node);
+    }
+  }
+
   void updateNode(String id, Node Function(Node node) update,
       {Node Function()? ifAbsent}) {
     _nodes.update(id, update, ifAbsent: ifAbsent);
   }
 
-  Iterable<Node> walk({Node? root}) sync* {
-    if (root != null) {
-      assert(_nodes.containsKey(root.id),
-          'Provided root parameter does not exist in graph');
+  Iterable<Node> walk(Node root) sync* {
+    final visited = <String>{};
+    final stack = <Node>[root];
 
-      for (final edge in root.edges) {
-        if (_nodes.keys.contains(edge.to)) {
-          final node = _nodes[edge.to]!;
-          yield node;
+    while (stack.isNotEmpty) {
+      final node = stack.removeLast();
 
-          for (final childNode in walk(root: node)) {
-            yield childNode;
-          }
-        }
-      }
+      if (visited.contains(node.id) == false) {
+        visited.add(node.id);
+        yield node; // Yield the Current node
 
-      return;
-    }
-
-    for (final node in _nodes.values) {
-      yield node;
-
-      for (final edge in node.edges) {
-        if (_nodes.keys.contains(edge.to)) {
-          yield _nodes[edge.to]!;
-        }
+        // Add it's neighbours to the Stack.
+        stack.addAll(node.edges.map((edge) => _nodes[edge.to]).nonNulls);
       }
     }
+  }
+
+  String _formatNode(Node? node) {
+    return switch (node) {
+      FixtureNode() => '[FixtureNode] ${node.type.name}',
+      PowerMultiHeaderNode() => '[PowerMultiHeaderNode] ${node.outletName}',
+      LocationNode() => '[LocationNode]',
+      DataMultiHeaderNode() => '[DataMultiHeader] ${node.outletName}',
+      DataPatchHeaderNode() =>
+        '[DataPatchHeader] ${node.outletName} U${node.universe}',
+      null => '[NULL]'
+    };
   }
 }
 
@@ -204,208 +272,300 @@ CableGraph buildCableGraph({
   required Map<String, PowerMultiOutletModel> powerMultis,
   required Map<String, CableModel> cables,
   required Map<String, LocationModel> locations,
+  required Map<String, DataMultiModel> dataMultis,
+  required Map<String, DataPatchModel> dataPatches,
 }) {
   final graph = CableGraph();
 
-  // Add Locations to Graph.
-  final powerMultisByLocationId = powerMultis.values
-      .groupListsBy((multi) => multi.locationId)
-      .map((locationId, multis) => MapEntry(locationId, multis.sorted()));
+  for (final location
+      in locations.values.where((loc) => loc.isHybrid == false)) {
+    final fixturesInLocation =
+        fixtures.values.where((fix) => fix.locationId == location.uid);
 
-  for (final location in locations.values) {
-    final firstPowerMulti = powerMultisByLocationId[location.uid]?.firstOrNull;
+    final (
+      firstX,
+      firstY,
+      firstZ,
+    ) = _calculateFirstFixtureLocation(fixturesInLocation);
 
-    if (firstPowerMulti == null) {
-      continue;
-    }
+    final fixtureNodes =
+        _buildFixtureNodes(fixturesInLocation.toList(), fixtureTypes);
+    graph.addNodes(fixtureNodes);
 
-    final firstPowerMultiNode = graph.putIfAbsent(
-        firstPowerMulti.uid,
-        () => _createPowerMultiHeaderNode(
-            outlet: firstPowerMulti, fixtures: fixtures, cables: cables));
+    final powerMultiNodes = _buildPowerMultiHeaderNodes(
+      powerMultis.values.where((multi) => multi.locationId == location.uid),
+      fixturesInLocation,
+    );
+    graph.addNodes(powerMultiNodes);
 
-    if (firstPowerMultiNode is PowerMultiHeader) {
-      graph.addNode(LocationNode(
-          locationId: location.uid,
-          x: firstPowerMultiNode.x,
-          y: firstPowerMultiNode.y,
-          z: firstPowerMultiNode.z,
-          edges: {
-            // Add Edges to Power Multi Headers.
-            if (powerMultisByLocationId.containsKey(location.uid))
-              ...powerMultisByLocationId[location.uid]!.map((multi) {
-                final targetPowerMultiNode = graph.putIfAbsent(
-                    multi.uid,
-                    () => _createPowerMultiHeaderNode(
-                        outlet: multi,
-                        fixtures: fixtures,
-                        cables: cables)) as PowerMultiHeader;
-                final eucLength = _distance(
-                    firstPowerMultiNode.x,
-                    firstPowerMultiNode.y,
-                    firstPowerMultiNode.z,
-                    targetPowerMultiNode.x,
-                    targetPowerMultiNode.y,
-                    targetPowerMultiNode.z);
-                return multi.uid == firstPowerMulti.uid
-                    ? null
-                    : CableEdge(
-                        from: location.uid,
-                        to: multi.uid,
-                        locationId: location.uid,
-                        euclidianLength: eucLength,
-                        runType: CableRunType.homeRun,
-                        type: CableType.socapex,
-                        length: roundUpToBreakpoint(eucLength, [
-                          3,
-                          5,
-                          7.5,
-                          10,
-                          12.5,
-                          15,
-                          17.5,
-                          20,
-                          25,
-                          30,
-                          35,
-                          40,
-                          45,
-                          50
-                        ]));
-              }).nonNulls
-          }));
-    }
-  }
+    final (dataMultiNodes, dataPatchNodes) = _buildDataSingleAndMultiHeaders(
+        dataPatches: dataPatches.values
+            .where((patch) => patch.locationId == location.uid),
+        cables: cables,
+        fixtures: fixturesInLocation,
+        dataMultis: dataMultis);
 
-  // Add Fixtures to Graph.
-  for (final fixture in fixtures.values) {
-    graph.addNode(FixtureNode(
-        id: fixture.uid,
-        type: fixtureTypes[fixture.typeId]!,
-        locationId: fixture.locationId,
-        edges: {}));
-  }
+    graph.addNodes(dataMultiNodes);
+    graph.addNodes(dataPatchNodes);
 
-  // Add Power Cable Links to Patch.
-  final fixturesByPatch = fixtures.values.groupListsBy((fix) => fix.powerPatch);
-  for (final group in fixturesByPatch.values) {
-    final sortedBySequence = group.sorted();
-    for (int i = 0; i < sortedBySequence.length; i++) {
-      final fixture = sortedBySequence[i];
-      final next = sortedBySequence.elementAtOrNull(i + 1);
+    graph.addNode(LocationNode(
+        locationId: location.uid,
+        x: firstX,
+        y: firstY,
+        z: firstZ,
+        edges: {
+          // Create Edges to Power Multi nodes.
+          ...powerMultiNodes.map((node) {
+            final eucLength =
+                _distance(firstX, firstY, firstZ, node.x, node.y, node.z);
 
-      final euclidianLength = next != null ? fixture.distanceTo(next) : 0.0;
+            return CableEdge(
+              from: location.uid,
+              to: node.id,
+              locationId: location.uid,
+              runType: CableRunType.homeRun,
+              type: node.cableType,
+              euclidianLength: eucLength,
+              length: _roundUpCableLength(
+                  eucLength,
+                  switch (node.cableType) {
+                    CableType.socapex => CableLengthBreakpoints.socapex,
+                    CableType.wieland6way => CableLengthBreakpoints.wieland6Way,
+                    _ => throw 'Unknown Cable Type Exception',
+                  }),
+            );
+          }),
 
-      final nextEdge = next != null
-          ? CableEdge(
-              from: fixture.uid,
-              to: next.uid,
-              euclidianLength: euclidianLength,
-              type: CableType.au10a,
-              locationId: fixture.locationId,
-              runType: CableRunType.link,
-              length: roundUpToBreakpoint(euclidianLength,
-                  [1, 2, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50]),
-            )
-          : null;
+          // Create Edges to Data Multi Nodes.
+          ...dataMultiNodes
+              .map((node) => PsuedoEdge(from: location.uid, to: node.id)),
 
-      graph.updateNode(
-          fixture.uid,
-          (existing) => (existing as FixtureNode).copyWith(
-              edges: {...existing.edges, if (nextEdge != null) nextEdge}),
-          ifAbsent: () => FixtureNode(
-                  id: fixture.uid,
-                  type: fixtureTypes[fixture.typeId]!,
-                  locationId: fixture.locationId,
-                  edges: {
-                    if (nextEdge != null) nextEdge,
-                  }));
-    }
-  }
-
-  // Add Data Cables to Graph.
-  final fixturesByUniverse =
-      fixtures.values.groupListsBy((fix) => fix.dmxAddress.universe);
-  for (final group in fixturesByUniverse.values) {
-    final sortedBySequence = group.sorted();
-
-    for (int i = 0; i < sortedBySequence.length; i++) {
-      final fixture = sortedBySequence[i];
-      final next = sortedBySequence.elementAtOrNull(i + 1);
-
-      final euclidianLength = next != null ? fixture.distanceTo(next) : 0.0;
-
-      final nextEdge = next != null
-          ? CableEdge(
-              from: fixture.uid,
-              to: next.uid,
-              euclidianLength: euclidianLength,
-              locationId: fixture.locationId,
-              type: CableType.dmx,
-              runType: CableRunType.link,
-              length: roundUpToBreakpoint(euclidianLength,
-                  [1, 2, 3, 5, 10, 15, 20, 25, 30, 35, 40, 35, 50]))
-          : null;
-
-      graph.updateNode(
-          fixture.uid,
-          (existing) => (existing as FixtureNode).copyWith(
-              edges: {...existing.edges, if (nextEdge != null) nextEdge}),
-          ifAbsent: () => FixtureNode(
-                  id: fixture.uid,
-                  type: fixtureTypes[fixture.typeId]!,
-                  locationId: fixture.locationId,
-                  edges: {
-                    if (nextEdge != null) nextEdge,
-                  }));
-    }
+          // Create Edges to Single Data Patches (That is Data patches that haven't already been connected VIA data Multi nodes)
+          ...dataPatchNodes
+              .where((node) => node.parentMultiOutletId.isEmpty)
+              .map((node) => PsuedoEdge(from: location.uid, to: node.id)),
+        }));
   }
 
   return graph;
 }
 
-PowerMultiHeader _createPowerMultiHeaderNode({
-  required PowerMultiOutletModel outlet,
-  required Map<String, FixtureModel> fixtures,
-  required Map<String, CableModel> cables,
-}) {
-  final headFixtures = outlet.children
-      .map((child) => child.fixtureIds
-          .map((id) => fixtures[id])
-          .nonNulls
-          .toList()
-          .sorted()
-          .firstOrNull)
-      .nonNulls
-      .toList();
+List<FixtureNode> _buildFixtureNodes(
+    List<FixtureModel> fixtures, Map<String, FixtureTypeModel> fixtureTypes) {
+  final outboundPowerEdgesMap = _buildOutboundPowerLinksMap(fixtures);
+  final outboundDataEdgesMap = _buildOutboundDataLinksMap(fixtures);
 
-  final (x, y, z) = _calculatePowerHeaderPosition(outlet, headFixtures);
-  return PowerMultiHeader(
-      outletId: outlet.uid,
-      outletName: outlet.name,
-      cableType: _determinePowerMultiCableType(outlet, cables),
-      locationId: outlet.locationId,
-      x: x,
-      y: y + 500,
-      z: z,
-      edges: {
-        ...headFixtures.map((headFixture) {
-          final eucLength = headFixture.distanceToCoord(x, y, z);
-          return CableEdge(
-            from: outlet.uid,
-            to: headFixture.uid,
-            euclidianLength: eucLength,
-            runType: CableRunType.fixtureRun,
-            length: roundUpToBreakpoint(
-                eucLength, [1, 2, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50]),
-            locationId: outlet.locationId,
-            type: CableType.au10a,
-          );
-        })
-      });
+  return fixtures.map((fix) {
+    return FixtureNode(
+        id: fix.uid,
+        locationId: fix.locationId,
+        type: fixtureTypes[fix.typeId]!,
+        edges: {
+          ...outboundPowerEdgesMap[fix.uid] ?? [],
+          ...outboundDataEdgesMap[fix.uid] ?? [],
+        });
+  }).toList();
 }
 
-double roundUpToBreakpoint(double value, List<double> breakpointsInMetres) {
+Map<String, List<CableEdge>> _buildOutboundPowerLinksMap(
+    Iterable<FixtureModel> fixturesInLocation) {
+  final fixturesByPowerPatch = fixturesInLocation
+      .groupListsBy((fix) => fix.powerPatch)
+      .map((powerPatch, fixtures) => MapEntry(powerPatch, fixtures.sorted()));
+
+  return Map<String, List<CableEdge>>.fromEntries(fixturesByPowerPatch.values
+      .map((fixturesInPatch) => fixturesInPatch.mapIndexed((index, currentFix) {
+            final nextFix = fixturesInPatch.elementAtOrNull(index + 1);
+            if (nextFix == null) {
+              return MapEntry(currentFix.uid, <CableEdge>[]);
+            }
+
+            final eucLength = currentFix.distanceTo(nextFix);
+            return MapEntry(currentFix.uid, [
+              CableEdge(
+                  from: currentFix.uid,
+                  to: nextFix.uid,
+                  euclidianLength: eucLength,
+                  length: _roundUpCableLength(
+                      eucLength, CableLengthBreakpoints.au10A),
+                  locationId: currentFix.locationId,
+                  runType: CableRunType.link,
+                  type: CableType.au10a // TODO: Tie to actual Cable Type.
+                  )
+            ]);
+          }))
+      .flattened);
+}
+
+Map<String, List<CableEdge>> _buildOutboundDataLinksMap(
+    Iterable<FixtureModel> fixturesInLocation) {
+  final fixturesByUniverse = fixturesInLocation
+      .groupListsBy((fix) => fix.dmxAddress.universe)
+      .map((universe, fixtures) => MapEntry(universe, fixtures.sorted()));
+
+  return Map<String, List<CableEdge>>.fromEntries(fixturesByUniverse.values
+      .map((fixturesInUniverse) => fixturesInUniverse.mapIndexed((index, fix) {
+            final nextFix = fixturesInUniverse.elementAtOrNull(index + 1);
+            if (nextFix == null) {
+              return MapEntry(fix.uid, <CableEdge>[]);
+            }
+
+            final eucLength = fix.distanceTo(nextFix);
+            return MapEntry(fix.uid, [
+              CableEdge(
+                  from: fix.uid,
+                  to: nextFix.uid,
+                  euclidianLength: eucLength,
+                  length: _roundUpCableLength(
+                      eucLength, CableLengthBreakpoints.dmx),
+                  locationId: fix.locationId,
+                  runType: CableRunType.link,
+                  type: CableType.dmx // TODO: Tie to actual Cable Type.
+                  )
+            ]);
+          }))
+      .flattened);
+}
+
+List<PowerMultiHeaderNode> _buildPowerMultiHeaderNodes(
+    Iterable<PowerMultiOutletModel> outlets, Iterable<FixtureModel> fixtures) {
+  return outlets.map((outlet) {
+    final downstreamFixtures =
+        fixtures.where((fix) => fix.powerMultiOutletId == outlet.uid).toList();
+
+    final (x, y, z) = _calculatePowerHeaderPosition(
+      outlet,
+      downstreamFixtures,
+    );
+
+    return PowerMultiHeaderNode(
+        outletId: outlet.uid,
+        outletName: outlet.name,
+        cableType: CableType.socapex, // TODO: Tie to actual Cable type
+        locationId: outlet.locationId,
+        x: x,
+        y: y,
+        z: z,
+        edges: {
+          // Create edges representing the Fixture Home Runs. That is the cables that go from the Header to the first (or only) fixture of each circuit.
+          ..._extractFirstFixturesInPower(outlet.uid, downstreamFixtures)
+              .map((fix) {
+            final eucLength = fix.distanceToCoord(x, y, z);
+            return CableEdge(
+              from: outlet.uid,
+              to: fix.uid,
+              euclidianLength: eucLength,
+              runType: CableRunType.fixtureRun,
+              length: _roundUpCableLength(
+                  eucLength,
+                  CableLengthBreakpoints
+                      .au10A), // TODO: Tie to actual Cable Type.
+              locationId: outlet.locationId,
+              type: CableType.au10a, // TODO: Tie to actual Cable Type.
+            );
+          })
+        });
+  }).toList();
+}
+
+(List<DataMultiHeaderNode>, List<DataPatchHeaderNode>)
+    _buildDataSingleAndMultiHeaders({
+  required Iterable<DataPatchModel> dataPatches,
+  required Map<String, CableModel> cables,
+  required Iterable<FixtureModel> fixtures,
+  required Map<String, DataMultiModel> dataMultis,
+}) {
+  final cablesByOutletId =
+      cables.values.groupListsBy((cable) => cable.outletId);
+
+  // Helper function to simplify multi step lookups.
+  String lookupParentMultiId(String patchOutletId) {
+    final correspondingCable = cablesByOutletId[patchOutletId]?.firstOrNull;
+
+    if (correspondingCable == null ||
+        correspondingCable.parentMultiId.isEmpty) {
+      return '';
+    }
+
+    final parentCable = cables[correspondingCable.parentMultiId];
+
+    return parentCable?.outletId ?? '';
+  }
+
+  final (firstX, firstY, firstZ) = _calculateFirstFixtureLocation(fixtures);
+  final universeLeaders = _mapFirstFixturesInUniverses(fixtures);
+
+  final dataPatchNodes = dataPatches.map((outlet) {
+    final firstFixture = universeLeaders[outlet.universe];
+    final eucLength =
+        firstFixture?.distanceToCoord(firstX, firstY, firstZ) ?? 0;
+    return DataPatchHeaderNode(
+        outletId: outlet.uid,
+        outletName: outlet.name,
+        universe: outlet.universe,
+        parentMultiOutletId: lookupParentMultiId(outlet.uid),
+        locationId: outlet.locationId,
+        x: firstX,
+        y: firstY,
+        z: firstZ,
+        edges: {
+          if (firstFixture != null)
+            CableEdge(
+              euclidianLength: eucLength,
+              length:
+                  _roundUpCableLength(eucLength, CableLengthBreakpoints.dmx),
+              from: outlet.uid,
+              to: firstFixture.uid,
+              locationId: outlet.locationId,
+              runType: CableRunType.fixtureRun,
+              type: CableType.dmx,
+            )
+        });
+  }).toList();
+
+  final patchHeaderNodesByParentMultiOutletId =
+      dataPatchNodes.groupListsBy((node) => lookupParentMultiId(node.id));
+
+  final List<DataMultiHeaderNode> multiHeaderNodes = [];
+
+  for (final entry in patchHeaderNodesByParentMultiOutletId.entries) {
+    final multiOutletId = entry.key;
+    final childPatchNodes = entry.value;
+    final dataMulti = dataMultis[multiOutletId];
+
+    if (multiOutletId.isEmpty || dataMulti == null) {
+      continue;
+    }
+
+    final multiNode = DataMultiHeaderNode(
+        outletId: multiOutletId,
+        outletName: dataMulti.name,
+        locationId: dataMulti.locationId,
+        x: firstX,
+        y: firstY,
+        z: firstZ,
+        edges: childPatchNodes
+            .map((node) => PsuedoEdge(from: multiOutletId, to: node.id))
+            .toSet());
+
+    multiHeaderNodes.add(multiNode);
+  }
+
+  return (multiHeaderNodes, dataPatchNodes);
+}
+
+(double x, double y, double z) _calculateFirstFixtureLocation(
+    Iterable<FixtureModel> fixtures) {
+  final sorted = fixtures.sorted();
+
+  if (sorted.isNotEmpty) {
+    return (sorted.first.x, sorted.first.y, sorted.first.z);
+  }
+
+  return (0, 0, 0);
+}
+
+double _roundUpCableLength(double value, List<double> breakpointsInMetres) {
   assert(breakpointsInMetres.isNotEmpty,
       'Breakpoints parameter must have at least 1 value');
   final coercedValue = (value.ceilToDouble() * 0.001).clamp(0, double.infinity);
@@ -438,7 +598,29 @@ double roundUpToBreakpoint(double value, List<double> breakpointsInMetres) {
   return breakpointsInMetres.last;
 }
 
-CableType _determinePowerMultiCableType(
+List<FixtureModel> _extractFirstFixturesInPower(
+    String outletId, List<FixtureModel> fixtures) {
+  final sorted = fixtures.sorted();
+  return sorted
+      .groupListsBy((fix) => fix.powerPatch)
+      .values
+      .map((fixtures) {
+        return fixtures.firstOrNull;
+      })
+      .nonNulls
+      .toList();
+}
+
+Map<int, FixtureModel> _mapFirstFixturesInUniverses(
+    Iterable<FixtureModel> fixtures) {
+  final sorted = fixtures.sorted();
+  return Map<int, FixtureModel>.fromEntries(sorted
+      .groupListsBy((fix) => fix.dmxAddress.universe)
+      .entries
+      .map((entry) => MapEntry(entry.key, entry.value.first)));
+}
+
+CableType _calculatePowerMultiCableType(
     PowerMultiOutletModel outlet, Map<String, CableModel> cables) {
   final associatedCables =
       cables.values.where((cable) => cable.outletId == outlet.uid);
@@ -461,8 +643,22 @@ CableType _determinePowerMultiCableType(
       CableType.unknown;
 }
 
+(double x, double y, double z) _calculateDataHeaderPosition(
+    DataMultiModel multiOutlet, List<FixtureModel> fixtures) {
+  if (fixtures.isEmpty) {
+    return (0, 0, 0);
+  }
+
+  final first = fixtures.first;
+
+  return (first.x, first.y, first.z);
+}
+
 (double x, double y, double z) _calculatePowerHeaderPosition(
     PowerMultiOutletModel multiOutlet, List<FixtureModel> fixtures) {
+  if (fixtures.isEmpty) {
+    return (0, 0, 0);
+  }
   final results = fixtures
       .map((fix) => _HeaderScore(
           fixture: fix,

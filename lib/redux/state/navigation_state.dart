@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:sidekick/enums.dart';
+import 'package:sidekick/redux/models/cable_visibility_model.dart';
 
 class NavigationState {
   final String selectedMultiOutlet;
@@ -21,6 +22,7 @@ class NavigationState {
   final Set<String> selectedFixtureTypeIds;
   final int fixtureTypesTabIndex;
   final String selectedBreakoutCablingLocationId;
+  final CableVisibilityModel breakoutCableVisibility;
 
   NavigationState({
     required this.selectedMultiOutlet,
@@ -42,6 +44,7 @@ class NavigationState {
     required this.selectedFixtureTypeIds,
     required this.fixtureTypesTabIndex,
     required this.selectedBreakoutCablingLocationId,
+    required this.breakoutCableVisibility,
   });
 
   const NavigationState.initial()
@@ -63,7 +66,8 @@ class NavigationState {
         selectedRacksTabIndex = 0,
         selectedFixtureTypeIds = const {},
         fixtureTypesTabIndex = 0,
-        selectedBreakoutCablingLocationId = '';
+        selectedBreakoutCablingLocationId = '',
+        breakoutCableVisibility = const CableVisibilityModel.all();
 
   NavigationState copyWith({
     String? selectedMultiOutlet,
@@ -85,6 +89,7 @@ class NavigationState {
     Set<String>? selectedFixtureTypeIds,
     int? fixtureTypesTabIndex,
     String? selectedBreakoutCablingLocationId,
+    CableVisibilityModel? breakoutCableVisibility,
   }) {
     return NavigationState(
       selectedMultiOutlet: selectedMultiOutlet ?? this.selectedMultiOutlet,
@@ -113,6 +118,8 @@ class NavigationState {
       fixtureTypesTabIndex: fixtureTypesTabIndex ?? this.fixtureTypesTabIndex,
       selectedBreakoutCablingLocationId: selectedBreakoutCablingLocationId ??
           this.selectedBreakoutCablingLocationId,
+      breakoutCableVisibility:
+          breakoutCableVisibility ?? this.breakoutCableVisibility,
     );
   }
 }

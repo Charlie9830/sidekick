@@ -1,6 +1,7 @@
 import 'package:sidekick/cable_graph/cable_graph.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
+import 'package:sidekick/redux/models/cable_visibility_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
@@ -54,10 +55,14 @@ class PowerMultiHeaderViewModel {
 class CableViewViewModel {
   final List<NodeElement> elements;
   final List<EdgeElement> edges;
+  final CableVisibilityModel cableVisibility;
+  final void Function(CableVisibilityModel value) onVisibilityChanged;
 
   CableViewViewModel({
     required this.elements,
     required this.edges,
+    required this.cableVisibility,
+    required this.onVisibilityChanged,
   });
 }
 
@@ -102,13 +107,35 @@ class PowerMultiHeaderElement extends NodeElement {
   });
 }
 
+class DataMultiHeaderElement extends NodeElement {
+  final String outletName;
+
+  DataMultiHeaderElement({
+    required this.outletName,
+    required super.screenX,
+    required super.screenY,
+  });
+}
+
+class DataPatchHeaderElement extends NodeElement {
+  final String outletName;
+  final int universe;
+
+  DataPatchHeaderElement({
+    required this.outletName,
+    required this.universe,
+    required super.screenX,
+    required super.screenY,
+  });
+}
+
 sealed class EdgeElement {
-  final NodeElement sourceElement;
-  final NodeElement destinationElement;
+  final NodeElement fromElement;
+  final NodeElement toElement;
 
   EdgeElement({
-    required this.sourceElement,
-    required this.destinationElement,
+    required this.fromElement,
+    required this.toElement,
   });
 }
 
@@ -121,6 +148,10 @@ class CableEdgeElement extends EdgeElement {
       {required this.type,
       required this.length,
       required this.runType,
-      required super.destinationElement,
-      required super.sourceElement});
+      required super.toElement,
+      required super.fromElement});
+}
+
+class PsuedoEdgeElement extends EdgeElement {
+  PsuedoEdgeElement({required super.toElement, required super.fromElement});
 }
