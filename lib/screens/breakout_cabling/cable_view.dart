@@ -51,6 +51,7 @@ class CableView extends StatelessWidget {
                         CableType.sneak => throw UnimplementedError(),
                         CableType.hoist => throw UnimplementedError(),
                         CableType.hoistMulti => throw UnimplementedError(),
+                        CableType.true1 => throw UnimplementedError(),
                         CableType.dmx => _buildDataCableEdge(
                             edge: edge,
                             fromOffset: fromOffset,
@@ -62,7 +63,18 @@ class CableView extends StatelessWidget {
                             edge: edge,
                             fromOffset: fromOffset,
                             toOffset: toOffset,
-                          )
+                          ),
+                        CableType.socapexToAu10ALampHeader =>
+                          throw UnimplementedError(),
+                        CableType.socapexToTrue1LampHeader =>
+                          throw UnimplementedError(),
+                        CableType.wieland6WayLampHeader =>
+                          throw UnimplementedError(),
+                        CableType.sneakLampHeader => throw UnimplementedError(),
+                        CableType.hoistMultiLampHeader =>
+                          throw UnimplementedError(),
+                        CableType.hoistMultiRackHeader =>
+                          throw UnimplementedError(),
                       }
                   });
                 }),

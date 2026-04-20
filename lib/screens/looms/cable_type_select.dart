@@ -44,7 +44,14 @@ class CableTypeSelect extends StatelessWidget {
       CableType.dmx => 'DMX',
       CableType.hoist => 'Motor',
       CableType.hoistMulti => 'Motor Multi',
-      CableType.au10a => '10A Extension'
+      CableType.au10a => '10A Extension',
+      CableType.true1 => 'True1 Extension',
+      CableType.socapexToAu10ALampHeader => throw UnimplementedError(),
+      CableType.socapexToTrue1LampHeader => throw UnimplementedError(),
+      CableType.wieland6WayLampHeader => throw UnimplementedError(),
+      CableType.sneakLampHeader => throw UnimplementedError(),
+      CableType.hoistMultiLampHeader => throw UnimplementedError(),
+      CableType.hoistMultiRackHeader => throw UnimplementedError(),
     };
   }
 }

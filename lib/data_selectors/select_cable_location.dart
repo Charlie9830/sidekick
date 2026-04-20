@@ -18,6 +18,13 @@ LocationModel? selectCableLocation(CableModel cable, Store<AppState> store) {
       store.state.fixtureState.hoistMultis[cable.outletId]?.locationId,
     CableType.au10a => '',
     CableType.unknown => throw UnimplementedError(),
+    CableType.true1 => throw UnimplementedError(),
+    CableType.socapexToAu10ALampHeader => throw UnimplementedError(),
+    CableType.socapexToTrue1LampHeader => throw UnimplementedError(),
+    CableType.wieland6WayLampHeader => throw UnimplementedError(),
+    CableType.sneakLampHeader => throw UnimplementedError(),
+    CableType.hoistMultiLampHeader => throw UnimplementedError(),
+    CableType.hoistMultiRackHeader => throw UnimplementedError(),
   };
 
   return store.state.fixtureState.locations[locationId];

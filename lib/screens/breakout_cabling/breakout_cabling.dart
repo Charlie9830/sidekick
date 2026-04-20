@@ -1,4 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/screens/breakout_cabling/cable_qty_spreadsheet.dart';
 import 'package:sidekick/screens/breakout_cabling/cable_view.dart';
 import 'package:sidekick/screens/breakout_cabling/sidebar.dart';
 import 'package:sidekick/three_panel_scaffold.dart';
@@ -20,14 +21,20 @@ class BreakoutCabling extends StatelessWidget {
         width: 300,
         child: Sidebar(vm: vm),
       ),
-      body: Column(
+      body: Row(
         children: [
           Expanded(
-            flex: 1,
+            flex: 2,
             child: CableView(
               vm: vm.cableViewVm,
             ),
           ),
+          Expanded(
+              flex: 1,
+              child: CableQtySpreadsheet(
+                locationVms: vm.locationVms,
+                selectedLocationId: vm.selectedLocationId,
+              ))
         ],
       ),
     );

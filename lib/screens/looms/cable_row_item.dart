@@ -263,6 +263,13 @@ class CableRowItem extends StatelessWidget {
         const Icon(Icons.view_module_outlined, color: Colors.gray),
       CableType.au10a => const SizedBox(),
       CableType.unknown => const SizedBox(),
+      CableType.true1 => const SizedBox(),
+      CableType.socapexToAu10ALampHeader => throw UnimplementedError(),
+      CableType.socapexToTrue1LampHeader => throw UnimplementedError(),
+      CableType.wieland6WayLampHeader => throw UnimplementedError(),
+      CableType.sneakLampHeader => throw UnimplementedError(),
+      CableType.hoistMultiLampHeader => throw UnimplementedError(),
+      CableType.hoistMultiRackHeader => throw UnimplementedError(),
     };
   }
 

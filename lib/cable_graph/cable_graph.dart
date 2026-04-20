@@ -10,6 +10,7 @@ import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
+import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
 
 sealed class Node {
   final String id;
@@ -61,10 +62,19 @@ class FixtureNode extends Node {
   }
 }
 
-class DataMultiHeaderNode extends Node {
+sealed class MultiHeaderNode extends Node {
+  final String locationId;
+
+  MultiHeaderNode({
+    required super.id,
+    required super.edges,
+    required this.locationId,
+  });
+}
+
+class DataMultiHeaderNode extends MultiHeaderNode {
   final String outletId;
   final String outletName;
-  final String locationId;
   final double x;
   final double y;
   final double z;
@@ -72,12 +82,12 @@ class DataMultiHeaderNode extends Node {
   double get screenX => x;
   double get screenY =>
       (y * -1) -
-      600; // 2' Offset. // TODO: This is a bit Jank. We should be calculated Screen Coords later on in the Process.
+      600; // 2' Offset. // TODO: This is a bit Jank. We should be calculating Screen Coords later on in the Process.
 
   DataMultiHeaderNode({
     required this.outletId,
     required this.outletName,
-    required this.locationId,
+    required super.locationId,
     required this.x,
     required this.y,
     required this.z,
@@ -98,7 +108,7 @@ class DataPatchHeaderNode extends Node {
   double get screenX => x;
   double get screenY =>
       (y * -1) -
-      600; // 2' Offset. // TODO: This is a bit Jank. We should be calculated Screen Coords later on in the Process.
+      600; // 2' Offset. // TODO: This is a bit Jank. We should be calculating Screen Coords later on in the Process.
 
   DataPatchHeaderNode({
     required this.outletId,
@@ -113,10 +123,9 @@ class DataPatchHeaderNode extends Node {
   }) : super(id: outletId);
 }
 
-class PowerMultiHeaderNode extends Node {
+class PowerMultiHeaderNode extends MultiHeaderNode {
   final String outletId;
   final String outletName;
-  final String locationId;
   final CableType cableType;
   final double x;
   final double y;
@@ -125,13 +134,13 @@ class PowerMultiHeaderNode extends Node {
   double get screenX => x;
   double get screenY =>
       (y * -1) -
-      600; // 2' Offset. // TODO: This is a bit Jank. We should be calculated Screen Coords later on in the Process.
+      600; // 2' Offset. // TODO: This is a bit Jank. We should be calculating Screen Coords later on in the Process.
 
   PowerMultiHeaderNode({
     required this.outletId,
     required this.outletName,
     required this.cableType,
-    required this.locationId,
+    required super.locationId,
     required this.x,
     required this.y,
     required this.z,

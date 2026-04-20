@@ -249,6 +249,13 @@ String _getTypeLabel(CableType type, int localNumber,
     CableType.hoistMulti => 'Motor Multi $localNumber',
     CableType.au10a => '',
     CableType.unknown => "Unknown",
+    CableType.true1 => 'True1',
+    CableType.socapexToAu10ALampHeader => throw UnimplementedError(),
+    CableType.socapexToTrue1LampHeader => throw UnimplementedError(),
+    CableType.wieland6WayLampHeader => throw UnimplementedError(),
+    CableType.sneakLampHeader => throw UnimplementedError(),
+    CableType.hoistMultiLampHeader => throw UnimplementedError(),
+    CableType.hoistMultiRackHeader => throw UnimplementedError(),
   };
 }
 

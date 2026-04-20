@@ -32,7 +32,7 @@ class BreakoutCablingContainer extends StatelessWidget {
         return BreakoutCablingViewModel(
             selectedLocationId:
                 store.state.navstate.selectedBreakoutCablingLocationId,
-            locationVms: _selectLocations(store),
+            locationVms: _selectLocations(store, cableGraph),
             locationFixtureVms: locationFixtures,
             fixtureMap: store.state.fixtureState.fixtures,
             cableViewVm: _selectCableViewVm(
@@ -154,13 +154,82 @@ CableGraph _selectCableGraph(Store<AppState> store) {
   );
 }
 
-List<LocationViewModel> _selectLocations(Store<AppState> store) {
+List<LocationViewModel> _selectLocations(
+    Store<AppState> store, CableGraph cableGraph) {
+  final cablesByLocationId = _getCableQtysByLocationId(cableGraph);
+  final headersByLocationId = _getCableHeaderQtysByLocationId(cableGraph);
+
+  final allCablesByLocationId = cablesByLocationId
+    ..updateAll((key, value) => Map<CableQtyGroup, int>.from(value)
+      ..addAll(headersByLocationId[key] ?? {}));
+
   return store.state.fixtureState.locations.values
       .map((location) => LocationViewModel(
+          cableQtys: allCablesByLocationId[location.uid] ?? {},
           location: location,
           onSelect: () =>
               store.dispatch(SetBreakoutCablingLocationId(location.uid))))
       .toList();
+}
+
+Map<String, Map<CableQtyGroup, int>> _getCableQtysByLocationId(
+    CableGraph cableGraph) {
+  return Map<String, Map<CableQtyGroup, int>>.fromEntries(cableGraph.edges
+      .whereType<CableEdge>()
+      .groupListsBy((edge) => edge.locationId)
+      .entries
+      .map((entry) {
+    final locationId = entry.key;
+    final cableEdges = entry.value;
+
+    // Convert the cable Edges into CableGroupQtys.
+    final groups = cableEdges
+        .map((edge) => CableQtyGroup(type: edge.type, length: edge.length));
+
+    // Fold the Groups into a Map.
+    final map = <CableQtyGroup, int>{};
+    for (final group in groups) {
+      map.update(group, (count) => count + 1, ifAbsent: () => 1);
+    }
+
+    return MapEntry(locationId, map);
+  }));
+}
+
+Map<String, Map<CableQtyGroup, int>> _getCableHeaderQtysByLocationId(
+    CableGraph cableGraph) {
+  return Map<String, Map<CableQtyGroup, int>>.fromEntries(cableGraph.nodes
+      .whereType<MultiHeaderNode>()
+      .groupListsBy((node) => node.locationId)
+      .entries
+      .map((entry) {
+    final locationId = entry.key;
+    final nodes = entry.value;
+
+    // Convert the Nodes into Qty groups.
+    final groups = nodes.map((node) => CableQtyGroup(
+        type: switch (node) {
+          DataMultiHeaderNode() => CableType.sneakLampHeader,
+          PowerMultiHeaderNode() => switch (node.cableType) {
+              CableType.socapex => node.edges
+                      .whereType<CableEdge>()
+                      .every((edge) => edge.type == CableType.true1)
+                  ? CableType.socapexToTrue1LampHeader
+                  : CableType.socapexToAu10ALampHeader,
+              CableType.wieland6way => CableType.wieland6WayLampHeader,
+              _ => throw UnimplementedError(),
+            }
+        },
+        length: 0));
+
+    // Fold the Groups into a Map.
+    final map = <CableQtyGroup, int>{};
+    for (final group in groups) {
+      map.update(group, (count) => count + 1, ifAbsent: () => 1);
+    }
+
+    return MapEntry(locationId, map);
+  }));
 }
 
 Map<String, FixtureViewModel> _selectLocationFixtures(

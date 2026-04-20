@@ -36,6 +36,13 @@ String selectCableLabel({
     CableType.hoistMulti => _selectHoistMultiLabel(hoistMultis[cable.outletId]),
     CableType.au10a => '',
     CableType.unknown => throw UnimplementedError(),
+    CableType.true1 => throw UnimplementedError(),
+    CableType.socapexToAu10ALampHeader => throw UnimplementedError(),
+    CableType.socapexToTrue1LampHeader => throw UnimplementedError(),
+    CableType.wieland6WayLampHeader => throw UnimplementedError(),
+    CableType.sneakLampHeader => throw UnimplementedError(),
+    CableType.hoistMultiLampHeader => throw UnimplementedError(),
+    CableType.hoistMultiRackHeader => throw UnimplementedError(),
   };
 }
 

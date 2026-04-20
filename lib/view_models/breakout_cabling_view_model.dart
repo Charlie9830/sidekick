@@ -25,10 +25,12 @@ class BreakoutCablingViewModel {
 class LocationViewModel {
   final LocationModel location;
   final void Function() onSelect;
+  final Map<CableQtyGroup, int> cableQtys;
 
   LocationViewModel({
     required this.location,
     required this.onSelect,
+    required this.cableQtys,
   });
 }
 
@@ -154,4 +156,103 @@ class CableEdgeElement extends EdgeElement {
 
 class PsuedoEdgeElement extends EdgeElement {
   PsuedoEdgeElement({required super.toElement, required super.fromElement});
+}
+
+class CableLengthBreakpoints {
+  static List<double> au10A = [1, 2, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+  static List<double> socapex = [
+    3,
+    5,
+    7.5,
+    10,
+    12.5,
+    15,
+    17.5,
+    20,
+    25,
+    30,
+    35,
+    40,
+    45,
+    50
+  ];
+
+  static List<double> wieland6Way = [
+    3,
+    5,
+    7.5,
+    10,
+    12.5,
+    15,
+    17.5,
+    20,
+    25,
+    30,
+    35,
+    40,
+    45,
+    50
+  ];
+
+  static List<double> dmx = [1, 2, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+  static List<double> true1 = [0.7, 1, 2, 3, 5, 10, 15];
+  static List<double> sneak = [2, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+}
+
+class CableQtyGroup {
+  final CableType type;
+  final double length;
+
+  CableQtyGroup({
+    required this.type,
+    required this.length,
+  });
+
+  static List<CableQtyGroup> socapexGroups = [
+    CableQtyGroup(type: CableType.socapexToAu10ALampHeader, length: 0),
+    CableQtyGroup(type: CableType.socapexToTrue1LampHeader, length: 0),
+    ..._buildQtyGroups(CableLengthBreakpoints.socapex, CableType.socapex)
+  ];
+  static List<CableQtyGroup> wieland6WayGroups = [
+    CableQtyGroup(type: CableType.wieland6WayLampHeader, length: 0),
+    ..._buildQtyGroups(
+        CableLengthBreakpoints.wieland6Way, CableType.wieland6way)
+  ];
+  static List<CableQtyGroup> dmxGroups = [
+    CableQtyGroup(type: CableType.sneakLampHeader, length: 0),
+    ..._buildQtyGroups(CableLengthBreakpoints.dmx, CableType.dmx)
+  ];
+  static List<CableQtyGroup> au10AGroups =
+      _buildQtyGroups(CableLengthBreakpoints.au10A, CableType.au10a);
+  static List<CableQtyGroup> true1Groups =
+      _buildQtyGroups(CableLengthBreakpoints.true1, CableType.true1);
+
+  static List<CableQtyGroup> sneakGroups =
+      _buildQtyGroups(CableLengthBreakpoints.sneak, CableType.sneak);
+
+  static List<CableQtyGroup> allGroups = [
+    ...socapexGroups,
+    ...wieland6WayGroups,
+    ...dmxGroups,
+    ...au10AGroups,
+    ...true1Groups,
+    ...sneakGroups,
+  ];
+
+  static List<CableQtyGroup> _buildQtyGroups(
+      List<double> lengths, CableType type) {
+    return lengths
+        .map((length) => CableQtyGroup(length: length, type: type))
+        .toList();
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CableQtyGroup &&
+        other.type == type &&
+        other.length == length;
+  }
+
+  @override
+  int get hashCode => type.hashCode ^ length.hashCode;
 }
