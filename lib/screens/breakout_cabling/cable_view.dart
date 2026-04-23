@@ -92,8 +92,8 @@ class CableView extends StatelessWidget {
                             translation: Offset(-0.5, -0.5),
                             child: _LocationNode())),
                     FixtureElement() => Positioned(
-                        width: 24,
-                        height: 24,
+                        width: 16,
+                        height: 16,
                         left: origin.dx,
                         top: origin.dy,
                         child: FractionalTranslation(
@@ -162,7 +162,7 @@ class CableView extends StatelessWidget {
         from: fromOffset,
         to: toOffset,
         runType: edge.runType,
-        label: '${edge.length}m');
+        label: _formatLength(edge.length));
   }
 
   Widget _buildPowerCableEdge(
@@ -176,9 +176,15 @@ class CableView extends StatelessWidget {
     return _PowerCableEdge(
       from: fromOffset,
       to: toOffset,
-      label: '${edge.length}m',
+      label: _formatLength(edge.length),
       runType: edge.runType,
     );
+  }
+
+  String _formatLength(double length) {
+    return length.remainder(1) == 0
+        ? '${length.toStringAsFixed(0)}m'
+        : '${length.toStringAsFixed(1)}m';
   }
 }
 
@@ -276,23 +282,27 @@ class _FixtureNode extends StatelessWidget {
             color: Theme.of(context).colorScheme.border,
           ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              vm.fixture.fid.toString(),
-              style: Theme.of(context).typography.mono.copyWith(fontSize: 6),
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.clip,
-            ),
-            Text(
-              vm.fixtureType.shortName,
-              style:
-                  Theme.of(context).typography.extraLight.copyWith(fontSize: 4),
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.clip,
-            )
-          ],
+        child: FittedBox(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                vm.fixture.fid.toString(),
+                style: Theme.of(context).typography.mono.copyWith(fontSize: 6),
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.clip,
+              ),
+              Text(
+                vm.fixtureType.shortName,
+                style: Theme.of(context)
+                    .typography
+                    .extraLight
+                    .copyWith(fontSize: 4),
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.clip,
+              )
+            ],
+          ),
         ));
   }
 }
