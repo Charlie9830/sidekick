@@ -12,6 +12,7 @@ import 'package:path/path.dart' as p;
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide IndexedSlot;
+import 'package:sidekick/permanent_loom_analysis.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/data_rack_model.dart';
 import 'package:sidekick/redux/models/data_rack_type_model.dart';
@@ -2142,7 +2143,7 @@ ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
 
 ThunkAction<AppState> debugButtonPressed() {
   return (Store<AppState> store) async {
-    debugPrint("No Action Performed");
+    runAnalysis();
   };
 }
 
