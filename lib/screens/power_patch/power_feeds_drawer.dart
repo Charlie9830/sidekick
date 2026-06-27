@@ -20,7 +20,7 @@ class PowerFeedsDrawer extends StatelessWidget {
           child: Card(
             padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
             filled: true,
-            fillColor: Theme.of(context).colorScheme.sidebarAccent,
+            fillColor: Theme.of(context).colorScheme.card,
             child: Column(
               children: [
                 Row(
@@ -28,19 +28,21 @@ class PowerFeedsDrawer extends StatelessWidget {
                   children: [
                     Text(feedVm.feed.name),
                     PowerMeter(
-                        draw: CurrentDraw.fromPhaseLoad(feedVm.load),
-                        capacity: feedVm.feed.capacity)
+                      draw: CurrentDraw.fromPhaseLoad(feedVm.load),
+                      capacity: feedVm.feed.capacity,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 4.0),
                 SizedBox(
                   height: 36,
                   child: BalanceGauge(
-                      variance: Variance.small,
-                      phaseALoad: feedVm.load.a,
-                      phaseBLoad: feedVm.load.b,
-                      phaseCLoad: feedVm.load.c),
-                )
+                    variance: Variance.small,
+                    phaseALoad: feedVm.load.a,
+                    phaseBLoad: feedVm.load.b,
+                    phaseCLoad: feedVm.load.c,
+                  ),
+                ),
               ],
             ),
           ),

@@ -1,6 +1,3 @@
-import 'dart:math' as math;
-
-import 'package:flutter/gestures.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
@@ -23,47 +20,55 @@ class CableQtySpreadsheet extends StatelessWidget {
 
     return Card(
       child: TableView.builder(
-          columnCount: locationVms.length + 1,
-          rowCount: allGroups.length + 1,
-          columnBuilder: (index) {
-            if (index == 0) {
-              return const TableSpan(extent: FixedSpanExtent(124));
-            }
+        columnCount: locationVms.length + 1,
+        rowCount: allGroups.length + 1,
+        columnBuilder: (index) {
+          if (index == 0) {
+            return const TableSpan(extent: FixedSpanExtent(124));
+          }
 
-            final location = locationVms.elementAtOrNull(index - 1);
+          final location = locationVms.elementAtOrNull(index - 1);
 
-            return TableSpan(
-                backgroundDecoration:
-                    location?.location.uid == selectedLocationId
-                        ? SpanDecoration(color: Colors.gray.shade900)
-                        : null,
-                foregroundDecoration:
-                    SpanDecoration(border: SpanBorder(leading: borderSide)),
-                extent: const FixedSpanExtent(32));
-          },
-          rowBuilder: (index) {
-            if (index == 0) {
-              return const TableSpan(extent: FixedSpanExtent(200));
-            }
+          return TableSpan(
+            backgroundDecoration: location?.location.uid == selectedLocationId
+                ? SpanDecoration(color: Colors.gray.shade900)
+                : null,
+            foregroundDecoration: SpanDecoration(
+              border: SpanBorder(leading: borderSide),
+            ),
+            extent: const FixedSpanExtent(32),
+          );
+        },
+        rowBuilder: (index) {
+          if (index == 0) {
+            return const TableSpan(extent: FixedSpanExtent(200));
+          }
 
-            final currentType = allGroups[index - 1].type;
-            final nextType = allGroups.elementAtOrNull(index)?.type;
+          final currentType = allGroups[index - 1].type;
+          final nextType = allGroups.elementAtOrNull(index)?.type;
 
-            return TableSpan(
-                extent: const FixedSpanExtent(32),
-                foregroundDecoration: SpanDecoration(
-                    border: SpanBorder(
-                        leading: borderSide,
-                        trailing: currentType != nextType
-                            ? borderSide.copyWith(width: 2)
-                            : BorderSide.none)));
-          },
-          cellBuilder: (context, vic) => _cellBuilder(context, vic, allGroups)),
+          return TableSpan(
+            extent: const FixedSpanExtent(32),
+            foregroundDecoration: SpanDecoration(
+              border: SpanBorder(
+                leading: borderSide,
+                trailing: currentType != nextType
+                    ? borderSide.copyWith(width: 2)
+                    : BorderSide.none,
+              ),
+            ),
+          );
+        },
+        cellBuilder: (context, vic) => _cellBuilder(context, vic, allGroups),
+      ),
     );
   }
 
-  TableViewCell _cellBuilder(BuildContext context, TableVicinity vicinity,
-      List<CableQtyGroup> allGroups) {
+  TableViewCell _cellBuilder(
+    BuildContext context,
+    TableVicinity vicinity,
+    List<CableQtyGroup> allGroups,
+  ) {
     if (vicinity.row == 0) {
       // Header Row
       return _buildHeaderCell(context, vicinity.column);
@@ -88,8 +93,10 @@ class CableQtySpreadsheet extends StatelessWidget {
           alignment: Alignment.bottomCenter,
           child: RotatedBox(
             quarterTurns: 3,
-            child: Text(location?.location.name ?? '',
-                style: Theme.of(context).typography.small),
+            child: Text(
+              location?.location.name ?? '',
+              style: Theme.of(context).typography.small,
+            ),
           ),
         ),
       ),
@@ -97,18 +104,27 @@ class CableQtySpreadsheet extends StatelessWidget {
   }
 
   TableViewCell _buildCableTypeCell(
-      BuildContext context, int rowIndex, List<CableQtyGroup> allGroups) {
+    BuildContext context,
+    int rowIndex,
+    List<CableQtyGroup> allGroups,
+  ) {
     final cableGroup = allGroups.elementAtOrNull(rowIndex - 1);
     return TableViewCell(
       child: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(_formatCableGroup(cableGroup),
-              style: Theme.of(context).typography.small)),
+        alignment: Alignment.centerLeft,
+        child: Text(
+          _formatCableGroup(cableGroup),
+          style: Theme.of(context).typography.small,
+        ),
+      ),
     );
   }
 
-  TableViewCell _buildContentCell(BuildContext context, TableVicinity vicinity,
-      List<CableQtyGroup> allGroups) {
+  TableViewCell _buildContentCell(
+    BuildContext context,
+    TableVicinity vicinity,
+    List<CableQtyGroup> allGroups,
+  ) {
     final location = locationVms.elementAtOrNull(vicinity.column - 1);
     final qtyGroup = allGroups.elementAtOrNull(vicinity.row - 1);
 
@@ -145,7 +161,7 @@ class CableQtySpreadsheet extends StatelessWidget {
       CableType.wieland6WayLampHeader => '6way AU10A Header',
       CableType.sneakLampHeader => 'SS Lamp Header',
       CableType.hoistMultiLampHeader => 'Motor Multi Lamp Header',
-      CableType.hoistMultiRackHeader => 'Motor Multi Rack Header'
+      CableType.hoistMultiRackHeader => 'Motor Multi Rack Header',
     };
 
     if (group.type == CableType.socapexToAu10ALampHeader ||

@@ -37,14 +37,15 @@ class DiffingToolbar extends StatelessWidget {
           const Spacer(),
           Expanded(
             child: NavigationBar(
-              onSelected: (key) => onTabSelected((key as ValueKey).value),
+              onSelected: (key) =>
+                  onTabSelected((key as ValueKey<int>).value),
               selectedKey: ValueKey(selectedTab),
               alignment: NavigationBarAlignment.end,
               children: const [
-                NavigationItem(child: Text('Fixtures')),
-                NavigationItem(child: Text('Patch')),
-                NavigationItem(child: Text('Looms')),
-                NavigationItem(child: Text('Hoists')),
+                NavigationItem(key: ValueKey(0), child: Text('Fixtures')),
+                NavigationItem(key: ValueKey(1), child: Text('Patch')),
+                NavigationItem(key: ValueKey(2), child: Text('Looms')),
+                NavigationItem(key: ValueKey(3), child: Text('Hoists')),
               ],
             ),
           ),

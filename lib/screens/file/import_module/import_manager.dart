@@ -49,7 +49,7 @@ class _ImportManagerState extends State<ImportManager> {
   bool _isFixtureDatabasePathValid = false;
   List<RawFixtureModel> _incomingFixtures = const [];
   List<RawLocationModel> _incomingLocations = const [];
-  List<RawTrussModel> _incomingTrusses = const [];
+  final List<RawTrussModel> _incomingTrusses = const [];
   Map<String, String> _locationMapping = {};
 
   @override

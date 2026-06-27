@@ -19,15 +19,17 @@ class FixtureTypes extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         NavigationBar(
-          index: vm.tabIndex,
-          onSelected: (index) => vm.onTabChanged(index),
+          selectedKey: ValueKey(vm.tabIndex),
+          onSelected: (key) => vm.onTabChanged((key as ValueKey<int>).value),
           alignment: NavigationBarAlignment.start,
-          expands: false,
+          expanded: false,
           children: const [
             NavigationItem(
+              key: ValueKey(0),
               child: Text('Fixture Types'),
             ),
             NavigationItem(
+              key: ValueKey(1),
               child: Text('Pools'),
             )
           ],

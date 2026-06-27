@@ -4,7 +4,6 @@ import 'package:collection/collection.dart';
 import 'package:excel_community/excel_community.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
-import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/deserialize_project_file.dart';
 import 'package:path/path.dart' as p;

@@ -46,61 +46,75 @@ class _HomeState extends State<Home> {
           headers: [
             // Navigation Bar
             NavigationBar(
-              onSelected: (index) => setState(() => _tabIndex = index),
-              index: _tabIndex,
-              expands: false,
+              onSelected: (key) =>
+                  setState(() => _tabIndex = (key as ValueKey<int>).value),
+              selectedKey: ValueKey(_tabIndex),
+              expanded: false,
               labelType: NavigationLabelType.all,
               alignment: NavigationBarAlignment.start,
               children: const [
                 _NavigationItem(
+                  index: 0,
                   label: Text('File'),
                   child: Icon(Icons.folder),
                 ),
                 _NavigationItem(
+                  index: 1,
                   label: Text('Fixtures'),
                   child: Icon(Icons.lightbulb),
                 ),
                 _NavigationItem(
+                  index: 2,
                   label: Text('Patch'),
                   child: Icon(Icons.electric_bolt),
                 ),
                 _NavigationItem(
+                  index: 3,
                   label: Text('Racks'),
                   child: Icon(Icons.dns),
                 ),
                 _NavigationItem(
+                  index: 4,
                   label: Text('Hoists'),
                   child: Icon(Icons.construction),
                 ),
                 _NavigationItem(
+                  index: 5,
                   label: Text('Looms'),
                   child: Icon(Icons.cable),
                 ),
                 _NavigationItem(
+                  index: 6,
                   label: Text('Breakout Cabling'),
                   child: Icon(Icons.auto_graph),
                 ),
                 _NavigationItem(
+                  index: 7,
                   label: Text('Locations'),
                   child: Icon(Icons.location_pin),
                 ),
                 _NavigationItem(
+                  index: 8,
                   label: Text('Fixture Types'),
                   child: Icon(Icons.light),
                 ),
                 _NavigationItem(
+                  index: 9,
                   label: Text('Export'),
                   child: Icon(Icons.save_alt),
                 ),
                 _NavigationItem(
+                  index: 10,
                   label: Text('Diff'),
                   child: Icon(Icons.difference),
                 ),
                 _NavigationItem(
+                  index: 11,
                   label: Text('Lab'),
                   child: Icon(Icons.build),
                 ),
                 _NavigationItem(
+                  index: 12,
                   label: Text("Diagnostics"),
                   child: Icon(Icons.bug_report),
                 ),
@@ -112,17 +126,18 @@ class _HomeState extends State<Home> {
                 height: 48,
                 child: NavigationBar(
                   labelType: NavigationLabelType.all,
-                  index: widget.vm.racksTabIndex,
-                  onSelected: widget.vm.onRacksTabIndexChanged,
-                  expands: false,
+                  selectedKey: ValueKey(widget.vm.racksTabIndex),
+                  onSelected: (key) => widget.vm
+                      .onRacksTabIndexChanged((key as ValueKey<int>).value),
+                  expanded: false,
                   alignment: NavigationBarAlignment.start,
                   children: const [
                     NavigationItem(
-                      index: 0,
+                      key: ValueKey(0),
                       child: Text('Power'),
                     ),
                     NavigationItem(
-                      index: 1,
+                      key: ValueKey(1),
                       child: Text('Data'),
                     )
                   ],
@@ -149,10 +164,12 @@ class _HomeState extends State<Home> {
   }
 }
 
-class _NavigationItem extends StatelessWidget implements NavigationBarItem {
+class _NavigationItem extends StatelessWidget {
+  final int index;
   final Widget child;
   final Widget label;
   const _NavigationItem({
+    required this.index,
     required this.child,
     required this.label,
   });
@@ -160,13 +177,11 @@ class _NavigationItem extends StatelessWidget implements NavigationBarItem {
   @override
   Widget build(BuildContext context) {
     return NavigationItem(
+      key: ValueKey(index),
       style: const ButtonStyle.muted(density: ButtonDensity.icon),
       selectedStyle: const ButtonStyle.fixed(density: ButtonDensity.icon),
       label: label,
       child: child,
     );
   }
-
-  @override
-  bool get selectable => true;
 }

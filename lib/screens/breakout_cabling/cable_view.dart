@@ -32,66 +32,77 @@ class CableView extends StatelessWidget {
                 constraints: constraints,
               );
 
-              return Stack(children: [
-                // Edges (Cables)
-                ...vm.edges.map((edge) {
-                  final fromElement = edge.fromElement;
-                  final toElement = edge.toElement;
-                  final fromOffset = viewport.transform(
-                      fromElement.screenX, fromElement.screenY);
-                  final toOffset =
-                      viewport.transform(toElement.screenX, toElement.screenY);
+              return Stack(
+                children: [
+                  // Edges (Cables)
+                  ...vm.edges.map((edge) {
+                    final fromElement = edge.fromElement;
+                    final toElement = edge.toElement;
+                    final fromOffset = viewport.transform(
+                      fromElement.screenX,
+                      fromElement.screenY,
+                    );
+                    final toOffset = viewport.transform(
+                      toElement.screenX,
+                      toElement.screenY,
+                    );
 
-                  return Positioned.fill(
+                    return Positioned.fill(
                       child: switch (edge) {
-                    PsuedoEdgeElement() => const SizedBox(),
-                    CableEdgeElement() => switch (edge.type) {
-                        CableType.unknown => throw UnimplementedError(),
-                        CableType.wieland6way => throw UnimplementedError(),
-                        CableType.sneak => throw UnimplementedError(),
-                        CableType.hoist => throw UnimplementedError(),
-                        CableType.hoistMulti => throw UnimplementedError(),
-                        CableType.true1 => throw UnimplementedError(),
-                        CableType.dmx => _buildDataCableEdge(
+                        PsuedoEdgeElement() => const SizedBox(),
+                        CableEdgeElement() => switch (edge.type) {
+                          CableType.unknown => throw UnimplementedError(),
+                          CableType.wieland6way => throw UnimplementedError(),
+                          CableType.sneak => throw UnimplementedError(),
+                          CableType.hoist => throw UnimplementedError(),
+                          CableType.hoistMulti => throw UnimplementedError(),
+                          CableType.true1 => throw UnimplementedError(),
+                          CableType.dmx => _buildDataCableEdge(
                             edge: edge,
                             fromOffset: fromOffset,
                             toOffset: toOffset,
                           ),
-                        CableType.au10a ||
-                        CableType.socapex =>
-                          _buildPowerCableEdge(
+                          CableType.au10a ||
+                          CableType.socapex => _buildPowerCableEdge(
                             edge: edge,
                             fromOffset: fromOffset,
                             toOffset: toOffset,
                           ),
-                        CableType.socapexToAu10ALampHeader =>
-                          throw UnimplementedError(),
-                        CableType.socapexToTrue1LampHeader =>
-                          throw UnimplementedError(),
-                        CableType.wieland6WayLampHeader =>
-                          throw UnimplementedError(),
-                        CableType.sneakLampHeader => throw UnimplementedError(),
-                        CableType.hoistMultiLampHeader =>
-                          throw UnimplementedError(),
-                        CableType.hoistMultiRackHeader =>
-                          throw UnimplementedError(),
-                      }
-                  });
-                }),
+                          CableType.socapexToAu10ALampHeader =>
+                            throw UnimplementedError(),
+                          CableType.socapexToTrue1LampHeader =>
+                            throw UnimplementedError(),
+                          CableType.wieland6WayLampHeader =>
+                            throw UnimplementedError(),
+                          CableType.sneakLampHeader =>
+                            throw UnimplementedError(),
+                          CableType.hoistMultiLampHeader =>
+                            throw UnimplementedError(),
+                          CableType.hoistMultiRackHeader =>
+                            throw UnimplementedError(),
+                        },
+                      },
+                    );
+                  }),
 
-                // Nodes (Fixtures, Headers etc)
-                ...vm.elements.map((node) {
-                  final origin = viewport.transform(node.screenX, node.screenY);
-                  return switch (node) {
-                    LocationElement() => Positioned(
+                  // Nodes (Fixtures, Headers etc)
+                  ...vm.elements.map((node) {
+                    final origin = viewport.transform(
+                      node.screenX,
+                      node.screenY,
+                    );
+                    return switch (node) {
+                      LocationElement() => Positioned(
                         width: 10,
                         height: 10,
                         left: origin.dx,
                         top: origin.dy,
                         child: const FractionalTranslation(
-                            translation: Offset(-0.5, -0.5),
-                            child: _LocationNode())),
-                    FixtureElement() => Positioned(
+                          translation: Offset(-0.5, -0.5),
+                          child: _LocationNode(),
+                        ),
+                      ),
+                      FixtureElement() => Positioned(
                         width: 16,
                         height: 16,
                         left: origin.dx,
@@ -102,38 +113,43 @@ class CableView extends StatelessWidget {
                           child: _FixtureNode(vm: node.fixtureVm),
                         ),
                       ),
-                    PowerMultiHeaderElement() => Positioned(
+                      PowerMultiHeaderElement() => Positioned(
                         width: 16,
                         height: 16,
                         left: origin.dx,
                         top: origin.dy,
                         child: FractionalTranslation(
-                            translation: const Offset(-0.5, -0.5),
-                            child: _PowerMultiNode(vm: node.powerMultiVm))),
-                    DataMultiHeaderElement() => Positioned(
+                          translation: const Offset(-0.5, -0.5),
+                          child: _PowerMultiNode(vm: node.powerMultiVm),
+                        ),
+                      ),
+                      DataMultiHeaderElement() => Positioned(
                         width: 16,
                         height: 16,
                         left: origin.dx,
                         top: origin.dy,
                         child: FractionalTranslation(
-                            translation: const Offset(-0.5, -0.5),
-                            child: _DataMultiNode(
-                              outletName: node.outletName,
-                            ))),
-                    DataPatchHeaderElement() => Positioned(
+                          translation: const Offset(-0.5, -0.5),
+                          child: _DataMultiNode(outletName: node.outletName),
+                        ),
+                      ),
+                      DataPatchHeaderElement() => Positioned(
                         width: 16,
                         height: 16,
                         left: origin.dx,
                         top: origin.dy,
                         child: FractionalTranslation(
-                            translation: const Offset(-0.5, -0.5),
-                            child: _DataPatchNode(
-                              outletName: node.outletName,
-                              universe: node.universe,
-                            ))),
-                  };
-                })
-              ]);
+                          translation: const Offset(-0.5, -0.5),
+                          child: _DataPatchNode(
+                            outletName: node.outletName,
+                            universe: node.universe,
+                          ),
+                        ),
+                      ),
+                    };
+                  }),
+                ],
+              );
             },
           ),
         ),
@@ -150,25 +166,28 @@ class CableView extends StatelessWidget {
     );
   }
 
-  Widget _buildDataCableEdge(
-      {required CableEdgeElement edge,
-      required Offset fromOffset,
-      required Offset toOffset}) {
+  Widget _buildDataCableEdge({
+    required CableEdgeElement edge,
+    required Offset fromOffset,
+    required Offset toOffset,
+  }) {
     if (vm.cableVisibility.dataState.contains(edge.runType) == false) {
       return const SizedBox();
     }
 
     return _DataCableEdge(
-        from: fromOffset,
-        to: toOffset,
-        runType: edge.runType,
-        label: _formatLength(edge.length));
+      from: fromOffset,
+      to: toOffset,
+      runType: edge.runType,
+      label: _formatLength(edge.length),
+    );
   }
 
-  Widget _buildPowerCableEdge(
-      {required CableEdgeElement edge,
-      required Offset fromOffset,
-      required Offset toOffset}) {
+  Widget _buildPowerCableEdge({
+    required CableEdgeElement edge,
+    required Offset fromOffset,
+    required Offset toOffset,
+  }) {
     if (vm.cableVisibility.powerState.contains(edge.runType) == false) {
       return const SizedBox();
     }
@@ -253,7 +272,7 @@ class ViewportTransformer {
 }
 
 class _LocationNode extends StatelessWidget {
-  const _LocationNode({super.key});
+  const _LocationNode();
 
   @override
   Widget build(BuildContext context) {
@@ -273,37 +292,35 @@ class _FixtureNode extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          shape: BoxShape.rectangle,
-          borderRadius: const BorderRadius.all(Radius.circular(8)),
-          color: Theme.of(context).colorScheme.card,
-          border: Border.all(
-            color: Theme.of(context).colorScheme.border,
-          ),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.rectangle,
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        color: Theme.of(context).colorScheme.card,
+        border: Border.all(color: Theme.of(context).colorScheme.border),
+      ),
+      child: FittedBox(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              vm.fixture.fid.toString(),
+              style: Theme.of(context).typography.mono.copyWith(fontSize: 6),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.clip,
+            ),
+            Text(
+              vm.fixtureType.shortName,
+              style: Theme.of(
+                context,
+              ).typography.extraLight.copyWith(fontSize: 4),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.clip,
+            ),
+          ],
         ),
-        child: FittedBox(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                vm.fixture.fid.toString(),
-                style: Theme.of(context).typography.mono.copyWith(fontSize: 6),
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.clip,
-              ),
-              Text(
-                vm.fixtureType.shortName,
-                style: Theme.of(context)
-                    .typography
-                    .extraLight
-                    .copyWith(fontSize: 4),
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.clip,
-              )
-            ],
-          ),
-        ));
+      ),
+    );
   }
 }
 
@@ -314,48 +331,43 @@ class _PowerMultiNode extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.red,
-          border: Border.all(
-            color: Theme.of(context).colorScheme.border,
-          ),
-        ),
-        child: Text(
-          vm.name,
-          style: Theme.of(context).typography.mono.copyWith(fontSize: 6),
-          textAlign: TextAlign.center,
-          overflow: TextOverflow.clip,
-        ));
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.red,
+        border: Border.all(color: Theme.of(context).colorScheme.border),
+      ),
+      child: Text(
+        vm.name,
+        style: Theme.of(context).typography.mono.copyWith(fontSize: 6),
+        textAlign: TextAlign.center,
+        overflow: TextOverflow.clip,
+      ),
+    );
   }
 }
 
 class _DataMultiNode extends StatelessWidget {
   final String outletName;
 
-  const _DataMultiNode({
-    super.key,
-    required this.outletName,
-  });
+  const _DataMultiNode({required this.outletName});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          shape: BoxShape.rectangle,
-          color: Colors.teal,
-          border: Border.all(
-            color: Theme.of(context).colorScheme.border,
-          ),
-        ),
-        child: Text(
-          outletName,
-          style: Theme.of(context).typography.mono.copyWith(fontSize: 6),
-          textAlign: TextAlign.center,
-          overflow: TextOverflow.clip,
-        ));
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.rectangle,
+        color: Colors.teal,
+        border: Border.all(color: Theme.of(context).colorScheme.border),
+      ),
+      child: Text(
+        outletName,
+        style: Theme.of(context).typography.mono.copyWith(fontSize: 6),
+        textAlign: TextAlign.center,
+        overflow: TextOverflow.clip,
+      ),
+    );
   }
 }
 
@@ -363,29 +375,24 @@ class _DataPatchNode extends StatelessWidget {
   final String outletName;
   final int universe;
 
-  const _DataPatchNode({
-    super.key,
-    required this.outletName,
-    required this.universe,
-  });
+  const _DataPatchNode({required this.outletName, required this.universe});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.teal,
-          border: Border.all(
-            color: Theme.of(context).colorScheme.border,
-          ),
-        ),
-        child: Text(
-          'U$universe',
-          style: Theme.of(context).typography.mono.copyWith(fontSize: 6),
-          textAlign: TextAlign.center,
-          overflow: TextOverflow.clip,
-        ));
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.teal,
+        border: Border.all(color: Theme.of(context).colorScheme.border),
+      ),
+      child: Text(
+        'U$universe',
+        style: Theme.of(context).typography.mono.copyWith(fontSize: 6),
+        textAlign: TextAlign.center,
+        overflow: TextOverflow.clip,
+      ),
+    );
   }
 }
 
@@ -405,20 +412,21 @@ class _PowerCableEdge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ArcConnector(
-        start: from,
-        end: to,
-        color: switch (runType) {
-          CableRunType.link => Colors.red.shade300,
-          CableRunType.fixtureRun => Colors.red.shade500,
-          CableRunType.homeRun => Colors.red.shade900,
-        },
-        width: switch (runType) {
-          CableRunType.link => 1,
-          CableRunType.fixtureRun => 1,
-          CableRunType.homeRun => 2,
-        },
-        label: label,
-        arcRadius: const Radius.elliptical(20, 20));
+      start: from,
+      end: to,
+      color: switch (runType) {
+        CableRunType.link => Colors.red.shade300,
+        CableRunType.fixtureRun => Colors.red.shade500,
+        CableRunType.homeRun => Colors.red.shade900,
+      },
+      width: switch (runType) {
+        CableRunType.link => 1,
+        CableRunType.fixtureRun => 1,
+        CableRunType.homeRun => 2,
+      },
+      label: label,
+      arcRadius: const Radius.elliptical(20, 20),
+    );
   }
 }
 
@@ -438,20 +446,21 @@ class _DataCableEdge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ArcConnector(
-        start: from,
-        end: to,
-        color: switch (runType) {
-          CableRunType.link => Colors.blue.shade300,
-          CableRunType.fixtureRun => Colors.blue.shade500,
-          CableRunType.homeRun => Colors.blue.shade900,
-        },
-        width: switch (runType) {
-          CableRunType.link => 1,
-          CableRunType.fixtureRun => 1,
-          CableRunType.homeRun => 2,
-        },
-        label: label,
-        clockwise: false,
-        arcRadius: const Radius.elliptical(20, 20));
+      start: from,
+      end: to,
+      color: switch (runType) {
+        CableRunType.link => Colors.blue.shade300,
+        CableRunType.fixtureRun => Colors.blue.shade500,
+        CableRunType.homeRun => Colors.blue.shade900,
+      },
+      width: switch (runType) {
+        CableRunType.link => 1,
+        CableRunType.fixtureRun => 1,
+        CableRunType.homeRun => 2,
+      },
+      label: label,
+      clockwise: false,
+      arcRadius: const Radius.elliptical(20, 20),
+    );
   }
 }

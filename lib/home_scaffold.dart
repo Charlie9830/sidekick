@@ -9,9 +9,9 @@ class HomeScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ShadcnApp(
-      theme: const ThemeData.dark(
+      theme: ThemeData.dark(
         typography: appTypography,
-        colorScheme: ColorSchemes.darkBlue,
+        colorScheme: LegacyColorSchemes.darkStone(),
         platform: TargetPlatform.windows,
       ),
       scaling: AdaptiveScaling.desktop,
