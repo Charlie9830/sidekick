@@ -1,4 +1,4 @@
-import 'package:excel/excel.dart';
+import 'package:excel_community/excel_community.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 
@@ -10,10 +10,7 @@ void createColorLookupSheet({
   final sheet = excel['Color Lookup'];
 
   // Header Rows
-  sheet.appendRow([
-    TextCellValue('Multicore Name'),
-    TextCellValue('Color'),
-  ]);
+  sheet.appendRow([TextCellValue('Multicore Name'), TextCellValue('Color')]);
 
   for (final multi in powerMultis.values) {
     final location = locations[multi.locationId];
@@ -21,9 +18,6 @@ void createColorLookupSheet({
         ? ''
         : location.color.firstColorOrNone.name.toLowerCase();
 
-    sheet.appendRow([
-      TextCellValue(multi.name),
-      TextCellValue(colorName),
-    ]);
+    sheet.appendRow([TextCellValue(multi.name), TextCellValue(colorName)]);
   }
 }

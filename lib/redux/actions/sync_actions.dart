@@ -1,4 +1,4 @@
-import 'package:excel/excel.dart';
+import 'package:excel_community/excel_community.dart';
 import 'package:sidekick/diffing/union_proxy.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
@@ -39,10 +39,7 @@ class ReorderFixtureTypePools {
   final int oldIndex;
   final int newIndex;
 
-  ReorderFixtureTypePools({
-    required this.oldIndex,
-    required this.newIndex,
-  });
+  ReorderFixtureTypePools({required this.oldIndex, required this.newIndex});
 }
 
 class DeleteFixtureTypePool {
@@ -55,10 +52,7 @@ class RemoveFixtureTypePoolEntry {
   final String poolId;
   final String typeId;
 
-  RemoveFixtureTypePoolEntry({
-    required this.poolId,
-    required this.typeId,
-  });
+  RemoveFixtureTypePoolEntry({required this.poolId, required this.typeId});
 }
 
 class UpdateFixtureTypePoolEntryQty {
@@ -77,10 +71,7 @@ class AddFixtureTypesToPool {
   final String poolId;
   final List<String> typeIds;
 
-  AddFixtureTypesToPool({
-    required this.poolId,
-    required this.typeIds,
-  });
+  AddFixtureTypesToPool({required this.poolId, required this.typeIds});
 }
 
 class UpdateFixtureTypePoolName {
@@ -137,19 +128,14 @@ class ToggleFeedsDrawer {}
 class SetPowerFeeds {
   final Map<String, PowerFeedModel> powerFeeds;
 
-  SetPowerFeeds({
-    required this.powerFeeds,
-  });
+  SetPowerFeeds({required this.powerFeeds});
 }
 
 class SetPowerFeedsAndPowerRacks {
   final Map<String, PowerFeedModel> powerFeeds;
   final Map<String, PowerRackModel> racks;
 
-  SetPowerFeedsAndPowerRacks({
-    required this.powerFeeds,
-    required this.racks,
-  });
+  SetPowerFeedsAndPowerRacks({required this.powerFeeds, required this.racks});
 }
 
 class SetPowerRacks {
@@ -199,9 +185,7 @@ class SetHoistsAndControllers {
 class RemoveLocation {
   final LocationModel location;
 
-  RemoveLocation({
-    required this.location,
-  });
+  RemoveLocation({required this.location});
 }
 
 class SetHoistControllers {
@@ -220,20 +204,14 @@ class UpdateHoistControllerName {
   final String hoistId;
   final String value;
 
-  UpdateHoistControllerName({
-    required this.hoistId,
-    required this.value,
-  });
+  UpdateHoistControllerName({required this.hoistId, required this.value});
 }
 
 class UpdateHoistControllerWayCount {
   final String hoistId;
   final int value;
 
-  UpdateHoistControllerWayCount({
-    required this.hoistId,
-    required this.value,
-  });
+  UpdateHoistControllerWayCount({required this.hoistId, required this.value});
 }
 
 class AppendSelectedHoistChannelId {
@@ -269,9 +247,7 @@ class SetSelectedPowerMultiChannelIds {
 class SetHoists {
   final Map<String, HoistModel> value;
 
-  SetHoists(
-    this.value,
-  );
+  SetHoists(this.value);
 }
 
 class SetComparisonFilePath {
@@ -332,9 +308,7 @@ class SetImportManagerStep {
 class SetImportExcelDocument {
   final Excel document;
 
-  SetImportExcelDocument(
-    this.document,
-  );
+  SetImportExcelDocument(this.document);
 }
 
 class SetSelectedExcelSheet {
@@ -360,18 +334,13 @@ class SetDiffingUnions {
   final Set<UnionProxy<CableModel>> cables;
   final Set<UnionProxy<LoomModel>> looms;
 
-  SetDiffingUnions({
-    required this.cables,
-    required this.looms,
-  });
+  SetDiffingUnions({required this.cables, required this.looms});
 }
 
 class SetSelectedDiffingTab {
   final int value;
 
-  SetSelectedDiffingTab(
-    this.value,
-  );
+  SetSelectedDiffingTab(this.value);
 }
 
 class SetOpenAfterExport {
@@ -416,10 +385,7 @@ class UpdateCablesAndDataMultis {
   final Map<String, CableModel> cables;
   final Map<String, DataMultiModel> dataMultis;
 
-  UpdateCablesAndDataMultis(
-    this.cables,
-    this.dataMultis,
-  );
+  UpdateCablesAndDataMultis(this.cables, this.dataMultis);
 }
 
 class ToggleCableDropperStateByLoom {
@@ -502,10 +468,11 @@ class OpenProject {
   final String parentDirectory;
   final String path;
 
-  OpenProject(
-      {required this.project,
-      required this.parentDirectory,
-      required this.path});
+  OpenProject({
+    required this.project,
+    required this.parentDirectory,
+    required this.path,
+  });
 }
 
 class SetProjectFileMetadata {

@@ -1,15 +1,17 @@
-import 'package:excel/excel.dart';
+import 'package:excel_community/excel_community.dart';
 
 class SheetIndexer {
   CellIndex current;
 
   SheetIndexer({CellIndex? initial})
-      : current =
-            initial ?? CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0);
+    : current =
+          initial ?? CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0);
 
   void stepRight() {
     current = CellIndex.indexByColumnRow(
-        columnIndex: current.columnIndex + 1, rowIndex: current.rowIndex);
+      columnIndex: current.columnIndex + 1,
+      rowIndex: current.rowIndex,
+    );
   }
 
   void stepDown() {
@@ -21,6 +23,8 @@ class SheetIndexer {
 
   void carriageReturn() {
     current = CellIndex.indexByColumnRow(
-        columnIndex: 0, rowIndex: current.rowIndex + 1);
+      columnIndex: 0,
+      rowIndex: current.rowIndex + 1,
+    );
   }
 }

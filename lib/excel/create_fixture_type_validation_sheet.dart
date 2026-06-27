@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:excel/excel.dart';
+import 'package:excel_community/excel_community.dart';
 import 'package:sidekick/excel/format_fixture_type.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
@@ -17,14 +17,17 @@ void createFixtureTypeValidationSheet({
 
   final outlets = powerMultis.values.map((multi) => multi.children).flattened;
 
-  final fixturePatchTypes = Map<String, double>.fromEntries(outlets.map(
-    (outlet) => MapEntry(
-      formatFixtureType(
-          outlet.fixtureIds.map((id) => fixtures[id]!).toList(), fixtureTypes),
-      outlet.load,
+  final fixturePatchTypes = Map<String, double>.fromEntries(
+    outlets.map(
+      (outlet) => MapEntry(
+        formatFixtureType(
+          outlet.fixtureIds.map((id) => fixtures[id]!).toList(),
+          fixtureTypes,
+        ),
+        outlet.load,
+      ),
     ),
-  ))
-    ..removeWhere((key, value) => key.isEmpty);
+  )..removeWhere((key, value) => key.isEmpty);
 
   // Header Rows
   sheet.appendRow([
@@ -45,23 +48,29 @@ void createFixtureTypeValidationSheet({
     sheet.appendRow([
       TextCellValue(pool.name),
       DoubleCellValue(_calculatePoolAmps(pool, fixtureTypes)),
-      TextCellValue(_getPoolContents(pool, fixtureTypes))
+      TextCellValue(_getPoolContents(pool, fixtureTypes)),
     ]);
   }
 }
 
 String _getPoolContents(
-    FixtureTypePoolModel pool, Map<String, FixtureTypeModel> fixtureTypes) {
+  FixtureTypePoolModel pool,
+  Map<String, FixtureTypeModel> fixtureTypes,
+) {
   return pool.items.values
-      .map((item) =>
-          '${item.qty}x ${fixtureTypes[item.typeId]?.shortName ?? ''}')
+      .map(
+        (item) => '${item.qty}x ${fixtureTypes[item.typeId]?.shortName ?? ''}',
+      )
       .join(', ');
 }
 
 double _calculatePoolAmps(
-    FixtureTypePoolModel pool, Map<String, FixtureTypeModel> fixtureTypes) {
+  FixtureTypePoolModel pool,
+  Map<String, FixtureTypeModel> fixtureTypes,
+) {
   return pool.items.values.fold<double>(
-      0,
-      (accum, value) =>
-          accum + (value.qty * (fixtureTypes[value.typeId]?.amps ?? 0)));
+    0,
+    (accum, value) =>
+        accum + (value.qty * (fixtureTypes[value.typeId]?.amps ?? 0)),
+  );
 }

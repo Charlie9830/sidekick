@@ -23,40 +23,34 @@ class DiffingToolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Toolbar(
-        height: 64,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            FileSelectButton(
-              path: comparisonFilePath,
-              onFileSelectPressed: _handleSelectFileForComparePressed,
-              hintText: 'Select file to compare with..',
-              dropTargetName: 'Drop Phase Project here',
-              onFileDropped: onFileSelectedForCompare,
+      height: 64,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          FileSelectButton(
+            path: comparisonFilePath,
+            onFileSelectPressed: _handleSelectFileForComparePressed,
+            hintText: 'Select file to compare with..',
+            dropTargetName: 'Drop Phase Project here',
+            onFileDropped: onFileSelectedForCompare,
+          ),
+          const Spacer(),
+          Expanded(
+            child: NavigationBar(
+              onSelected: (key) => onTabSelected((key as ValueKey).value),
+              selectedKey: ValueKey(selectedTab),
+              alignment: NavigationBarAlignment.end,
+              children: const [
+                NavigationItem(child: Text('Fixtures')),
+                NavigationItem(child: Text('Patch')),
+                NavigationItem(child: Text('Looms')),
+                NavigationItem(child: Text('Hoists')),
+              ],
             ),
-            const Spacer(),
-            Expanded(
-              child: NavigationBar(
-                onSelected: (index) => onTabSelected(index),
-                index: selectedTab,
-                alignment: NavigationBarAlignment.end,
-                expands: false,
-                children: const [
-                  NavigationItem(
-                    child: Text('Fixtures'),
-                  ),
-                  NavigationItem(
-                    child: Text('Patch'),
-                  ),
-                  NavigationItem(
-                    child: Text('Looms'),
-                  ),
-                  NavigationItem(child: Text('Hoists')),
-                ],
-              ),
-            )
-          ],
-        ));
+          ),
+        ],
+      ),
+    );
   }
 
   void _handleSelectFileForComparePressed() async {

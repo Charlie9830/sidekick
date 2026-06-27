@@ -1,4 +1,4 @@
-import 'package:excel/excel.dart';
+import 'package:excel_community/excel_community.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/containers/hoist_selectors.dart';
 import 'package:sidekick/excel/constants.dart';
@@ -17,22 +17,29 @@ void createHoistPatchSheet({
   final controllerVms = selectHoistControllers(
     store: store,
     selectedHoistChannelViewModelMap: {},
-    hoistViewModels:
-        mapHoistViewModels(store: store, cablesByOutletId: cablesByOutletId),
+    hoistViewModels: mapHoistViewModels(
+      store: store,
+      cablesByOutletId: cablesByOutletId,
+    ),
   );
 
   SheetIndexer indexer = SheetIndexer(
-      initial: CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0));
+    initial: CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0),
+  );
   for (final vm in controllerVms) {
-    indexer =
-        _writeHoistController(sheet: sheet, indexer: indexer, controllerVm: vm);
+    indexer = _writeHoistController(
+      sheet: sheet,
+      indexer: indexer,
+      controllerVm: vm,
+    );
   }
 }
 
-SheetIndexer _writeHoistController(
-    {required Sheet sheet,
-    required SheetIndexer indexer,
-    required HoistControllerViewModel controllerVm}) {
+SheetIndexer _writeHoistController({
+  required Sheet sheet,
+  required SheetIndexer indexer,
+  required HoistControllerViewModel controllerVm,
+}) {
   // Styles.
   final headerBaseStyle = CellStyle(
     backgroundColorHex: ExcelColor.fromHexString("#595959"),
@@ -75,54 +82,66 @@ SheetIndexer _writeHoistController(
   // Contents
   final List<Row> contents = [
     // Header Row
-    Row(children: [
-      Cell(
-        TextCellValue(controllerVm.controller.name),
-        style: headerBaseStyle.copyWith(boldVal: true),
-      ),
-      Cell.blank(style: headerBaseStyle),
-      Cell.blank(style: headerBaseStyle),
-      Cell.blank(style: headerBaseStyle),
-      Cell.blank(style: headerBaseStyle),
-      Cell(
-        TextCellValue('${controllerVm.controller.ways}way'),
-        style: headerBaseStyle.copyWith(
-            boldVal: true, horizontalAlignVal: HorizontalAlign.Right),
-      ),
-    ]),
+    Row(
+      children: [
+        Cell(
+          TextCellValue(controllerVm.controller.name),
+          style: headerBaseStyle.copyWith(boldVal: true),
+        ),
+        Cell.blank(style: headerBaseStyle),
+        Cell.blank(style: headerBaseStyle),
+        Cell.blank(style: headerBaseStyle),
+        Cell.blank(style: headerBaseStyle),
+        Cell(
+          TextCellValue('${controllerVm.controller.ways}way'),
+          style: headerBaseStyle.copyWith(
+            boldVal: true,
+            horizontalAlignVal: HorizontalAlign.Right,
+          ),
+        ),
+      ],
+    ),
 
     // Subheading Row
-    Row(children: [
-      Cell.blank(style: headerBaseStyle),
-      Cell.blank(style: headerBaseStyle),
-      Cell.blank(style: headerBaseStyle),
-      Cell.blank(style: headerBaseStyle),
-      Cell.blank(style: headerBaseStyle),
-      Cell(
-        TextCellValue('Notes'),
-        style: headerBaseStyle.copyWith(
+    Row(
+      children: [
+        Cell.blank(style: headerBaseStyle),
+        Cell.blank(style: headerBaseStyle),
+        Cell.blank(style: headerBaseStyle),
+        Cell.blank(style: headerBaseStyle),
+        Cell.blank(style: headerBaseStyle),
+        Cell(
+          TextCellValue('Notes'),
+          style: headerBaseStyle.copyWith(
             fontSizeVal: 11,
             horizontalAlignVal: HorizontalAlign.Right,
-            fontFamilyVal: 'Aptos Narrow'),
-      ),
-    ]),
+            fontFamilyVal: 'Aptos Narrow',
+          ),
+        ),
+      ],
+    ),
 
     // Column Header Row
-    Row(children: [
-      Cell(TextCellValue("Ch#"), style: nonInteractiveCellStyle, width: 8.11),
-      Cell(TextCellValue("Hoist Name"), style: columnHeaderStyle, width: 16.22),
-      Cell(TextCellValue("Location"), style: columnHeaderStyle, width: 18.22),
-      Cell(TextCellValue("Multi"), style: columnHeaderStyle, width: 8.44),
-      Cell(TextCellValue("Patch"), style: columnHeaderStyle, width: 8.11),
-      Cell(TextCellValue("Notes"), style: columnHeaderStyle, width: 23.78),
-    ]),
+    Row(
+      children: [
+        Cell(TextCellValue("Ch#"), style: nonInteractiveCellStyle, width: 8.11),
+        Cell(
+          TextCellValue("Hoist Name"),
+          style: columnHeaderStyle,
+          width: 16.22,
+        ),
+        Cell(TextCellValue("Location"), style: columnHeaderStyle, width: 18.22),
+        Cell(TextCellValue("Multi"), style: columnHeaderStyle, width: 8.44),
+        Cell(TextCellValue("Patch"), style: columnHeaderStyle, width: 8.11),
+        Cell(TextCellValue("Notes"), style: columnHeaderStyle, width: 23.78),
+      ],
+    ),
 
     // Contents Rows
-    ...controllerVm.channels.map((channel) => Row(children: [
-          Cell(
-            IntCellValue(channel.number),
-            style: nonInteractiveCellStyle,
-          ),
+    ...controllerVm.channels.map(
+      (channel) => Row(
+        children: [
+          Cell(IntCellValue(channel.number), style: nonInteractiveCellStyle),
           Cell(
             TextCellValue(channel.hoist?.hoist.name ?? ''),
             style: valueCellStyle,
@@ -143,14 +162,18 @@ SheetIndexer _writeHoistController(
             TextCellValue(channel.hoist?.hoist.controllerNote ?? ''),
             style: valueCellStyle,
           ),
-        ]))
+        ],
+      ),
+    ),
   ];
 
   for (final row in contents) {
     for (final cell in row.children) {
       if (cell.width != null) {
         sheet.setColumnWidth(
-            indexer.current.columnIndex, cell.width! + kColumnWidthOffset);
+          indexer.current.columnIndex,
+          cell.width! + kColumnWidthOffset,
+        );
       }
 
       sheet.updateCell(indexer.current, cell.value, cellStyle: cell.style);
@@ -174,11 +197,7 @@ class Cell {
   final CellStyle? style;
   final double? width;
 
-  Cell(
-    this.value, {
-    this.style,
-    this.width,
-  });
+  Cell(this.value, {this.style, this.width});
 
   factory Cell.blank({CellStyle? style}) {
     return Cell(null, style: style);

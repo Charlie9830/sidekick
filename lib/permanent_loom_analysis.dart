@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:excel/excel.dart';
+import 'package:excel_community/excel_community.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
@@ -20,20 +20,26 @@ void runAnalysis() async {
   final directory = Directory(projectFileDirectory);
   final phaseFiles = <File>[];
 
-  await for (final file
-      in directory.list().where((file) => file.path.endsWith('.phase'))) {
+  await for (final file in directory.list().where(
+    (file) => file.path.endsWith('.phase'),
+  )) {
     if (file is File) {
       phaseFiles.add(file);
     }
   }
 
-  final deserializationRequests =
-      phaseFiles.map((file) => deserializeProjectFile(file.path));
+  final deserializationRequests = phaseFiles.map(
+    (file) => deserializeProjectFile(file.path),
+  );
 
   final requests = await Future.wait(deserializationRequests);
 
-  final states = Map<String, FixtureState>.fromEntries(requests.map((project) =>
-      MapEntry(project.metadata.projectName, project.toFixtureState())));
+  final states = Map<String, FixtureState>.fromEntries(
+    requests.map(
+      (project) =>
+          MapEntry(project.metadata.projectName, project.toFixtureState()),
+    ),
+  );
 
   _runOutletAnalysis(states, projectFileDirectory);
 }
@@ -41,22 +47,27 @@ void runAnalysis() async {
 List<_LocationRequirments> _calculateLocationRequirments(FixtureState state) {
   final powerMultiOutletsByLocationId = state.powerMultiOutlets.values
       .groupListsBy((outlet) => outlet.locationId);
-  final dataPatchOutletsByLocationId =
-      state.dataPatches.values.groupListsBy((outlet) => outlet.locationId);
+  final dataPatchOutletsByLocationId = state.dataPatches.values.groupListsBy(
+    (outlet) => outlet.locationId,
+  );
 
   return state.locations.values
-      .map((location) => _LocationRequirments(
+      .map(
+        (location) => _LocationRequirments(
           locationName: location.name,
           activePowerLoomCount:
               powerMultiOutletsByLocationId[location.uid]?.length ?? 0,
           activeUniverses:
-              dataPatchOutletsByLocationId[location.uid]?.length ?? 0))
+              dataPatchOutletsByLocationId[location.uid]?.length ?? 0,
+        ),
+      )
       .toList();
 }
 
 List<_LoomData> _analyzeLoomUtilization(FixtureState state) {
-  final cablesByLoomId =
-      state.cables.values.groupListsBy((cable) => cable.loomId);
+  final cablesByLoomId = state.cables.values.groupListsBy(
+    (cable) => cable.loomId,
+  );
 
   return state.looms.values.map((loom) {
     final childCables = cablesByLoomId[loom.uid] ?? [];
@@ -72,19 +83,23 @@ List<_LoomData> _analyzeLoomUtilization(FixtureState state) {
           .length,
       activeDmxWays: childCables
           .where(
-              (cable) => cable.type == CableType.dmx && cable.isSpare == false)
+            (cable) => cable.type == CableType.dmx && cable.isSpare == false,
+          )
           .length,
       spareDmxWays: childCables
           .where(
-              (cable) => cable.type == CableType.dmx && cable.isSpare == true)
+            (cable) => cable.type == CableType.dmx && cable.isSpare == true,
+          )
           .length,
       spareSneakWays: childCables
           .where(
-              (cable) => cable.type == CableType.sneak && cable.isSpare == true)
+            (cable) => cable.type == CableType.sneak && cable.isSpare == true,
+          )
           .length,
       activeSneakWays: childCables
-          .where((cable) =>
-              cable.type == CableType.sneak && cable.isSpare == false)
+          .where(
+            (cable) => cable.type == CableType.sneak && cable.isSpare == false,
+          )
           .length,
     );
   }).toList();
@@ -98,8 +113,10 @@ CableClass _calculatePredominantCableClass(List<CableModel> cables) {
 
   return cablesByClass.keys
           .toList()
-          .sorted((a, b) =>
-              cablesByClass[a]?.length ?? 0 - (cablesByClass[b]?.length ?? 0))
+          .sorted(
+            (a, b) =>
+                cablesByClass[a]?.length ?? 0 - (cablesByClass[b]?.length ?? 0),
+          )
           .firstOrNull ??
       CableClass.none;
 }
@@ -139,9 +156,13 @@ class _LoomData {
 // Creates an Excel Sheet that holds data extracted from the Outlets, that is to say if you viewed every show only through the eyes of whats coming out of the back of the racks,
 // thus not including feeders, droppers etc.
 void _runOutletAnalysis(
-    Map<String, FixtureState> states, String projectFileDirectory) async {
-  final dataByProjectName = states.map((projectName, state) =>
-      MapEntry(projectName, _calculateLocationRequirments(state)));
+  Map<String, FixtureState> states,
+  String projectFileDirectory,
+) async {
+  final dataByProjectName = states.map(
+    (projectName, state) =>
+        MapEntry(projectName, _calculateLocationRequirments(state)),
+  );
 
   // Create Loom Counts Excel.
   final excel = Excel.createExcel();
@@ -175,19 +196,23 @@ void _runOutletAnalysis(
         .fold(0.0, (accum, value) => accum + value.length)
         .floor();
 
-    final fixtureTypeCount = states[projectName]
-            ?.fixtures
-            .values
+    final fixtureTypeCount =
+        states[projectName]?.fixtures.values
             .fold(<String, int>{}, (accum, value) {
-              return Map<String, int>.from(accum
-                ..update(value.typeId, (existing) => existing + 1,
-                    ifAbsent: () => 1));
+              return Map<String, int>.from(
+                accum..update(
+                  value.typeId,
+                  (existing) => existing + 1,
+                  ifAbsent: () => 1,
+                ),
+              );
             })
             .keys
             .length ??
         0;
 
-    final complexityScore = (fixtureCount * (fixtureTypeCount.clamp(1, 1000))) +
+    final complexityScore =
+        (fixtureCount * (fixtureTypeCount.clamp(1, 1000))) +
         (motorCount) +
         (cableCount) +
         (totalCableLength);
@@ -203,7 +228,7 @@ void _runOutletAnalysis(
         IntCellValue(cableCount),
         IntCellValue(totalCableLength),
         IntCellValue(fixtureTypeCount),
-        IntCellValue(complexityScore)
+        IntCellValue(complexityScore),
       ]);
     }
   }
@@ -214,8 +239,9 @@ void _runOutletAnalysis(
     throw 'Unable to encode excel file';
   }
 
-  final targetOutputFile =
-      File(p.join(projectFileDirectory, 'output', 'Outlet_Analysis.xlsx'));
+  final targetOutputFile = File(
+    p.join(projectFileDirectory, 'output', 'Outlet_Analysis.xlsx'),
+  );
 
   await targetOutputFile.create(recursive: true);
 
@@ -227,9 +253,13 @@ void _runOutletAnalysis(
 }
 
 void _runHistorialAnalysis(
-    Map<String, FixtureState> states, String projectFileDirectory) async {
-  final dataByProjectName = states.map((projectName, state) =>
-      MapEntry(projectName, _analyzeLoomUtilization(state)));
+  Map<String, FixtureState> states,
+  String projectFileDirectory,
+) async {
+  final dataByProjectName = states.map(
+    (projectName, state) =>
+        MapEntry(projectName, _analyzeLoomUtilization(state)),
+  );
 
   // Create Loom Counts Excel.
   final excel = Excel.createExcel();
@@ -269,19 +299,23 @@ void _runHistorialAnalysis(
         .fold(0.0, (accum, value) => accum + value.length)
         .floor();
 
-    final fixtureTypeCount = states[projectName]
-            ?.fixtures
-            .values
+    final fixtureTypeCount =
+        states[projectName]?.fixtures.values
             .fold(<String, int>{}, (accum, value) {
-              return Map<String, int>.from(accum
-                ..update(value.typeId, (existing) => existing + 1,
-                    ifAbsent: () => 1));
+              return Map<String, int>.from(
+                accum..update(
+                  value.typeId,
+                  (existing) => existing + 1,
+                  ifAbsent: () => 1,
+                ),
+              );
             })
             .keys
             .length ??
         0;
 
-    final complexityScore = (fixtureCount * (fixtureTypeCount.clamp(1, 1000))) +
+    final complexityScore =
+        (fixtureCount * (fixtureTypeCount.clamp(1, 1000))) +
         (motorCount) +
         (cableCount) +
         (totalCableLength);
@@ -308,7 +342,7 @@ void _runHistorialAnalysis(
         IntCellValue(cableCount),
         IntCellValue(totalCableLength),
         IntCellValue(fixtureTypeCount),
-        IntCellValue(complexityScore)
+        IntCellValue(complexityScore),
       ]);
     }
   }
@@ -319,8 +353,9 @@ void _runHistorialAnalysis(
     throw 'Unable to encode excel file';
   }
 
-  final targetOutputFile =
-      File(p.join(projectFileDirectory, 'output', 'Direct_Loom_Analysis.xlsx'));
+  final targetOutputFile = File(
+    p.join(projectFileDirectory, 'output', 'Direct_Loom_Analysis.xlsx'),
+  );
 
   await targetOutputFile.create(recursive: true);
 
@@ -332,9 +367,12 @@ void _runHistorialAnalysis(
 }
 
 void _runInitialPowerMultiOutletAnalysis(
-    Map<String, FixtureState> states, String projectFileDirectory) async {
+  Map<String, FixtureState> states,
+  String projectFileDirectory,
+) async {
   final loomCountsByProjectName = states.map(
-      (projectName, state) => MapEntry(projectName, _analyzeLoomCount(state)));
+    (projectName, state) => MapEntry(projectName, _analyzeLoomCount(state)),
+  );
 
   // Create Loom Counts Excel.
   final excel = Excel.createExcel();
@@ -369,19 +407,23 @@ void _runInitialPowerMultiOutletAnalysis(
         .fold(0.0, (accum, value) => accum + value.length)
         .floor();
 
-    final fixtureTypeCount = states[projectName]
-            ?.fixtures
-            .values
+    final fixtureTypeCount =
+        states[projectName]?.fixtures.values
             .fold(<String, int>{}, (accum, value) {
-              return Map<String, int>.from(accum
-                ..update(value.typeId, (existing) => existing + 1,
-                    ifAbsent: () => 1));
+              return Map<String, int>.from(
+                accum..update(
+                  value.typeId,
+                  (existing) => existing + 1,
+                  ifAbsent: () => 1,
+                ),
+              );
             })
             .keys
             .length ??
         0;
 
-    final complexityScore = (fixtureCount * (fixtureTypeCount.clamp(1, 1000))) +
+    final complexityScore =
+        (fixtureCount * (fixtureTypeCount.clamp(1, 1000))) +
         (motorCount) +
         (cableCount) +
         (totalCableLength);
@@ -398,7 +440,7 @@ void _runInitialPowerMultiOutletAnalysis(
         IntCellValue(cableCount),
         IntCellValue(totalCableLength),
         IntCellValue(fixtureTypeCount),
-        IntCellValue(complexityScore)
+        IntCellValue(complexityScore),
       ]);
     }
   }
@@ -410,7 +452,8 @@ void _runInitialPowerMultiOutletAnalysis(
   }
 
   final targetOutputFile = File(
-      p.join(projectFileDirectory, 'output', 'Loom_Counts_By_Location.xlsx'));
+    p.join(projectFileDirectory, 'output', 'Loom_Counts_By_Location.xlsx'),
+  );
 
   await targetOutputFile.create(recursive: true);
 
@@ -426,30 +469,37 @@ List<_LocationLoomCount> _analyzeLoomCount(FixtureState state) {
       .groupListsBy((multi) => multi.locationId)
       .entries
       .map((entry) {
-    final locationId = entry.key;
-    final multiOutletsInLocation = entry.value;
+        final locationId = entry.key;
+        final multiOutletsInLocation = entry.value;
 
-    return _LocationLoomCount(
-        locationName: state.locations[locationId]?.name ?? 'Unknown',
-        activePowerLoomCount: multiOutletsInLocation.length,
-        sparePowerLoomCount:
-            _calculateSparePowerLoomsInLocation(state, locationId));
-  }).toList();
+        return _LocationLoomCount(
+          locationName: state.locations[locationId]?.name ?? 'Unknown',
+          activePowerLoomCount: multiOutletsInLocation.length,
+          sparePowerLoomCount: _calculateSparePowerLoomsInLocation(
+            state,
+            locationId,
+          ),
+        );
+      })
+      .toList();
 }
 
 int _calculateSparePowerLoomsInLocation(FixtureState state, String locationId) {
-  final cablesByLoomId =
-      state.cables.values.groupListsBy((cable) => cable.loomId);
+  final cablesByLoomId = state.cables.values.groupListsBy(
+    (cable) => cable.loomId,
+  );
 
   final spareCablesByLocationId = cablesByLoomId.map((loomId, cables) {
     return MapEntry(
       _guessLocationId(state, cables),
       cables
-          .where((cable) =>
-              cable.isSpare &&
-              cable.upstreamId.isEmpty &&
-              (cable.type == CableType.socapex ||
-                  cable.type == CableType.wieland6way))
+          .where(
+            (cable) =>
+                cable.isSpare &&
+                cable.upstreamId.isEmpty &&
+                (cable.type == CableType.socapex ||
+                    cable.type == CableType.wieland6way),
+          )
           .toList(),
     );
   });
@@ -459,7 +509,8 @@ int _calculateSparePowerLoomsInLocation(FixtureState state, String locationId) {
 
 String _guessLocationId(FixtureState state, List<CableModel> cables) {
   final locationIds = cables.map(
-      (cable) => state.powerMultiOutlets[cable.outletId]?.locationId ?? '');
+    (cable) => state.powerMultiOutlets[cable.outletId]?.locationId ?? '',
+  );
 
   return locationIds.firstWhereOrNull((id) => id.isNotEmpty) ?? '';
 }

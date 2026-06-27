@@ -1,4 +1,4 @@
-import 'package:excel/excel.dart';
+import 'package:excel_community/excel_community.dart';
 
 final loomHeaderStyle = CellStyle(
   backgroundColorHex: ExcelColor.fromHexString("#595959"),

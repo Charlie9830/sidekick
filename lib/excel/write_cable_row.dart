@@ -1,4 +1,4 @@
-import 'package:excel/excel.dart';
+import 'package:excel_community/excel_community.dart';
 import 'package:sidekick/excel/sheet_indexer.dart';
 import 'package:sidekick/excel/styles.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
@@ -14,27 +14,24 @@ SheetIndexer writeCableRow({
 }) {
   // Length Cell
   sheet.updateCell(
-      pointer.current,
-      TextCellValue(
-        viewModel.cable.parentMultiId.isEmpty
-            ? switch (parentLoom.type.type) {
-                LoomType.custom => '${viewModel.cable.humanFriendlyLength}m',
-                LoomType.permanent => '-',
-              }
-            : '-',
-      ),
-      cellStyle: cableRowStyle.copyWith(
-        horizontalAlignVal: HorizontalAlign.Left,
-      ));
+    pointer.current,
+    TextCellValue(
+      viewModel.cable.parentMultiId.isEmpty
+          ? switch (parentLoom.type.type) {
+              LoomType.custom => '${viewModel.cable.humanFriendlyLength}m',
+              LoomType.permanent => '-',
+            }
+          : '-',
+    ),
+    cellStyle: cableRowStyle.copyWith(horizontalAlignVal: HorizontalAlign.Left),
+  );
 
   pointer.stepRight();
 
   // Type and Local Number Cell
   sheet.updateCell(
     pointer.current,
-    TextCellValue(
-      viewModel.typeLabel,
-    ),
+    TextCellValue(viewModel.typeLabel),
     cellStyle: cableRowStyle,
   );
 
@@ -42,28 +39,29 @@ SheetIndexer writeCableRow({
 
   // Label Cell
   sheet.updateCell(
-      pointer.current,
-      TextCellValue(
-        viewModel.label,
-      ),
-      cellStyle: cableRowStyle);
+    pointer.current,
+    TextCellValue(viewModel.label),
+    cellStyle: cableRowStyle,
+  );
 
   pointer.stepRight();
 
   // Cable Flag Cell
   sheet.updateCell(
-      pointer.current,
-      TextCellValue(
-        viewModel.isExtension
-            ? 'Ext'
-            : viewModel.cable.isSpare
-                ? 'SP'
-                : viewModel.cable.isDropper
-                    ? 'Drop'
-                    : '',
-      ),
-      cellStyle:
-          cableRowStyle.copyWith(horizontalAlignVal: HorizontalAlign.Center));
+    pointer.current,
+    TextCellValue(
+      viewModel.isExtension
+          ? 'Ext'
+          : viewModel.cable.isSpare
+          ? 'SP'
+          : viewModel.cable.isDropper
+          ? 'Drop'
+          : '',
+    ),
+    cellStyle: cableRowStyle.copyWith(
+      horizontalAlignVal: HorizontalAlign.Center,
+    ),
+  );
 
   pointer.stepRight();
 
@@ -83,9 +81,7 @@ SheetIndexer writeCableRow({
   // Notes
   sheet.updateCell(
     pointer.current,
-    TextCellValue(
-      viewModel.cable.notes,
-    ),
+    TextCellValue(viewModel.cable.notes),
     cellStyle: cableRowStyle.copyWith(italicVal: true),
   );
 

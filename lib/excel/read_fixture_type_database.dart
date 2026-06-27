@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
-import 'package:excel/excel.dart';
+import 'package:excel_community/excel_community.dart';
 
 const String _kSheetName = "Master List";
 const String _kManufactureColumnHeader = "Manufacture";
@@ -41,13 +41,13 @@ class ColumnIndexes {
   });
 
   List<ColumnIndex> get asList => [
-        ColumnIndex(_kManufactureColumnHeader, manufacture),
-        ColumnIndex(_kModelColumnHeader, model),
-        ColumnIndex(_kShortNameColumnHeader, shortName),
-        ColumnIndex(_kPowerDrawColumnHeader, powerDraw),
-        ColumnIndex(_kMaxPiggybacksColumnHeader, maxPiggybacks),
-        ColumnIndex(_kGuidColumnHeader, guid),
-      ];
+    ColumnIndex(_kManufactureColumnHeader, manufacture),
+    ColumnIndex(_kModelColumnHeader, model),
+    ColumnIndex(_kShortNameColumnHeader, shortName),
+    ColumnIndex(_kPowerDrawColumnHeader, powerDraw),
+    ColumnIndex(_kMaxPiggybacksColumnHeader, maxPiggybacks),
+    ColumnIndex(_kGuidColumnHeader, guid),
+  ];
 
   bool get hasInvalidIndexes => asList.any((col) => col.index == -1);
 }
@@ -60,56 +60,68 @@ class ColumnIndex {
 }
 
 Future<FixtureTypeDatabaseReadResult> readFixtureTypeDatabase(
-    String path) async {
+  String path,
+) async {
   try {
     final excel = Excel.decodeBytes(await File(path).readAsBytes());
 
     if (excel.sheets.containsKey(_kSheetName) == false) {
       return FixtureTypeDatabaseReadResult(
-          errorMessage:
-              'No Excel sheet matching the name \'Master List\' found.');
+        errorMessage: 'No Excel sheet matching the name \'Master List\' found.',
+      );
     }
 
     final sheet = excel.sheets[_kSheetName]!;
 
-    final headerRowIndex = sheet.rows.indexWhere((row) =>
-        row.isNotEmpty &&
-        row.first?.value?.toString() == _kManufactureColumnHeader);
+    final headerRowIndex = sheet.rows.indexWhere(
+      (row) =>
+          row.isNotEmpty &&
+          row.first?.value?.toString() == _kManufactureColumnHeader,
+    );
 
     if (headerRowIndex == -1) {
       return FixtureTypeDatabaseReadResult(
-          errorMessage:
-              "Unable to detect start of Table. Could not find the first column header '$_kManufactureColumnHeader'.");
+        errorMessage:
+            "Unable to detect start of Table. Could not find the first column header '$_kManufactureColumnHeader'.",
+      );
     }
 
     final headerRowData = sheet.row(headerRowIndex);
 
     final columnIndexes = ColumnIndexes(
       manufacture: headerRowData.indexWhere(
-          (data) => data?.value.toString() == _kManufactureColumnHeader),
-      model: headerRowData
-          .indexWhere((data) => data?.value.toString() == _kModelColumnHeader),
+        (data) => data?.value.toString() == _kManufactureColumnHeader,
+      ),
+      model: headerRowData.indexWhere(
+        (data) => data?.value.toString() == _kModelColumnHeader,
+      ),
       maxPiggybacks: headerRowData.indexWhere(
-          (data) => data?.value.toString() == _kMaxPiggybacksColumnHeader),
+        (data) => data?.value.toString() == _kMaxPiggybacksColumnHeader,
+      ),
       powerDraw: headerRowData.indexWhere(
-          (data) => data?.value.toString() == _kPowerDrawColumnHeader),
+        (data) => data?.value.toString() == _kPowerDrawColumnHeader,
+      ),
       shortName: headerRowData.indexWhere(
-          (data) => data?.value.toString() == _kShortNameColumnHeader),
-      guid: headerRowData
-          .indexWhere((data) => data?.value.toString() == _kGuidColumnHeader),
+        (data) => data?.value.toString() == _kShortNameColumnHeader,
+      ),
+      guid: headerRowData.indexWhere(
+        (data) => data?.value.toString() == _kGuidColumnHeader,
+      ),
     );
 
     if (columnIndexes.hasInvalidIndexes) {
       return FixtureTypeDatabaseReadResult(
-          errorMessage:
-              'Unable to detect all or some columns. Missing columns: ${columnIndexes.asList.where((col) => col.index == -1).map((col) => col.name).join(', ')}');
+        errorMessage:
+            'Unable to detect all or some columns. Missing columns: ${columnIndexes.asList.where((col) => col.index == -1).map((col) => col.name).join(', ')}',
+      );
     }
 
     final dataRows = sheet.rows.sublist(headerRowIndex + 1);
 
     if (dataRows.isEmpty) {
       return FixtureTypeDatabaseReadResult(
-          errorMessage: 'No Table entries found.');
+        errorMessage: 'No Table entries found.',
+      );
     }
 
     final Set<String> previouslyImportedModels = {};
@@ -118,18 +130,30 @@ Future<FixtureTypeDatabaseReadResult> readFixtureTypeDatabase(
 
     for (final (index, cells) in dataRows.indexed) {
       // Gather Cell Values.
-      final String? manufacturer =
-          cells.elementAtOrNull(columnIndexes.manufacture)?.value.toString();
-      final String? model =
-          cells.elementAtOrNull(columnIndexes.model)?.value.toString();
-      String? shortName =
-          cells.elementAtOrNull(columnIndexes.shortName)?.value.toString();
-      String? maxPiggybacks =
-          cells.elementAtOrNull(columnIndexes.maxPiggybacks)?.value.toString();
-      String? powerDraw =
-          cells.elementAtOrNull(columnIndexes.powerDraw)?.value.toString();
-      String? guid =
-          cells.elementAtOrNull(columnIndexes.guid)?.value.toString();
+      final String? manufacturer = cells
+          .elementAtOrNull(columnIndexes.manufacture)
+          ?.value
+          .toString();
+      final String? model = cells
+          .elementAtOrNull(columnIndexes.model)
+          ?.value
+          .toString();
+      String? shortName = cells
+          .elementAtOrNull(columnIndexes.shortName)
+          ?.value
+          .toString();
+      String? maxPiggybacks = cells
+          .elementAtOrNull(columnIndexes.maxPiggybacks)
+          ?.value
+          .toString();
+      String? powerDraw = cells
+          .elementAtOrNull(columnIndexes.powerDraw)
+          ?.value
+          .toString();
+      String? guid = cells
+          .elementAtOrNull(columnIndexes.guid)
+          ?.value
+          .toString();
 
       if (_isNullOrEmpty(manufacturer) &&
           _isNullOrEmpty(model) &&
@@ -144,26 +168,30 @@ Future<FixtureTypeDatabaseReadResult> readFixtureTypeDatabase(
       // Check for critical Errors.
       if (manufacturer == null) {
         return FixtureTypeDatabaseReadResult(
-            errorMessage:
-                "Missing data in $_kManufactureColumnHeader column at row ${index + headerRowIndex + 2}");
+          errorMessage:
+              "Missing data in $_kManufactureColumnHeader column at row ${index + headerRowIndex + 2}",
+        );
       }
 
       if (model == null) {
         return FixtureTypeDatabaseReadResult(
-            errorMessage:
-                "Missing data in $_kModelColumnHeader column at row ${index + headerRowIndex + 2}");
+          errorMessage:
+              "Missing data in $_kModelColumnHeader column at row ${index + headerRowIndex + 2}",
+        );
       }
 
       if (powerDraw == null) {
         return FixtureTypeDatabaseReadResult(
-            errorMessage:
-                "Missing data in $_kPowerDrawColumnHeader column at row ${index + headerRowIndex + 2}");
+          errorMessage:
+              "Missing data in $_kPowerDrawColumnHeader column at row ${index + headerRowIndex + 2}",
+        );
       }
 
       if (guid == null) {
         return FixtureTypeDatabaseReadResult(
-            errorMessage:
-                "Missing data in $_kGuidColumnHeader column at row ${index + headerRowIndex + 2}");
+          errorMessage:
+              "Missing data in $_kGuidColumnHeader column at row ${index + headerRowIndex + 2}",
+        );
       }
 
       // These values can just be asserted to default values safely.
@@ -173,15 +201,17 @@ Future<FixtureTypeDatabaseReadResult> readFixtureTypeDatabase(
       // Check that we haven't got a duplicated GUID.
       if (previouslyUsedGuids.contains(guid)) {
         return FixtureTypeDatabaseReadResult(
-            errorMessage:
-                'Duplicate value detected in GUID column. You cannot have duplicated values in the GUID Column. '
-                'Duplicate value detected at row ${index + headerRowIndex + 2}.');
+          errorMessage:
+              'Duplicate value detected in GUID column. You cannot have duplicated values in the GUID Column. '
+              'Duplicate value detected at row ${index + headerRowIndex + 2}.',
+        );
       }
       previouslyUsedGuids.add(guid);
 
       // Check that we aren't importing duplicate models (Manufacture and Model data gets duplicated in the excel)
-      if (previouslyImportedModels
-          .contains(_concatMakeAndModel(manufacturer, model))) {
+      if (previouslyImportedModels.contains(
+        _concatMakeAndModel(manufacturer, model),
+      )) {
         continue;
       }
 
@@ -192,19 +222,22 @@ Future<FixtureTypeDatabaseReadResult> readFixtureTypeDatabase(
 
       if (amps == null) {
         return FixtureTypeDatabaseReadResult(
-            errorMessage:
-                "Could not parse amps value to number. Original value: '$powerDraw'");
+          errorMessage:
+              "Could not parse amps value to number. Original value: '$powerDraw'",
+        );
       }
 
-      fixtureTypes.add(FixtureTypeModel(
-        uid: guid,
-        amps: amps,
-        maxPiggybacks: int.tryParse(maxPiggybacks.trim()) ?? 1,
-        name: _concatMakeAndModel(manufacturer, model),
-        shortName: shortName,
-        make: manufacturer,
-        model: model,
-      ));
+      fixtureTypes.add(
+        FixtureTypeModel(
+          uid: guid,
+          amps: amps,
+          maxPiggybacks: int.tryParse(maxPiggybacks.trim()) ?? 1,
+          name: _concatMakeAndModel(manufacturer, model),
+          shortName: shortName,
+          make: manufacturer,
+          model: model,
+        ),
+      );
     }
 
     return FixtureTypeDatabaseReadResult(
@@ -212,7 +245,8 @@ Future<FixtureTypeDatabaseReadResult> readFixtureTypeDatabase(
     );
   } on UnsupportedError {
     return FixtureTypeDatabaseReadResult(
-        errorMessage: "Unable to decode Excel file");
+      errorMessage: "Unable to decode Excel file",
+    );
   }
 }
 

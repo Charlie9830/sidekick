@@ -1,4 +1,4 @@
-import 'package:excel/excel.dart';
+import 'package:excel_community/excel_community.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/data_selectors/select_loom_view_models.dart';
 import 'package:sidekick/excel/constants.dart';
@@ -8,10 +8,7 @@ import 'package:sidekick/excel/write_cable_row.dart';
 import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 
-void createLoomsSheet({
-  required Excel excel,
-  required Store<AppState> store,
-}) {
+void createLoomsSheet({required Excel excel, required Store<AppState> store}) {
   final loomVms = selectLoomViewModels(store, forExcel: true);
 
   final sheet = excel['Looms'];
@@ -26,7 +23,9 @@ void createLoomsSheet({
     // Loom Name
     // 1st Column
     sheet.setColumnWidth(
-        pointer.current.columnIndex, 6.56 + kColumnWidthOffset);
+      pointer.current.columnIndex,
+      6.56 + kColumnWidthOffset,
+    );
     sheet.updateCell(
       pointer.current,
       TextCellValue(loomVm.name),
@@ -37,57 +36,49 @@ void createLoomsSheet({
 
     // 2nd Column
     sheet.setColumnWidth(pointer.current.columnIndex, 13 + kColumnWidthOffset);
-    sheet.updateCell(
-      pointer.current,
-      null,
-      cellStyle: loomHeaderStyle,
-    );
+    sheet.updateCell(pointer.current, null, cellStyle: loomHeaderStyle);
 
     pointer.stepRight();
 
     // 3rd Column
     sheet.setColumnWidth(
-        pointer.current.columnIndex, 13.67 + kColumnWidthOffset);
-    sheet.updateCell(
-      pointer.current,
-      null,
-      cellStyle: loomHeaderStyle,
+      pointer.current.columnIndex,
+      13.67 + kColumnWidthOffset,
     );
+    sheet.updateCell(pointer.current, null, cellStyle: loomHeaderStyle);
 
     pointer.stepRight();
 
     // 4th Column
     sheet.setColumnWidth(
-        pointer.current.columnIndex, 5.44 + kColumnWidthOffset);
-    sheet.updateCell(
-      pointer.current,
-      null,
-      cellStyle: loomHeaderStyle,
+      pointer.current.columnIndex,
+      5.44 + kColumnWidthOffset,
     );
+    sheet.updateCell(pointer.current, null, cellStyle: loomHeaderStyle);
 
     pointer.stepRight();
 
     // 5th Column
     sheet.setColumnWidth(
-        pointer.current.columnIndex, 8.11 + kColumnWidthOffset);
-    sheet.updateCell(
-      pointer.current,
-      null,
-      cellStyle: loomHeaderStyle,
+      pointer.current.columnIndex,
+      8.11 + kColumnWidthOffset,
     );
+    sheet.updateCell(pointer.current, null, cellStyle: loomHeaderStyle);
 
     pointer.stepRight();
 
     // 6th Column
     sheet.setColumnWidth(
-        pointer.current.columnIndex, 33.44 + kColumnWidthOffset);
+      pointer.current.columnIndex,
+      33.44 + kColumnWidthOffset,
+    );
     sheet.updateCell(
       pointer.current,
       TextCellValue(switch (loomVm.loom.type.type) {
         LoomType.custom =>
           "${loomVm.containsMotorCables ? 'Motor ' : ''}Custom",
         LoomType.permanent =>
-          "${loomVm.containsMotorCables ? 'Motor ' : ''}Permanent"
+          "${loomVm.containsMotorCables ? 'Motor ' : ''}Permanent",
       }),
       cellStyle: loomHeaderStyle.copyWith(
         horizontalAlignVal: HorizontalAlign.Right,
@@ -102,55 +93,44 @@ void createLoomsSheet({
     pointer.carriageReturn();
 
     // 1st Column
-    sheet.updateCell(pointer.current,
-        TextCellValue('${loomVm.loom.type.humanFriendlyLength}m'),
-        cellStyle: loomHeaderStyle);
+    sheet.updateCell(
+      pointer.current,
+      TextCellValue('${loomVm.loom.type.humanFriendlyLength}m'),
+      cellStyle: loomHeaderStyle,
+    );
 
     pointer.stepRight();
 
     // 2nd Column
     sheet.updateCell(
-        pointer.current,
-        TextCellValue(loomVm.loom.type.type == LoomType.permanent
+      pointer.current,
+      TextCellValue(
+        loomVm.loom.type.type == LoomType.permanent
             ? loomVm.loom.type.permanentComposition
-            : 'Custom'),
-        cellStyle: loomHeaderStyle);
+            : 'Custom',
+      ),
+      cellStyle: loomHeaderStyle,
+    );
 
     pointer.stepRight();
 
     // 3rd Column
-    sheet.updateCell(
-      pointer.current,
-      null,
-      cellStyle: loomHeaderStyle,
-    );
+    sheet.updateCell(pointer.current, null, cellStyle: loomHeaderStyle);
 
     pointer.stepRight();
 
     // 4th Column
-    sheet.updateCell(
-      pointer.current,
-      null,
-      cellStyle: loomHeaderStyle,
-    );
+    sheet.updateCell(pointer.current, null, cellStyle: loomHeaderStyle);
 
     pointer.stepRight();
 
     // 5th Column
-    sheet.updateCell(
-      pointer.current,
-      null,
-      cellStyle: loomHeaderStyle,
-    );
+    sheet.updateCell(pointer.current, null, cellStyle: loomHeaderStyle);
 
     pointer.stepRight();
 
     // 6th Column
-    sheet.updateCell(
-      pointer.current,
-      null,
-      cellStyle: loomHeaderStyle,
-    );
+    sheet.updateCell(pointer.current, null, cellStyle: loomHeaderStyle);
 
     ///
     /// Cable Rows
@@ -160,10 +140,11 @@ void createLoomsSheet({
 
     for (final cableVm in loomVm.children) {
       writeCableRow(
-          sheet: sheet,
-          pointer: pointer,
-          viewModel: cableVm,
-          parentLoom: loomVm.loom);
+        sheet: sheet,
+        pointer: pointer,
+        viewModel: cableVm,
+        parentLoom: loomVm.loom,
+      );
 
       if (cableVm != loomVm.children.last) {
         pointer.carriageReturn();

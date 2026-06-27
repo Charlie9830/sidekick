@@ -1,5 +1,6 @@
 class RawLocationModel {
   final String mvrId;
+
   final String generatedId;
   final String name;
 

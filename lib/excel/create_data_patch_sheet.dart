@@ -1,4 +1,4 @@
-import 'package:excel/excel.dart';
+import 'package:excel_community/excel_community.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/data_rack_model.dart';
@@ -31,10 +31,11 @@ void createDataPatchSheet({
 
     final activePatches = _extractActivePatches(cables, dataOutlets, rack.uid);
     final activePatchesByChannel = Map<int, DataPatchModel>.fromEntries(
-        activePatches
-            .map((patch) => MapEntry(patch.parentRack.channel, patch)));
-    final cablesByOutletId =
-        cables.map((key, value) => MapEntry(value.outletId, value));
+      activePatches.map((patch) => MapEntry(patch.parentRack.channel, patch)),
+    );
+    final cablesByOutletId = cables.map(
+      (key, value) => MapEntry(value.outletId, value),
+    );
 
     for (int index = 0; index < totalOutletCount; index++) {
       final channel = index + 1;
@@ -57,19 +58,24 @@ void createDataPatchSheet({
         TextCellValue(portIdentifier),
         IntCellValue(patch?.universe ?? 0),
         TextCellValue(patch?.name ?? ''),
-        TextCellValue(patch == null
-            ? ''
-            : associatedSneak != null
-                ? 'Sneak'
-                : 'Single'),
+        TextCellValue(
+          patch == null
+              ? ''
+              : associatedSneak != null
+              ? 'Sneak'
+              : 'Single',
+        ),
         TextCellValue(namedColor),
       ]);
     }
   }
 }
 
-List<DataPatchModel> _extractActivePatches(Map<String, CableModel> cables,
-    Iterable<DataPatchModel> allDataOutlets, String dataRackId) {
+List<DataPatchModel> _extractActivePatches(
+  Map<String, CableModel> cables,
+  Iterable<DataPatchModel> allDataOutlets,
+  String dataRackId,
+) {
   return allDataOutlets
       .where((outlet) => outlet.parentRack.rackId == dataRackId)
       .toList();

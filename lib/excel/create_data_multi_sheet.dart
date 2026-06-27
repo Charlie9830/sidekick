@@ -1,7 +1,7 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
-import 'package:excel/excel.dart';
+import 'package:excel_community/excel_community.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
@@ -31,8 +31,9 @@ void createDataMultiSheet({
     TextCellValue('Color'),
   ]);
 
-  final cablesByParentMultiId =
-      cables.values.groupListsBy((cable) => cable.parentMultiId);
+  final cablesByParentMultiId = cables.values.groupListsBy(
+    (cable) => cable.parentMultiId,
+  );
 
   for (final (rackIndex, rack) in dataRacks.values.indexed) {
     final associatedMultiOutlets = _extractAssociatedDataMultis(
@@ -44,7 +45,8 @@ void createDataMultiSheet({
 
     for (final (multiIndex, multi) in associatedMultiOutlets.indexed) {
       final rootMultiCable = cables.values.firstWhereOrNull(
-          (cable) => cable.upstreamId.isEmpty && cable.outletId == multi.uid);
+        (cable) => cable.upstreamId.isEmpty && cable.outletId == multi.uid,
+      );
 
       if (rootMultiCable == null) {
         continue;
@@ -55,7 +57,8 @@ void createDataMultiSheet({
           ? locationColor.firstColorOrNone.name.toLowerCase()
           : '';
 
-      final childOutlets = cablesByParentMultiId[rootMultiCable.uid]
+      final childOutlets =
+          cablesByParentMultiId[rootMultiCable.uid]
               ?.map((cable) => dataOutlets[cable.outletId])
               .nonNulls
               .toList() ??
@@ -86,13 +89,17 @@ List<DataMultiModel> _extractAssociatedDataMultis({
       .map((outlet) => outlet.uid)
       .toSet();
 
-  final associatedCables = cables.values.where((cable) =>
-      cable.upstreamId.isEmpty &&
-      associatedPatchOutletIds.contains(cable.outletId));
+  final associatedCables = cables.values.where(
+    (cable) =>
+        cable.upstreamId.isEmpty &&
+        associatedPatchOutletIds.contains(cable.outletId),
+  );
 
   final associatedMultiCables = associatedCables
-      .where((cable) =>
-          cable.parentMultiId.isNotEmpty && cable.type == CableType.dmx)
+      .where(
+        (cable) =>
+            cable.parentMultiId.isNotEmpty && cable.type == CableType.dmx,
+      )
       .map((cable) => cable.parentMultiId)
       .map((multiId) => cables[multiId])
       .nonNulls;

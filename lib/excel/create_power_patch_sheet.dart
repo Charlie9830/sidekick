@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:excel/excel.dart';
+import 'package:excel_community/excel_community.dart';
 import 'package:sidekick/classes/numeric_span.dart';
 import 'package:sidekick/excel/format_fixture_type.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
@@ -10,15 +10,16 @@ import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_rack_model.dart';
 import 'package:sidekick/redux/models/power_rack_type_model.dart';
 
-void createPowerPatchSheet(
-    {required Excel excel,
-    required Map<String, PowerMultiOutletModel> powerMultis,
-    required Map<String, PowerRackModel> powerRacks,
-    required Map<String, PowerRackTypeModel> powerRackTypes,
-    required Map<String, LocationModel> locations,
-    required Map<String, FixtureModel> fixtures,
-    required Map<String, FixtureTypeModel> fixtureTypes,
-    required Map<String, FixtureTypePoolModel> fixtureTypePools}) {
+void createPowerPatchSheet({
+  required Excel excel,
+  required Map<String, PowerMultiOutletModel> powerMultis,
+  required Map<String, PowerRackModel> powerRacks,
+  required Map<String, PowerRackTypeModel> powerRackTypes,
+  required Map<String, LocationModel> locations,
+  required Map<String, FixtureModel> fixtures,
+  required Map<String, FixtureTypeModel> fixtureTypes,
+  required Map<String, FixtureTypePoolModel> fixtureTypePools,
+}) {
   final powerPatchSheet = excel['Power Patch'];
 
   // Header Rows
@@ -37,28 +38,35 @@ void createPowerPatchSheet(
 
   final contentRows = <List<CellValue>>[];
 
-  final powerMultisByRack =
-      powerMultis.values.groupListsBy((multi) => multi.parentRack.rackId);
+  final powerMultisByRack = powerMultis.values.groupListsBy(
+    (multi) => multi.parentRack.rackId,
+  );
 
   for (final (rackIndex, rack) in powerRacks.values.indexed) {
-    final multis = (powerMultisByRack[rack.uid] ?? [])
-        .sorted((a, b) => a.parentRack.channel - b.parentRack.channel);
+    final multis = (powerMultisByRack[rack.uid] ?? []).sorted(
+      (a, b) => a.parentRack.channel - b.parentRack.channel,
+    );
 
     final multisByChannel = Map<int, PowerMultiOutletModel>.fromEntries(
-        multis.map((multi) => MapEntry(multi.parentRack.channel, multi)));
+      multis.map((multi) => MapEntry(multi.parentRack.channel, multi)),
+    );
 
     final rackType = powerRackTypes[rack.typeId]!;
 
-    for (int multiOutletIndex = 0;
-        multiOutletIndex < rackType.multiOutletCount;
-        multiOutletIndex++) {
+    for (
+      int multiOutletIndex = 0;
+      multiOutletIndex < rackType.multiOutletCount;
+      multiOutletIndex++
+    ) {
       final multiOutletChannel = multiOutletIndex + 1;
       final multi = multisByChannel[multiOutletChannel];
       final rackNumber = rackIndex + 1;
 
-      for (int outletIndex = 0;
-          outletIndex < rackType.multiWayDivisor;
-          outletIndex++) {
+      for (
+        int outletIndex = 0;
+        outletIndex < rackType.multiWayDivisor;
+        outletIndex++
+      ) {
         final outlet = multi?.children.elementAtOrNull(outletIndex);
         final multiPatchNumber = outletIndex + 1;
         final rackOutletNumber =
@@ -76,20 +84,28 @@ void createPowerPatchSheet(
           IntCellValue(multiPatchNumber),
 
           // Fixture Name
-          TextCellValue(outlet == null
-              ? ''
-              : outlet.fixtureTypePoolId.isNotEmpty
-                  ? _formatFixtureTypePool(
-                      outlet.fixtureTypePoolId, fixtureTypePools)
-                  : formatFixtureType(
-                      outlet.fixtureIds.map((id) => fixtures[id]!).toList(),
-                      fixtureTypes)),
+          TextCellValue(
+            outlet == null
+                ? ''
+                : outlet.fixtureTypePoolId.isNotEmpty
+                ? _formatFixtureTypePool(
+                    outlet.fixtureTypePoolId,
+                    fixtureTypePools,
+                  )
+                : formatFixtureType(
+                    outlet.fixtureIds.map((id) => fixtures[id]!).toList(),
+                    fixtureTypes,
+                  ),
+          ),
 
           // Fixture ID
-          TextCellValue(outlet == null
-              ? ''
-              : _formatFixtureNumbers(
-                  outlet.fixtureIds.map((id) => fixtures[id]!.fid))),
+          TextCellValue(
+            outlet == null
+                ? ''
+                : _formatFixtureNumbers(
+                    outlet.fixtureIds.map((id) => fixtures[id]!.fid),
+                  ),
+          ),
 
           // Location
           TextCellValue(locations[multi?.locationId]?.name ?? ''),
@@ -104,7 +120,9 @@ void createPowerPatchSheet(
 }
 
 String _formatFixtureTypePool(
-    String poolId, Map<String, FixtureTypePoolModel> fixtureTypePools) {
+  String poolId,
+  Map<String, FixtureTypePoolModel> fixtureTypePools,
+) {
   return fixtureTypePools[poolId]?.name ?? '-POOL ERROR-';
 }
 

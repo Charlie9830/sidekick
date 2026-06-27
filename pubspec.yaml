@@ -19,7 +19,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 1.1.1+1
 
 environment:
-  sdk: ">=3.0.5 <4.0.0"
+  sdk: ">=3.11.0 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -34,7 +34,7 @@ dependencies:
   desktop_drop: ^0.6.0
   directed_graph: ^0.5.5
   easy_stepper: ^0.8.5+1
-  excel: ^4.0.6
+  excel_community: ^1.2.0
   file_selector: ^1.1.0
   flutter:
     sdk: flutter
@@ -60,7 +60,7 @@ dependencies:
   two_dimensional_scrollables: ^0.3.7
   url_launcher: ^6.3.1
   uuid: ^4.4.0
-  xml: ^6.5.0
+  xml: ^7.0.1
 
 dev_dependencies:
   flutter_lints: ^2.0.0

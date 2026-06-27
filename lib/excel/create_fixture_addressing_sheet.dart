@@ -1,4 +1,4 @@
-import 'package:excel/excel.dart';
+import 'package:excel_community/excel_community.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
@@ -39,7 +39,8 @@ void createFixtureAddressingSheet({
   int columnIndex = 0;
   for (final header in _headers) {
     final cell = sheet.cell(
-        CellIndex.indexByColumnRow(columnIndex: columnIndex, rowIndex: 0));
+      CellIndex.indexByColumnRow(columnIndex: columnIndex, rowIndex: 0),
+    );
     cell.value = TextCellValue(header);
     cell.cellStyle = CellStyle(bold: true);
 
@@ -51,10 +52,11 @@ void createFixtureAddressingSheet({
   int rowIndex = 1; // Start at 1 because headers are at 0.
   for (final fixture in fixtures) {
     final cellValues = _extractCellValues(
-        fixture: fixture,
-        locations: locations,
-        fixtureTypes: fixtureTypes,
-        projectName: projectName);
+      fixture: fixture,
+      locations: locations,
+      fixtureTypes: fixtureTypes,
+      projectName: projectName,
+    );
     sheet.insertRowIterables(cellValues, rowIndex);
     rowIndex++;
 

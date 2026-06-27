@@ -3,8 +3,8 @@ import 'dart:collection';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:excel_community/excel_community.dart';
 import 'package:collection/collection.dart';
-import 'package:excel/excel.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
