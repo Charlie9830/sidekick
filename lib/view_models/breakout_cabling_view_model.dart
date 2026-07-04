@@ -131,6 +131,13 @@ class DataPatchHeaderElement extends NodeElement {
   });
 }
 
+class TrussBreakElement extends NodeElement {
+  TrussBreakElement({
+    required super.screenX,
+    required super.screenY,
+  });
+}
+
 sealed class EdgeElement {
   final NodeElement fromElement;
   final NodeElement toElement;

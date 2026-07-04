@@ -1,5 +1,7 @@
 class RawTrussModel {
   final String mvrId;
+  final String name;
+  final String classing;
   final double x;
   final double y;
   final double z;
@@ -12,6 +14,8 @@ class RawTrussModel {
 
   RawTrussModel({
     required this.mvrId,
+    this.name = '',
+    this.classing = '',
     this.x = 0,
     this.y = 0,
     this.z = 0,

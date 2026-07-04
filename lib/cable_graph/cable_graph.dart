@@ -10,6 +10,8 @@ import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
+import 'package:sidekick/redux/models/truss_model.dart';
+import 'package:sidekick/cable_graph/truss_geometry.dart';
 import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
 
 sealed class Node {
@@ -166,6 +168,29 @@ class LocationNode extends Node {
   }) : super(id: locationId);
 }
 
+/// A point where a cable is broken because it crosses a truss join.
+///
+/// Inserted between two endpoints when a run spans one or more joins, so the run
+/// is represented as a chain of shorter [CableEdge]s.
+class TrussBreakNode extends Node {
+  final String locationId;
+  final double x;
+  final double y;
+  final double z;
+
+  double get screenX => x;
+  double get screenY => (y * -1) - 600;
+
+  TrussBreakNode({
+    required super.id,
+    required this.locationId,
+    required this.x,
+    required this.y,
+    required this.z,
+    required super.edges,
+  });
+}
+
 enum CableRunType {
   link,
   fixtureRun,
@@ -270,6 +295,7 @@ class CableGraph {
       DataMultiHeaderNode() => '[DataMultiHeader] ${node.outletName}',
       DataPatchHeaderNode() =>
         '[DataPatchHeader] ${node.outletName} U${node.universe}',
+      TrussBreakNode() => '[TrussBreak]',
       null => '[NULL]'
     };
   }
@@ -283,8 +309,11 @@ CableGraph buildCableGraph({
   required Map<String, LocationModel> locations,
   required Map<String, DataMultiModel> dataMultis,
   required Map<String, DataPatchModel> dataPatches,
+  Map<String, TrussModel> trusses = const {},
 }) {
   final graph = CableGraph();
+
+  final truss = _TrussContext.build(trusses: trusses, fixtures: fixtures);
 
   for (final location
       in locations.values.where((loc) => loc.isHybrid == false)) {
@@ -297,8 +326,8 @@ CableGraph buildCableGraph({
       firstZ,
     ) = _calculateFirstFixtureLocation(fixturesInLocation);
 
-    final fixtureNodes =
-        _buildFixtureNodes(fixturesInLocation.toList(), fixtureTypes);
+    final fixtureNodes = _buildFixtureNodes(
+        fixturesInLocation.toList(), fixtureTypes, graph, truss);
     graph.addNodes(fixtureNodes);
 
     final powerMultiNodes = _buildPowerMultiHeaderNodes(
@@ -359,10 +388,13 @@ CableGraph buildCableGraph({
   return graph;
 }
 
-List<FixtureNode> _buildFixtureNodes(
-    List<FixtureModel> fixtures, Map<String, FixtureTypeModel> fixtureTypes) {
-  final outboundPowerEdgesMap = _buildOutboundPowerLinksMap(fixtures);
-  final outboundDataEdgesMap = _buildOutboundDataLinksMap(fixtures);
+List<FixtureNode> _buildFixtureNodes(List<FixtureModel> fixtures,
+    Map<String, FixtureTypeModel> fixtureTypes, CableGraph graph,
+    _TrussContext truss) {
+  final outboundPowerEdgesMap =
+      _buildOutboundPowerLinksMap(fixtures, graph, truss);
+  final outboundDataEdgesMap =
+      _buildOutboundDataLinksMap(fixtures, graph, truss);
 
   return fixtures.map((fix) {
     return FixtureNode(
@@ -377,7 +409,9 @@ List<FixtureNode> _buildFixtureNodes(
 }
 
 Map<String, List<CableEdge>> _buildOutboundPowerLinksMap(
-    Iterable<FixtureModel> fixturesInLocation) {
+    Iterable<FixtureModel> fixturesInLocation,
+    CableGraph graph,
+    _TrussContext truss) {
   final fixturesByPowerPatch = fixturesInLocation
       .groupListsBy((fix) => fix.powerPatch)
       .map((powerPatch, fixtures) => MapEntry(powerPatch, fixtures.sorted()));
@@ -389,25 +423,26 @@ Map<String, List<CableEdge>> _buildOutboundPowerLinksMap(
               return MapEntry(currentFix.uid, <CableEdge>[]);
             }
 
-            final eucLength = currentFix.distanceTo(nextFix);
-            return MapEntry(currentFix.uid, [
-              CableEdge(
-                  from: currentFix.uid,
-                  to: nextFix.uid,
-                  euclidianLength: eucLength,
-                  length: _roundUpCableLength(
-                      eucLength, CableLengthBreakpoints.au10A),
-                  locationId: currentFix.locationId,
+            return MapEntry(
+                currentFix.uid,
+                _buildRunEdges(
+                  graph: graph,
+                  truss: truss,
+                  from: currentFix,
+                  to: nextFix,
+                  type: CableType.au10a, // TODO: Tie to actual Cable Type.
                   runType: CableRunType.link,
-                  type: CableType.au10a // TODO: Tie to actual Cable Type.
-                  )
-            ]);
+                  locationId: currentFix.locationId,
+                  breakpoints: CableLengthBreakpoints.au10A,
+                ));
           }))
       .flattened);
 }
 
 Map<String, List<CableEdge>> _buildOutboundDataLinksMap(
-    Iterable<FixtureModel> fixturesInLocation) {
+    Iterable<FixtureModel> fixturesInLocation,
+    CableGraph graph,
+    _TrussContext truss) {
   final fixturesByUniverse = fixturesInLocation
       .groupListsBy((fix) => fix.dmxAddress.universe)
       .map((universe, fixtures) => MapEntry(universe, fixtures.sorted()));
@@ -419,21 +454,121 @@ Map<String, List<CableEdge>> _buildOutboundDataLinksMap(
               return MapEntry(fix.uid, <CableEdge>[]);
             }
 
-            final eucLength = fix.distanceTo(nextFix);
-            return MapEntry(fix.uid, [
-              CableEdge(
-                  from: fix.uid,
-                  to: nextFix.uid,
-                  euclidianLength: eucLength,
-                  length: _roundUpCableLength(
-                      eucLength, CableLengthBreakpoints.dmx),
-                  locationId: fix.locationId,
+            return MapEntry(
+                fix.uid,
+                _buildRunEdges(
+                  graph: graph,
+                  truss: truss,
+                  from: fix,
+                  to: nextFix,
+                  type: CableType.dmx, // TODO: Tie to actual Cable Type.
                   runType: CableRunType.link,
-                  type: CableType.dmx // TODO: Tie to actual Cable Type.
-                  )
-            ]);
+                  locationId: fix.locationId,
+                  breakpoints: CableLengthBreakpoints.dmx,
+                ));
           }))
       .flattened);
+}
+
+/// Bundles the truss topology with the fixture-to-stick assignments.
+class _TrussContext {
+  final TrussGeometry geometry;
+  final Map<String, TrussAssignment> assignments;
+
+  _TrussContext({required this.geometry, required this.assignments});
+
+  factory _TrussContext.build({
+    required Map<String, TrussModel> trusses,
+    required Map<String, FixtureModel> fixtures,
+  }) {
+    final geometry = TrussGeometry.fromTrusses(trusses.values);
+    final assignments = geometry.isEmpty
+        ? <String, TrussAssignment>{}
+        : geometry.assignFixtures(fixtures.values
+            .map((fix) => (uid: fix.uid, x: fix.x, y: fix.y, z: fix.z)));
+
+    return _TrussContext(geometry: geometry, assignments: assignments);
+  }
+}
+
+/// Builds the cable edge(s) for a fixture-to-fixture run, splitting at any truss
+/// joins the run crosses.
+///
+/// Break nodes for each crossing are added to [graph] and own the downstream
+/// segments; the returned list holds only the edge(s) the source fixture owns
+/// (so the caller can attach them to the source's edge set). A run that crosses
+/// no joins (or whose endpoints aren't both on a truss) yields a single edge,
+/// preserving the previous behaviour.
+List<CableEdge> _buildRunEdges({
+  required CableGraph graph,
+  required _TrussContext truss,
+  required FixtureModel from,
+  required FixtureModel to,
+  required CableType type,
+  required CableRunType runType,
+  required String locationId,
+  required List<double> breakpoints,
+}) {
+  final split = truss.geometry.splitRun(
+    from: (x: from.x, y: from.y, z: from.z),
+    to: (x: to.x, y: to.y, z: to.z),
+    fromAssignment: truss.assignments[from.uid],
+    toAssignment: truss.assignments[to.uid],
+  );
+
+  if (!split.hasBreaks) {
+    final length = split.segmentLengths.first;
+    return [
+      CableEdge(
+        from: from.uid,
+        to: to.uid,
+        euclidianLength: length,
+        length: _roundUpCableLength(length, breakpoints),
+        locationId: locationId,
+        runType: runType,
+        type: type,
+      )
+    ];
+  }
+
+  // Assemble the chain: from -> break_0 -> ... -> break_n -> to. The cable type
+  // is part of the break node id so that a power link and a data link between
+  // the same fixture pair don't collide on shared break nodes.
+  final ids = <String>[
+    from.uid,
+    for (var i = 0; i < split.breakPoints.length; i++)
+      '${from.uid}~${type.name}brk$i~${to.uid}',
+    to.uid,
+  ];
+
+  final edges = <CableEdge>[
+    for (var i = 0; i < ids.length - 1; i++)
+      CableEdge(
+        from: ids[i],
+        to: ids[i + 1],
+        euclidianLength: split.segmentLengths[i],
+        length: _roundUpCableLength(split.segmentLengths[i], breakpoints),
+        locationId: locationId,
+        runType: runType,
+        type: type,
+      ),
+  ];
+
+  // Each interior break node owns the edge leaving it toward the next point.
+  for (var i = 0; i < split.breakPoints.length; i++) {
+    final point = split.breakPoints[i];
+    graph.addNode(TrussBreakNode(
+      id: ids[i + 1],
+      locationId: locationId,
+      x: point.x,
+      y: point.y,
+      z: point.z,
+      edges: {edges[i + 1]},
+    ));
+  }
+
+  // The source fixture only owns the first segment.
+  return [edges.first];
 }
 
 List<PowerMultiHeaderNode> _buildPowerMultiHeaderNodes(

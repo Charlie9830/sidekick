@@ -18,6 +18,7 @@ import 'package:sidekick/redux/models/loom_stock_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
+import 'package:sidekick/redux/models/truss_model.dart';
 import 'package:sidekick/redux/models/power_rack_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
@@ -266,11 +267,13 @@ class SetImportedFixtureData {
   Map<String, FixtureModel> fixtures;
   Map<String, LocationModel> locations;
   Map<String, FixtureTypeModel> fixtureTypes;
+  Map<String, TrussModel> trusses;
 
   SetImportedFixtureData({
     required this.fixtures,
     required this.locations,
     required this.fixtureTypes,
+    required this.trusses,
   });
 }
 

@@ -19,6 +19,7 @@ import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_rack_model.dart';
 import 'package:sidekick/redux/models/power_rack_type_model.dart';
+import 'package:sidekick/redux/models/truss_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 
@@ -45,6 +46,7 @@ class ProjectFileModel {
   final List<DataRackModel> dataRacks;
   final List<DataRackTypeModel> dataRackTypes;
   final List<FixtureTypePoolModel> fixtureTypePools;
+  final List<TrussModel> trusses;
 
   ProjectFileModel({
     required this.metadata,
@@ -69,6 +71,7 @@ class ProjectFileModel {
     required this.dataRackTypes,
     required this.dataRacks,
     required this.fixtureTypePools,
+    this.trusses = const [],
   });
 
   ProjectFileModel copyWith({
@@ -94,6 +97,7 @@ class ProjectFileModel {
     List<DataRackModel>? dataRacks,
     List<DataRackTypeModel>? dataRackTypes,
     List<FixtureTypePoolModel>? fixtureTypePools,
+    List<TrussModel>? trusses,
   }) {
     return ProjectFileModel(
       metadata: metadata ?? this.metadata,
@@ -118,6 +122,7 @@ class ProjectFileModel {
       dataRacks: dataRacks ?? this.dataRacks,
       dataRackTypes: dataRackTypes ?? this.dataRackTypes,
       fixtureTypePools: fixtureTypePools ?? this.fixtureTypePools,
+      trusses: trusses ?? this.trusses,
     );
   }
 
@@ -145,6 +150,7 @@ class ProjectFileModel {
       'dataRackTypes': dataRackTypes.map((x) => x.toMap()).toList(),
       'dataRacks': dataRacks.map((x) => x.toMap()).toList(),
       'fixtureTypePools': fixtureTypePools.map((x) => x.toMap()).toList(),
+      'trusses': trusses.map((x) => x.toMap()).toList(),
     };
   }
 
@@ -230,7 +236,9 @@ class ProjectFileModel {
           (map['dataRackTypes'] ?? []).map<DataRackTypeModel>(
               (x) => DataRackTypeModel.fromMap(x as Map<String, dynamic>)),
         ),
-        fixtureTypePools: List<FixtureTypePoolModel>.from((map['fixtureTypePools'] ?? []).map<FixtureTypePoolModel>((x) => FixtureTypePoolModel.fromMap(x as Map<String, dynamic>))));
+        fixtureTypePools: List<FixtureTypePoolModel>.from((map['fixtureTypePools'] ?? []).map<FixtureTypePoolModel>((x) => FixtureTypePoolModel.fromMap(x as Map<String, dynamic>))),
+        trusses: List<TrussModel>.from((map['trusses'] ?? [])
+            .map<TrussModel>((x) => TrussModel.fromMap(x as Map<String, dynamic>))));
   }
 
   String toJson() => json.encode(toMap());
@@ -261,6 +269,7 @@ class ProjectFileModel {
       dataRackTypes: dataRackTypes.toModelMap(),
       dataRacks: dataRacks.toModelMap(),
       fixtureTypePools: fixtureTypePools.toModelMap(),
+      trusses: trusses.toModelMap(),
     );
   }
 }

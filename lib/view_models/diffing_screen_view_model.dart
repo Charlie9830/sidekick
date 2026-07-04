@@ -1,3 +1,4 @@
+import 'package:sidekick/view_models/cable_qty_diffing_item_view_model.dart';
 import 'package:sidekick/view_models/fixture_diffing_item_view_model.dart';
 import 'package:sidekick/view_models/hoist_controller_diffing_view_model.dart';
 import 'package:sidekick/view_models/loom_diffing_item_view_model.dart';
@@ -11,6 +12,7 @@ class DiffingScreenViewModel {
   final String comparisonFilePath;
   final String initialDirectory;
   final List<HoistControllerDiffingViewModel> hoistControllerVms;
+  final List<CableQtyDiffingItemViewModel> cableQtyItemVms;
   final void Function(int index) onTabSelected;
   final int selectedTab;
 
@@ -22,6 +24,7 @@ class DiffingScreenViewModel {
     required this.initialDirectory,
     required this.fixtureItemVms,
     required this.hoistControllerVms,
+    required this.cableQtyItemVms,
     required this.onTabSelected,
     required this.selectedTab,
   });

@@ -1,13 +1,12 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 
 import 'package:sidekick/cable_graph/cable_graph.dart';
+import 'package:sidekick/data_selectors/select_cable_qtys.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
-import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/breakout_cabling/breakout_cabling.dart';
 import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
@@ -121,6 +120,9 @@ NodeElement _buildNodeElement({
         universe: node.universe,
         screenX: node.screenX,
         screenY: node.screenY),
+    TrussBreakNode() => TrussBreakElement(
+        screenX: node.screenX,
+        screenY: node.screenY),
   };
 }
 
@@ -151,85 +153,21 @@ CableGraph _selectCableGraph(Store<AppState> store) {
     locations: store.state.fixtureState.locations,
     dataMultis: store.state.fixtureState.dataMultis,
     dataPatches: store.state.fixtureState.dataPatches,
+    trusses: store.state.fixtureState.trusses,
   );
 }
 
 List<LocationViewModel> _selectLocations(
     Store<AppState> store, CableGraph cableGraph) {
-  final cablesByLocationId = _getCableQtysByLocationId(cableGraph);
-  final headersByLocationId = _getCableHeaderQtysByLocationId(cableGraph);
-
-  final allCablesByLocationId = cablesByLocationId
-    ..updateAll((key, value) => Map<CableQtyGroup, int>.from(value)
-      ..addAll(headersByLocationId[key] ?? {}));
+  final cablesByLocationId = selectCableQtysByLocationId(cableGraph);
 
   return store.state.fixtureState.locations.values
       .map((location) => LocationViewModel(
-          cableQtys: allCablesByLocationId[location.uid] ?? {},
+          cableQtys: cablesByLocationId[location.uid] ?? {},
           location: location,
           onSelect: () =>
               store.dispatch(SetBreakoutCablingLocationId(location.uid))))
       .toList();
-}
-
-Map<String, Map<CableQtyGroup, int>> _getCableQtysByLocationId(
-    CableGraph cableGraph) {
-  return Map<String, Map<CableQtyGroup, int>>.fromEntries(cableGraph.edges
-      .whereType<CableEdge>()
-      .groupListsBy((edge) => edge.locationId)
-      .entries
-      .map((entry) {
-    final locationId = entry.key;
-    final cableEdges = entry.value;
-
-    // Convert the cable Edges into CableGroupQtys.
-    final groups = cableEdges
-        .map((edge) => CableQtyGroup(type: edge.type, length: edge.length));
-
-    // Fold the Groups into a Map.
-    final map = <CableQtyGroup, int>{};
-    for (final group in groups) {
-      map.update(group, (count) => count + 1, ifAbsent: () => 1);
-    }
-
-    return MapEntry(locationId, map);
-  }));
-}
-
-Map<String, Map<CableQtyGroup, int>> _getCableHeaderQtysByLocationId(
-    CableGraph cableGraph) {
-  return Map<String, Map<CableQtyGroup, int>>.fromEntries(cableGraph.nodes
-      .whereType<MultiHeaderNode>()
-      .groupListsBy((node) => node.locationId)
-      .entries
-      .map((entry) {
-    final locationId = entry.key;
-    final nodes = entry.value;
-
-    // Convert the Nodes into Qty groups.
-    final groups = nodes.map((node) => CableQtyGroup(
-        type: switch (node) {
-          DataMultiHeaderNode() => CableType.sneakLampHeader,
-          PowerMultiHeaderNode() => switch (node.cableType) {
-              CableType.socapex => node.edges
-                      .whereType<CableEdge>()
-                      .every((edge) => edge.type == CableType.true1)
-                  ? CableType.socapexToTrue1LampHeader
-                  : CableType.socapexToAu10ALampHeader,
-              CableType.wieland6way => CableType.wieland6WayLampHeader,
-              _ => throw UnimplementedError(),
-            }
-        },
-        length: 0));
-
-    // Fold the Groups into a Map.
-    final map = <CableQtyGroup, int>{};
-    for (final group in groups) {
-      map.update(group, (count) => count + 1, ifAbsent: () => 1);
-    }
-
-    return MapEntry(locationId, map);
-  }));
 }
 
 Map<String, FixtureViewModel> _selectLocationFixtures(

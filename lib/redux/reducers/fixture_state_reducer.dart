@@ -316,6 +316,7 @@ FixtureState fixtureStateReducer(FixtureState state, dynamic a) {
         fixtures: FixtureModel.sort(powerPatch.fixtures, a.locations),
         locations: a.locations,
         fixtureTypes: a.fixtureTypes,
+        trusses: a.trusses,
         powerMultiOutlets: powerPatch.powerMultiOutlets,
         dataPatches: performDataPatch(
           fixtures: a.fixtures,

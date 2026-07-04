@@ -1,4 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/screens/diffing/cable_qty_diffing.dart';
 import 'package:sidekick/screens/diffing/diffing_toolbar.dart';
 import 'package:sidekick/screens/diffing/fixture_diffing.dart';
 import 'package:sidekick/screens/diffing/hoist_diffing.dart';
@@ -44,6 +45,9 @@ class _DiffingScreenState extends State<DiffingScreen>
             ),
           3 => HoistDiffing(
               itemVms: widget.viewModel.hoistControllerVms,
+            ),
+          4 => CableQtyDiffing(
+              itemVms: widget.viewModel.cableQtyItemVms,
             ),
           _ => throw UnimplementedError(
               'No Corresponding Screen for Diffing Tab Index ${widget.viewModel.selectedTab}'),

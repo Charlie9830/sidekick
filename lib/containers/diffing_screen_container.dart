@@ -4,6 +4,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'package:sidekick/containers/hoist_selectors.dart';
 import 'package:sidekick/containers/select_power_patch_view_models.dart';
+import 'package:sidekick/data_selectors/select_cable_qtys.dart';
 import 'package:sidekick/data_selectors/select_fixture_view_models.dart';
 import 'package:sidekick/data_selectors/select_loom_view_models.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
@@ -14,6 +15,8 @@ import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/diffing/diffing_screen.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
+import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
+import 'package:sidekick/view_models/cable_qty_diffing_item_view_model.dart';
 import 'package:sidekick/view_models/cable_view_model.dart';
 import 'package:sidekick/view_models/diff_app_state_view_model.dart';
 import 'package:sidekick/view_models/fixture_diffing_item_view_model.dart';
@@ -77,6 +80,17 @@ class DiffingScreenContainer extends StatelessWidget {
                 currentHoistVms: currentHoistVms,
                 originalHoistVms: diffViewModel.hoistViewModels,
               ),
+              cableQtyItemVms: _getCableQtyDiffs(
+                currentQtys: selectCableQtysByLocationId(
+                    buildCableGraphForState(store.state)),
+                originalQtys: diffViewModel.originalCableQtysByLocationId,
+                currentLocationNames: {
+                  for (final location
+                      in store.state.fixtureState.locations.values)
+                    location.uid: location.name
+                },
+                originalLocationNames: diffViewModel.originalLocationNames,
+              ),
               onTabSelected: (index) =>
                   store.dispatch(SetSelectedDiffingTab(index)),
               selectedTab: store.state.navstate.selectedDiffingTab,
@@ -103,9 +117,53 @@ class DiffingScreenContainer extends StatelessWidget {
                   isDiffing: true)
               .toModelMap(),
           hoistViewModels: originalHoistVms,
+          originalCableQtysByLocationId: selectCableQtysByLocationId(
+              buildCableGraphForState(diffStore.state)),
+          originalLocationNames: {
+            for (final location in diffStore.state.fixtureState.locations.values)
+              location.uid: location.name
+          },
         );
       },
     );
+  }
+
+  List<CableQtyDiffingItemViewModel> _getCableQtyDiffs({
+    required Map<String, Map<CableQtyGroup, int>> currentQtys,
+    required Map<String, Map<CableQtyGroup, int>> originalQtys,
+    required Map<String, String> currentLocationNames,
+    required Map<String, String> originalLocationNames,
+  }) {
+    final allLocationIds = {...currentQtys.keys, ...originalQtys.keys};
+
+    return allLocationIds.map((locationId) {
+      final current = currentQtys[locationId] ?? const {};
+      final original = originalQtys[locationId] ?? const {};
+
+      final overallDiff = switch ((current.isEmpty, original.isEmpty)) {
+        (false, true) => DiffState.added,
+        (true, false) => DiffState.deleted,
+        _ => DiffState.unchanged,
+      };
+
+      final allGroups = {...current.keys, ...original.keys};
+      final deltas = allGroups
+          .map((group) => CableQtyDelta(
+                group: group,
+                currentQty: current[group] ?? 0,
+                originalQty: original[group] ?? 0,
+              ))
+          .toList();
+
+      return CableQtyDiffingItemViewModel(
+        locationId: locationId,
+        locationName: currentLocationNames[locationId] ??
+            originalLocationNames[locationId] ??
+            '',
+        overallDiff: overallDiff,
+        deltas: deltas,
+      );
+    }).toList();
   }
 
   List<FixtureDiffingItemViewModel> _getFixtureDiffs({

@@ -46,6 +46,7 @@ class DiffingToolbar extends StatelessWidget {
                 NavigationItem(key: ValueKey(1), child: Text('Patch')),
                 NavigationItem(key: ValueKey(2), child: Text('Looms')),
                 NavigationItem(key: ValueKey(3), child: Text('Hoists')),
+                NavigationItem(key: ValueKey(4), child: Text('Cabling')),
               ],
             ),
           ),

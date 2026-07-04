@@ -23,8 +23,9 @@ class _FixtureTypePoolsState extends State<FixtureTypePools> {
   @override
   void initState() {
     _controller = SlotAssignmentController(
-        itemsById: widget.viewModel.itemsById,
-        highlightPolicy: HighlightPolicy.primaryOnly);
+      itemsById: widget.viewModel.itemsById,
+      highlightPolicy: HighlightPolicy.primaryOnly,
+    );
     super.initState();
   }
 
@@ -33,13 +34,13 @@ class _FixtureTypePoolsState extends State<FixtureTypePools> {
     return SlotAssignmentScope(
       controller: _controller,
       child: ThreePanelScaffold(
-          toolbar: const SizedBox.shrink(),
-          sidebar:
-              _Sidebar(viewModel: widget.viewModel, controller: _controller),
-          body: _Body(
-            vm: widget.viewModel,
-            slotAssignmentController: _controller,
-          )),
+        toolbar: const SizedBox.shrink(),
+        sidebar: _Sidebar(viewModel: widget.viewModel, controller: _controller),
+        body: _Body(
+          vm: widget.viewModel,
+          slotAssignmentController: _controller,
+        ),
+      ),
     );
   }
 }
@@ -86,11 +87,8 @@ class _Sidebar extends StatelessWidget {
 class _Body extends StatelessWidget {
   final FixtureTypesViewModel vm;
   final SlotAssignmentController<String, FixtureTypeModel>
-      slotAssignmentController;
-  const _Body({
-    required this.vm,
-    required this.slotAssignmentController,
-  });
+  slotAssignmentController;
+  const _Body({required this.vm, required this.slotAssignmentController});
 
   @override
   Widget build(BuildContext context) {
@@ -123,7 +121,7 @@ class _Body extends StatelessWidget {
             );
           },
         ),
-        SliverToBoxAdapter(child: createPoolButton)
+        SliverToBoxAdapter(child: createPoolButton),
       ],
     );
   }
@@ -133,7 +131,7 @@ class _PoolItem extends StatelessWidget {
   final FixtureTypePoolViewModel vm;
   final int index;
   final SlotAssignmentController<String, FixtureTypeModel>
-      slotAssignmentController;
+  slotAssignmentController;
 
   const _PoolItem({
     super.key,
@@ -145,79 +143,73 @@ class _PoolItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Slot<String, FixtureTypeModel>(
-        controller: slotAssignmentController,
-        slotIndex: index,
-        onItemsLanded: (ids) => vm.onAddFixturesToPool(ids),
-        assignedItemId:
-            null, // It is safe for this to remain Null. We don't really use the specific Assigned item API.
-        builder: (context, item, activated) {
-          return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      controller: slotAssignmentController,
+      slotIndex: index,
+      onItemsLanded: (ids) => vm.onAddFixturesToPool(ids),
+      assignedItemId:
+          null, // It is safe for this to remain Null. We don't really use the specific Assigned item API.
+      builder: (context, item, activated) {
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Card(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        SizedBox(
-                          width: 400,
-                          child: EditableTextField(
-                            value: vm.pool.name,
-                            hintText: 'Pool Name',
-                            style: Theme.of(context).typography.large,
-                            onChanged: (newValue) => vm.onNameChanged(newValue),
-                          ),
-                        ),
-                        const Spacer(),
-                        Text('${_calculateTotalPoolDraw(vm)}A'),
-                        const SizedBox(
-                          height: 48,
-                          child: VerticalDivider(width: 16),
-                        ),
-                        SimpleTooltip(
-                          message: 'Reorder Pool',
-                          child: ReorderableDragStartListener(
-                            index: index,
-                            child: const Icon(Icons.drag_handle),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        SimpleTooltip(
-                          message: 'Delete pool',
-                          child: IconButton.destructive(
-                            icon: const Icon(Icons.delete),
-                            size: ButtonSize.small,
-                            onPressed: vm.onPoolDeleted,
-                          ),
-                        ),
-                      ],
+                    SizedBox(
+                      width: 400,
+                      child: EditableTextField(
+                        value: vm.pool.name,
+                        hintText: 'Pool Name',
+                        style: Theme.of(context).typography.large,
+                        onChanged: (newValue) => vm.onNameChanged(newValue),
+                      ),
                     ),
-                    if (vm.childVms.isEmpty)
-                      Container(
-                        alignment: Alignment.center,
-                        height: 48,
-                        child: Text(
-                            'Drag Fixture Types here to add them into this pool',
-                            style: Theme.of(context).typography.small.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .mutedForeground,
-                                )),
+                    const Spacer(),
+                    Text('${_calculateTotalPoolDraw(vm)}A'),
+                    const SizedBox(
+                      height: 48,
+                      child: VerticalDivider(width: 16),
+                    ),
+                    SimpleTooltip(
+                      message: 'Reorder Pool',
+                      child: ReorderableDragStartListener(
+                        index: index,
+                        child: const Icon(Icons.drag_handle),
                       ),
-                    if (vm.childVms.isNotEmpty)
-                      const Divider(
-                        height: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    SimpleTooltip(
+                      message: 'Delete pool',
+                      child: IconButton.destructive(
+                        icon: const Icon(Icons.delete),
+                        size: ButtonSize.small,
+                        onPressed: vm.onPoolDeleted,
                       ),
-                    ...vm.childVms
-                        .map((child) => _PoolChild(
-                              vm: child,
-                            ))
-                        .toList()
+                    ),
                   ],
                 ),
-              ));
-        });
+                if (vm.childVms.isEmpty)
+                  Container(
+                    alignment: Alignment.center,
+                    height: 48,
+                    child: Text(
+                      'Drag Fixture Types here to add them into this pool',
+                      style: Theme.of(context).typography.small.copyWith(
+                        color: Theme.of(context).colorScheme.mutedForeground,
+                      ),
+                    ),
+                  ),
+                if (vm.childVms.isNotEmpty) const Divider(height: 16),
+                ...vm.childVms.map((child) => _PoolChild(vm: child)).toList(),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   double _calculateTotalPoolDraw(FixtureTypePoolViewModel vm) {
@@ -237,18 +229,13 @@ class _PoolChild extends StatelessWidget {
       height: 48,
       child: Row(
         children: [
-          SizedBox(
-            width: 300,
-            child: Text(vm.fixtureType.type.name),
-          ),
+          SizedBox(width: 300, child: Text(vm.fixtureType.type.name)),
           SizedBox(
             width: 100,
             child: PropertyField(
               value: vm.entry.qty.toString(),
               textAlign: TextAlign.center,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-              ],
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               onBlur: vm.onQtyChanged,
               label: 'Qty',
               labelAlign: LabelAlign.center,
@@ -258,8 +245,9 @@ class _PoolChild extends StatelessWidget {
           Text('${vm.fixtureType.type.amps * vm.entry.qty}A'),
           const Spacer(),
           IconButton.ghost(
-              icon: const Icon(Icons.clear),
-              onPressed: vm.onRemoveFixturePressed)
+            icon: const Icon(Icons.clear),
+            onPressed: vm.onRemoveFixturePressed,
+          ),
         ],
       ),
     );

@@ -146,6 +146,16 @@ class CableView extends StatelessWidget {
                           ),
                         ),
                       ),
+                      TrussBreakElement() => Positioned(
+                        width: 6,
+                        height: 6,
+                        left: origin.dx,
+                        top: origin.dy,
+                        child: const FractionalTranslation(
+                          translation: Offset(-0.5, -0.5),
+                          child: _TrussBreakNode(),
+                        ),
+                      ),
                     };
                   }),
                 ],
@@ -280,6 +290,21 @@ class _LocationNode extends StatelessWidget {
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.yellow,
+      ),
+    );
+  }
+}
+
+class _TrussBreakNode extends StatelessWidget {
+  const _TrussBreakNode();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Theme.of(context).colorScheme.background,
+        border: Border.all(color: Theme.of(context).colorScheme.border),
       ),
     );
   }

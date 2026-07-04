@@ -10,6 +10,7 @@ import 'package:sidekick/redux/models/fixture_model.dart';
 
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
+import 'package:sidekick/redux/models/truss_model.dart';
 import 'package:sidekick/screens/file/import_module/fixture_mapping_step.dart';
 import 'package:sidekick/screens/file/import_module/fixture_mapping_view_model.dart';
 import 'package:sidekick/screens/file/import_module/import_manager_result.dart';
@@ -49,7 +50,7 @@ class _ImportManagerState extends State<ImportManager> {
   bool _isFixtureDatabasePathValid = false;
   List<RawFixtureModel> _incomingFixtures = const [];
   List<RawLocationModel> _incomingLocations = const [];
-  final List<RawTrussModel> _incomingTrusses = const [];
+  List<RawTrussModel> _incomingTrusses = const [];
   Map<String, String> _locationMapping = {};
 
   @override
@@ -676,11 +677,30 @@ class _ImportManagerState extends State<ImportManager> {
       );
     }).toList();
 
+    final trusses = _incomingTrusses.map(
+      (raw) => TrussModel(
+        uid: raw.mvrId,
+        mvrId: raw.mvrId,
+        classing: raw.classing,
+        height: raw.height,
+        length: raw.length,
+        width: raw.width,
+        name: raw.name,
+        rotationX: raw.rotationX,
+        rotationY: raw.rotationY,
+        rotationZ: raw.rotationZ,
+        x: raw.x,
+        y: raw.y,
+        z: raw.z,
+      ),
+    );
+
     Navigator.of(context).pop(
       ImportManagerResult(
         fixtures: fixtures.toList(),
         locations: locations.toList(),
         fixtureTypes: mergedFixtureTypes,
+        trusses: trusses.toList(),
       ),
     );
   }
@@ -715,8 +735,6 @@ class _ImportManagerState extends State<ImportManager> {
       settings: _importSettings,
       patchFilePath: _fixturePatchFilePath,
     );
-
-    print(trussReadResult.trusses);
 
     final fixtureReadResult = await readRawFixtures(
       settings: _importSettings,
@@ -764,6 +782,7 @@ class _ImportManagerState extends State<ImportManager> {
       _fixtureTypes = fixtureDatabaseResult;
       _incomingFixtures = fixtureReadResult.fixtures;
       _incomingLocations = fixtureReadResult.locations;
+      _incomingTrusses = trussReadResult.trusses;
     });
   }
 

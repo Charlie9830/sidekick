@@ -22,6 +22,7 @@ import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_rack_type_model.dart';
 import 'package:sidekick/redux/state/fixture_state.dart';
 import 'package:sidekick/screens/locations/power_feed_manager.dart';
+import 'package:sidekick/redux/models/truss_model.dart';
 import 'package:sidekick/utils/packable_list.dart';
 import 'package:sidekick/validate_export_data.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -35,6 +36,8 @@ import 'package:sidekick/data_selectors/select_all_outlets.dart';
 import 'package:sidekick/data_selectors/select_outlets.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/excel/create_color_lookup_sheet.dart';
+import 'package:sidekick/cable_graph/cable_graph.dart';
+import 'package:sidekick/excel/create_breakout_cabling_sheet.dart';
 import 'package:sidekick/excel/create_data_multi_sheet.dart';
 import 'package:sidekick/excel/create_data_patch_sheet.dart';
 import 'package:sidekick/excel/create_fixture_addressing_sheet.dart';
@@ -89,12 +92,18 @@ import 'package:sidekick/utils/get_uid.dart';
 
 ThunkAction<AppState> createFixtureTypePool() {
   return (Store<AppState> store) async {
-    final newPool =
-        FixtureTypePoolModel(uid: getUid(), name: 'New Pool', items: {});
+    final newPool = FixtureTypePoolModel(
+      uid: getUid(),
+      name: 'New Pool',
+      items: {},
+    );
 
-    store.dispatch(SetFixtureTypePools(
+    store.dispatch(
+      SetFixtureTypePools(
         store.state.fixtureState.fixtureTypePools.clone()
-          ..addAll({newPool.uid: newPool})));
+          ..addAll({newPool.uid: newPool}),
+      ),
+    );
   };
 }
 
@@ -117,13 +126,10 @@ ThunkAction<AppState> updatePowerRackFeed(String feedId, String targetRackId) {
 
     store.dispatch(
       SetPowerRacks(
-        store.state.fixtureState.powerRacks.clone()
-          ..update(
-            targetRackId,
-            (existing) => existing.copyWith(
-              powerFeedId: feedId,
-            ),
-          ),
+        store.state.fixtureState.powerRacks.clone()..update(
+          targetRackId,
+          (existing) => existing.copyWith(powerFeedId: feedId),
+        ),
       ),
     );
   };
@@ -144,13 +150,18 @@ ThunkAction<AppState> showPowerFeedManager(BuildContext context) {
 
     // Ensure no Power Racks are assigned to a now deleted Power feed. If they are, assign them to the default feed.
     final updatedPowerRacks = store.state.fixtureState.powerRacks.clone()
-      ..updateAll((rackId, rack) =>
-          result.deletedFeedIds.contains(rack.powerFeedId)
-              ? rack.copyWith(powerFeedId: PowerFeedModel.kDefaultPowerFeedId)
-              : rack);
+      ..updateAll(
+        (rackId, rack) => result.deletedFeedIds.contains(rack.powerFeedId)
+            ? rack.copyWith(powerFeedId: PowerFeedModel.kDefaultPowerFeedId)
+            : rack,
+      );
 
-    store.dispatch(SetPowerFeedsAndPowerRacks(
-        powerFeeds: result.powerFeeds, racks: updatedPowerRacks));
+    store.dispatch(
+      SetPowerFeedsAndPowerRacks(
+        powerFeeds: result.powerFeeds,
+        racks: updatedPowerRacks,
+      ),
+    );
   };
 }
 
@@ -162,15 +173,20 @@ ThunkAction<AppState> assignPowerRackToFeed(String feedId, String rackId) {
       return;
     }
 
-    store.dispatch(SetPowerRacks(store.state.fixtureState.powerRacks.clone()
-      ..update(rack.uid, (_) => rack.copyWith(powerFeedId: feedId))));
+    store.dispatch(
+      SetPowerRacks(
+        store.state.fixtureState.powerRacks.clone()
+          ..update(rack.uid, (_) => rack.copyWith(powerFeedId: feedId)),
+      ),
+    );
   };
 }
 
-ThunkAction<AppState> assignPowerMultisToRack(
-    {required Set<String> movingOrIncomingMultiIds,
-    required int startingChannelNumber,
-    required String targetRackId}) {
+ThunkAction<AppState> assignPowerMultisToRack({
+  required Set<String> movingOrIncomingMultiIds,
+  required int startingChannelNumber,
+  required String targetRackId,
+}) {
   return (Store<AppState> store) async {
     if (movingOrIncomingMultiIds.isEmpty ||
         store.state.fixtureState.powerRacks[targetRackId] == null) {
@@ -198,34 +214,48 @@ ThunkAction<AppState> assignPowerMultisToRack(
     // Do not include any Multis that are incoming or Moving, these are going to get inserted in the next step anyway.
     final occupiedSlots = multisInRack
         .where((multi) => movingOrIncomingMultiIds.contains(multi.uid) == false)
-        .map((multi) =>
-            IndexedSpot<String>(multi.parentRack.channel - 1, multi.uid));
+        .map(
+          (multi) =>
+              IndexedSpot<String>(multi.parentRack.channel - 1, multi.uid),
+        );
 
     final packableList = PackableList.fromIndexedSpots(
-        occupiedSlots,
-        max(rackType.multiOutletCount,
-            PowerMultiOutletModel.getHighestChannelNumber(multisInRack) - 1));
+      occupiedSlots,
+      max(
+        rackType.multiOutletCount,
+        PowerMultiOutletModel.getHighestChannelNumber(multisInRack) - 1,
+      ),
+    );
 
     packableList.insert(movingOrIncomingMultiIds, startingChannelNumber - 1);
 
     final updatedPowerMultis = packableList
         .toIndexedSpotList()
         .where((slot) => slot.content != null)
-        .map((slot) => store.state.fixtureState.powerMultiOutlets[slot.content]!
-            .copyWith(
+        .map(
+          (slot) => store.state.fixtureState.powerMultiOutlets[slot.content]!
+              .copyWith(
                 parentRack: PowerMultiRackAssignment(
-                    rackId: rack.uid, channel: slot.index + 1)));
+                  rackId: rack.uid,
+                  channel: slot.index + 1,
+                ),
+              ),
+        );
 
-    store.dispatch(SetPowerMultiOutlets(
+    store.dispatch(
+      SetPowerMultiOutlets(
         store.state.fixtureState.powerMultiOutlets.clone()
-          ..addAll(updatedPowerMultis.toModelMap())));
+          ..addAll(updatedPowerMultis.toModelMap()),
+      ),
+    );
   };
 }
 
-ThunkAction<AppState> assignDataPatchesToRack(
-    {required Set<String> movingOrIncomingPatchIds,
-    required int startingChannelNumber,
-    required String targetRackId}) {
+ThunkAction<AppState> assignDataPatchesToRack({
+  required Set<String> movingOrIncomingPatchIds,
+  required int startingChannelNumber,
+  required String targetRackId,
+}) {
   return (Store<AppState> store) async {
     if (movingOrIncomingPatchIds.isEmpty ||
         store.state.fixtureState.dataRacks[targetRackId] == null) {
@@ -253,26 +283,40 @@ ThunkAction<AppState> assignDataPatchesToRack(
     // Do not include any Patches that are incoming or Moving, these are going to get inserted in the next step anyway.
     final occupiedSlots = patchesInRack
         .where((patch) => movingOrIncomingPatchIds.contains(patch.uid) == false)
-        .map((patch) =>
-            IndexedSpot<String>(patch.parentRack.channel - 1, patch.uid));
+        .map(
+          (patch) =>
+              IndexedSpot<String>(patch.parentRack.channel - 1, patch.uid),
+        );
 
     final packableList = PackableList.fromIndexedSpots(
-        occupiedSlots,
-        max(rackType.outletCount,
-            DataPatchModel.getHighestChannelNumber(patchesInRack) - 1));
+      occupiedSlots,
+      max(
+        rackType.outletCount,
+        DataPatchModel.getHighestChannelNumber(patchesInRack) - 1,
+      ),
+    );
 
     packableList.insert(movingOrIncomingPatchIds, startingChannelNumber - 1);
 
     final updatedDataPatches = packableList
         .toIndexedSpotList()
         .where((slot) => slot.content != null)
-        .map((slot) => store.state.fixtureState.dataPatches[slot.content]!
-            .copyWith(
+        .map(
+          (slot) =>
+              store.state.fixtureState.dataPatches[slot.content]!.copyWith(
                 parentRack: DataPatchRackAssignment(
-                    rackId: rack.uid, channel: slot.index + 1)));
+                  rackId: rack.uid,
+                  channel: slot.index + 1,
+                ),
+              ),
+        );
 
-    store.dispatch(SetDataPatches(store.state.fixtureState.dataPatches.clone()
-      ..addAll(updatedDataPatches.toModelMap())));
+    store.dispatch(
+      SetDataPatches(
+        store.state.fixtureState.dataPatches.clone()
+          ..addAll(updatedDataPatches.toModelMap()),
+      ),
+    );
   };
 }
 
@@ -315,10 +359,12 @@ ThunkAction<AppState> addPowerRack(BuildContext context) {
       note: '',
     );
 
-    store.dispatch(SetPowerRacks(store.state.fixtureState.powerRacks.clone()
-      ..addAll({
-        newRack.uid: newRack,
-      })));
+    store.dispatch(
+      SetPowerRacks(
+        store.state.fixtureState.powerRacks.clone()
+          ..addAll({newRack.uid: newRack}),
+      ),
+    );
   };
 }
 
@@ -350,8 +396,9 @@ ThunkAction<AppState> addDataRack(BuildContext context) {
       return;
     }
 
-    final existingRacksOfType = store.state.fixtureState.dataRacks.values
-        .where((rack) => rack.typeId == rackType.uid);
+    final existingRacksOfType = store.state.fixtureState.dataRacks.values.where(
+      (rack) => rack.typeId == rackType.uid,
+    );
 
     final newRack = DataRackModel(
       uid: getUid(),
@@ -360,39 +407,49 @@ ThunkAction<AppState> addDataRack(BuildContext context) {
       notes: '',
     );
 
-    store.dispatch(SetDataRacks(store.state.fixtureState.dataRacks.clone()
-      ..addAll({
-        newRack.uid: newRack,
-      })));
+    store.dispatch(
+      SetDataRacks(
+        store.state.fixtureState.dataRacks.clone()
+          ..addAll({newRack.uid: newRack}),
+      ),
+    );
   };
 }
 
 ThunkAction<AppState> selectPowerMultiOutlets(
-    UpdateType type, Set<String> multiIds) {
+  UpdateType type,
+  Set<String> multiIds,
+) {
   return (Store<AppState> store) async {
     switch (type) {
       case UpdateType.overwrite:
         store.dispatch(SetSelectedPowerMultiOutletIds(multiIds));
       case UpdateType.addIfAbsentElseRemove:
-        store.dispatch(SetSelectedPowerMultiOutletIds(
-          store.state.navstate.selectedPowerMultiOutletIds.toSet()
-            ..addAllIfAbsentElseRemove(multiIds),
-        ));
+        store.dispatch(
+          SetSelectedPowerMultiOutletIds(
+            store.state.navstate.selectedPowerMultiOutletIds.toSet()
+              ..addAllIfAbsentElseRemove(multiIds),
+          ),
+        );
     }
   };
 }
 
 ThunkAction<AppState> selectPowerMultiChannels(
-    UpdateType type, Set<String> multiIds) {
+  UpdateType type,
+  Set<String> multiIds,
+) {
   return (Store<AppState> store) async {
     switch (type) {
       case UpdateType.overwrite:
         store.dispatch(SetSelectedPowerMultiChannelIds(multiIds));
       case UpdateType.addIfAbsentElseRemove:
-        store.dispatch(SetSelectedPowerMultiChannelIds(
-          store.state.navstate.selectedPowerMultiChannelIds.toSet()
-            ..addAllIfAbsentElseRemove(multiIds),
-        ));
+        store.dispatch(
+          SetSelectedPowerMultiChannelIds(
+            store.state.navstate.selectedPowerMultiChannelIds.toSet()
+              ..addAllIfAbsentElseRemove(multiIds),
+          ),
+        );
     }
   };
 }
@@ -406,12 +463,12 @@ ThunkAction<AppState> updatePowerRackType(String rackId, String typeId) {
       return;
     }
 
-    store.dispatch(SetPowerRacks(store.state.fixtureState.powerRacks.clone()
-      ..update(
-          rackId,
-          (existing) => existing.copyWith(
-                typeId: typeId,
-              ))));
+    store.dispatch(
+      SetPowerRacks(
+        store.state.fixtureState.powerRacks.clone()
+          ..update(rackId, (existing) => existing.copyWith(typeId: typeId)),
+      ),
+    );
   };
 }
 
@@ -424,12 +481,12 @@ ThunkAction<AppState> updateDataRackType(String rackId, String typeId) {
       return;
     }
 
-    store.dispatch(SetDataRacks(store.state.fixtureState.dataRacks.clone()
-      ..update(
-          rackId,
-          (existing) => existing.copyWith(
-                typeId: typeId,
-              ))));
+    store.dispatch(
+      SetDataRacks(
+        store.state.fixtureState.dataRacks.clone()
+          ..update(rackId, (existing) => existing.copyWith(typeId: typeId)),
+      ),
+    );
   };
 }
 
@@ -446,23 +503,29 @@ ThunkAction<AppState> deleteDataRack(BuildContext context, DataRackModel rack) {
 
     if (dialogResult == true) {
       final updatedDataPatches = store.state.fixtureState.dataPatches.clone()
-        ..updateAll((patchId, existing) =>
-            existing.parentRack.rackId == rack.uid
-                ? existing.copyWith(
-                    parentRack: const DataPatchRackAssignment.unassigned())
-                : existing);
+        ..updateAll(
+          (patchId, existing) => existing.parentRack.rackId == rack.uid
+              ? existing.copyWith(
+                  parentRack: const DataPatchRackAssignment.unassigned(),
+                )
+              : existing,
+        );
 
       store.dispatch(SetDataPatches(updatedDataPatches));
 
-      store.dispatch(SetPowerRacks(
-        store.state.fixtureState.powerRacks.clone()..remove(rack.uid),
-      ));
+      store.dispatch(
+        SetPowerRacks(
+          store.state.fixtureState.powerRacks.clone()..remove(rack.uid),
+        ),
+      );
     }
   };
 }
 
 ThunkAction<AppState> deletePowerRack(
-    BuildContext context, PowerRackModel rack) {
+  BuildContext context,
+  PowerRackModel rack,
+) {
   return (Store<AppState> store) async {
     final dialogResult = await showGenericDialog(
       context: context,
@@ -474,25 +537,30 @@ ThunkAction<AppState> deletePowerRack(
     );
 
     if (dialogResult == true) {
-      final updatedPowerMultis = store.state.fixtureState.powerMultiOutlets
-          .clone()
-        ..updateAll((multiId, existing) =>
-            existing.parentRack.rackId == rack.uid
+      final updatedPowerMultis =
+          store.state.fixtureState.powerMultiOutlets.clone()..updateAll(
+            (multiId, existing) => existing.parentRack.rackId == rack.uid
                 ? existing.copyWith(
-                    parentRack: const PowerMultiRackAssignment.unassigned())
-                : existing);
+                    parentRack: const PowerMultiRackAssignment.unassigned(),
+                  )
+                : existing,
+          );
 
       store.dispatch(SetPowerMultiOutlets(updatedPowerMultis));
 
-      store.dispatch(SetPowerRacks(
-        store.state.fixtureState.powerRacks.clone()..remove(rack.uid),
-      ));
+      store.dispatch(
+        SetPowerRacks(
+          store.state.fixtureState.powerRacks.clone()..remove(rack.uid),
+        ),
+      );
     }
   };
 }
 
 ThunkAction<AppState> deleteHoistController(
-    BuildContext context, HoistControllerModel controller) {
+  BuildContext context,
+  HoistControllerModel controller,
+) {
   return (Store<AppState> store) async {
     final dialogResult = await showGenericDialog(
       context: context,
@@ -505,19 +573,26 @@ ThunkAction<AppState> deleteHoistController(
 
     if (dialogResult == true) {
       final associatedHoists = store.state.fixtureState.hoists.values.where(
-          (hoist) => hoist.parentController.controllerId == controller.uid);
+        (hoist) => hoist.parentController.controllerId == controller.uid,
+      );
 
-      store.dispatch(SetHoistsAndControllers(
+      store.dispatch(
+        SetHoistsAndControllers(
           hoistControllers: store.state.fixtureState.hoistControllers.clone()
             ..remove(controller.uid),
           hoists: store.state.fixtureState.hoists.clone()
             ..addAll(
               associatedHoists
-                  .map((hoist) => hoist.copyWith(
+                  .map(
+                    (hoist) => hoist.copyWith(
                       parentController:
-                          const HoistControllerChannelAssignment.unassigned()))
+                          const HoistControllerChannelAssignment.unassigned(),
+                    ),
+                  )
                   .toModelMap(),
-            )));
+            ),
+        ),
+      );
 
       store.dispatch(SetSelectedHoistChannelIds({}));
     }
@@ -525,24 +600,32 @@ ThunkAction<AppState> deleteHoistController(
 }
 
 ThunkAction<AppState> unpatchHoist(
-    HoistControllerModel controller, HoistModel? hoist) {
+  HoistControllerModel controller,
+  HoistModel? hoist,
+) {
   return (Store<AppState> store) async {
     if (hoist == null) {
       return;
     }
 
-    store.dispatch(SetHoists(store.state.fixtureState.hoists.clone()
-      ..update(
+    store.dispatch(
+      SetHoists(
+        store.state.fixtureState.hoists.clone()..update(
           hoist.uid,
           (existing) => existing.copyWith(
-                parentController:
-                    const HoistControllerChannelAssignment.unassigned(),
-              ))));
+            parentController:
+                const HoistControllerChannelAssignment.unassigned(),
+          ),
+        ),
+      ),
+    );
   };
 }
 
 ThunkAction<AppState> unpatchPowerMulti(
-    PowerRackModel powerRack, String? multiId) {
+  PowerRackModel powerRack,
+  String? multiId,
+) {
   return (Store<AppState> store) async {
     if (multiId == null) {
       return;
@@ -555,12 +638,15 @@ ThunkAction<AppState> unpatchPowerMulti(
     }
 
     store.dispatch(
-        SetPowerMultiOutlets(store.state.fixtureState.powerMultiOutlets.clone()
-          ..update(
-              multi.uid,
-              (existing) => existing.copyWith(
-                    parentRack: const PowerMultiRackAssignment.unassigned(),
-                  ))));
+      SetPowerMultiOutlets(
+        store.state.fixtureState.powerMultiOutlets.clone()..update(
+          multi.uid,
+          (existing) => existing.copyWith(
+            parentRack: const PowerMultiRackAssignment.unassigned(),
+          ),
+        ),
+      ),
+    );
   };
 }
 
@@ -570,17 +656,24 @@ ThunkAction<AppState> unpatchPowerMultis(Set<String> powerMultiIds) {
       return;
     }
 
-    store.dispatch(SetPowerMultiOutlets(
-        store.state.fixtureState.powerMultiOutlets.clone()
-          ..updateAll((multiId, existing) => powerMultiIds.contains(multiId)
+    store.dispatch(
+      SetPowerMultiOutlets(
+        store.state.fixtureState.powerMultiOutlets.clone()..updateAll(
+          (multiId, existing) => powerMultiIds.contains(multiId)
               ? existing.copyWith(
-                  parentRack: const PowerMultiRackAssignment.unassigned())
-              : existing)));
+                  parentRack: const PowerMultiRackAssignment.unassigned(),
+                )
+              : existing,
+        ),
+      ),
+    );
   };
 }
 
 ThunkAction<AppState> unpatchDataOutlet(
-    DataRackModel dataRack, String? patchId) {
+  DataRackModel dataRack,
+  String? patchId,
+) {
   return (Store<AppState> store) async {
     if (patchId == null) {
       return;
@@ -592,12 +685,16 @@ ThunkAction<AppState> unpatchDataOutlet(
       return;
     }
 
-    store.dispatch(SetDataPatches(store.state.fixtureState.dataPatches.clone()
-      ..update(
+    store.dispatch(
+      SetDataPatches(
+        store.state.fixtureState.dataPatches.clone()..update(
           patch.uid,
           (existing) => existing.copyWith(
-                parentRack: const DataPatchRackAssignment.unassigned(),
-              ))));
+            parentRack: const DataPatchRackAssignment.unassigned(),
+          ),
+        ),
+      ),
+    );
   };
 }
 
@@ -607,16 +704,26 @@ ThunkAction<AppState> unpatchDataOutlets(Set<String> patchIds) {
       return;
     }
 
-    store.dispatch(SetDataPatches(store.state.fixtureState.dataPatches.clone()
-      ..updateAll((patchId, existing) => patchIds.contains(patchId)
-          ? existing.copyWith(
-              parentRack: const DataPatchRackAssignment.unassigned())
-          : existing)));
+    store.dispatch(
+      SetDataPatches(
+        store.state.fixtureState.dataPatches.clone()..updateAll(
+          (patchId, existing) => patchIds.contains(patchId)
+              ? existing.copyWith(
+                  parentRack: const DataPatchRackAssignment.unassigned(),
+                )
+              : existing,
+        ),
+      ),
+    );
   };
 }
 
 ThunkAction<AppState> reorderHoists(
-    int oldIndex, int newIndex, List<HoistModel> hoists, BuildContext context) {
+  int oldIndex,
+  int newIndex,
+  List<HoistModel> hoists,
+  BuildContext context,
+) {
   return (Store<AppState> store) async {
     if (oldIndex < newIndex) {
       newIndex -= 1;
@@ -636,10 +743,7 @@ class LocationSpan {
   final int startingIndex;
   int? endingIndex;
 
-  LocationSpan({
-    required this.location,
-    required this.startingIndex,
-  });
+  LocationSpan({required this.location, required this.startingIndex});
 
   bool get isClosed => endingIndex != null;
 
@@ -656,34 +760,35 @@ ThunkAction<AppState> deleteLocation(BuildContext context, String locationId) {
     }
 
     final result = await showGenericDialog(
-        context: context,
-        title: 'Delete Location',
-        message:
-            'Are you sure you want to delete ${location.name}. All motors and cables associated with this location will be deleted as well.',
-        affirmativeText: 'Delete',
-        destructiveAffirmative: true,
-        declineText: 'Cancel');
+      context: context,
+      title: 'Delete Location',
+      message:
+          'Are you sure you want to delete ${location.name}. All motors and cables associated with this location will be deleted as well.',
+      affirmativeText: 'Delete',
+      destructiveAffirmative: true,
+      declineText: 'Cancel',
+    );
 
     if (result == true) {
-      store.dispatch(RemoveLocation(
-        location: location,
-      ));
+      store.dispatch(RemoveLocation(location: location));
     }
   };
 }
 
 ThunkAction<AppState> editRiggingLocation(
-    BuildContext context, LocationModel location) {
+  BuildContext context,
+  LocationModel location,
+) {
   return (Store<AppState> store) async {
     if (location.isRiggingOnlyLocation == false) {
       return;
     }
 
     final result = await openShadSheet(
-        context: context,
-        builder: (context) => AddOrEditRiggingLocation(
-              existingLocation: location,
-            ));
+      context: context,
+      builder: (context) =>
+          AddOrEditRiggingLocation(existingLocation: location),
+    );
 
     if (result is AddRiggingLocationDialogResult) {
       final updatedLocation = location.copyWith(
@@ -696,19 +801,31 @@ ThunkAction<AppState> editRiggingLocation(
       final updatedPrimaryLocations = store.state.fixtureState.locations.clone()
         ..update(location.uid, (_) => updatedLocation);
 
-      final associatedHybridLocations =
-          store.state.fixtureState.locations.values.where(
-              (item) => item.isHybrid && item.hybridIds.contains(location.uid));
+      final associatedHybridLocations = store
+          .state
+          .fixtureState
+          .locations
+          .values
+          .where(
+            (item) => item.isHybrid && item.hybridIds.contains(location.uid),
+          );
 
       final updatedHybridLocations = associatedHybridLocations.map(
-          (hybridLoc) => hybridLoc.copyWith(
-              name: LocationModel.getHybridLocationName(hybridLoc.hybridIds
-                  .map((id) => updatedPrimaryLocations[id])
-                  .nonNulls
-                  .toList())));
+        (hybridLoc) => hybridLoc.copyWith(
+          name: LocationModel.getHybridLocationName(
+            hybridLoc.hybridIds
+                .map((id) => updatedPrimaryLocations[id])
+                .nonNulls
+                .toList(),
+          ),
+        ),
+      );
 
-      store.dispatch(SetLocations(updatedPrimaryLocations
-        ..addAll(updatedHybridLocations.toModelMap())));
+      store.dispatch(
+        SetLocations(
+          updatedPrimaryLocations..addAll(updatedHybridLocations.toModelMap()),
+        ),
+      );
     }
   };
 }
@@ -716,8 +833,9 @@ ThunkAction<AppState> editRiggingLocation(
 ThunkAction<AppState> addRiggingLocation(BuildContext context) {
   return (Store<AppState> store) async {
     final result = await openShadSheet(
-        context: context,
-        builder: (context) => const AddOrEditRiggingLocation());
+      context: context,
+      builder: (context) => const AddOrEditRiggingLocation(),
+    );
 
     if (result is AddRiggingLocationDialogResult) {
       final newLocation = LocationModel(
@@ -729,8 +847,12 @@ ThunkAction<AppState> addRiggingLocation(BuildContext context) {
         isRiggingOnlyLocation: true,
       );
 
-      store.dispatch(SetLocations(store.state.fixtureState.locations.clone()
-        ..addAll({newLocation.uid: newLocation})));
+      store.dispatch(
+        SetLocations(
+          store.state.fixtureState.locations.clone()
+            ..addAll({newLocation.uid: newLocation}),
+        ),
+      );
     }
   };
 }
@@ -743,21 +865,28 @@ ThunkAction<AppState> deleteSelectedHoistChannels() {
       return;
     }
 
-    store.dispatch(SetHoists(store.state.fixtureState.hoists.clone()
-      ..updateAll((id, hoist) => hoistIds.contains(id)
-          ? hoist.copyWith(
-              parentController:
-                  const HoistControllerChannelAssignment.unassigned())
-          : hoist)));
+    store.dispatch(
+      SetHoists(
+        store.state.fixtureState.hoists.clone()..updateAll(
+          (id, hoist) => hoistIds.contains(id)
+              ? hoist.copyWith(
+                  parentController:
+                      const HoistControllerChannelAssignment.unassigned(),
+                )
+              : hoist,
+        ),
+      ),
+    );
 
     store.dispatch(SetSelectedHoistChannelIds({}));
   };
 }
 
-ThunkAction<AppState> assignHoistsToController(
-    {required Set<String> movingOrIncomingHoistIds,
-    required int startingChannelNumber,
-    required String targetControllerId}) {
+ThunkAction<AppState> assignHoistsToController({
+  required Set<String> movingOrIncomingHoistIds,
+  required int startingChannelNumber,
+  required String targetControllerId,
+}) {
   return (Store<AppState> store) async {
     if (movingOrIncomingHoistIds.isEmpty ||
         store.state.fixtureState.hoistControllers[targetControllerId] == null) {
@@ -780,71 +909,96 @@ ThunkAction<AppState> assignHoistsToController(
     // Do not include any Hoists that are incoming or Moving, these are going to get inserted in the next step anyway.
     final occupiedSlots = hoistsInController
         .where((hoist) => movingOrIncomingHoistIds.contains(hoist.uid) == false)
-        .map((hoist) =>
-            IndexedSpot<String>(hoist.parentController.channel - 1, hoist.uid));
+        .map(
+          (hoist) => IndexedSpot<String>(
+            hoist.parentController.channel - 1,
+            hoist.uid,
+          ),
+        );
 
     final packableList = PackableList.fromIndexedSpots(
-        occupiedSlots,
-        max(controller.ways,
-            HoistModel.getHighestChannelNumber(hoistsInController) - 1));
+      occupiedSlots,
+      max(
+        controller.ways,
+        HoistModel.getHighestChannelNumber(hoistsInController) - 1,
+      ),
+    );
 
     packableList.insert(movingOrIncomingHoistIds, startingChannelNumber - 1);
 
     final updatedHoists = packableList
         .toIndexedSpotList()
         .where((slot) => slot.content != null)
-        .map((slot) => store.state.fixtureState.hoists[slot.content]!.copyWith(
+        .map(
+          (slot) => store.state.fixtureState.hoists[slot.content]!.copyWith(
             parentController: HoistControllerChannelAssignment(
-                controllerId: controller.uid, channel: slot.index + 1)));
+              controllerId: controller.uid,
+              channel: slot.index + 1,
+            ),
+          ),
+        );
 
-    store.dispatch(SetHoists(store.state.fixtureState.hoists.clone()
-      ..addAll(updatedHoists.toModelMap())));
+    store.dispatch(
+      SetHoists(
+        store.state.fixtureState.hoists.clone()
+          ..addAll(updatedHoists.toModelMap()),
+      ),
+    );
   };
 }
 
 ThunkAction<AppState> addHoistController(int wayNumber) {
   return (Store<AppState> store) async {
     final String uid = getUid();
-    store.dispatch(SetHoistControllers(
-      store.state.fixtureState.hoistControllers.clone()
-        ..addAll({
+    store.dispatch(
+      SetHoistControllers(
+        store.state.fixtureState.hoistControllers.clone()..addAll({
           uid: HoistControllerModel(
             uid: uid,
             name:
                 '${wayNumber}way Motor Controller #${store.state.fixtureState.hoistControllers.values.where((controller) => controller.ways == wayNumber).length + 1}',
             ways: wayNumber,
-          )
+          ),
         }),
-    ));
+      ),
+    );
   };
 }
 
 ThunkAction<AppState> selectHoistOutlets(
-    UpdateType type, Set<String> hoistIds) {
+  UpdateType type,
+  Set<String> hoistIds,
+) {
   return (Store<AppState> store) async {
     switch (type) {
       case UpdateType.overwrite:
         store.dispatch(SetSelectedHoistOutlets(hoistIds));
       case UpdateType.addIfAbsentElseRemove:
-        store.dispatch(SetSelectedHoistOutlets(
-          store.state.navstate.selectedHoistIds.toSet()
-            ..addAllIfAbsentElseRemove(hoistIds),
-        ));
+        store.dispatch(
+          SetSelectedHoistOutlets(
+            store.state.navstate.selectedHoistIds.toSet()
+              ..addAllIfAbsentElseRemove(hoistIds),
+          ),
+        );
     }
   };
 }
 
 ThunkAction<AppState> selectHoistControllerChannels(
-    UpdateType type, Set<String> hoistIds) {
+  UpdateType type,
+  Set<String> hoistIds,
+) {
   return (Store<AppState> store) async {
     switch (type) {
       case UpdateType.overwrite:
         store.dispatch(SetSelectedHoistChannelIds(hoistIds));
       case UpdateType.addIfAbsentElseRemove:
-        store.dispatch(SetSelectedHoistChannelIds(
-          store.state.navstate.selectedHoistChannelIds.toSet()
-            ..addAllIfAbsentElseRemove(hoistIds),
-        ));
+        store.dispatch(
+          SetSelectedHoistChannelIds(
+            store.state.navstate.selectedHoistChannelIds.toSet()
+              ..addAllIfAbsentElseRemove(hoistIds),
+          ),
+        );
     }
   };
 }
@@ -857,12 +1011,14 @@ ThunkAction<AppState> updateHoistName(String hoistId, String newValue) {
       return;
     }
 
-    store.dispatch(SetHoists(store.state.fixtureState.hoists.clone()
-      ..update(
+    store.dispatch(
+      SetHoists(
+        store.state.fixtureState.hoists.clone()..update(
           hoistId,
-          (existing) => existing.copyWith(
-                name: newValue.trim(),
-              ))));
+          (existing) => existing.copyWith(name: newValue.trim()),
+        ),
+      ),
+    );
   };
 }
 
@@ -874,9 +1030,7 @@ ThunkAction<AppState> deleteHoist(String hoistId) {
     }
 
     store.dispatch(
-      SetHoists(
-        store.state.fixtureState.hoists.clone()..remove(hoistId),
-      ),
+      SetHoists(store.state.fixtureState.hoists.clone()..remove(hoistId)),
     );
   };
 }
@@ -896,42 +1050,58 @@ ThunkAction<AppState> addHoist(String locationId) {
     final newHoist = HoistModel(
       uid: getUid(),
       name: HoistModel.getDefaultName(
-          otherHoistsInLocation: existingHoistsInLocation, location: location),
+        otherHoistsInLocation: existingHoistsInLocation,
+        location: location,
+      ),
       locationId: locationId,
       number: existingHoistsInLocation.length,
       parentController: const HoistControllerChannelAssignment.unassigned(),
       controllerNote: '',
     );
 
-    store.dispatch(SetHoists(store.state.fixtureState.hoists.clone()
-      ..addAll({newHoist.uid: newHoist})));
+    store.dispatch(
+      SetHoists(
+        store.state.fixtureState.hoists.clone()
+          ..addAll({newHoist.uid: newHoist}),
+      ),
+    );
   };
 }
 
 ThunkAction<AppState> showLocationOverridesDialog(
-    BuildContext context, String locationId) {
+  BuildContext context,
+  String locationId,
+) {
   return (Store<AppState> store) async {
     final result = await showDialog(
-        context: context,
-        fullScreen: true,
-        builder: (context) => LocationOverridesDialog(
-            initialLocationId: locationId,
-            fixtureTypePools: store.state.fixtureState.fixtureTypePools,
-            locations: store.state.fixtureState.locations,
-            fixtures: store.state.fixtureState.fixtures,
-            fixtureTypes: store.state.fixtureState.fixtureTypes,
-            globalMaxSequenceBreak: store.state.fixtureState.maxSequenceBreak));
+      context: context,
+      fullScreen: true,
+      builder: (context) => LocationOverridesDialog(
+        initialLocationId: locationId,
+        fixtureTypePools: store.state.fixtureState.fixtureTypePools,
+        locations: store.state.fixtureState.locations,
+        fixtures: store.state.fixtureState.fixtures,
+        fixtureTypes: store.state.fixtureState.fixtureTypes,
+        globalMaxSequenceBreak: store.state.fixtureState.maxSequenceBreak,
+      ),
+    );
 
     if (result is Map<String, LocationModel>) {
-      store.dispatch(SetLocations(
+      store.dispatch(
+        SetLocations(
           Map<String, LocationModel>.from(store.state.fixtureState.locations)
-            ..addAll(result)));
+            ..addAll(result),
+        ),
+      );
     }
   };
 }
 
 ThunkAction<AppState> addCablesToLoomAsExtensions(
-    BuildContext context, String loomId, Set<String> cableIds) {
+  BuildContext context,
+  String loomId,
+  Set<String> cableIds,
+) {
   return (Store<AppState> store) async {
     final loom = store.state.fixtureState.looms[loomId];
     final sourceCables = cableIds
@@ -951,12 +1121,13 @@ ThunkAction<AppState> addCablesToLoomAsExtensions(
       if (family.children.isEmpty) {
         // Childless Cable
         return family.copyWith(
-            parent: family.parent.copyWith(
-          uid: getUid(),
-          loomId: loom.uid,
-          upstreamId: family.parent.uid,
-          parentMultiId: '',
-        ));
+          parent: family.parent.copyWith(
+            uid: getUid(),
+            loomId: loom.uid,
+            upstreamId: family.parent.uid,
+            parentMultiId: '',
+          ),
+        );
       } else {
         // Multi Cable with Children.
         final newParentId = getUid();
@@ -967,12 +1138,14 @@ ThunkAction<AppState> addCablesToLoomAsExtensions(
             upstreamId: family.parent.uid,
           ),
           children: family.children
-              .map((child) => child.copyWith(
-                    uid: getUid(),
-                    upstreamId: child.uid,
-                    parentMultiId: newParentId,
-                    loomId: loom.uid,
-                  ))
+              .map(
+                (child) => child.copyWith(
+                  uid: getUid(),
+                  upstreamId: child.uid,
+                  parentMultiId: newParentId,
+                  loomId: loom.uid,
+                ),
+              )
               .toList(),
         );
       }
@@ -980,9 +1153,12 @@ ThunkAction<AppState> addCablesToLoomAsExtensions(
 
     final extensionCables = CableFamily.flattened(extensionCableFamilies);
 
-    store.dispatch(SetCables(
+    store.dispatch(
+      SetCables(
         Map<String, CableModel>.from(store.state.fixtureState.cables)
-          ..addAll(extensionCables.toModelMap())));
+          ..addAll(extensionCables.toModelMap()),
+      ),
+    );
   };
 }
 
@@ -991,7 +1167,8 @@ ThunkAction<AppState> updateFixtureDatabaseFilePath(String path) {
     store.dispatch(SetFixtureTypeDatabasePath(path));
 
     await updatePersistentSettings(
-        (existing) => existing.copyWith(fixtureTypeDatabasePath: path));
+      (existing) => existing.copyWith(fixtureTypeDatabasePath: path),
+    );
   };
 }
 
@@ -1000,7 +1177,8 @@ ThunkAction<AppState> updateFixtureMappingFilePath(String path) {
     store.dispatch(SetFixtureMappingFilePath(path));
 
     await updatePersistentSettings(
-        (existing) => existing.copyWith(fixtureMappingFilePath: path));
+      (existing) => existing.copyWith(fixtureMappingFilePath: path),
+    );
   };
 }
 
@@ -1011,10 +1189,13 @@ ThunkAction<AppState> showSetupQuantitiesDialog(BuildContext context) {
         : store.state.fixtureState.loomStock.values.toList();
 
     final vms = items
-        .map((item) => LoomStockItemViewModel(
+        .map(
+          (item) => LoomStockItemViewModel(
             item: item,
             parentComposition:
-                PermanentLoomComposition.byName[item.compositionName]!))
+                PermanentLoomComposition.byName[item.compositionName]!,
+          ),
+        )
         .toList();
 
     final sortedVms = [
@@ -1023,10 +1204,7 @@ ThunkAction<AppState> showSetupQuantitiesDialog(BuildContext context) {
           .where((vm) => vm.parentComposition.socaWays > 0)
           .groupListsBy((vm) => vm.parentComposition.powerWays)
           .values
-          .map((group) => [
-                ...group,
-                LoomStockItemDividerViewModel(),
-              ])
+          .map((group) => [...group, LoomStockItemDividerViewModel()])
           .flattened,
 
       // 6ways.
@@ -1034,16 +1212,14 @@ ThunkAction<AppState> showSetupQuantitiesDialog(BuildContext context) {
           .where((vm) => vm.parentComposition.wieland6Ways > 0)
           .groupListsBy((vm) => vm.parentComposition.powerWays)
           .values
-          .map((group) => [
-                ...group,
-                LoomStockItemDividerViewModel(),
-              ])
+          .map((group) => [...group, LoomStockItemDividerViewModel()])
           .flattened,
     ];
 
     final result = await showDialog(
-        context: context,
-        builder: (innerContext) => SetupQuantitiesDialog(items: sortedVms));
+      context: context,
+      builder: (innerContext) => SetupQuantitiesDialog(items: sortedVms),
+    );
 
     if (result is Map<String, LoomStockModel>) {
       store.dispatch(SetLoomStock(result));
@@ -1051,8 +1227,11 @@ ThunkAction<AppState> showSetupQuantitiesDialog(BuildContext context) {
   };
 }
 
-ThunkAction<AppState> changeToSpecificComposition(BuildContext context,
-    String loomId, PermanentCompositionSelection newSelection) {
+ThunkAction<AppState> changeToSpecificComposition(
+  BuildContext context,
+  String loomId,
+  PermanentCompositionSelection newSelection,
+) {
   return (Store<AppState> store) async {
     final loom = store.state.fixtureState.looms[loomId];
     if (loom == null || newSelection.name.isEmpty) {
@@ -1068,37 +1247,44 @@ ThunkAction<AppState> changeToSpecificComposition(BuildContext context,
 
     final existingChildren = store.state.fixtureState.cables.values
         .where((cable) => cable.loomId == loom.uid)
-        .where((cable) => newSelection.cutSpares
-            ? cable.isSpare == false
-            : true) // If user wants to obliterate spares, Filter them out.
+        .where(
+          (cable) => newSelection.cutSpares ? cable.isSpare == false : true,
+        ) // If user wants to obliterate spares, Filter them out.
         .toList();
 
     final updatedLoom = loom.copyWith(
-        type: loom.type.copyWith(
-      permanentComposition: newSelection.name,
-      length: concreteComposition.validLengths.contains(loom.type.length)
-          ? loom.type.length
-          : loom.type.length + 5,
-    ));
+      type: loom.type.copyWith(
+        permanentComposition: newSelection.name,
+        length: concreteComposition.validLengths.contains(loom.type.length)
+            ? loom.type.length
+            : loom.type.length + 5,
+      ),
+    );
 
-    final updatedChildren =
-        fillCablesToSatisfyPermanentLoom(updatedLoom, existingChildren);
+    final updatedChildren = fillCablesToSatisfyPermanentLoom(
+      updatedLoom,
+      existingChildren,
+    );
 
     // If the user has opted to select a Compostion which will involve anihilating the spares, capture those Ids here to be removed.
     final originalSparesToMaybeRemove = newSelection.cutSpares
         ? store.state.fixtureState.cables.values
-            .where((cable) => cable.loomId == loom.uid && cable.isSpare == true)
-            .map((cable) => cable.uid)
-            .toSet()
+              .where(
+                (cable) => cable.loomId == loom.uid && cable.isSpare == true,
+              )
+              .map((cable) => cable.uid)
+              .toSet()
         : <String>{};
 
-    store.dispatch(SetCablesAndLooms(
-      store.state.fixtureState.cables.clone()
-        ..addAll(updatedChildren.toModelMap())
-        ..removeWhere((key, _) => originalSparesToMaybeRemove.contains(key)),
-      store.state.fixtureState.looms.clone()
-        ..addAll([updatedLoom].toModelMap()),
-    ));
+    store.dispatch(
+      SetCablesAndLooms(
+        store.state.fixtureState.cables.clone()
+          ..addAll(updatedChildren.toModelMap())
+          ..removeWhere((key, _) => originalSparesToMaybeRemove.contains(key)),
+        store.state.fixtureState.looms.clone()
+          ..addAll([updatedLoom].toModelMap()),
+      ),
+    );
   };
 }
 
@@ -1108,19 +1294,29 @@ ThunkAction<AppState> changeSelectedCablesToDefaultPowerMultiType() {
         .map((id) => store.state.fixtureState.cables[id])
         .nonNulls
         .toList()
-        .where((cable) =>
-            cable.type == CableType.socapex ||
-            cable.type == CableType.wieland6way);
+        .where(
+          (cable) =>
+              cable.type == CableType.socapex ||
+              cable.type == CableType.wieland6way,
+        );
 
     if (cables.isEmpty) {
       return;
     }
 
-    store.dispatch(SetCables(store.state.fixtureState.cables.clone()
-      ..addAll(cables
-          .map((cable) =>
-              cable.copyWith(type: store.state.fixtureState.defaultPowerMulti))
-          .toModelMap())));
+    store.dispatch(
+      SetCables(
+        store.state.fixtureState.cables.clone()..addAll(
+          cables
+              .map(
+                (cable) => cable.copyWith(
+                  type: store.state.fixtureState.defaultPowerMulti,
+                ),
+              )
+              .toModelMap(),
+        ),
+      ),
+    );
   };
 }
 
@@ -1145,61 +1341,69 @@ ThunkAction<AppState> switchLoomType(BuildContext context, String loomId) {
     if (loom.type.type == LoomType.permanent) {
       final (updatedCables, updatedLoom) = _convertToCustomLoom(children, loom);
 
-      store.dispatch(SetCablesAndLooms(
-        store.state.fixtureState.cables.clone()
-          ..addAll(updatedCables.toModelMap()),
-        store.state.fixtureState.looms.clone()
-          ..addAll([updatedLoom].toModelMap()),
-      ));
+      store.dispatch(
+        SetCablesAndLooms(
+          store.state.fixtureState.cables.clone()
+            ..addAll(updatedCables.toModelMap()),
+          store.state.fixtureState.looms.clone()
+            ..addAll([updatedLoom].toModelMap()),
+        ),
+      );
       return;
     }
 
     // Existing Loom is a Custom so we (attempting) to toggle it to a Permanent.
-    final (updatedCables, updatedLoom, error) =
-        convertToPermanentLoom(children, loom);
+    final (updatedCables, updatedLoom, error) = convertToPermanentLoom(
+      children,
+      loom,
+    );
 
     if (error != null) {
       _showFailedPermanentLoomErrorMessage(context, error);
       return;
     }
 
-    store.dispatch(SetCablesAndLooms(
-      store.state.fixtureState.cables.clone()
-        ..addAll(updatedCables.toModelMap()),
-      store.state.fixtureState.looms.clone()
-        ..addAll([updatedLoom].toModelMap()),
-    ));
+    store.dispatch(
+      SetCablesAndLooms(
+        store.state.fixtureState.cables.clone()
+          ..addAll(updatedCables.toModelMap()),
+        store.state.fixtureState.looms.clone()
+          ..addAll([updatedLoom].toModelMap()),
+      ),
+    );
   };
 }
 
 void _showFailedPermanentLoomErrorMessage(BuildContext context, String error) {
   showGenericErrorToast(
-      context: context,
-      title: 'Unable to match suitable Permanent loom',
-      extendedMessage: error);
+    context: context,
+    title: 'Unable to match suitable Permanent loom',
+    extendedMessage: error,
+  );
 }
 
 (List<CableModel> updatedCables, LoomModel updatedLoom) _convertToCustomLoom(
-    List<CableModel> cables, LoomModel loom) {
+  List<CableModel> cables,
+  LoomModel loom,
+) {
   // Super easy to go from Permanent to Custom.
   final updatedLoom = loom.copyWith(
-      type: loom.type.copyWith(
-    type: LoomType.custom,
-    permanentComposition: '',
-  ));
+    type: loom.type.copyWith(type: LoomType.custom, permanentComposition: ''),
+  );
 
   // Ensure the Child cables all adopt the original Permanent Looms Length.
   final updatedChildCables = cables
-      .map((cable) => cable.copyWith(
-            length: updatedLoom.type.length,
-          ))
+      .map((cable) => cable.copyWith(length: updatedLoom.type.length))
       .toList();
 
   return (updatedChildCables, updatedLoom);
 }
 
 ThunkAction<AppState> reorderLooms(
-    BuildContext context, int oldIndex, int newIndex) {
+  BuildContext context,
+  int oldIndex,
+  int newIndex,
+) {
   return (Store<AppState> store) async {
     final newList = store.state.fixtureState.looms.values.toList();
     final movingItem = newList.removeAt(oldIndex);
@@ -1215,7 +1419,10 @@ ThunkAction<AppState> reorderLooms(
 }
 
 ThunkAction<AppState> moveCablesIntoLoom(
-    BuildContext context, String targetLoomId, Set<String> cableIds) {
+  BuildContext context,
+  String targetLoomId,
+  Set<String> cableIds,
+) {
   return (Store<AppState> store) async {
     final sourceCables = cableIds
         .map((id) => store.state.fixtureState.cables[id])
@@ -1243,8 +1450,12 @@ ThunkAction<AppState> moveCablesIntoLoom(
       }
     }).toList();
 
-    store.dispatch(SetCables(store.state.fixtureState.cables.clone()
-      ..addAll(updatedCables.toModelMap())));
+    store.dispatch(
+      SetCables(
+        store.state.fixtureState.cables.clone()
+          ..addAll(updatedCables.toModelMap()),
+      ),
+    );
   };
 }
 
@@ -1253,9 +1464,7 @@ ThunkAction<AppState> splitSelectedMultis(BuildContext context) {
     final multiCables = store.state.navstate.selectedCableIds
         .map((id) => store.state.fixtureState.cables[id])
         .nonNulls
-        .where(
-          (cable) => cable.isMultiCable,
-        );
+        .where((cable) => cable.isMultiCable);
 
     if (multiCables.isEmpty) {
       return;
@@ -1269,21 +1478,36 @@ ThunkAction<AppState> splitSelectedMultis(BuildContext context) {
 
     final multiIds = multiCables.map((cable) => cable.uid).toSet();
 
-    final associatedChildren = store.state.fixtureState.cables.values
-        .where((cable) => multiIds.contains(cable.parentMultiId));
+    final associatedChildren = store.state.fixtureState.cables.values.where(
+      (cable) => multiIds.contains(cable.parentMultiId),
+    );
 
-    store.dispatch(SetCables(store.state.fixtureState.cables.clone()
-      ..addAll(associatedChildren
-          .map((child) => child.copyWith(parentMultiId: ''))
-          .toModelMap())
-      ..removeWhere((key, value) => multiIds.contains(key))));
+    store.dispatch(
+      SetCables(
+        store.state.fixtureState.cables.clone()
+          ..addAll(
+            associatedChildren
+                .map((child) => child.copyWith(parentMultiId: ''))
+                .toModelMap(),
+          )
+          ..removeWhere((key, value) => multiIds.contains(key)),
+      ),
+    );
 
     if (multiIdsToRemove.isNotEmpty) {
-      store.dispatch(SetDataMultis(store.state.fixtureState.dataMultis.clone()
-        ..removeWhere((key, _) => multiIdsToRemove.contains(key))));
+      store.dispatch(
+        SetDataMultis(
+          store.state.fixtureState.dataMultis.clone()
+            ..removeWhere((key, _) => multiIdsToRemove.contains(key)),
+        ),
+      );
 
-      store.dispatch(SetHoistMultis(store.state.fixtureState.hoistMultis.clone()
-        ..removeWhere((key, _) => multiIdsToRemove.contains(key))));
+      store.dispatch(
+        SetHoistMultis(
+          store.state.fixtureState.hoistMultis.clone()
+            ..removeWhere((key, _) => multiIdsToRemove.contains(key)),
+        ),
+      );
     }
   };
 }
@@ -1293,8 +1517,10 @@ ThunkAction<AppState> combineSelectedCablesIntoMultis(BuildContext context) {
     final validCables = store.state.navstate.selectedCableIds
         .map((id) => store.state.fixtureState.cables[id])
         .nonNulls
-        .where((cable) =>
-            cable.type == CableType.dmx || cable.type == CableType.hoist)
+        .where(
+          (cable) =>
+              cable.type == CableType.dmx || cable.type == CableType.hoist,
+        )
         .toList();
 
     final allOutlets = [
@@ -1306,39 +1532,54 @@ ThunkAction<AppState> combineSelectedCablesIntoMultis(BuildContext context) {
     ].toModelMap();
 
     final sneakCombinationResult = combineDmxIntoSneak(
-        cables: validCables,
-        outlets: allOutlets,
-        existingLocations: store.state.fixtureState.locations,
-        reusableSneaks: validCables
-            .map((cable) => cable.parentMultiId)
-            .map((sneakId) => store.state.fixtureState.cables[sneakId])
-            .nonNulls
-            .where((cable) => cable.type == CableType.sneak)
-            .toList());
+      cables: validCables,
+      outlets: allOutlets,
+      existingLocations: store.state.fixtureState.locations,
+      reusableSneaks: validCables
+          .map((cable) => cable.parentMultiId)
+          .map((sneakId) => store.state.fixtureState.cables[sneakId])
+          .nonNulls
+          .where((cable) => cable.type == CableType.sneak)
+          .toList(),
+    );
 
     final hoistMultiCombinationResult = combineHoistsIntoMulti(
-        cables: validCables,
-        outlets: allOutlets,
-        existingLocations: store.state.fixtureState.locations.clone()
-          ..addAll(sneakCombinationResult.locations.toModelMap()),
-        reusableMultis: validCables
-            .map((cable) => cable.parentMultiId)
-            .map((sneakId) => store.state.fixtureState.cables[sneakId])
-            .nonNulls
-            .where((cable) => cable.type == CableType.hoistMulti)
-            .toList());
+      cables: validCables,
+      outlets: allOutlets,
+      existingLocations: store.state.fixtureState.locations.clone()
+        ..addAll(sneakCombinationResult.locations.toModelMap()),
+      reusableMultis: validCables
+          .map((cable) => cable.parentMultiId)
+          .map((sneakId) => store.state.fixtureState.cables[sneakId])
+          .nonNulls
+          .where((cable) => cable.type == CableType.hoistMulti)
+          .toList(),
+    );
 
-    store.dispatch(SetLocations(store.state.fixtureState.locations.clone()
-      ..addAll([
-        ...sneakCombinationResult.locations,
-        ...hoistMultiCombinationResult.locations,
-      ].toModelMap())));
+    store.dispatch(
+      SetLocations(
+        store.state.fixtureState.locations.clone()..addAll(
+          [
+            ...sneakCombinationResult.locations,
+            ...hoistMultiCombinationResult.locations,
+          ].toModelMap(),
+        ),
+      ),
+    );
 
-    store.dispatch(SetDataMultis(store.state.fixtureState.dataMultis.clone()
-      ..addAll(sneakCombinationResult.newDataMultis.toModelMap())));
+    store.dispatch(
+      SetDataMultis(
+        store.state.fixtureState.dataMultis.clone()
+          ..addAll(sneakCombinationResult.newDataMultis.toModelMap()),
+      ),
+    );
 
-    store.dispatch(SetHoistMultis(store.state.fixtureState.hoistMultis.clone()
-      ..addAll(hoistMultiCombinationResult.newHoistMultis.toModelMap())));
+    store.dispatch(
+      SetHoistMultis(
+        store.state.fixtureState.hoistMultis.clone()
+          ..addAll(hoistMultiCombinationResult.newHoistMultis.toModelMap()),
+      ),
+    );
 
     final cableIdsToRemove = [
       ...sneakCombinationResult.cablesToDelete,
@@ -1348,33 +1589,37 @@ ThunkAction<AppState> combineSelectedCablesIntoMultis(BuildContext context) {
     store.dispatch(
       SetCables(
         store.state.fixtureState.cables.clone()
-          ..addAll([
-            ...sneakCombinationResult.cables,
-            ...hoistMultiCombinationResult.cables
-          ].toModelMap())
+          ..addAll(
+            [
+              ...sneakCombinationResult.cables,
+              ...hoistMultiCombinationResult.cables,
+            ].toModelMap(),
+          )
           ..removeWhere((key, value) => cableIdsToRemove.contains(key)),
       ),
     );
 
-    store.dispatch(SetSelectedCableIds(
-        sneakCombinationResult.cables.map((cable) => cable.uid).toSet()));
+    store.dispatch(
+      SetSelectedCableIds(
+        sneakCombinationResult.cables.map((cable) => cable.uid).toSet(),
+      ),
+    );
   };
 }
 
 ThunkAction<AppState> createNewLoomFromExistingCables(
-    BuildContext context,
-    List<String> cableIds,
-    int insertIndex,
-    Set<CableActionModifier> modifiers) {
+  BuildContext context,
+  List<String> cableIds,
+  int insertIndex,
+  Set<CableActionModifier> modifiers,
+) {
   return (Store<AppState> store) async {
     final newLoomId = getUid();
 
     final updatedCables = cableIds
         .map((id) => store.state.fixtureState.cables[id])
         .nonNulls
-        .map((cable) => cable.copyWith(
-              loomId: newLoomId,
-            ))
+        .map((cable) => cable.copyWith(loomId: newLoomId))
         .toList();
 
     if (updatedCables.isEmpty) {
@@ -1382,30 +1627,36 @@ ThunkAction<AppState> createNewLoomFromExistingCables(
     }
 
     final associatedLocations = extractLocationsFromOutlets(
-        updatedCables
-            .map((cable) => cable.outletId)
-            .map((outletId) => [
-                  store.state.fixtureState.powerMultiOutlets[outletId],
-                  store.state.fixtureState.dataMultis[outletId],
-                  store.state.fixtureState.dataPatches[outletId],
-                  store.state.fixtureState.hoists[outletId],
-                  store.state.fixtureState.hoistMultis[outletId],
-                ])
-            .flattened
-            .nonNulls
-            .toList(),
-        store.state.fixtureState.locations);
+      updatedCables
+          .map((cable) => cable.outletId)
+          .map(
+            (outletId) => [
+              store.state.fixtureState.powerMultiOutlets[outletId],
+              store.state.fixtureState.dataMultis[outletId],
+              store.state.fixtureState.dataPatches[outletId],
+              store.state.fixtureState.hoists[outletId],
+              store.state.fixtureState.hoistMultis[outletId],
+            ],
+          )
+          .flattened
+          .nonNulls
+          .toList(),
+      store.state.fixtureState.locations,
+    );
 
     final newLoom = LoomModel(
       uid: newLoomId,
       type: LoomTypeModel(
-          length: updatedCables.first.length, type: LoomType.custom),
+        length: updatedCables.first.length,
+        type: LoomType.custom,
+      ),
       name: determineDefaultLoomName(
-          associatedPrimaryLocation: associatedLocations.first,
-          children: updatedCables,
-          existingLooms: store.state.fixtureState.looms,
-          existingOutlets: selectAllOutlets(store),
-          existingCables: store.state.fixtureState.cables),
+        associatedPrimaryLocation: associatedLocations.first,
+        children: updatedCables,
+        existingLooms: store.state.fixtureState.looms,
+        existingOutlets: selectAllOutlets(store),
+        existingCables: store.state.fixtureState.cables,
+      ),
     );
 
     final actionModifierResult = applyCableActionModifiers(
@@ -1425,27 +1676,34 @@ ThunkAction<AppState> createNewLoomFromExistingCables(
     );
 
     _performPostCableActionModifierDispatches(
-        context, store, actionModifierResult);
+      context,
+      store,
+      actionModifierResult,
+    );
 
-    store.dispatch(SetCablesAndLooms(
-      store.state.fixtureState.cables.clone()
-        ..addAll(actionModifierResult.cables),
-      store.state.fixtureState.looms.copyWithInsertedEntry(
+    store.dispatch(
+      SetCablesAndLooms(
+        store.state.fixtureState.cables.clone()
+          ..addAll(actionModifierResult.cables),
+        store.state.fixtureState.looms.copyWithInsertedEntry(
           (insertIndex - 1).clamp(0, 99999),
-          convertToMapEntry(actionModifierResult.loom)),
-    ));
+          convertToMapEntry(actionModifierResult.loom),
+        ),
+      ),
+    );
 
-    store.dispatch(SetSelectedCableIds(
-      updatedCables.map((cable) => cable.uid).toSet(),
-    ));
+    store.dispatch(
+      SetSelectedCableIds(updatedCables.map((cable) => cable.uid).toSet()),
+    );
   };
 }
 
 ThunkAction<AppState> createNewFeederLoom(
-    BuildContext context,
-    List<String> outletIds,
-    int insertIndex,
-    Set<CableActionModifier> modifiers) {
+  BuildContext context,
+  List<String> outletIds,
+  int insertIndex,
+  Set<CableActionModifier> modifiers,
+) {
   return (Store<AppState> store) async {
     final newLoomId = getUid();
 
@@ -1456,50 +1714,63 @@ ThunkAction<AppState> createNewFeederLoom(
     final powerMultiOutlets = outletIds
         .map((id) => store.state.fixtureState.powerMultiOutlets[id])
         .nonNulls;
-    final hoistOutlets =
-        outletIds.map((id) => store.state.fixtureState.hoists[id]).nonNulls;
+    final hoistOutlets = outletIds
+        .map((id) => store.state.fixtureState.hoists[id])
+        .nonNulls;
 
-    final associatedLocations = extractLocationsFromOutlets(
-        [...dataOutlets, ...powerMultiOutlets, ...hoistOutlets],
-        store.state.fixtureState.locations);
+    final associatedLocations = extractLocationsFromOutlets([
+      ...dataOutlets,
+      ...powerMultiOutlets,
+      ...hoistOutlets,
+    ], store.state.fixtureState.locations);
 
     final targetLength = associatedLocations
         .map(
-            (location) => location.color.colors.firstOrNull?.defaultLength ?? 0)
+          (location) => location.color.colors.firstOrNull?.defaultLength ?? 0,
+        )
         .sorted((a, b) => a.floor() - b.floor())
         .last;
 
     final List<CableModel> newCables = [
-      ...powerMultiOutlets.map((outlet) => CableModel(
-            uid: getUid(),
-            outletId: outlet.uid,
-            type: store.state.fixtureState.defaultPowerMulti,
-            loomId: newLoomId,
-            length: targetLength,
-          )),
-      ...dataOutlets.map((outlet) => CableModel(
+      ...powerMultiOutlets.map(
+        (outlet) => CableModel(
+          uid: getUid(),
+          outletId: outlet.uid,
+          type: store.state.fixtureState.defaultPowerMulti,
+          loomId: newLoomId,
+          length: targetLength,
+        ),
+      ),
+      ...dataOutlets.map(
+        (outlet) => CableModel(
           uid: getUid(),
           outletId: outlet.uid,
           type: CableType.dmx,
           length: targetLength,
-          loomId: newLoomId)),
-      ...hoistOutlets.map((outlet) => CableModel(
+          loomId: newLoomId,
+        ),
+      ),
+      ...hoistOutlets.map(
+        (outlet) => CableModel(
           uid: getUid(),
           outletId: outlet.uid,
           type: CableType.hoist,
           length: targetLength,
-          loomId: newLoomId))
+          loomId: newLoomId,
+        ),
+      ),
     ];
 
     final newLoom = LoomModel(
       uid: newLoomId,
       type: LoomTypeModel(length: targetLength, type: LoomType.custom),
       name: determineDefaultLoomName(
-          associatedPrimaryLocation: associatedLocations.first,
-          children: newCables,
-          existingLooms: store.state.fixtureState.looms,
-          existingOutlets: selectAllOutlets(store),
-          existingCables: store.state.fixtureState.cables),
+        associatedPrimaryLocation: associatedLocations.first,
+        children: newCables,
+        existingLooms: store.state.fixtureState.looms,
+        existingOutlets: selectAllOutlets(store),
+        existingCables: store.state.fixtureState.cables,
+      ),
     );
 
     final actionModifierResult = applyCableActionModifiers(
@@ -1519,27 +1790,38 @@ ThunkAction<AppState> createNewFeederLoom(
     );
 
     _performPostCableActionModifierDispatches(
-        context, store, actionModifierResult);
+      context,
+      store,
+      actionModifierResult,
+    );
 
-    store.dispatch(SetCablesAndLooms(
-      store.state.fixtureState.cables.clone()
-        ..addAll(actionModifierResult.cables),
-      store.state.fixtureState.looms.copyWithInsertedEntry(
+    store.dispatch(
+      SetCablesAndLooms(
+        store.state.fixtureState.cables.clone()
+          ..addAll(actionModifierResult.cables),
+        store.state.fixtureState.looms.copyWithInsertedEntry(
           (insertIndex - 1).clamp(0, 99999),
-          convertToMapEntry(actionModifierResult.loom)),
-    ));
+          convertToMapEntry(actionModifierResult.loom),
+        ),
+      ),
+    );
 
-    store.dispatch(SetSelectedCableIds(
-      newCables.map((cable) => cable.uid).toSet(),
-    ));
+    store.dispatch(
+      SetSelectedCableIds(newCables.map((cable) => cable.uid).toSet()),
+    );
   };
 }
 
-void _performPostCableActionModifierDispatches(BuildContext context,
-    Store<AppState> store, CableActionModifierResult actionModifierResult) {
+void _performPostCableActionModifierDispatches(
+  BuildContext context,
+  Store<AppState> store,
+  CableActionModifierResult actionModifierResult,
+) {
   if (actionModifierResult.permanentLoomConversionError != null) {
     _showFailedPermanentLoomErrorMessage(
-        context, actionModifierResult.permanentLoomConversionError!);
+      context,
+      actionModifierResult.permanentLoomConversionError!,
+    );
   }
 
   if (store.state.fixtureState.locations != actionModifierResult.locations) {
@@ -1556,8 +1838,12 @@ void _performPostCableActionModifierDispatches(BuildContext context,
   }
 }
 
-ThunkAction<AppState> createNewExtensionLoom(BuildContext context,
-    List<String> cableIds, int index, Set<CableActionModifier> modifiers) {
+ThunkAction<AppState> createNewExtensionLoom(
+  BuildContext context,
+  List<String> cableIds,
+  int index,
+  Set<CableActionModifier> modifiers,
+) {
   return (Store<AppState> store) async {
     final cables = cableIds
         .map((id) => store.state.fixtureState.cables[id])
@@ -1591,13 +1877,14 @@ ThunkAction<AppState> createNewExtensionLoom(BuildContext context,
       if (family.children.isEmpty) {
         // Standard Cable
         return family.copyWith(
-            parent: family.parent.copyWith(
-          uid: getUid(),
-          upstreamId: family.parent.uid,
-          parentMultiId:
-              '', // Remove the cable from it's existing parent. This ensures we can drag a child cable from an existing loom and create and new loom from it.
-          loomId: newLoom.uid,
-        ));
+          parent: family.parent.copyWith(
+            uid: getUid(),
+            upstreamId: family.parent.uid,
+            parentMultiId:
+                '', // Remove the cable from it's existing parent. This ensures we can drag a child cable from an existing loom and create and new loom from it.
+            loomId: newLoom.uid,
+          ),
+        );
       } else {
         // Multi Cable with Children.
         final clonedParent = family.parent.copyWith(
@@ -1609,12 +1896,14 @@ ThunkAction<AppState> createNewExtensionLoom(BuildContext context,
         return family.copyWith(
           parent: clonedParent,
           children: family.children
-              .map((child) => child.copyWith(
-                    uid: getUid(),
-                    parentMultiId: clonedParent.uid,
-                    upstreamId: child.uid,
-                    loomId: newLoom.uid,
-                  ))
+              .map(
+                (child) => child.copyWith(
+                  uid: getUid(),
+                  parentMultiId: clonedParent.uid,
+                  upstreamId: child.uid,
+                  loomId: newLoom.uid,
+                ),
+              )
               .toList(),
         );
       }
@@ -1650,38 +1939,52 @@ ThunkAction<AppState> createNewExtensionLoom(BuildContext context,
     );
 
     _performPostCableActionModifierDispatches(
-        context, store, actionModifierResult);
+      context,
+      store,
+      actionModifierResult,
+    );
 
-    store.dispatch(SetCablesAndLooms(
+    store.dispatch(
+      SetCablesAndLooms(
         store.state.fixtureState.cables.clone()
           ..addAll(actionModifierResult.cables),
         store.state.fixtureState.looms.copyWithInsertedEntry(
-            (index - 1).clamp(0, 99999),
-            convertToMapEntry(actionModifierResult.loom))));
+          (index - 1).clamp(0, 99999),
+          convertToMapEntry(actionModifierResult.loom),
+        ),
+      ),
+    );
 
-    store.dispatch(SetSelectedCableIds(
-      actionModifierResult.cables.values
-          .where((cable) => cable.loomId == newLoom.uid)
-          .map((cable) => cable.uid)
-          .toSet(),
-    ));
+    store.dispatch(
+      SetSelectedCableIds(
+        actionModifierResult.cables.values
+            .where((cable) => cable.loomId == newLoom.uid)
+            .map((cable) => cable.uid)
+            .toSet(),
+      ),
+    );
   };
 }
 
 ThunkAction<AppState> showImportManager(BuildContext context) {
   return (Store<AppState> store) async {
     final result = await showDialog(
-        context: context,
-        fullScreen: true,
-        barrierDismissible: false,
-        barrierColor: Theme.of(context).colorScheme.background,
-        builder: (innerContext) => const ImportManagerContainer());
+      context: context,
+      fullScreen: true,
+      barrierDismissible: false,
+      barrierColor: Theme.of(context).colorScheme.background,
+      builder: (innerContext) => const ImportManagerContainer(),
+    );
 
     if (result is ImportManagerResult) {
-      store.dispatch(SetImportedFixtureData(
+      store.dispatch(
+        SetImportedFixtureData(
           fixtures: result.fixtures.toModelMap(),
           locations: result.locations.toModelMap(),
-          fixtureTypes: result.fixtureTypes.toModelMap()));
+          fixtureTypes: result.fixtureTypes.toModelMap(),
+          trusses: result.trusses.toModelMap(),
+        ),
+      );
 
       if (context.mounted) {
         showGenericSuccessToast(context: context, title: "Patch imported.");
@@ -1696,17 +1999,19 @@ ThunkAction<AppState> chooseExportDirectory(BuildContext context) {
   return (Store<AppState> store) async {
     final lastUsedExportDirectory =
         store.state.fileState.projectMetadata.lastUsedExportDirectory.isNotEmpty
-            ? store.state.fileState.projectMetadata.lastUsedExportDirectory
-            : store.state.fileState.lastUsedProjectDirectory;
+        ? store.state.fileState.projectMetadata.lastUsedExportDirectory
+        : store.state.fileState.lastUsedProjectDirectory;
 
-    final lastUsedExportDirectoryExists =
-        await Directory(lastUsedExportDirectory).exists();
+    final lastUsedExportDirectoryExists = await Directory(
+      lastUsedExportDirectory,
+    ).exists();
 
     final pathResult = await getDirectoryPath(
-        initialDirectory:
-            lastUsedExportDirectoryExists && lastUsedExportDirectory.isNotEmpty
-                ? lastUsedExportDirectory
-                : null);
+      initialDirectory:
+          lastUsedExportDirectoryExists && lastUsedExportDirectory.isNotEmpty
+          ? lastUsedExportDirectory
+          : null,
+    );
 
     if (pathResult == null) {
       return;
@@ -1724,41 +2029,47 @@ ThunkAction<AppState> changeExistingPowerMultisToDefault(BuildContext context) {
         : CableType.socapex;
 
     final updatedCables = store.state.fixtureState.cables.clone()
-      ..updateAll((_, existingCable) => existingCable.type == existingValue
-          ? existingCable.copyWith(type: targetValue)
-          : existingCable);
+      ..updateAll(
+        (_, existingCable) => existingCable.type == existingValue
+            ? existingCable.copyWith(type: targetValue)
+            : existingCable,
+      );
 
     String permanentCompositionNameSwitcher(String value) =>
         targetValue == CableType.socapex
-            ? value.replaceAll(kWielandSlug, kSocaSlug)
-            : value.replaceAll(kSocaSlug, kWielandSlug);
+        ? value.replaceAll(kWielandSlug, kSocaSlug)
+        : value.replaceAll(kSocaSlug, kWielandSlug);
 
-    final keyword =
-        existingValue == CableType.socapex ? kSocaSlug : kWielandSlug;
+    final keyword = existingValue == CableType.socapex
+        ? kSocaSlug
+        : kWielandSlug;
     final updatedLooms = store.state.fixtureState.looms.clone()
       ..updateAll(
         (_, existingLoom) =>
             existingLoom.type.permanentComposition.contains(keyword)
-                ? existingLoom.copyWith(
-                    type: existingLoom.type.copyWith(
-                        permanentComposition: permanentCompositionNameSwitcher(
-                            existingLoom.type.permanentComposition)))
-                : existingLoom,
+            ? existingLoom.copyWith(
+                type: existingLoom.type.copyWith(
+                  permanentComposition: permanentCompositionNameSwitcher(
+                    existingLoom.type.permanentComposition,
+                  ),
+                ),
+              )
+            : existingLoom,
       );
 
-    store.dispatch(SetCablesAndLooms(
-      updatedCables,
-      updatedLooms,
-    ));
+    store.dispatch(SetCablesAndLooms(updatedCables, updatedLooms));
   };
 }
 
 ThunkAction<AppState> repairLoomComposition(
-    LoomModel loom, BuildContext context) {
+  LoomModel loom,
+  BuildContext context,
+) {
   return (Store<AppState> store) async {
     final parentCables = store.state.fixtureState.cables.values
         .where(
-            (cable) => cable.loomId == loom.uid && cable.parentMultiId.isEmpty)
+          (cable) => cable.loomId == loom.uid && cable.parentMultiId.isEmpty,
+        )
         .toList();
 
     // Attempt a simple repair first.
@@ -1769,20 +2080,23 @@ ThunkAction<AppState> repairLoomComposition(
       store.dispatch(
         SetCablesAndLooms(
           // Cables
-          store.state.fixtureState.cables.clone()
-            ..addAll(_generateSpareCablesToMeetComposition(
-                    loom, parentCables, firstRunCompositionResult.composition)
-                .toModelMap()),
+          store.state.fixtureState.cables.clone()..addAll(
+            _generateSpareCablesToMeetComposition(
+              loom,
+              parentCables,
+              firstRunCompositionResult.composition,
+            ).toModelMap(),
+          ),
           // Looms
-          store.state.fixtureState.looms.clone()
-            ..update(
-              loom.uid,
-              (_) => loom.copyWith(
-                type: loom.type.copyWith(
-                    permanentComposition:
-                        firstRunCompositionResult.composition.name),
+          store.state.fixtureState.looms.clone()..update(
+            loom.uid,
+            (_) => loom.copyWith(
+              type: loom.type.copyWith(
+                permanentComposition:
+                    firstRunCompositionResult.composition.name,
               ),
             ),
+          ),
         ),
       );
       return;
@@ -1791,46 +2105,56 @@ ThunkAction<AppState> repairLoomComposition(
     if (homeScaffoldKey.currentContext != null &&
         homeScaffoldKey.currentContext!.mounted) {
       showGenericErrorToast(
-          context: context,
-          title: "Composition repair failed",
-          subtitle:
-              "Unable to auto repair composition. Try combining DMX into Sneak or convert to a custom loom",
-          extendedMessage: firstRunCompositionResult.error);
+        context: context,
+        title: "Composition repair failed",
+        subtitle:
+            "Unable to auto repair composition. Try combining DMX into Sneak or convert to a custom loom",
+        extendedMessage: firstRunCompositionResult.error,
+      );
     }
   };
 }
 
 List<CableModel> _generateSpareCablesToMeetComposition(
-    LoomModel existingLoom,
-    List<CableModel> existingParentCablesInLoom,
-    PermanentLoomComposition targetComposition) {
+  LoomModel existingLoom,
+  List<CableModel> existingParentCablesInLoom,
+  PermanentLoomComposition targetComposition,
+) {
   // Create any Spare cables if we have to in order to reach the desired composition.
-  final cablesByType =
-      existingParentCablesInLoom.groupListsBy((cable) => cable.type);
-  final neededSocaWays = targetComposition.socaWays -
+  final cablesByType = existingParentCablesInLoom.groupListsBy(
+    (cable) => cable.type,
+  );
+  final neededSocaWays =
+      targetComposition.socaWays -
       (cablesByType[CableType.socapex]?.length ?? 0).clamp(0, 100);
-  final neededWielandWays = targetComposition.wieland6Ways -
+  final neededWielandWays =
+      targetComposition.wieland6Ways -
       (cablesByType[CableType.wieland6way]?.length ?? 0).clamp(0, 100);
-  final neededSneakWays = targetComposition.sneakWays -
+  final neededSneakWays =
+      targetComposition.sneakWays -
       (cablesByType[CableType.sneak]?.length ?? 0).clamp(0, 100);
-  final neededDmxWays = targetComposition.dmxWays -
+  final neededDmxWays =
+      targetComposition.dmxWays -
       (cablesByType[CableType.dmx]?.length ?? 0).clamp(0, 100);
 
-  final existingSpareCablesByType = cablesByType.map((key, value) =>
-      MapEntry(key, value.where((cable) => cable.isSpare == true).toList()));
+  final existingSpareCablesByType = cablesByType.map(
+    (key, value) =>
+        MapEntry(key, value.where((cable) => cable.isSpare == true).toList()),
+  );
 
   List<CableModel> generateSpares(int qty, CableType type) =>
       List<CableModel>.generate(
-          qty,
-          (index) => CableModel(
-                uid: getUid(),
-                loomId: existingLoom.uid,
-                type: type,
-                length: existingLoom.type.length,
-                isSpare: true,
-                spareIndex: (index + 1) +
-                    (existingSpareCablesByType[type]?.length ?? 0),
-              ));
+        qty,
+        (index) => CableModel(
+          uid: getUid(),
+          loomId: existingLoom.uid,
+          type: type,
+          length: existingLoom.type.length,
+          isSpare: true,
+          spareIndex:
+              (index + 1) + (existingSpareCablesByType[type]?.length ?? 0),
+        ),
+      );
 
   return [
     ...generateSpares(neededSocaWays, CableType.socapex),
@@ -1842,23 +2166,29 @@ List<CableModel> _generateSpareCablesToMeetComposition(
 
 ThunkAction<AppState> setSelectedCableIds(Set<String> ids) {
   return (Store<AppState> store) async {
-    final cables =
-        ids.map((id) => store.state.fixtureState.cables[id]).nonNulls.toList();
+    final cables = ids
+        .map((id) => store.state.fixtureState.cables[id])
+        .nonNulls
+        .toList();
 
     // If we have selected any Parent Multi cable, select all it's children as well.
-    final withChildCables = cables.expand((cable) => cable.isMultiCable
-        ? [
-            // Parent Multi Cable
-            cable,
+    final withChildCables = cables.expand(
+      (cable) => cable.isMultiCable
+          ? [
+              // Parent Multi Cable
+              cable,
 
-            // It's Children.
-            ...store.state.fixtureState.cables.values
-                .where((child) => child.parentMultiId == cable.uid)
-          ]
-        : [cable]);
+              // It's Children.
+              ...store.state.fixtureState.cables.values.where(
+                (child) => child.parentMultiId == cable.uid,
+              ),
+            ]
+          : [cable],
+    );
 
     store.dispatch(
-        SetSelectedCableIds(withChildCables.map((cable) => cable.uid).toSet()));
+      SetSelectedCableIds(withChildCables.map((cable) => cable.uid).toSet()),
+    );
   };
 }
 
@@ -1869,30 +2199,45 @@ ThunkAction<AppState> deleteSelectedCables(BuildContext context) {
         .nonNulls
         .toList();
 
-    final sneaks =
-        selectedCables.where((cable) => cable.type == CableType.sneak);
+    final sneaks = selectedCables.where(
+      (cable) => cable.type == CableType.sneak,
+    );
 
-    final hoistMultis =
-        selectedCables.where((cable) => cable.type == CableType.hoistMulti);
+    final hoistMultis = selectedCables.where(
+      (cable) => cable.type == CableType.hoistMulti,
+    );
 
     final selectedCablesWithChildren = [
       ...selectedCables,
-      ...sneaks.expand((sneak) => store.state.fixtureState.cables.values
-          .where((cable) => cable.parentMultiId == sneak.uid)),
-      ...hoistMultis.expand((multi) => store.state.fixtureState.cables.values
-          .where((cable) => cable.parentMultiId == multi.uid))
+      ...sneaks.expand(
+        (sneak) => store.state.fixtureState.cables.values.where(
+          (cable) => cable.parentMultiId == sneak.uid,
+        ),
+      ),
+      ...hoistMultis.expand(
+        (multi) => store.state.fixtureState.cables.values.where(
+          (cable) => cable.parentMultiId == multi.uid,
+        ),
+      ),
     ];
 
-    final cableIdsToRemove =
-        selectedCablesWithChildren.map((cable) => cable.uid).toSet();
+    final cableIdsToRemove = selectedCablesWithChildren
+        .map((cable) => cable.uid)
+        .toSet();
 
     // Select DataMultiOutlet Ids to remove. We predicate this on if their are no other cables (ie extensions) that are
     // dependenent on that outlet.
     final dataMultiIdsToRemove = sneaks
         .map((sneak) {
-          final otherSneakCablesWithSameOutlet =
-              store.state.fixtureState.cables.values.where((cable) =>
-                  cable.outletId == sneak.outletId && cable.uid != sneak.uid);
+          final otherSneakCablesWithSameOutlet = store
+              .state
+              .fixtureState
+              .cables
+              .values
+              .where(
+                (cable) =>
+                    cable.outletId == sneak.outletId && cable.uid != sneak.uid,
+              );
 
           return otherSneakCablesWithSameOutlet.isEmpty ? sneak.outletId : null;
         })
@@ -1903,33 +2248,54 @@ ThunkAction<AppState> deleteSelectedCables(BuildContext context) {
     // dependenent on that outlet.
     final hoistMultiIdsToRemove = hoistMultis
         .map((multi) {
-          final otherHoistMultisWithSameOutlet =
-              store.state.fixtureState.cables.values.where((cable) =>
-                  cable.outletId == multi.outletId && cable.uid != multi.uid);
+          final otherHoistMultisWithSameOutlet = store
+              .state
+              .fixtureState
+              .cables
+              .values
+              .where(
+                (cable) =>
+                    cable.outletId == multi.outletId && cable.uid != multi.uid,
+              );
 
           return otherHoistMultisWithSameOutlet.isEmpty ? multi.outletId : null;
         })
         .nonNulls
         .toSet();
 
-    store.dispatch(SetCables(assertMultiChildSpares(
-        store.state.fixtureState.cables.clone()
-          ..removeWhere((key, value) => cableIdsToRemove.contains(key)))));
+    store.dispatch(
+      SetCables(
+        assertMultiChildSpares(
+          store.state.fixtureState.cables.clone()
+            ..removeWhere((key, value) => cableIdsToRemove.contains(key)),
+        ),
+      ),
+    );
 
     if (dataMultiIdsToRemove.isNotEmpty) {
-      store.dispatch(SetDataMultis(store.state.fixtureState.dataMultis.clone()
-        ..removeWhere((key, __) => dataMultiIdsToRemove.contains(key))));
+      store.dispatch(
+        SetDataMultis(
+          store.state.fixtureState.dataMultis.clone()
+            ..removeWhere((key, __) => dataMultiIdsToRemove.contains(key)),
+        ),
+      );
     }
 
     if (hoistMultiIdsToRemove.isNotEmpty) {
-      store.dispatch(SetHoistMultis(store.state.fixtureState.hoistMultis.clone()
-        ..removeWhere((key, _) => hoistMultiIdsToRemove.contains(key))));
+      store.dispatch(
+        SetHoistMultis(
+          store.state.fixtureState.hoistMultis.clone()
+            ..removeWhere((key, _) => hoistMultiIdsToRemove.contains(key)),
+        ),
+      );
     }
   };
 }
 
 ThunkAction<AppState> addSpareCablesToLoom(
-    BuildContext context, String loomId) {
+  BuildContext context,
+  String loomId,
+) {
   return (Store<AppState> store) async {
     final loom = store.state.fixtureState.looms[loomId];
 
@@ -1938,10 +2304,11 @@ ThunkAction<AppState> addSpareCablesToLoom(
     }
 
     final result = await openShadSheet(
-        context: context,
-        builder: (context) => AddSpareCables(
-              defaultPowerMultiType: store.state.fixtureState.defaultPowerMulti,
-            ));
+      context: context,
+      builder: (context) => AddSpareCables(
+        defaultPowerMultiType: store.state.fixtureState.defaultPowerMulti,
+      ),
+    );
 
     if (result == null) {
       return;
@@ -1952,52 +2319,61 @@ ThunkAction<AppState> addSpareCablesToLoom(
 
       // Expand the values from the Dialog into a List of CableTypes. This makes it easier to reduce
       // these values later on.
-      final expandedTypes = values.expand((value) =>
-          List<CableType>.generate(value.qty, (index) => value.type));
+      final expandedTypes = values.expand(
+        (value) => List<CableType>.generate(value.qty, (index) => value.type),
+      );
 
-      final existingCablesInLoom = store.state.fixtureState.cables.values
-          .where((cable) => cable.loomId == loomId);
+      final existingCablesInLoom = store.state.fixtureState.cables.values.where(
+        (cable) => cable.loomId == loomId,
+      );
 
       final updatedCables = expandedTypes.fold<List<CableModel>>(
-          existingCablesInLoom.toList(), (cablesInLoom, type) {
-        final existingCablesOfType =
-            cablesInLoom.where((cable) => cable.type == type);
+        existingCablesInLoom.toList(),
+        (cablesInLoom, type) {
+          final existingCablesOfType = cablesInLoom.where(
+            (cable) => cable.type == type,
+          );
 
-        final existingParentSparesOfType = existingCablesOfType
-            .where(
-                (cable) => cable.isSpare == true && cable.parentMultiId.isEmpty)
-            .toList();
+          final existingParentSparesOfType = existingCablesOfType
+              .where(
+                (cable) => cable.isSpare == true && cable.parentMultiId.isEmpty,
+              )
+              .toList();
 
-        final newParentCable = CableModel(
-          uid: getUid(),
-          type: type,
-          isSpare: true,
-          loomId: loomId,
-          length: existingParentSparesOfType.firstOrNull?.length ??
-              existingCablesOfType.firstOrNull?.length ??
-              cablesInLoom.firstOrNull?.length ??
-              0,
-          spareIndex: _selectNextSpareIndex(existingParentSparesOfType),
-        );
+          final newParentCable = CableModel(
+            uid: getUid(),
+            type: type,
+            isSpare: true,
+            loomId: loomId,
+            length:
+                existingParentSparesOfType.firstOrNull?.length ??
+                existingCablesOfType.firstOrNull?.length ??
+                cablesInLoom.firstOrNull?.length ??
+                0,
+            spareIndex: _selectNextSpareIndex(existingParentSparesOfType),
+          );
 
-        return [
-          ...cablesInLoom,
-          newParentCable,
+          return [
+            ...cablesInLoom,
+            newParentCable,
 
-          // Optionally create 4 children if current cable is a Sneak.
-          if (type == CableType.sneak)
-            ...List<CableModel>.generate(
+            // Optionally create 4 children if current cable is a Sneak.
+            if (type == CableType.sneak)
+              ...List<CableModel>.generate(
                 4,
                 (index) => CableModel(
-                    uid: getUid(),
-                    type: CableType.dmx,
-                    loomId: loomId,
-                    isSpare: true,
-                    parentMultiId: newParentCable.uid,
-                    length: newParentCable.length,
-                    spareIndex: index)),
-        ];
-      });
+                  uid: getUid(),
+                  type: CableType.dmx,
+                  loomId: loomId,
+                  isSpare: true,
+                  parentMultiId: newParentCable.uid,
+                  length: newParentCable.length,
+                  spareIndex: index,
+                ),
+              ),
+          ];
+        },
+      );
 
       store.dispatch(
         SetCables(
@@ -2006,12 +2382,14 @@ ThunkAction<AppState> addSpareCablesToLoom(
         ),
       );
 
-      store.dispatch(SetSelectedCableIds(
-        updatedCables
-            .where((cable) => cable.isSpare)
-            .map((cable) => cable.uid)
-            .toSet(),
-      ));
+      store.dispatch(
+        SetSelectedCableIds(
+          updatedCables
+              .where((cable) => cable.isSpare)
+              .map((cable) => cable.uid)
+              .toSet(),
+        ),
+      );
     }
   };
 }
@@ -2032,7 +2410,10 @@ int _selectNextSpareIndex(List<CableModel> spareCables) {
 }
 
 ThunkAction<AppState> addOutletsToLoom(
-    BuildContext context, String loomId, Set<String> outletIds) {
+  BuildContext context,
+  String loomId,
+  Set<String> outletIds,
+) {
   return (Store<AppState> store) async {
     if (outletIds.isEmpty) {
       return;
@@ -2047,31 +2428,40 @@ ThunkAction<AppState> addOutletsToLoom(
     final outlets = selectOutlets(outletIds, store);
 
     final newCables = [
-      ...outlets.powerOutlets.map((outlet) => CableModel(
-            uid: getUid(),
-            outletId: outlet.uid,
-            type: store.state.fixtureState.defaultPowerMulti,
-            length: loom.type.length,
-            loomId: loom.uid,
-          )),
-      ...outlets.dataOutlets.map((outlet) => CableModel(
-            uid: getUid(),
-            outletId: outlet.uid,
-            type: CableType.dmx,
-            length: loom.type.length,
-            loomId: loom.uid,
-          )),
-      ...outlets.hoistOutlets.map((outlet) => CableModel(
-            uid: getUid(),
-            outletId: outlet.uid,
-            type: CableType.hoist,
-            length: loom.type.length,
-            loomId: loom.uid,
-          ))
+      ...outlets.powerOutlets.map(
+        (outlet) => CableModel(
+          uid: getUid(),
+          outletId: outlet.uid,
+          type: store.state.fixtureState.defaultPowerMulti,
+          length: loom.type.length,
+          loomId: loom.uid,
+        ),
+      ),
+      ...outlets.dataOutlets.map(
+        (outlet) => CableModel(
+          uid: getUid(),
+          outletId: outlet.uid,
+          type: CableType.dmx,
+          length: loom.type.length,
+          loomId: loom.uid,
+        ),
+      ),
+      ...outlets.hoistOutlets.map(
+        (outlet) => CableModel(
+          uid: getUid(),
+          outletId: outlet.uid,
+          type: CableType.hoist,
+          length: loom.type.length,
+          loomId: loom.uid,
+        ),
+      ),
     ];
 
-    store.dispatch(SetCables(store.state.fixtureState.cables.clone()
-      ..addAll(newCables.toModelMap())));
+    store.dispatch(
+      SetCables(
+        store.state.fixtureState.cables.clone()..addAll(newCables.toModelMap()),
+      ),
+    );
 
     return;
   };
@@ -2096,45 +2486,65 @@ ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
     // If we are deleting any Sneaks, we will also need to delete their corresponding DataMutliOutlet, predicated on if there
     // are no other sneaks which are dependent on that outlet.
     final dataMultiIdsToRemove = allChildCables
-        .where((cable) =>
-            cable.type == CableType.sneak &&
-            store.state.fixtureState.cables.values
-                .where((other) =>
-                    other.outletId == cable.outletId && other.uid != cable.uid)
-                .isEmpty)
+        .where(
+          (cable) =>
+              cable.type == CableType.sneak &&
+              store.state.fixtureState.cables.values
+                  .where(
+                    (other) =>
+                        other.outletId == cable.outletId &&
+                        other.uid != cable.uid,
+                  )
+                  .isEmpty,
+        )
         .map((cable) => cable.outletId)
         .toSet();
 
     // As Above we need to remove any Hoist Multis.
     final hoistMultiIdsToRemove = allChildCables
-        .where((cable) =>
-            cable.type == CableType.hoistMulti &&
-            store.state.fixtureState.cables.values
-                .where((other) =>
-                    other.outletId == cable.outletId && other.uid != cable.uid)
-                .isEmpty)
+        .where(
+          (cable) =>
+              cable.type == CableType.hoistMulti &&
+              store.state.fixtureState.cables.values
+                  .where(
+                    (other) =>
+                        other.outletId == cable.outletId &&
+                        other.uid != cable.uid,
+                  )
+                  .isEmpty,
+        )
         .map((cable) => cable.outletId)
         .toSet();
 
     final cableIdsToRemove = allChildCables.map((cable) => cable.uid).toSet();
 
     // Delete Cables and Loom
-    store.dispatch(SetCablesAndLooms(
-      store.state.fixtureState.cables.clone()
-        ..removeWhere((key, value) => cableIdsToRemove.contains(key)),
-      store.state.fixtureState.looms.clone()..remove(loom.uid),
-    ));
+    store.dispatch(
+      SetCablesAndLooms(
+        store.state.fixtureState.cables.clone()
+          ..removeWhere((key, value) => cableIdsToRemove.contains(key)),
+        store.state.fixtureState.looms.clone()..remove(loom.uid),
+      ),
+    );
 
     // Optionally remove any corresponding DataMulti Outlets.
     if (dataMultiIdsToRemove.isNotEmpty) {
-      store.dispatch(SetDataMultis(store.state.fixtureState.dataMultis.clone()
-        ..removeWhere((key, value) => dataMultiIdsToRemove.contains(key))));
+      store.dispatch(
+        SetDataMultis(
+          store.state.fixtureState.dataMultis.clone()
+            ..removeWhere((key, value) => dataMultiIdsToRemove.contains(key)),
+        ),
+      );
     }
 
     // Optionally remove any corresponding Hoist Multi outlets.
     if (hoistMultiIdsToRemove.isNotEmpty) {
-      store.dispatch(SetHoistMultis(store.state.fixtureState.hoistMultis.clone()
-        ..removeWhere((key, __) => hoistMultiIdsToRemove.contains(key))));
+      store.dispatch(
+        SetHoistMultis(
+          store.state.fixtureState.hoistMultis.clone()
+            ..removeWhere((key, __) => hoistMultiIdsToRemove.contains(key)),
+        ),
+      );
     }
 
     store.dispatch(SetSelectedCableIds({}));
@@ -2163,7 +2573,8 @@ ThunkAction<AppState> initializeApp(BuildContext context) {
     // Load the Fixture Mapping Path.
     if (persistentSettings.fixtureMappingFilePath.isNotEmpty) {
       store.dispatch(
-          SetFixtureMappingFilePath(persistentSettings.fixtureMappingFilePath));
+        SetFixtureMappingFilePath(persistentSettings.fixtureMappingFilePath),
+      );
     }
   };
 }
@@ -2181,15 +2592,20 @@ ThunkAction<AppState> startNewProject(BuildContext context, bool saveCurrent) {
 }
 
 ThunkAction<AppState> openProjectFile(
-    BuildContext context, bool saveCurrent, String path) {
+  BuildContext context,
+  bool saveCurrent,
+  String path,
+) {
   return (Store<AppState> store) async {
     final projectFile = await deserializeProjectFile(path);
 
-    store.dispatch(OpenProject(
-      project: projectFile,
-      parentDirectory: p.dirname(path),
-      path: path,
-    ));
+    store.dispatch(
+      OpenProject(
+        project: projectFile,
+        parentDirectory: p.dirname(path),
+        path: path,
+      ),
+    );
 
     // Reset the Diff App State.
     if (store is! Store<DiffAppState>) {
@@ -2200,7 +2616,8 @@ ThunkAction<AppState> openProjectFile(
 
 ThunkAction<AppState> saveProjectFile(BuildContext context, SaveType saveType) {
   return (Store<AppState> store) async {
-    final saveAsNeeded = store.state.fileState.projectFilePath.isEmpty ||
+    final saveAsNeeded =
+        store.state.fileState.projectFilePath.isEmpty ||
         saveType == SaveType.saveAs;
 
     String targetFilePath = store.state.fileState.projectFilePath;
@@ -2211,10 +2628,11 @@ ThunkAction<AppState> saveProjectFile(BuildContext context, SaveType saveType) {
       final selectedFilePath = await getSaveLocation(
         acceptedTypeGroups: kProjectFileTypes,
         initialDirectory:
-            await Directory(store.state.fileState.lastUsedProjectDirectory)
-                    .exists()
-                ? store.state.fileState.lastUsedProjectDirectory
-                : null,
+            await Directory(
+              store.state.fileState.lastUsedProjectDirectory,
+            ).exists()
+            ? store.state.fileState.lastUsedProjectDirectory
+            : null,
         confirmButtonText: 'Save As',
       );
 
@@ -2245,10 +2663,11 @@ ThunkAction<AppState> saveProjectFile(BuildContext context, SaveType saveType) {
     } catch (e) {
       if (context.mounted) {
         showGenericErrorToast(
-            context: context,
-            title: 'An error occured.',
-            subtitle: 'Project saving failed.',
-            extendedMessage: e.toString());
+          context: context,
+          title: 'An error occured.',
+          subtitle: 'Project saving failed.',
+          extendedMessage: e.toString(),
+        );
       }
     }
   };
@@ -2262,7 +2681,9 @@ String getTestDataPath() {
 }
 
 ThunkAction<AppState> updateLocationMultiPrefix(
-    String locationId, String newValue) {
+  String locationId,
+  String newValue,
+) {
   return (Store<AppState> store) async {
     final existingLocation = store.state.fixtureState.locations[locationId];
 
@@ -2272,13 +2693,19 @@ ThunkAction<AppState> updateLocationMultiPrefix(
 
     final updatedLocation = existingLocation.copyWith(multiPrefix: newValue);
 
-    store.dispatch(SetLocations(store.state.fixtureState.locations.clone()
-      ..update(locationId, (_) => updatedLocation)));
+    store.dispatch(
+      SetLocations(
+        store.state.fixtureState.locations.clone()
+          ..update(locationId, (_) => updatedLocation),
+      ),
+    );
   };
 }
 
 ThunkAction<AppState> updateLocationMultiDelimiter(
-    String locationId, String newValue) {
+  String locationId,
+  String newValue,
+) {
   return (Store<AppState> store) async {
     final existingLocation = store.state.fixtureState.locations[locationId];
 
@@ -2288,13 +2715,20 @@ ThunkAction<AppState> updateLocationMultiDelimiter(
 
     final updatedLocation = existingLocation.copyWith(delimiter: newValue);
 
-    store.dispatch(SetLocations(store.state.fixtureState.locations.clone()
-      ..update(locationId, (_) => updatedLocation)));
+    store.dispatch(
+      SetLocations(
+        store.state.fixtureState.locations.clone()
+          ..update(locationId, (_) => updatedLocation),
+      ),
+    );
   };
 }
 
 ThunkAction<AppState> rangeSelectFixtures(
-    String startUid, String endUid, bool isAdditive) {
+  String startUid,
+  String endUid,
+  bool isAdditive,
+) {
   return (Store<AppState> store) async {
     final fixtures = store.state.fixtureState.fixtures.values.toList();
 
@@ -2307,8 +2741,9 @@ ThunkAction<AppState> rangeSelectFixtures(
       return;
     }
 
-    final rawStartIndex =
-        fixtures.indexWhere((fixture) => fixture.uid == startUid);
+    final rawStartIndex = fixtures.indexWhere(
+      (fixture) => fixture.uid == startUid,
+    );
     final rawEndIndex = fixtures.indexWhere((fixture) => fixture.uid == endUid);
 
     if (rawStartIndex == -1 || rawEndIndex == -1) {
@@ -2320,8 +2755,10 @@ ThunkAction<AppState> rangeSelectFixtures(
         : (rawStartIndex, rawEndIndex);
 
     final ids = fixtures
-        .sublist(coercedStartIndex,
-            coercedEndIndex + 1 <= fixtures.length ? coercedEndIndex + 1 : null)
+        .sublist(
+          coercedStartIndex,
+          coercedEndIndex + 1 <= fixtures.length ? coercedEndIndex + 1 : null,
+        )
         .map((fixture) => fixture.uid)
         .toSet();
 
@@ -2330,8 +2767,11 @@ ThunkAction<AppState> rangeSelectFixtures(
     }
 
     // Optionally reverse the collection if the Range Selection itself was inverted.
-    store.dispatch(SetSelectedFixtureIds(
-        rawStartIndex > rawEndIndex ? ids.toList().reversed.toSet() : ids));
+    store.dispatch(
+      SetSelectedFixtureIds(
+        rawStartIndex > rawEndIndex ? ids.toList().reversed.toSet() : ids,
+      ),
+    );
   };
 }
 
@@ -2344,10 +2784,12 @@ ThunkAction<AppState> setSequenceNumbers(BuildContext context) {
     final result = await showDialog(
       context: context,
       builder: (context) => SequencerDialog(
-          fixtures: selectedFixtures,
-          fixtureTypes: store.state.fixtureState.fixtureTypes,
-          nextAvailableSequenceNumber: _findNextAvailableSequenceNumber(
-              selectedFixtures.map((fix) => fix.sequence).toList())),
+        fixtures: selectedFixtures,
+        fixtureTypes: store.state.fixtureState.fixtureTypes,
+        nextAvailableSequenceNumber: _findNextAvailableSequenceNumber(
+          selectedFixtures.map((fix) => fix.sequence).toList(),
+        ),
+      ),
     );
 
     if (result == null) {
@@ -2362,11 +2804,15 @@ ThunkAction<AppState> setSequenceNumbers(BuildContext context) {
         final fixtureId = entry.value.uid;
 
         existingFixtures.update(
-            fixtureId, (fixture) => fixture.copyWith(sequence: newSeqNumber));
+          fixtureId,
+          (fixture) => fixture.copyWith(sequence: newSeqNumber),
+        );
       }
 
       final sortedFixtures = FixtureModel.sort(
-          existingFixtures, store.state.fixtureState.locations);
+        existingFixtures,
+        store.state.fixtureState.locations,
+      );
 
       store.dispatch(SetFixtures(sortedFixtures));
     }
@@ -2376,17 +2822,19 @@ ThunkAction<AppState> setSequenceNumbers(BuildContext context) {
 ThunkAction<AppState> export(BuildContext context) {
   return (Store<AppState> store) async {
     final outputPaths = ExportFilePaths(
-        directoryPath:
-            store.state.fileState.projectMetadata.lastUsedExportDirectory,
-        projectName: store.state.fileState.projectMetadata.projectName,
-        excelFileExtension: '.xlsx');
+      directoryPath:
+          store.state.fileState.projectMetadata.lastUsedExportDirectory,
+      projectName: store.state.fileState.projectMetadata.projectName,
+      excelFileExtension: '.xlsx',
+    );
 
     if (await outputPaths.parentDirectoryExists == false) {
       if (context.mounted) {
         showGenericErrorToast(
-            context: context,
-            title: 'Parent Directory could not be found',
-            subtitle: 'Have you selected an export directory?');
+          context: context,
+          title: 'Parent Directory could not be found',
+          subtitle: 'Have you selected an export directory?',
+        );
       }
       return;
     }
@@ -2411,8 +2859,9 @@ ThunkAction<AppState> export(BuildContext context) {
     }
 
     store.dispatch(SetIsValidatingExportData(true));
-    final validationResult =
-        await _validateExportData(store.state.fixtureState);
+    final validationResult = await _validateExportData(
+      store.state.fixtureState,
+    );
 
     store.dispatch(SetExportErrors(validationResult));
 
@@ -2477,14 +2926,26 @@ ThunkAction<AppState> export(BuildContext context) {
       dataRacks: store.state.fixtureState.dataRacks,
     );
 
+    createBreakoutCablingSheet(
+      excel: referenceDataExcel,
+      locations: store.state.fixtureState.locations,
+      cableGraph: buildCableGraph(
+        fixtures: store.state.fixtureState.fixtures,
+        fixtureTypes: store.state.fixtureState.fixtureTypes,
+        powerMultis: store.state.fixtureState.powerMultiOutlets,
+        cables: store.state.fixtureState.cables,
+        locations: store.state.fixtureState.locations,
+        dataMultis: store.state.fixtureState.dataMultis,
+        dataPatches: store.state.fixtureState.dataPatches,
+        trusses: store.state.fixtureState.trusses,
+      ),
+    );
+
     referenceDataExcel.delete('Sheet1');
 
     final loomsExcel = Excel.createExcel();
 
-    createLoomsSheet(
-      excel: loomsExcel,
-      store: store,
-    );
+    createLoomsSheet(excel: loomsExcel, store: store);
 
     loomsExcel.delete('Sheet1');
 
@@ -2515,10 +2976,12 @@ ThunkAction<AppState> export(BuildContext context) {
 
     final referenceDataBytes = referenceDataExcel.save();
     final loomsBytes = loomsExcel.save();
-    final powerPatchTemplateBytes =
-        await rootBundle.load('assets/excel/prg_power_patch.xlsx');
-    final dataPatchTemplateBytes =
-        await rootBundle.load('assets/excel/prg_data_patch.xlsx');
+    final powerPatchTemplateBytes = await rootBundle.load(
+      'assets/excel/prg_power_patch.xlsx',
+    );
+    final dataPatchTemplateBytes = await rootBundle.load(
+      'assets/excel/prg_data_patch.xlsx',
+    );
     final addressingBytes = addressingExcel.save();
     final fixtureInfoBytes = fixtureInfoExcel.save();
     final hoistPatchBytes = hoistPatchExcel.save();
@@ -2526,9 +2989,10 @@ ThunkAction<AppState> export(BuildContext context) {
     if (referenceDataBytes == null) {
       if (context.mounted) {
         showGenericErrorToast(
-            context: context,
-            title: 'Excel output error',
-            subtitle: 'An error occurred writing reference data');
+          context: context,
+          title: 'Excel output error',
+          subtitle: 'An error occurred writing reference data',
+        );
       }
 
       return;
@@ -2537,9 +3001,10 @@ ThunkAction<AppState> export(BuildContext context) {
     if (loomsBytes == null) {
       if (context.mounted) {
         showGenericErrorToast(
-            context: context,
-            title: 'Excel output error',
-            subtitle: 'An error occurred writing looms data');
+          context: context,
+          title: 'Excel output error',
+          subtitle: 'An error occurred writing looms data',
+        );
       }
 
       return;
@@ -2548,9 +3013,10 @@ ThunkAction<AppState> export(BuildContext context) {
     if (hoistPatchBytes == null) {
       if (context.mounted) {
         showGenericErrorToast(
-            context: context,
-            title: 'Excel output error',
-            subtitle: 'An error occurred writing hoist data');
+          context: context,
+          title: 'Excel output error',
+          subtitle: 'An error occurred writing hoist data',
+        );
       }
 
       return;
@@ -2559,9 +3025,10 @@ ThunkAction<AppState> export(BuildContext context) {
     if (addressingBytes == null) {
       if (context.mounted) {
         showGenericErrorToast(
-            context: context,
-            title: 'Excel output error',
-            subtitle: 'An error occurred writing fixture addressing data');
+          context: context,
+          title: 'Excel output error',
+          subtitle: 'An error occurred writing fixture addressing data',
+        );
       }
 
       return;
@@ -2570,9 +3037,10 @@ ThunkAction<AppState> export(BuildContext context) {
     if (fixtureInfoBytes == null) {
       if (context.mounted) {
         showGenericErrorToast(
-            context: context,
-            title: 'Excel output error',
-            subtitle: 'An error occurred writing fixture info data');
+          context: context,
+          title: 'Excel output error',
+          subtitle: 'An error occurred writing fixture info data',
+        );
       }
 
       return;
@@ -2581,10 +3049,12 @@ ThunkAction<AppState> export(BuildContext context) {
     final fileWrites = [
       File(outputPaths.referenceDataPath).writeAsBytes(referenceDataBytes),
       File(outputPaths.loomsPath).writeAsBytes(loomsBytes),
-      File(outputPaths.powerPatchPath)
-          .writeAsBytes(powerPatchTemplateBytes.buffer.asUint8List()),
-      File(outputPaths.dataPatchPath)
-          .writeAsBytes(dataPatchTemplateBytes.buffer.asUint8List()),
+      File(
+        outputPaths.powerPatchPath,
+      ).writeAsBytes(powerPatchTemplateBytes.buffer.asUint8List()),
+      File(
+        outputPaths.dataPatchPath,
+      ).writeAsBytes(dataPatchTemplateBytes.buffer.asUint8List()),
       File(outputPaths.addressesPath).writeAsBytes(addressingBytes),
       File(outputPaths.fixtureInfoPath).writeAsBytes(fixtureInfoBytes),
       File(outputPaths.hoistPatchPath).writeAsBytes(hoistPatchBytes),
@@ -2595,9 +3065,10 @@ ThunkAction<AppState> export(BuildContext context) {
     } catch (e) {
       if (context.mounted) {
         showGenericErrorToast(
-            context: context,
-            title: 'Export error',
-            subtitle: '1 or more files failed to export');
+          context: context,
+          title: 'Export error',
+          subtitle: '1 or more files failed to export',
+        );
 
         return;
       }
@@ -2605,7 +3076,9 @@ ThunkAction<AppState> export(BuildContext context) {
 
     if (context.mounted) {
       showGenericSuccessToast(
-          context: context, title: 'Export finished successfully');
+        context: context,
+        title: 'Export finished successfully',
+      );
     }
 
     if (store.state.navstate.openAfterExport == true) {
@@ -2631,7 +3104,10 @@ ThunkAction<AppState> addSpareOutlet(String uid) {
     }
 
     _updatePowerMultiSpareCircuitCount(
-        store, uid, multiOutlet.desiredSpareCircuits + 1);
+      store,
+      uid,
+      multiOutlet.desiredSpareCircuits + 1,
+    );
   };
 }
 
@@ -2648,16 +3124,24 @@ ThunkAction<AppState> deleteSpareOutlet(String uid) {
     }
 
     _updatePowerMultiSpareCircuitCount(
-        store, uid, multiOutlet.desiredSpareCircuits - 1);
+      store,
+      uid,
+      multiOutlet.desiredSpareCircuits - 1,
+    );
   };
 }
 
 void _updatePowerMultiSpareCircuitCount(
-    Store<AppState> store, String uid, int desiredCount) {
+  Store<AppState> store,
+  String uid,
+  int desiredCount,
+) {
   final existingMultiOutlets = store.state.fixtureState.powerMultiOutlets;
 
   existingMultiOutlets.update(
-      uid, (existing) => existing.copyWith(desiredSpareCircuits: desiredCount));
+    uid,
+    (existing) => existing.copyWith(desiredSpareCircuits: desiredCount),
+  );
 
   store.dispatch(SetPowerMultiOutlets(existingMultiOutlets));
 }
@@ -2688,5 +3172,7 @@ int _findNextAvailableSequenceNumber(List<int> sequenceNumbers) {
 
 Future<List<ExportErrorModel>> _validateExportData(FixtureState state) async {
   return await compute<FixtureState, List<ExportErrorModel>>(
-      (message) => validateExportData(message), state);
+    (message) => validateExportData(message),
+    state,
+  );
 }

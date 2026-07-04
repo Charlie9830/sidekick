@@ -1,3 +1,4 @@
+import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
 import 'package:sidekick/view_models/fixture_table_view_model.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:sidekick/view_models/loom_view_model.dart';
@@ -10,6 +11,8 @@ class DiffAppStateViewModel {
   final Map<String, FixtureTableRowViewModel> originalFixtureViewModels;
   final Map<String, HoistControllerViewModel> originalHoistControllerViewModels;
   final Map<String, HoistViewModel> hoistViewModels;
+  final Map<String, Map<CableQtyGroup, int>> originalCableQtysByLocationId;
+  final Map<String, String> originalLocationNames;
 
   DiffAppStateViewModel({
     required this.originalLoomViewModels,
@@ -18,5 +21,7 @@ class DiffAppStateViewModel {
     required this.originalFixtureViewModels,
     required this.originalHoistControllerViewModels,
     required this.hoistViewModels,
+    required this.originalCableQtysByLocationId,
+    required this.originalLocationNames,
   });
 }

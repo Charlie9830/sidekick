@@ -44,6 +44,8 @@ Future<ImportRawTrussesResult> _readMvrTrussing({
         .map(
           (truss) => RawTrussModel(
             mvrId: truss.uuid,
+            name: truss.name,
+            classing: truss.classing,
             rotationX: truss.matrix.rotationX,
             rotationY: truss.matrix.rotationY,
             rotationZ: truss.matrix.rotationZ,

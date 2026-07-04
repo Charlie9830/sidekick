@@ -18,6 +18,7 @@ import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/power_rack_model.dart';
 import 'package:sidekick/redux/models/power_rack_type_model.dart';
+import 'package:sidekick/redux/models/truss_model.dart';
 
 class FixtureState {
   final Map<String, FixtureModel> fixtures;
@@ -41,6 +42,7 @@ class FixtureState {
   final Map<String, DataRackModel> dataRacks;
   final Map<String, DataRackTypeModel> dataRackTypes;
   final Map<String, FixtureTypePoolModel> fixtureTypePools;
+  final Map<String, TrussModel> trusses;
 
   FixtureState({
     required this.fixtures,
@@ -64,6 +66,7 @@ class FixtureState {
     required this.dataRackTypes,
     required this.dataRacks,
     required this.fixtureTypePools,
+    required this.trusses,
   });
 
   const FixtureState.initial()
@@ -89,7 +92,8 @@ class FixtureState {
         powerRacks = const {},
         powerRackTypes = BuiltInPowerRackTypes.types,
         dataRackTypes = BuiltInDataRackTypes.types,
-        dataRacks = const {};
+        dataRacks = const {},
+        trusses = const {};
 
   FixtureState copyWith({
     Map<String, FixtureModel>? fixtures,
@@ -113,6 +117,7 @@ class FixtureState {
     Map<String, DataRackModel>? dataRacks,
     Map<String, DataRackTypeModel>? dataRackTypes,
     Map<String, FixtureTypePoolModel>? fixtureTypePools,
+    Map<String, TrussModel>? trusses,
   }) {
     return FixtureState(
       fixtures: fixtures ?? this.fixtures,
@@ -136,6 +141,7 @@ class FixtureState {
       dataRacks: dataRacks ?? this.dataRacks,
       dataRackTypes: dataRackTypes ?? this.dataRackTypes,
       fixtureTypePools: fixtureTypePools ?? this.fixtureTypePools,
+      trusses: trusses ?? this.trusses,
     );
   }
 }
