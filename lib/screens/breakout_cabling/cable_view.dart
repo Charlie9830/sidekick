@@ -5,27 +5,67 @@ import 'package:sidekick/cable_graph/cable_graph.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/screens/breakout_cabling/visibility_control.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
 import 'package:sidekick/widgets/connector_painters.dart';
 
-class CableView extends StatelessWidget {
+/// Below [_kLabelFadeStart] the fixture labels are hidden; above
+/// [_kLabelFadeEnd] they are fully opaque. Between the two they fade in —
+/// semantic zoom that keeps the graph uncluttered when zoomed out and
+/// legible when zoomed in, instead of rendering sub-pixel text.
+const double _kLabelFadeStart = 1.6;
+const double _kLabelFadeEnd = 3.2;
+
+class CableView extends StatefulWidget {
   final CableViewViewModel vm;
 
   const CableView({super.key, required this.vm});
 
   @override
+  State<CableView> createState() => _CableViewState();
+}
+
+class _CableViewState extends State<CableView> {
+  final TransformationController _controller = TransformationController();
+  double _labelOpacity = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_handleTransformChanged);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_handleTransformChanged);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleTransformChanged() {
+    final scale = _controller.value.getMaxScaleOnAxis();
+    final opacity =
+        ((scale - _kLabelFadeStart) / (_kLabelFadeEnd - _kLabelFadeStart))
+            .clamp(0.0, 1.0);
+    if ((opacity - _labelOpacity).abs() > 0.02) {
+      setState(() => _labelOpacity = opacity);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (vm.elements.isEmpty) {
+    if (widget.vm.elements.isEmpty) {
       return const SizedBox.shrink();
     }
     return Stack(
       children: [
         InteractiveViewer(
           maxScale: 50,
+          transformationController: _controller,
           child: LayoutBuilder(
             builder: (context, constraints) {
               final viewport = ViewportTransformer.fromFixtures(
-                fixtures: vm.elements
+                fixtures: widget.vm.elements
                     .whereType<FixtureElement>()
                     .map((e) => e.fixtureVm.fixture)
                     .toList(),
@@ -34,8 +74,20 @@ class CableView extends StatelessWidget {
 
               return Stack(
                 children: [
+                  // Truss geometry (drawn beneath the cabling).
+                  if (widget.vm.trusses.isNotEmpty)
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: _TrussPainter(
+                          trusses: widget.vm.trusses,
+                          viewport: viewport,
+                          color: Theme.of(context).colorScheme.mutedForeground,
+                        ),
+                      ),
+                    ),
+
                   // Edges (Cables)
-                  ...vm.edges.map((edge) {
+                  ...widget.vm.edges.map((edge) {
                     final fromElement = edge.fromElement;
                     final toElement = edge.toElement;
                     final fromOffset = viewport.transform(
@@ -86,7 +138,7 @@ class CableView extends StatelessWidget {
                   }),
 
                   // Nodes (Fixtures, Headers etc)
-                  ...vm.elements.map((node) {
+                  ...widget.vm.elements.map((node) {
                     final origin = viewport.transform(
                       node.screenX,
                       node.screenY,
@@ -110,7 +162,10 @@ class CableView extends StatelessWidget {
                         child: FractionalTranslation(
                           // Shift the node by half its own size so the coordinate is at its center.
                           translation: const Offset(-0.5, -0.5),
-                          child: _FixtureNode(vm: node.fixtureVm),
+                          child: _FixtureNode(
+                            vm: node.fixtureVm,
+                            labelOpacity: _labelOpacity,
+                          ),
                         ),
                       ),
                       PowerMultiHeaderElement() => Positioned(
@@ -168,9 +223,14 @@ class CableView extends StatelessWidget {
           left: 8,
           width: 164,
           child: VisibilityControl(
-            state: vm.cableVisibility,
-            onVisibilityChanged: vm.onVisibilityChanged,
+            state: widget.vm.cableVisibility,
+            onVisibilityChanged: widget.vm.onVisibilityChanged,
           ),
+        ),
+        const Positioned(
+          bottom: 8,
+          left: 8,
+          child: _Legend(),
         ),
       ],
     );
@@ -181,7 +241,7 @@ class CableView extends StatelessWidget {
     required Offset fromOffset,
     required Offset toOffset,
   }) {
-    if (vm.cableVisibility.dataState.contains(edge.runType) == false) {
+    if (widget.vm.cableVisibility.dataState.contains(edge.runType) == false) {
       return const SizedBox();
     }
 
@@ -198,7 +258,7 @@ class CableView extends StatelessWidget {
     required Offset fromOffset,
     required Offset toOffset,
   }) {
-    if (vm.cableVisibility.powerState.contains(edge.runType) == false) {
+    if (widget.vm.cableVisibility.powerState.contains(edge.runType) == false) {
       return const SizedBox();
     }
 
@@ -289,7 +349,7 @@ class _LocationNode extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.yellow,
+        color: SidekickColors.locationMarker,
       ),
     );
   }
@@ -312,7 +372,12 @@ class _TrussBreakNode extends StatelessWidget {
 
 class _FixtureNode extends StatelessWidget {
   final FixtureViewModel vm;
-  const _FixtureNode({required this.vm});
+
+  /// Opacity of the fid/type labels, driven by the viewer's zoom level so the
+  /// text only appears once it is large enough to read.
+  final double labelOpacity;
+
+  const _FixtureNode({required this.vm, this.labelOpacity = 1});
 
   @override
   Widget build(BuildContext context) {
@@ -324,26 +389,150 @@ class _FixtureNode extends StatelessWidget {
         color: Theme.of(context).colorScheme.card,
         border: Border.all(color: Theme.of(context).colorScheme.border),
       ),
-      child: FittedBox(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              vm.fixture.fid.toString(),
-              style: Theme.of(context).typography.mono.copyWith(fontSize: 6),
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.clip,
+      child: labelOpacity <= 0
+          ? null
+          : Opacity(
+              opacity: labelOpacity,
+              child: FittedBox(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      vm.fixture.fid.toString(),
+                      style: Theme.of(context)
+                          .typography
+                          .mono
+                          .copyWith(fontSize: 6),
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.clip,
+                    ),
+                    Text(
+                      vm.fixtureType.shortName,
+                      style: Theme.of(context)
+                          .typography
+                          .light
+                          .copyWith(fontSize: 4),
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.clip,
+                    ),
+                  ],
+                ),
+              ),
             ),
-            Text(
-              vm.fixtureType.shortName,
-              style: Theme.of(
-                context,
-              ).typography.extraLight.copyWith(fontSize: 4),
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.clip,
+    );
+  }
+}
+
+/// A compact key explaining the graph's colour (cable type) and line-weight
+/// (run type) encodings.
+class _Legend extends StatelessWidget {
+  const _Legend();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final labelStyle = theme.typography.xSmall
+        .copyWith(color: theme.colorScheme.mutedForeground);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.card.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.colorScheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Legend', style: theme.typography.xSmall.copyWith(
+              color: theme.colorScheme.foreground,
+              fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          _LegendSwatch(
+              color: SidekickColors.powerRun, label: 'Power', style: labelStyle),
+          _LegendSwatch(
+              color: SidekickColors.dataRun, label: 'Data', style: labelStyle),
+          _LegendSwatch(
+              color: SidekickColors.dataMultiNode,
+              label: 'Data multi',
+              style: labelStyle),
+          _LegendSwatch(
+              color: SidekickColors.locationMarker,
+              label: 'Location',
+              style: labelStyle),
+          const SizedBox(height: 8),
+          _LegendLine(weight: 1, label: 'Link', style: labelStyle),
+          _LegendLine(weight: 2, label: 'Fixture run', style: labelStyle),
+          _LegendLine(weight: 3, label: 'Home run', style: labelStyle),
+        ],
+      ),
+    );
+  }
+}
+
+class _LegendSwatch extends StatelessWidget {
+  final Color color;
+  final String label;
+  final TextStyle style;
+
+  const _LegendSwatch({
+    required this.color,
+    required this.label,
+    required this.style,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(3),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 8),
+          Text(label, style: style),
+        ],
+      ),
+    );
+  }
+}
+
+class _LegendLine extends StatelessWidget {
+  final double weight;
+  final String label;
+  final TextStyle style;
+
+  const _LegendLine({
+    required this.weight,
+    required this.label,
+    required this.style,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 12,
+            child: Divider(
+              thickness: weight,
+              color: Theme.of(context).colorScheme.mutedForeground,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(label, style: style),
+        ],
       ),
     );
   }
@@ -359,7 +548,7 @@ class _PowerMultiNode extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.red,
+        color: SidekickColors.powerMultiNode,
         border: Border.all(color: Theme.of(context).colorScheme.border),
       ),
       child: Text(
@@ -383,7 +572,7 @@ class _DataMultiNode extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.rectangle,
-        color: Colors.teal,
+        color: SidekickColors.dataMultiNode,
         border: Border.all(color: Theme.of(context).colorScheme.border),
       ),
       child: Text(
@@ -408,7 +597,7 @@ class _DataPatchNode extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.teal,
+        color: SidekickColors.dataMultiNode,
         border: Border.all(color: Theme.of(context).colorScheme.border),
       ),
       child: Text(
@@ -418,6 +607,70 @@ class _DataPatchNode extends StatelessWidget {
         overflow: TextOverflow.clip,
       ),
     );
+  }
+}
+
+/// Paints each truss stick as an oriented rectangle in the same viewport space
+/// as the fixtures and cables, giving a physical footprint for the rig.
+class _TrussPainter extends CustomPainter {
+  final List<TrussViewModel> trusses;
+  final ViewportTransformer viewport;
+  final Color color;
+
+  _TrussPainter({
+    required this.trusses,
+    required this.viewport,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final fillPaint = Paint()
+      ..color = color.withValues(alpha: 0.12)
+      ..style = PaintingStyle.fill;
+    final strokePaint = Paint()
+      ..color = color.withValues(alpha: 0.6)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    for (final truss in trusses) {
+      final radians = truss.rotationZ * pi / 180.0;
+      final axisX = cos(radians);
+      final axisY = sin(radians);
+      final perpX = -sin(radians);
+      final perpY = cos(radians);
+      final halfLength = truss.length / 2;
+      final halfWidth = truss.width / 2;
+
+      Offset corner(double along, double across) {
+        final worldX = truss.x + axisX * along + perpX * across;
+        final worldY = truss.y + axisY * along + perpY * across;
+        // Fixtures negate Y to move from world to screen space; match that here.
+        return viewport.transform(worldX, -worldY);
+      }
+
+      final c1 = corner(halfLength, halfWidth);
+      final c2 = corner(halfLength, -halfWidth);
+      final c3 = corner(-halfLength, -halfWidth);
+      final c4 = corner(-halfLength, halfWidth);
+
+      final path = Path()
+        ..moveTo(c1.dx, c1.dy)
+        ..lineTo(c2.dx, c2.dy)
+        ..lineTo(c3.dx, c3.dy)
+        ..lineTo(c4.dx, c4.dy)
+        ..close();
+
+      canvas.drawPath(path, fillPaint);
+      canvas.drawPath(path, strokePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _TrussPainter oldDelegate) {
+    return oldDelegate.trusses != trusses ||
+        oldDelegate.viewport != viewport ||
+        oldDelegate.color != color;
   }
 }
 
@@ -440,9 +693,9 @@ class _PowerCableEdge extends StatelessWidget {
       start: from,
       end: to,
       color: switch (runType) {
-        CableRunType.link => Colors.red.shade300,
-        CableRunType.fixtureRun => Colors.red.shade500,
-        CableRunType.homeRun => Colors.red.shade900,
+        CableRunType.link => SidekickColors.powerLink,
+        CableRunType.fixtureRun => SidekickColors.powerRun,
+        CableRunType.homeRun => SidekickColors.powerHome,
       },
       width: switch (runType) {
         CableRunType.link => 1,
@@ -474,9 +727,9 @@ class _DataCableEdge extends StatelessWidget {
       start: from,
       end: to,
       color: switch (runType) {
-        CableRunType.link => Colors.blue.shade300,
-        CableRunType.fixtureRun => Colors.blue.shade500,
-        CableRunType.homeRun => Colors.blue.shade900,
+        CableRunType.link => SidekickColors.dataLink,
+        CableRunType.fixtureRun => SidekickColors.dataRun,
+        CableRunType.homeRun => SidekickColors.dataHome,
       },
       width: switch (runType) {
         CableRunType.link => 1,

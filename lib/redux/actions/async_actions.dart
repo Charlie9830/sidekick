@@ -2552,9 +2552,7 @@ ThunkAction<AppState> deleteLoom(BuildContext context, String uid) {
 }
 
 ThunkAction<AppState> debugButtonPressed() {
-  return (Store<AppState> store) async {
-    runAnalysis();
-  };
+  return (Store<AppState> store) async {};
 }
 
 ThunkAction<AppState> initializeApp(BuildContext context) {

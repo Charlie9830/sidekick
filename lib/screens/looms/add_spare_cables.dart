@@ -5,6 +5,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/screens/looms/cable_type_select.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/widgets/property_field.dart';
 
 class AddSpareCables extends StatefulWidget {
@@ -61,7 +62,8 @@ class _AddSpareCablesState extends State<AddSpareCables> {
             Align(
               alignment: Alignment.bottomRight,
               child: IconButton.primary(
-                icon: const Icon(Icons.check_circle, color: Colors.green),
+                icon: const Icon(Icons.check_circle,
+                    color: SidekickColors.success),
                 trailing: const Text('Create'),
                 onPressed: () => _submit(_valueRows),
               ),

@@ -1,6 +1,7 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/containers/home_container.dart';
 import 'package:sidekick/global_keys.dart';
+import 'package:sidekick/theme/sidekick_color_scheme.dart';
 import 'package:sidekick/typography.dart';
 
 class HomeScaffold extends StatelessWidget {
@@ -9,9 +10,9 @@ class HomeScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ShadcnApp(
-      theme: ThemeData.dark(
+      theme: const ThemeData.dark(
         typography: appTypography,
-        colorScheme: LegacyColorSchemes.darkStone(),
+        colorScheme: sidekickDarkColorScheme,
         platform: TargetPlatform.windows,
       ),
       scaling: AdaptiveScaling.desktop,

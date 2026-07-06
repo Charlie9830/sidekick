@@ -57,14 +57,38 @@ class PowerMultiHeaderViewModel {
 class CableViewViewModel {
   final List<NodeElement> elements;
   final List<EdgeElement> edges;
+  final List<TrussViewModel> trusses;
   final CableVisibilityModel cableVisibility;
   final void Function(CableVisibilityModel value) onVisibilityChanged;
 
   CableViewViewModel({
     required this.elements,
     required this.edges,
+    required this.trusses,
     required this.cableVisibility,
     required this.onVisibilityChanged,
+  });
+}
+
+/// The geometry of a single truss stick, expressed in world coordinates (mm)
+/// for rendering the physical rig layout beneath the cabling.
+class TrussViewModel {
+  final String uid;
+  final String name;
+  final double x;
+  final double y;
+  final double rotationZ;
+  final double length;
+  final double width;
+
+  TrussViewModel({
+    required this.uid,
+    required this.name,
+    required this.x,
+    required this.y,
+    required this.rotationZ,
+    required this.length,
+    required this.width,
   });
 }
 

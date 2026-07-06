@@ -58,6 +58,7 @@ CableViewViewModel _selectCableViewVm({
     return CableViewViewModel(
       elements: [],
       edges: [],
+      trusses: _selectTrussVms(store),
       cableVisibility: store.state.navstate.breakoutCableVisibility,
       onVisibilityChanged: (value) => store.dispatch(
         SetBreakoutCableVisibilityState(value),
@@ -89,6 +90,7 @@ CableViewViewModel _selectCableViewVm({
   return CableViewViewModel(
     elements: nodeElements.values.toList(),
     edges: edgeElements,
+    trusses: _selectTrussVms(store),
     cableVisibility: store.state.navstate.breakoutCableVisibility,
     onVisibilityChanged: (value) => store.dispatch(
       SetBreakoutCableVisibilityState(value),
@@ -142,6 +144,21 @@ EdgeElement _buildEdgeElement(
         toElement: toElement,
         fromElement: fromElement)
   };
+}
+
+List<TrussViewModel> _selectTrussVms(Store<AppState> store) {
+  return store.state.fixtureState.trusses.values
+      .where((truss) => truss.length > 0)
+      .map((truss) => TrussViewModel(
+            uid: truss.uid,
+            name: truss.name,
+            x: truss.x,
+            y: truss.y,
+            rotationZ: truss.rotationZ,
+            length: truss.length,
+            width: truss.width,
+          ))
+      .toList();
 }
 
 CableGraph _selectCableGraph(Store<AppState> store) {

@@ -1,5 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/shad_list_item.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/view_models/looms_view_model.dart';
 
 class CompositionItem extends StatelessWidget {
@@ -30,10 +31,10 @@ class CompositionItem extends StatelessWidget {
           Text(available.toString(),
               style: Theme.of(context).typography.normal.copyWith(
                   color: available == 0
-                      ? Colors.orange
+                      ? SidekickColors.warning
                       : available < 0
-                          ? Colors.red
-                          : Colors.green)),
+                          ? SidekickColors.error
+                          : SidekickColors.success)),
         ],
       ),
     );

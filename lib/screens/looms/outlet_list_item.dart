@@ -1,5 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/shad_list_item.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/view_models/looms_view_model.dart';
 
 class OutletListItem extends StatelessWidget {
@@ -30,10 +31,11 @@ class OutletListItem extends StatelessWidget {
   Widget _getLeading(OutletViewModel vm) {
     return switch (vm) {
       PowerMultiOutletViewModel _ =>
-        const Icon(Icons.bolt, color: Colors.yellow),
-      DataOutletViewModel _ => const Icon(Icons.settings_input_svideo),
+        const Icon(Icons.bolt, color: SidekickColors.powerRun),
+      DataOutletViewModel _ =>
+        const Icon(Icons.settings_input_svideo, color: SidekickColors.control),
       HoistOutletViewModel _ =>
-        const Icon(Icons.construction, color: Colors.blue),
+        const Icon(Icons.construction, color: SidekickColors.hoist),
       _ => const SizedBox.shrink(),
     };
   }

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:collection/collection.dart';
 import 'package:easy_stepper/easy_stepper.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -677,23 +678,40 @@ class _ImportManagerState extends State<ImportManager> {
       );
     }).toList();
 
-    final trusses = _incomingTrusses.map(
-      (raw) => TrussModel(
+    // Truss position comes from the MVR matrix in millimetres, but the
+    // length/width/height (and their centre offsets) are GLB geometry bounds
+    // expressed in metres. Scale them up so every truss dimension shares the
+    // millimetre space used by fixtures and the truss geometry calculations.
+    const mmPerMetre = 1000.0;
+    final trusses = _incomingTrusses.map((raw) {
+      // The matrix locates the geometry's local origin, which is not generally
+      // the bounding-box centre. Re-anchor to the centre by rotating the offset
+      // (length axis + perpendicular width axis) into world space, matching the
+      // axis convention used by TrussGeometry.
+      final radians = raw.rotationZ * math.pi / 180.0;
+      final axisX = math.cos(radians);
+      final axisY = math.sin(radians);
+      final perpX = -math.sin(radians);
+      final perpY = math.cos(radians);
+      final offsetLengthMm = raw.offsetLength * mmPerMetre;
+      final offsetWidthMm = raw.offsetWidth * mmPerMetre;
+
+      return TrussModel(
         uid: raw.mvrId,
         mvrId: raw.mvrId,
         classing: raw.classing,
-        height: raw.height,
-        length: raw.length,
-        width: raw.width,
+        height: raw.height * mmPerMetre,
+        length: raw.length * mmPerMetre,
+        width: raw.width * mmPerMetre,
         name: raw.name,
         rotationX: raw.rotationX,
         rotationY: raw.rotationY,
         rotationZ: raw.rotationZ,
-        x: raw.x,
-        y: raw.y,
-        z: raw.z,
-      ),
-    );
+        x: raw.x + axisX * offsetLengthMm + perpX * offsetWidthMm,
+        y: raw.y + axisY * offsetLengthMm + perpY * offsetWidthMm,
+        z: raw.z + raw.offsetHeight * mmPerMetre,
+      );
+    });
 
     Navigator.of(context).pop(
       ImportManagerResult(

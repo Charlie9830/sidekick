@@ -12,6 +12,12 @@ class RawTrussModel {
   final double width;
   final double height;
 
+  /// Offset of the geometry centre from the matrix origin, along the truss
+  /// length, width and height axes (in the same units as [length]).
+  final double offsetLength;
+  final double offsetWidth;
+  final double offsetHeight;
+
   RawTrussModel({
     required this.mvrId,
     this.name = '',
@@ -25,6 +31,9 @@ class RawTrussModel {
     this.length = 0,
     this.width = 0,
     this.height = 0,
+    this.offsetLength = 0,
+    this.offsetWidth = 0,
+    this.offsetHeight = 0,
   });
 
   @override

@@ -7,6 +7,7 @@ import 'package:sidekick/redux/models/loom_type_model.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/screens/looms/cable_flag.dart';
 import 'package:sidekick/simple_tooltip.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/view_models/loom_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';
 
@@ -51,31 +52,31 @@ class LoomHeader extends StatelessWidget {
               const Spacer(),
               if (loomVm.loom.type.type == LoomType.permanent &&
                   loomVm.loom.type.length == 0)
-                Row(children: [
+                const Row(children: [
                   SizedBox(
                       height: 36,
                       child: CableFlag(
                         text: 'Bad Length',
-                        color: Colors.orange.shade700,
+                        color: SidekickColors.warning,
                       )),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                 ]),
               if (loomVm.isValidComposition == false)
-                Row(
+                const Row(
                   children: [
                     SizedBox(
                         height: 36,
                         child: CableFlag(
                           text: 'Bad Composition',
-                          color: Colors.orange.shade700,
+                          color: SidekickColors.warning,
                         )),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                   ],
                 ),
               if (loomVm.containsMotorCables)
                 const SizedBox(
                   height: 28,
-                  child: CableFlag(text: 'Motor', color: Colors.purple),
+                  child: CableFlag(text: 'Motor', color: SidekickColors.motor),
                 ),
               if (loomVm.loom.type.type == LoomType.permanent)
                 DiffStateOverlay(
@@ -84,7 +85,7 @@ class LoomHeader extends StatelessWidget {
                     height: 28,
                     child: CableFlag(
                       text: 'Permanent',
-                      color: Colors.neutral,
+                      color: SidekickColors.neutralFlag,
                     ),
                   ),
                 ),
@@ -97,7 +98,7 @@ class LoomHeader extends StatelessWidget {
                       height: 28,
                       child: CableFlag(
                         text: 'Custom',
-                        color: Colors.blue,
+                        color: SidekickColors.infoFlag,
                       ),
                     ),
                   ),

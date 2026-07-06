@@ -179,7 +179,10 @@ class TrussBreakNode extends Node {
   final double z;
 
   double get screenX => x;
-  double get screenY => (y * -1) - 600;
+  // A truss break physically sits on the truss line, so it uses the same raw
+  // world-to-screen mapping as fixtures (no header "2' offset"), keeping it
+  // aligned with the drawn truss geometry.
+  double get screenY => y * -1;
 
   TrussBreakNode({
     required super.id,
