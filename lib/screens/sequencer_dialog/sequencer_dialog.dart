@@ -6,11 +6,16 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/screens/sequencer_dialog/arrowed_divider.dart';
+import 'package:sidekick/screens/sequencer_dialog/fixture_spatial_sort.dart';
+import 'package:sidekick/screens/sequencer_dialog/sequencer_plan_view.dart';
 import 'package:sidekick/shad_list_item.dart';
 import 'package:sidekick/simple_tooltip.dart';
 import 'package:sidekick/widgets/property_field.dart';
 
 const double _kMappingListItemExtent = 56;
+
+/// How the unassigned fixtures are presented: a flat list or the spatial plot.
+enum _FixtureViewMode { list, plan }
 
 class SequencerDialog extends StatefulWidget {
   final List<FixtureModel> fixtures;
@@ -32,6 +37,9 @@ class _SequencerDialogState extends State<SequencerDialog> {
   int _currentSequenceNumber = 1;
   Map<int, FixtureModel> _mapping = {};
   late List<FixtureModel> _fixtures;
+  _FixtureViewMode _viewMode = _FixtureViewMode.list;
+  FixtureSortAxis _sortAxis = FixtureSortAxis.selectionOrder;
+  bool _sortDescending = false;
   late final TextEditingController _fixtureNumberController;
   late final TextEditingController _seqNumberController;
   late final ScrollController _listScrollController;
@@ -43,21 +51,27 @@ class _SequencerDialogState extends State<SequencerDialog> {
   void initState() {
     super.initState();
     // Focus Nodes
-    _sequenceNumberFocusNode = FocusNode(onKeyEvent: ((node, event) {
-      if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.tab) {
-        _fixtureNumberFocusNode.requestFocus();
-        return KeyEventResult.skipRemainingHandlers;
-      }
-      return KeyEventResult.ignored;
-    }));
+    _sequenceNumberFocusNode = FocusNode(
+      onKeyEvent: ((node, event) {
+        if (event is KeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.tab) {
+          _fixtureNumberFocusNode.requestFocus();
+          return KeyEventResult.skipRemainingHandlers;
+        }
+        return KeyEventResult.ignored;
+      }),
+    );
 
-    _fixtureNumberFocusNode = FocusNode(onKeyEvent: ((node, event) {
-      if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.tab) {
-        _sequenceNumberFocusNode.requestFocus();
-        return KeyEventResult.skipRemainingHandlers;
-      }
-      return KeyEventResult.ignored;
-    }));
+    _fixtureNumberFocusNode = FocusNode(
+      onKeyEvent: ((node, event) {
+        if (event is KeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.tab) {
+          _sequenceNumberFocusNode.requestFocus();
+          return KeyEventResult.skipRemainingHandlers;
+        }
+        return KeyEventResult.ignored;
+      }),
+    );
 
     // Controllers
     _fixtureNumberController = TextEditingController();
@@ -71,15 +85,19 @@ class _SequencerDialogState extends State<SequencerDialog> {
   @override
   Widget build(BuildContext context) {
     final sortedSequenceKeys = _mapping.keys.sorted((a, b) => a - b);
-    final sortedAssignedFixtures =
-        sortedSequenceKeys.map((seq) => (seq, _mapping[seq]!)).toList();
+    final sortedAssignedFixtures = sortedSequenceKeys
+        .map((seq) => (seq, _mapping[seq]!))
+        .toList();
 
-    final assignedIds =
-        sortedAssignedFixtures.map((tuple) => tuple.$2.uid).toSet();
+    final assignedIds = sortedAssignedFixtures
+        .map((tuple) => tuple.$2.uid)
+        .toSet();
 
     final unassignedFixtures = _fixtures
         .where((fixture) => assignedIds.contains(fixture.uid) == false)
         .toList();
+
+    final hasCoords = hasUsableCoords(_fixtures);
 
     return SizedBox(
       width: 1366,
@@ -90,12 +108,15 @@ class _SequencerDialogState extends State<SequencerDialog> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Top Toolbar
-            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-              IconButton.ghost(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-              )
-            ]),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButton.ghost(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
 
             // Content
             Expanded(
@@ -111,31 +132,65 @@ class _SequencerDialogState extends State<SequencerDialog> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Fixtures',
-                                  style: Theme.of(context).typography.lead),
-                              IconButton.ghost(
-                                icon: const Icon(Icons.sort),
-                                onPressed: () => _handleSortUnassignedPressed(),
-                              )
+                              Text(
+                                'Fixtures',
+                                style: Theme.of(context).typography.lead,
+                              ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (_viewMode == _FixtureViewMode.list)
+                                    _SortControl(
+                                      axis: _sortAxis,
+                                      descending: _sortDescending,
+                                      hasCoords: hasCoords,
+                                      onAxisChanged: (axis) =>
+                                          _applySort(axis: axis),
+                                      onToggleDirection: () => _applySort(
+                                        descending: !_sortDescending,
+                                      ),
+                                    ),
+                                  const SizedBox(width: 8),
+                                  _ViewModeToggle(
+                                    mode: _viewMode,
+                                    planEnabled: hasCoords,
+                                    onChanged: (mode) =>
+                                        setState(() => _viewMode = mode),
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
-                          const Divider(),
+                          const Divider(height: 16),
                           Expanded(
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: unassignedFixtures.length,
-                              itemBuilder: (context, index) {
-                                final fixture = unassignedFixtures[index];
+                            child: _viewMode == _FixtureViewMode.list
+                                ? ListView.builder(
+                                    shrinkWrap: true,
+                                    itemCount: unassignedFixtures.length,
+                                    itemBuilder: (context, index) {
+                                      final fixture = unassignedFixtures[index];
 
-                                return ShadListItem(
-                                  key: Key(fixture.uid),
-                                  title: Text('#${fixture.fid.toString()}'),
-                                  trailing: Text(widget
-                                          .fixtureTypes[fixture.typeId]?.name ??
-                                      ''),
-                                );
-                              },
-                            ),
+                                      return ShadListItem(
+                                        key: Key(fixture.uid),
+                                        title: Text(
+                                          '#${fixture.fid.toString()}',
+                                        ),
+                                        trailing: Text(
+                                          widget
+                                                  .fixtureTypes[fixture.typeId]
+                                                  ?.name ??
+                                              '',
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : SequencerPlanView(
+                                    fixtures: _fixtures,
+                                    fixtureTypes: widget.fixtureTypes,
+                                    mapping: _mapping,
+                                    onAssign: _assignFixtureToCurrentSequence,
+                                    onUnassign: _unassignFixture,
+                                  ),
                           ),
                         ],
                       ),
@@ -149,8 +204,9 @@ class _SequencerDialogState extends State<SequencerDialog> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             OutlineButton(
-                              leading:
-                                  const Icon(Icons.keyboard_double_arrow_right),
+                              leading: const Icon(
+                                Icons.keyboard_double_arrow_right,
+                              ),
                               onPressed: unassignedFixtures.isNotEmpty
                                   ? () => _assignRemaining(unassignedFixtures)
                                   : null,
@@ -158,8 +214,9 @@ class _SequencerDialogState extends State<SequencerDialog> {
                             ),
                             const SizedBox(height: 16),
                             OutlineButton(
-                              leading:
-                                  const Icon(Icons.keyboard_double_arrow_left),
+                              leading: const Icon(
+                                Icons.keyboard_double_arrow_left,
+                              ),
                               onPressed: _mapping.values.isNotEmpty
                                   ? () => setState(() => _mapping.clear())
                                   : null,
@@ -170,13 +227,16 @@ class _SequencerDialogState extends State<SequencerDialog> {
                                 SimpleTooltip(
                                   message: "Round Robin Assign",
                                   child: IconButton.ghost(
-                                      icon: const Icon(
-                                          Icons.roundabout_right_rounded),
-                                      onPressed: unassignedFixtures.isNotEmpty
-                                          ? () => _roundRobinAssign(
-                                              unassignedFixtures)
-                                          : null),
-                                )
+                                    icon: const Icon(
+                                      Icons.roundabout_right_rounded,
+                                    ),
+                                    onPressed: unassignedFixtures.isNotEmpty
+                                        ? () => _roundRobinAssign(
+                                            unassignedFixtures,
+                                          )
+                                        : null,
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 64),
@@ -200,12 +260,13 @@ class _SequencerDialogState extends State<SequencerDialog> {
                                 ),
                                 const SizedBox(width: 16),
                                 SimpleTooltip(
-                                    message: 'Next Available',
-                                    child: IconButton.ghost(
-                                      icon: const Icon(Icons.fast_forward),
-                                      onPressed: () =>
-                                          _handleFindNextAvailableSequenceNumberPressed(),
-                                    ))
+                                  message: 'Next Available',
+                                  child: IconButton.ghost(
+                                    icon: const Icon(Icons.fast_forward),
+                                    onPressed: () =>
+                                        _handleFindNextAvailableSequenceNumberPressed(),
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 24),
@@ -222,7 +283,7 @@ class _SequencerDialogState extends State<SequencerDialog> {
                                     controller: _fixtureNumberController,
                                     textAlign: TextAlign.center,
                                     inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly
+                                      FilteringTextInputFormatter.digitsOnly,
                                     ],
                                     onBlur: (_) => _enumerate(),
                                     submitAction:
@@ -240,8 +301,10 @@ class _SequencerDialogState extends State<SequencerDialog> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Assigned Fixtures',
-                              style: Theme.of(context).typography.lead),
+                          Text(
+                            'Assigned Fixtures',
+                            style: Theme.of(context).typography.lead,
+                          ),
                           const Divider(),
                           Expanded(
                             child: ListView.builder(
@@ -258,21 +321,26 @@ class _SequencerDialogState extends State<SequencerDialog> {
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text(widget.fixtureTypes[fixture.typeId]
-                                              ?.name ??
-                                          ''),
+                                      Text(
+                                        widget
+                                                .fixtureTypes[fixture.typeId]
+                                                ?.name ??
+                                            '',
+                                      ),
                                       IconButton.ghost(
-                                        icon: const Icon(Icons.remove_circle,
-                                            color: Colors.gray),
+                                        icon: const Icon(
+                                          Icons.remove_circle,
+                                          color: Colors.gray,
+                                        ),
                                         onPressed: () {
                                           setState(() {
                                             _mapping =
                                                 Map<int, FixtureModel>.from(
-                                                    _mapping)
-                                                  ..remove(seq);
+                                                  _mapping,
+                                                )..remove(seq);
                                           });
                                         },
-                                      )
+                                      ),
                                     ],
                                   ),
                                 );
@@ -281,7 +349,7 @@ class _SequencerDialogState extends State<SequencerDialog> {
                           ),
                         ],
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -292,18 +360,26 @@ class _SequencerDialogState extends State<SequencerDialog> {
                 PrimaryButton(
                   child: const Text('Done'),
                   onPressed: () => Navigator.of(context).pop(_mapping),
-                )
+                ),
               ],
-            )
+            ),
           ],
         ),
       ),
     );
   }
 
-  void _handleSortUnassignedPressed() {
+  void _applySort({FixtureSortAxis? axis, bool? descending}) {
     setState(() {
-      _fixtures = _fixtures.reversed.toList();
+      _sortAxis = axis ?? _sortAxis;
+      _sortDescending = descending ?? _sortDescending;
+      // Always sort from the original selection so 'As selected' is meaningful
+      // and axis sorts stay deterministic regardless of the current order.
+      _fixtures = sortFixturesSpatially(
+        widget.fixtures.toList(),
+        _sortAxis,
+        descending: _sortDescending,
+      );
     });
   }
 
@@ -315,8 +391,9 @@ class _SequencerDialogState extends State<SequencerDialog> {
   }
 
   void _roundRobinAssign(List<FixtureModel> unassignedFixtures) {
-    final fixturesByType =
-        unassignedFixtures.groupListsBy((element) => element.typeId);
+    final fixturesByType = unassignedFixtures.groupListsBy(
+      (element) => element.typeId,
+    );
     final fixtureQueues = fixturesByType.entries
         .map((entry) => Queue<FixtureModel>.from(entry.value))
         .toList();
@@ -329,8 +406,8 @@ class _SequencerDialogState extends State<SequencerDialog> {
       final currentQueue = fixtureQueues[queueIndex];
 
       if (currentQueue.isNotEmpty) {
-        mapping[_currentSequenceNumber + mappingIndex] =
-            currentQueue.removeFirst();
+        mapping[_currentSequenceNumber + mappingIndex] = currentQueue
+            .removeFirst();
 
         mappingIndex++;
       }
@@ -346,7 +423,8 @@ class _SequencerDialogState extends State<SequencerDialog> {
 
   void _assignRemaining(List<FixtureModel> unassignedFixtures) {
     final newEntries = unassignedFixtures.mapIndexed(
-        (index, fixture) => MapEntry(_currentSequenceNumber + index, fixture));
+      (index, fixture) => MapEntry(_currentSequenceNumber + index, fixture),
+    );
 
     setState(() {
       _mapping.addAll(Map<int, FixtureModel>.fromEntries(newEntries));
@@ -384,9 +462,16 @@ class _SequencerDialogState extends State<SequencerDialog> {
       return;
     }
 
-    // Check if fixture as already been assigned.
-    final duplicateFixtureEntry = _mapping.entries
-        .firstWhereOrNull((entry) => entry.value.uid == fixture.uid);
+    _assignFixtureToCurrentSequence(fixture);
+  }
+
+  /// Assigns [fixture] to the current sequence number and advances to the next,
+  /// guarding against a fixture being assigned twice. Shared by the fixture
+  /// number field and the plan view's tap-to-assign.
+  void _assignFixtureToCurrentSequence(FixtureModel fixture) {
+    final duplicateFixtureEntry = _mapping.entries.firstWhereOrNull(
+      (entry) => entry.value.uid == fixture.uid,
+    );
     if (duplicateFixtureEntry != null) {
       setState(() {
         _error =
@@ -400,9 +485,12 @@ class _SequencerDialogState extends State<SequencerDialog> {
     }
 
     _fixtureNumberController.text = '';
-    _listScrollController.jumpTo(
+    if (_listScrollController.hasClients) {
+      _listScrollController.jumpTo(
         _listScrollController.position.maxScrollExtent +
-            _kMappingListItemExtent);
+            _kMappingListItemExtent,
+      );
+    }
 
     final newSequenceNumber = _currentSequenceNumber + 1;
     _seqNumberController.text = newSequenceNumber.toString();
@@ -411,6 +499,19 @@ class _SequencerDialogState extends State<SequencerDialog> {
       _mapping[_currentSequenceNumber] = fixture;
       _currentSequenceNumber = newSequenceNumber;
       _error = '';
+    });
+  }
+
+  void _unassignFixture(FixtureModel fixture) {
+    final entry = _mapping.entries.firstWhereOrNull(
+      (entry) => entry.value.uid == fixture.uid,
+    );
+    if (entry == null) {
+      return;
+    }
+
+    setState(() {
+      _mapping = Map<int, FixtureModel>.from(_mapping)..remove(entry.key);
     });
   }
 
@@ -424,4 +525,129 @@ class _SequencerDialogState extends State<SequencerDialog> {
     _sequenceNumberFocusNode.dispose();
     super.dispose();
   }
+}
+
+/// Segmented toggle switching the fixtures pane between the flat list and the
+/// spatial plan view. The plan segment is disabled without position data.
+class _ViewModeToggle extends StatelessWidget {
+  final _FixtureViewMode mode;
+  final bool planEnabled;
+  final ValueChanged<_FixtureViewMode> onChanged;
+
+  const _ViewModeToggle({
+    required this.mode,
+    required this.planEnabled,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SimpleTooltip(
+          message: 'List view',
+          child: _segment(
+            icon: Icons.view_list,
+            selected: mode == _FixtureViewMode.list,
+            enabled: true,
+            onTap: () => onChanged(_FixtureViewMode.list),
+          ),
+        ),
+        const SizedBox(width: 4),
+        SimpleTooltip(
+          message: planEnabled
+              ? 'Plan view'
+              : 'No position data for this selection',
+          child: _segment(
+            icon: Icons.scatter_plot,
+            selected: mode == _FixtureViewMode.plan,
+            enabled: planEnabled,
+            onTap: () => onChanged(_FixtureViewMode.plan),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _segment({
+    required IconData icon,
+    required bool selected,
+    required bool enabled,
+    required VoidCallback onTap,
+  }) {
+    if (selected) {
+      return IconButton.primary(icon: Icon(icon), onPressed: onTap);
+    }
+    return IconButton.outline(
+      icon: Icon(icon),
+      onPressed: enabled ? onTap : null,
+    );
+  }
+}
+
+/// Spatial sort control for the unassigned list: an axis picker plus an
+/// ascending/descending direction toggle. Axis options require position data.
+class _SortControl extends StatelessWidget {
+  final FixtureSortAxis axis;
+  final bool descending;
+  final bool hasCoords;
+  final ValueChanged<FixtureSortAxis> onAxisChanged;
+  final VoidCallback onToggleDirection;
+
+  const _SortControl({
+    required this.axis,
+    required this.descending,
+    required this.hasCoords,
+    required this.onAxisChanged,
+    required this.onToggleDirection,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SimpleTooltip(
+          message: hasCoords ? null : 'No position data for this selection',
+          child: SizedBox(
+            width: 150,
+            child: Select<FixtureSortAxis>(
+              value: axis,
+              onChanged: hasCoords
+                  ? (value) => value == null ? null : onAxisChanged(value)
+                  : null,
+              itemBuilder: (context, item) => Text(_axisLabel(item)),
+              popup: SelectPopup(
+                items: SelectItemList(
+                  children: FixtureSortAxis.values
+                      .map(
+                        (a) => SelectItemButton(
+                          value: a,
+                          child: Text(_axisLabel(a)),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 4),
+        SimpleTooltip(
+          message: descending ? 'Descending' : 'Ascending',
+          child: IconButton.ghost(
+            icon: Icon(descending ? Icons.arrow_downward : Icons.arrow_upward),
+            onPressed: onToggleDirection,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _axisLabel(FixtureSortAxis axis) => switch (axis) {
+    FixtureSortAxis.selectionOrder => 'As selected',
+    FixtureSortAxis.x => 'X (L→R)',
+    FixtureSortAxis.y => 'Y (T→B)',
+  };
 }
