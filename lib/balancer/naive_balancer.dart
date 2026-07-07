@@ -418,6 +418,14 @@ List<BalancerOutletModel> _shellShuffleOutletChildren(
   // Find the index of the best score.
   final bestSwapIndex = _findBestScoreIndex(loadSwapScores);
 
+  // Only perform the swap if it strictly improves on the current balance.
+  // Otherwise we would be needlessly re-ordering outlets, which scrambles
+  // the natural fixture ordering that downstream re-mapping depends on.
+  final currentScore = _calculateLoadBalanceScore(a.load, b.load, targetLoad);
+  if (loadSwapScores[bestSwapIndex] >= currentScore) {
+    return list;
+  }
+
   // Instantiate the indexes of our two Swap tributes by referencing the best swap index, back through the [swapVariations] and then
   // extracting the list indexes of those from the provided outlet list.
   final indexA = list.indexOf(swapVariations[bestSwapIndex].first);
