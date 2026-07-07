@@ -48,26 +48,26 @@ class NavigationState {
   });
 
   const NavigationState.initial()
-      : selectedMultiOutlet = "",
-        selectedFixtureIds = const {},
-        selectedCableIds = const {},
-        showAllFixtureTypes = false,
-        openAfterExport = true,
-        selectedDiffingTab = 0,
-        importManagerStep = ImportManagerStep.fileSelect,
-        selectedLoomOutlets = const {},
-        loomsDraggingState = LoomsDraggingState.idle,
-        isAvailabilityDrawerOpen = false,
-        selectedHoistIds = const {},
-        selectedHoistChannelIds = const {},
-        selectedPowerMultiOutletIds = const {},
-        selectedPowerMultiChannelIds = const {},
-        isFeedsDrawerOpen = false,
-        selectedRacksTabIndex = 0,
-        selectedFixtureTypeIds = const {},
-        fixtureTypesTabIndex = 0,
-        selectedBreakoutCablingLocationId = '',
-        breakoutCableVisibility = const CableVisibilityModel.all();
+    : selectedMultiOutlet = "",
+      selectedFixtureIds = const {},
+      selectedCableIds = const {},
+      showAllFixtureTypes = false,
+      openAfterExport = true,
+      selectedDiffingTab = 0,
+      importManagerStep = ImportManagerStep.fileSelect,
+      selectedLoomOutlets = const {},
+      loomsDraggingState = LoomsDraggingState.idle,
+      isAvailabilityDrawerOpen = false,
+      selectedHoistIds = const {},
+      selectedHoistChannelIds = const {},
+      selectedPowerMultiOutletIds = const {},
+      selectedPowerMultiChannelIds = const {},
+      isFeedsDrawerOpen = false,
+      selectedRacksTabIndex = 0,
+      selectedFixtureTypeIds = const {},
+      fixtureTypesTabIndex = 0,
+      selectedBreakoutCablingLocationId = '',
+      breakoutCableVisibility = const CableVisibilityModel.all();
 
   NavigationState copyWith({
     String? selectedMultiOutlet,
@@ -116,7 +116,8 @@ class NavigationState {
       selectedFixtureTypeIds:
           selectedFixtureTypeIds ?? this.selectedFixtureTypeIds,
       fixtureTypesTabIndex: fixtureTypesTabIndex ?? this.fixtureTypesTabIndex,
-      selectedBreakoutCablingLocationId: selectedBreakoutCablingLocationId ??
+      selectedBreakoutCablingLocationId:
+          selectedBreakoutCablingLocationId ??
           this.selectedBreakoutCablingLocationId,
       breakoutCableVisibility:
           breakoutCableVisibility ?? this.breakoutCableVisibility,

@@ -153,7 +153,7 @@ class LoomHeader extends StatelessWidget {
                         popup: SelectPopup(
                             items: SelectItemList(
                           children: loomVm.permCompEntries,
-                        )),
+                        )).call,
                       ),
                     ),
                 },

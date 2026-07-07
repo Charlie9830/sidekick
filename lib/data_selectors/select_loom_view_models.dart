@@ -203,7 +203,7 @@ List<SelectItemButton<PermanentCompositionSelection>> _getPermCompEntries(
           leading,
           const SizedBox(width: 8),
           Expanded(child: Text(comp.name)),
-          if (trailing != null) trailing,
+          ?trailing,
         ],
       ),
     );

@@ -153,7 +153,7 @@ class SelectFileControl extends StatelessWidget {
                     value: MvrLocationDataSource.position,
                     child: Text('Position Attribute'),
                   ),
-                ])),
+                ])).call,
                 itemBuilder: (context, value) => Text(switch (value) {
                   MvrLocationDataSource.layers => 'Layers',
                   MvrLocationDataSource.classes => 'Classes',

@@ -18,9 +18,9 @@ class PowerFeedModel extends ModelCollectionMember {
   static const kDefaultPowerFeedId = 'default-power-feed';
 
   const PowerFeedModel.defaultFeed()
-      : uid = kDefaultPowerFeedId,
-        name = 'Feed 1',
-        capacity = 400;
+    : uid = kDefaultPowerFeedId,
+      name = 'Feed 1',
+      capacity = 400;
 
   PowerFeedModel copyWith({
     String? uid,
@@ -36,11 +36,7 @@ class PowerFeedModel extends ModelCollectionMember {
   }
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'uid': uid,
-      'name': name,
-      'capacity': capacity,
-    };
+    return <String, dynamic>{'uid': uid, 'name': name, 'capacity': capacity};
   }
 
   factory PowerFeedModel.fromMap(Map<String, dynamic> map) {

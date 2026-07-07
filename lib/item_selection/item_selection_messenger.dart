@@ -6,10 +6,10 @@ class ItemSelectionMessenger<T> extends InheritedWidget {
 
   const ItemSelectionMessenger({
     super.key,
-    required Widget child,
+    required super.child,
     required this.onItemPointerEvent,
     required this.onIndexRegistered,
-  }) : super(child: child);
+  });
 
   void registerItemIndex(T itemId, int? index) {
     onIndexRegistered(itemId, index);

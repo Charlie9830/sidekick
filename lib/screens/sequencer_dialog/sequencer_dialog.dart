@@ -23,11 +23,11 @@ class SequencerDialog extends StatefulWidget {
   final int nextAvailableSequenceNumber;
 
   const SequencerDialog({
-    Key? key,
+    super.key,
     required this.fixtures,
     required this.fixtureTypes,
     required this.nextAvailableSequenceNumber,
-  }) : super(key: key);
+  });
 
   @override
   State<SequencerDialog> createState() => _SequencerDialogState();
@@ -629,7 +629,7 @@ class _SortControl extends StatelessWidget {
                       )
                       .toList(),
                 ),
-              ),
+              ).call,
             ),
           ),
         ),

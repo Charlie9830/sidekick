@@ -5,7 +5,7 @@ import 'package:sidekick/view_models/diagnostics_view_model.dart';
 
 class DiagnosticsScreen extends StatelessWidget {
   final DiagnosticsViewModel vm;
-  const DiagnosticsScreen({Key? key, required this.vm}) : super(key: key);
+  const DiagnosticsScreen({super.key, required this.vm});
 
   @override
   Widget build(BuildContext context) {

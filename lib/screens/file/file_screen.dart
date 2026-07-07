@@ -12,7 +12,7 @@ import 'package:path/path.dart' as p;
 
 class FileScreen extends StatelessWidget {
   final FileViewModel vm;
-  const FileScreen({Key? key, required this.vm}) : super(key: key);
+  const FileScreen({super.key, required this.vm});
 
   @override
   Widget build(BuildContext context) {

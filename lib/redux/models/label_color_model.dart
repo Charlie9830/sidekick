@@ -10,18 +10,14 @@ import 'package:sidekick/screens/diffing/property_delta.dart';
 class LabelColorModel with DiffComparable {
   final List<NamedColorModel> colors;
 
-  LabelColorModel({
-    required this.colors,
-  });
+  LabelColorModel({required this.colors});
 
-  const LabelColorModel.none()
-      : colors = const [
-          NamedColors.none,
-        ];
+  const LabelColorModel.none() : colors = const [NamedColors.none];
 
   factory LabelColorModel.combine(List<LabelColorModel> others) {
     return LabelColorModel(
-        colors: others.map((item) => item.colors).flattened.toList());
+      colors: others.map((item) => item.colors).flattened.toList(),
+    );
   }
 
   NamedColorModel get firstColorOrNone =>
@@ -33,18 +29,12 @@ class LabelColorModel with DiffComparable {
 
   String get fullyQualifiedName => colors.map((color) => color.name).join('/');
 
-  LabelColorModel copyWith({
-    List<NamedColorModel>? colors,
-  }) {
-    return LabelColorModel(
-      colors: colors ?? this.colors,
-    );
+  LabelColorModel copyWith({List<NamedColorModel>? colors}) {
+    return LabelColorModel(colors: colors ?? this.colors);
   }
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'colors': colors.map((x) => x.toMap()).toList(),
-    };
+    return <String, dynamic>{'colors': colors.map((x) => x.toMap()).toList()};
   }
 
   factory LabelColorModel.fromMap(Map<String, dynamic> map) {
@@ -64,8 +54,6 @@ class LabelColorModel with DiffComparable {
 
   @override
   Map<PropertyDeltaName, Object> getDiffValues() {
-    return {
-      PropertyDeltaName.color: fullyQualifiedName,
-    };
+    return {PropertyDeltaName.color: fullyQualifiedName};
   }
 }

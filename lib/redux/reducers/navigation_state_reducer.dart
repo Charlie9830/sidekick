@@ -3,15 +3,11 @@ import 'package:sidekick/redux/state/navigation_state.dart';
 
 NavigationState navStateReducer(NavigationState state, dynamic a) {
   if (a is SetBreakoutCableVisibilityState) {
-    return state.copyWith(
-      breakoutCableVisibility: a.value,
-    );
+    return state.copyWith(breakoutCableVisibility: a.value);
   }
 
   if (a is SetBreakoutCablingLocationId) {
-    return state.copyWith(
-      selectedBreakoutCablingLocationId: a.value,
-    );
+    return state.copyWith(selectedBreakoutCablingLocationId: a.value);
   }
 
   if (a is SetFixtureTypesTabIndex) {
@@ -29,15 +25,11 @@ NavigationState navStateReducer(NavigationState state, dynamic a) {
   }
 
   if (a is SetSelectedPowerMultiOutletIds) {
-    return state.copyWith(
-      selectedPowerMultiOutletIds: a.value,
-    );
+    return state.copyWith(selectedPowerMultiOutletIds: a.value);
   }
 
   if (a is SetSelectedPowerMultiOutletIds) {
-    return state.copyWith(
-      selectedPowerMultiChannelIds: a.value,
-    );
+    return state.copyWith(selectedPowerMultiChannelIds: a.value);
   }
 
   if (a is RemoveLocation) {
@@ -50,7 +42,8 @@ NavigationState navStateReducer(NavigationState state, dynamic a) {
 
   if (a is SetImportedFixtureData) {
     return state.copyWith(
-        importManagerStep: const NavigationState.initial().importManagerStep);
+      importManagerStep: const NavigationState.initial().importManagerStep,
+    );
   }
 
   if (a is SetSelectedHoistOutlets) {
@@ -61,10 +54,9 @@ NavigationState navStateReducer(NavigationState state, dynamic a) {
   }
 
   if (a is AppendSelectedHoistChannelId) {
-    return state.copyWith(selectedHoistChannelIds: {
-      ...state.selectedHoistChannelIds,
-      a.value,
-    });
+    return state.copyWith(
+      selectedHoistChannelIds: {...state.selectedHoistChannelIds, a.value},
+    );
   }
 
   if (a is SetSelectedHoistChannelIds) {
@@ -106,8 +98,10 @@ NavigationState navStateReducer(NavigationState state, dynamic a) {
   }
 
   if (a is SetSelectedCableIds) {
-    return state
-        .copyWith(selectedCableIds: a.ids, selectedLoomOutlets: const {});
+    return state.copyWith(
+      selectedCableIds: a.ids,
+      selectedLoomOutlets: const {},
+    );
   }
 
   if (a is SetSelectedFixtureIds) {

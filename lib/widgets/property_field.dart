@@ -34,7 +34,7 @@ class PropertyField extends StatefulWidget {
   final PropertyFieldSubmitAction submitAction;
 
   const PropertyField({
-    Key? key,
+    super.key,
     this.value = '',
     this.label = '',
     this.suffix = '',
@@ -50,7 +50,7 @@ class PropertyField extends StatefulWidget {
     this.labelAlign = LabelAlign.start,
     this.error,
     this.submitAction = PropertyFieldSubmitAction.next,
-  }) : super(key: key);
+  });
 
   @override
   PropertyFieldState createState() => PropertyFieldState();

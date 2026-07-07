@@ -12,7 +12,7 @@ import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
 import 'package:sidekick/view_models/racks_screen_view_model.dart';
 
 class RacksContainer extends StatelessWidget {
-  const RacksContainer({Key? key}) : super(key: key);
+  const RacksContainer({super.key});
 
   @override
   Widget build(BuildContext context) {

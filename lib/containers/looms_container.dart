@@ -17,7 +17,7 @@ import 'package:sidekick/screens/looms/looms.dart';
 import 'package:sidekick/view_models/looms_view_model.dart';
 
 class LoomsContainer extends StatelessWidget {
-  const LoomsContainer({Key? key}) : super(key: key);
+  const LoomsContainer({super.key});
 
   @override
   Widget build(BuildContext context) {

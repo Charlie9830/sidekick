@@ -9,7 +9,7 @@ class DataRackTypeModel implements ModelCollectionMember {
   final String name;
   final int outletCount;
   final Map<int, int>
-      dividers; // A Map of int, int. The Key represents the zero based index of a Channel, and the value represents the precedence of the Visual Divider below that channel. 0 is normal, 1 is light.
+  dividers; // A Map of int, int. The Key represents the zero based index of a Channel, and the value represents the precedence of the Visual Divider below that channel. 0 is normal, 1 is light.
 
   const DataRackTypeModel({
     required this.uid,

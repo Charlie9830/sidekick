@@ -13,9 +13,9 @@ class LocationOverrideModel {
   });
 
   const LocationOverrideModel.none()
-      : maxPairings = const {},
-        maxSequenceBreak = const OptionalInt.unset(),
-        enabledFixtureTypePoolIds = const {};
+    : maxPairings = const {},
+      maxSequenceBreak = const OptionalInt.unset(),
+      enabledFixtureTypePoolIds = const {};
 
   bool get hasOverrides =>
       maxSequenceBreak != const LocationOverrideModel.none().maxSequenceBreak ||
@@ -49,11 +49,13 @@ class LocationOverrideModel {
 
   factory LocationOverrideModel.fromMap(Map<String, dynamic> map) {
     final raw = LocationOverrideModel(
-      maxSequenceBreak:
-          OptionalInt.fromMap(map['maxSequenceBreak'] as Map<String, dynamic>),
+      maxSequenceBreak: OptionalInt.fromMap(
+        map['maxSequenceBreak'] as Map<String, dynamic>,
+      ),
       maxPairings: Map<String, int>.from(map['maxPairings'] ?? <String, int>{}),
-      enabledFixtureTypePoolIds:
-          Set<String>.from(map['enabledFixtureTypePoolIds'] ?? <String>[]),
+      enabledFixtureTypePoolIds: Set<String>.from(
+        map['enabledFixtureTypePoolIds'] ?? <String>[],
+      ),
     );
 
     return raw.maxSequenceBreak.value == null &&
@@ -67,7 +69,8 @@ class LocationOverrideModel {
 
   factory LocationOverrideModel.fromJson(String source) =>
       LocationOverrideModel.fromMap(
-          json.decode(source) as Map<String, dynamic>);
+        json.decode(source) as Map<String, dynamic>,
+      );
 }
 
 // Encapulsating class intended to handle the value being null. Essentially a serializable version of an Optional value from the Quiver package.
@@ -79,15 +82,11 @@ class OptionalInt {
   const OptionalInt.unset() : value = null;
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'value': value,
-    };
+    return <String, dynamic>{'value': value};
   }
 
   factory OptionalInt.fromMap(Map<String, dynamic> map) {
-    return OptionalInt(
-      map['value'] != null ? map['value'] as int : null,
-    );
+    return OptionalInt(map['value'] != null ? map['value'] as int : null);
   }
 
   String toJson() => json.encode(toMap());

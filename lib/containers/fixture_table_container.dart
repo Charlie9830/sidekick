@@ -11,7 +11,7 @@ import 'package:sidekick/screens/home/fixture_table/fixture_table.dart';
 import 'package:sidekick/view_models/fixture_table_view_model.dart';
 
 class FixtureTableContainer extends StatelessWidget {
-  const FixtureTableContainer({Key? key}) : super(key: key);
+  const FixtureTableContainer({super.key});
 
   @override
   Widget build(BuildContext context) {

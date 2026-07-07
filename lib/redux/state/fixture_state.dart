@@ -70,30 +70,30 @@ class FixtureState {
   });
 
   const FixtureState.initial()
-      : fixtures = const {},
-        locations = const {},
-        powerMultiOutlets = const {},
-        balanceTolerance = 0.05, // 5% Balance Tolerance.
-        maxSequenceBreak = 4,
-        dataMultis = const {},
-        dataPatches = const {},
-        looms = const {},
-        fixtureTypes = const {},
-        cables = const {},
-        defaultPowerMulti = CableType.socapex,
-        loomStock = const {},
-        hoists = const {},
-        hoistControllers = const {},
-        hoistMultis = const {},
-        fixtureTypePools = const {},
-        powerFeeds = const {
-          PowerFeedModel.kDefaultPowerFeedId: PowerFeedModel.defaultFeed(),
-        },
-        powerRacks = const {},
-        powerRackTypes = BuiltInPowerRackTypes.types,
-        dataRackTypes = BuiltInDataRackTypes.types,
-        dataRacks = const {},
-        trusses = const {};
+    : fixtures = const {},
+      locations = const {},
+      powerMultiOutlets = const {},
+      balanceTolerance = 0.05, // 5% Balance Tolerance.
+      maxSequenceBreak = 4,
+      dataMultis = const {},
+      dataPatches = const {},
+      looms = const {},
+      fixtureTypes = const {},
+      cables = const {},
+      defaultPowerMulti = CableType.socapex,
+      loomStock = const {},
+      hoists = const {},
+      hoistControllers = const {},
+      hoistMultis = const {},
+      fixtureTypePools = const {},
+      powerFeeds = const {
+        PowerFeedModel.kDefaultPowerFeedId: PowerFeedModel.defaultFeed(),
+      },
+      powerRacks = const {},
+      powerRackTypes = BuiltInPowerRackTypes.types,
+      dataRackTypes = BuiltInDataRackTypes.types,
+      dataRacks = const {},
+      trusses = const {};
 
   FixtureState copyWith({
     Map<String, FixtureModel>? fixtures,

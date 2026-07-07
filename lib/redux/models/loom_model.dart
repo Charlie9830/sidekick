@@ -16,11 +16,7 @@ class LoomModel extends ModelCollectionMember {
     this.name = '',
   });
 
-  LoomModel copyWith({
-    String? uid,
-    LoomTypeModel? type,
-    String? name,
-  }) {
+  LoomModel copyWith({String? uid, LoomTypeModel? type, String? name}) {
     return LoomModel(
       uid: uid ?? this.uid,
       type: type ?? this.type,
@@ -29,11 +25,7 @@ class LoomModel extends ModelCollectionMember {
   }
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'uid': uid,
-      'type': type.toMap(),
-      'name': name,
-    };
+    return <String, dynamic>{'uid': uid, 'type': type.toMap(), 'name': name};
   }
 
   factory LoomModel.fromMap(Map<String, dynamic> map) {
@@ -53,6 +45,4 @@ class LoomModel extends ModelCollectionMember {
   String toString() {
     return 'LoomModel(uid: $uid)';
   }
-
-
 }

@@ -5,10 +5,10 @@ class Toolbar extends StatelessWidget {
   final double height;
 
   const Toolbar({
-    Key? key,
+    super.key,
     required this.child,
     this.height = 64,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

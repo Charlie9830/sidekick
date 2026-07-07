@@ -4,14 +4,9 @@ class DMXAddressModel {
   final int universe;
   final int address;
 
-  DMXAddressModel({
-    required this.universe,
-    required this.address,
-  });
+  DMXAddressModel({required this.universe, required this.address});
 
-  const DMXAddressModel.unknown()
-      : address = 0,
-        universe = 0;
+  const DMXAddressModel.unknown() : address = 0, universe = 0;
 
   bool get isValid => universe != 0 && address >= 1 && address <= 512;
 
@@ -24,13 +19,12 @@ class DMXAddressModel {
     address = address == 0 ? 512 : address;
 
     return DMXAddressModel(
-        universe: (globalAddress / 512).ceil(), address: address);
+      universe: (globalAddress / 512).ceil(),
+      address: address,
+    );
   }
 
-  DMXAddressModel copyWith({
-    int? address,
-    int? universe,
-  }) {
+  DMXAddressModel copyWith({int? address, int? universe}) {
     return DMXAddressModel(
       address: address ?? this.address,
       universe: universe ?? this.universe,
@@ -38,10 +32,7 @@ class DMXAddressModel {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'localAddress': address,
-      'universe': universe,
-    };
+    return {'localAddress': address, 'universe': universe};
   }
 
   factory DMXAddressModel.fromMap(Map<String, dynamic> map) {

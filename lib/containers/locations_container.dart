@@ -9,7 +9,7 @@ import 'package:sidekick/screens/locations/locations.dart';
 import 'package:sidekick/view_models/locations_view_model.dart';
 
 class LocationsContainer extends StatelessWidget {
-  const LocationsContainer({Key? key}) : super(key: key);
+  const LocationsContainer({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -28,16 +28,16 @@ class FileState {
   });
 
   const FileState.initial()
-      : fixturePatchImportPath = "",
-        projectFilePath = "",
-        lastUsedProjectDirectory = "",
-        fixtureTypeDatabasePath = "",
-        projectMetadata = const ProjectFileMetadataModel.initial(),
-        isFixtureTypeDatabasePathValid = false,
-        fixtureMappingFilePath = '',
-        comparisonFilePath = '',
-        exportErrors = const [],
-        isValidatingExportData = false;
+    : fixturePatchImportPath = "",
+      projectFilePath = "",
+      lastUsedProjectDirectory = "",
+      fixtureTypeDatabasePath = "",
+      projectMetadata = const ProjectFileMetadataModel.initial(),
+      isFixtureTypeDatabasePathValid = false,
+      fixtureMappingFilePath = '',
+      comparisonFilePath = '',
+      exportErrors = const [],
+      isValidatingExportData = false;
 
   FileState copyWith({
     String? fixturePatchImportPath,

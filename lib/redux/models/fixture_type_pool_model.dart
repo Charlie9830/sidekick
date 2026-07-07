@@ -25,9 +25,11 @@ class FixtureTypePoolModel extends ModelCollectionMember {
   bool satisfiesMaxPoolQuantity(List<String> fixtureTypeIds) {
     final Map<String, int> candidateTypeCounts = fixtureTypeIds
         .fold<Map<String, int>>(
-            {},
-            (accum, value) => accum
-              ..update(value, (existing) => existing + 1, ifAbsent: () => 1));
+          {},
+          (accum, value) =>
+              accum
+                ..update(value, (existing) => existing + 1, ifAbsent: () => 1),
+        );
 
     final itemsByTypeId = items.values.groupListsBy((item) => item.typeId);
 
@@ -87,15 +89,9 @@ class FixtureTypePoolEntryModel extends ModelCollectionMember {
   final String typeId;
   final int qty;
 
-  FixtureTypePoolEntryModel({
-    required this.typeId,
-    required this.qty,
-  });
+  FixtureTypePoolEntryModel({required this.typeId, required this.qty});
 
-  FixtureTypePoolEntryModel copyWith({
-    String? typeId,
-    int? qty,
-  }) {
+  FixtureTypePoolEntryModel copyWith({String? typeId, int? qty}) {
     return FixtureTypePoolEntryModel(
       typeId: typeId ?? this.typeId,
       qty: qty ?? this.qty,
@@ -103,10 +99,7 @@ class FixtureTypePoolEntryModel extends ModelCollectionMember {
   }
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'typeId': typeId,
-      'qty': qty,
-    };
+    return <String, dynamic>{'typeId': typeId, 'qty': qty};
   }
 
   factory FixtureTypePoolEntryModel.fromMap(Map<String, dynamic> map) {
@@ -120,5 +113,6 @@ class FixtureTypePoolEntryModel extends ModelCollectionMember {
 
   factory FixtureTypePoolEntryModel.fromJson(String source) =>
       FixtureTypePoolEntryModel.fromMap(
-          json.decode(source) as Map<String, dynamic>);
+        json.decode(source) as Map<String, dynamic>,
+      );
 }

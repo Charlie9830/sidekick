@@ -11,21 +11,16 @@ class DataPatchModel extends Outlet implements Comparable<DataPatchModel> {
   final DataPatchRackAssignment parentRack;
 
   DataPatchModel({
-    required String uid,
-    required String locationId,
-    int number = 0,
-    String name = '',
+    required super.uid,
+    required super.locationId,
+    super.number = 0,
+    super.name = '',
     this.universe = 0,
     this.fixtureIds = const [],
     this.startsAtFixtureId = 0,
     this.endsAtFixtureId = 0,
     this.parentRack = const DataPatchRackAssignment.unassigned(),
-  }) : super(
-          uid: uid,
-          locationId: locationId,
-          number: number,
-          name: name,
-        );
+  });
 
   String get nameWithUniverse => '$name $universeLabel';
 
@@ -120,21 +115,13 @@ class DataPatchRackAssignment {
   final String rackId;
   final int channel;
 
-  const DataPatchRackAssignment({
-    required this.rackId,
-    required this.channel,
-  });
+  const DataPatchRackAssignment({required this.rackId, required this.channel});
 
   bool get isAssigned => channel != 0 && rackId.isNotEmpty;
 
-  const DataPatchRackAssignment.unassigned()
-      : rackId = '',
-        channel = 0;
+  const DataPatchRackAssignment.unassigned() : rackId = '', channel = 0;
 
-  DataPatchRackAssignment copyWith({
-    String? rackId,
-    int? channel,
-  }) {
+  DataPatchRackAssignment copyWith({String? rackId, int? channel}) {
     return DataPatchRackAssignment(
       rackId: rackId ?? this.rackId,
       channel: channel ?? this.channel,
@@ -142,10 +129,7 @@ class DataPatchRackAssignment {
   }
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'rackId': rackId,
-      'channel': channel,
-    };
+    return <String, dynamic>{'rackId': rackId, 'channel': channel};
   }
 
   factory DataPatchRackAssignment.fromMap(Map<String, dynamic> map) {
@@ -159,5 +143,6 @@ class DataPatchRackAssignment {
 
   factory DataPatchRackAssignment.fromJson(String source) =>
       DataPatchRackAssignment.fromMap(
-          json.decode(source) as Map<String, dynamic>);
+        json.decode(source) as Map<String, dynamic>,
+      );
 }

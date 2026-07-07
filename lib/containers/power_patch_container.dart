@@ -13,7 +13,7 @@ import 'package:sidekick/screens/power_patch/power_patch.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';
 
 class PowerPatchContainer extends StatelessWidget {
-  const PowerPatchContainer({Key? key}) : super(key: key);
+  const PowerPatchContainer({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -10,11 +10,10 @@ class LocationHeaderRow extends StatelessWidget {
   final PropertyDeltaSet? deltas;
 
   const LocationHeaderRow(
-      {Key? key,
+      {super.key,
       required this.location,
       this.deltas,
-      this.trailing = const SizedBox(width: 0)})
-      : super(key: key);
+      this.trailing = const SizedBox(width: 0)});
 
   @override
   Widget build(BuildContext context) {

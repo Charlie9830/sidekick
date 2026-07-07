@@ -9,9 +9,9 @@ class ColorSelectDialog extends StatefulWidget {
   final LabelColorModel color;
 
   const ColorSelectDialog({
-    Key? key,
+    super.key,
     required this.color,
-  }) : super(key: key);
+  });
 
   @override
   State<ColorSelectDialog> createState() => _ColorSelectDialogState();

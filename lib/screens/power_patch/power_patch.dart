@@ -10,7 +10,7 @@ import 'package:sidekick/widgets/toolbar.dart';
 
 class PowerPatch extends StatefulWidget {
   final PowerPatchViewModel vm;
-  const PowerPatch({Key? key, required this.vm}) : super(key: key);
+  const PowerPatch({super.key, required this.vm});
 
   @override
   State<PowerPatch> createState() => _PowerPatchState();

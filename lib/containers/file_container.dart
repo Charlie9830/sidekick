@@ -7,7 +7,7 @@ import 'package:sidekick/screens/file/file_screen.dart';
 import 'package:sidekick/view_models/file_view_model.dart';
 
 class FileContainer extends StatelessWidget {
-  const FileContainer({Key? key}) : super(key: key);
+  const FileContainer({super.key});
 
   @override
   Widget build(BuildContext context) {

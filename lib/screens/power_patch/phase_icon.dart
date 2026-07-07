@@ -6,9 +6,9 @@ const double _kSize = 16;
 class PhaseIcon extends StatelessWidget {
   final int phaseNumber;
   const PhaseIcon({
-    Key? key,
+    super.key,
     this.phaseNumber = 1,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

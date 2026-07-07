@@ -5,10 +5,7 @@ import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/permanent_loom_composition.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
 
-enum LoomType {
-  custom,
-  permanent,
-}
+enum LoomType { custom, permanent }
 
 class LoomTypeModel with DiffComparable {
   final LoomType type;
@@ -22,9 +19,9 @@ class LoomTypeModel with DiffComparable {
   });
 
   const LoomTypeModel.blank()
-      : type = LoomType.custom,
-        length = 0,
-        permanentComposition = '';
+    : type = LoomType.custom,
+      length = 0,
+      permanentComposition = '';
 
   bool checkIsValid(List<CableModel> children) {
     if (type != LoomType.permanent) {
@@ -77,13 +74,13 @@ class LoomTypeModel with DiffComparable {
 
   @override
   Map<PropertyDeltaName, Object> getDiffValues() => {
-        PropertyDeltaName.loomLength: length,
-        PropertyDeltaName.permanentComposition: permanentComposition,
-        PropertyDeltaName.loomType: type,
-      };
+    PropertyDeltaName.loomLength: length,
+    PropertyDeltaName.permanentComposition: permanentComposition,
+    PropertyDeltaName.loomType: type,
+  };
 
   static String convertToHumanFriendlyLength(double length) =>
       length.remainder(1) != 0
-          ? length.toStringAsFixed(1)
-          : length.toStringAsFixed(0);
+      ? length.toStringAsFixed(1)
+      : length.toStringAsFixed(0);
 }

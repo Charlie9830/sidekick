@@ -9,7 +9,7 @@ import 'package:sidekick/screens/export/export.dart';
 import 'package:sidekick/view_models/export_view_model.dart';
 
 class ExportContainer extends StatelessWidget {
-  const ExportContainer({Key? key}) : super(key: key);
+  const ExportContainer({super.key});
 
   @override
   Widget build(BuildContext context) {

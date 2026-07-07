@@ -10,7 +10,7 @@ import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
 
 class HoistsContainer extends StatelessWidget {
-  const HoistsContainer({Key? key}) : super(key: key);
+  const HoistsContainer({super.key});
 
   @override
   Widget build(BuildContext context) {

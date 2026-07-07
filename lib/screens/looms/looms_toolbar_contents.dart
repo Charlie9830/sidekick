@@ -73,7 +73,7 @@ class LoomsToolbarContents extends StatelessWidget {
               onPressed: onChangePowerMultiTypeOfSelectedCables,
             )),
         const Spacer(),
-        if (infoTrailer != null) infoTrailer!,
+        ?infoTrailer,
         SimpleTooltip(
           message: availabilityDrawOpen
               ? 'Close Availability drawer'

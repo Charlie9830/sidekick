@@ -27,9 +27,9 @@ class ModifierKeyMessenger extends InheritedWidget {
   final Set<LogicalKeyboardKey> keysDown;
   const ModifierKeyMessenger({
     super.key,
-    required Widget child,
+    required super.child,
     required this.keysDown,
-  }) : super(child: child);
+  });
 
   static ModifierKeyMessenger? of(BuildContext context) {
     return context

@@ -31,7 +31,7 @@ class CableTypeSelect extends StatelessWidget {
               )
               .toList(),
         ),
-      ),
+      ).call,
     );
   }
 

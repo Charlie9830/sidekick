@@ -13,12 +13,12 @@ class PowerRackTypeModel extends ModelCollectionMember {
 
   int get multiOutletCount => (ways / multiWayDivisor).floor();
 
-  const PowerRackTypeModel(
-      {required this.uid,
-      required this.name,
-      required this.ways,
-      this.multiWayDivisor = 6 // Defaults to Socapex/6way Wieland,
-      });
+  const PowerRackTypeModel({
+    required this.uid,
+    required this.name,
+    required this.ways,
+    this.multiWayDivisor = 6, // Defaults to Socapex/6way Wieland,
+  });
 
   PowerRackTypeModel copyWith({
     String? uid,

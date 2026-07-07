@@ -9,7 +9,7 @@ import 'package:sidekick/view_models/fixture_table_view_model.dart';
 import 'package:sidekick/view_models/import_manager_view_model.dart';
 
 class ImportManagerContainer extends StatelessWidget {
-  const ImportManagerContainer({Key? key}) : super(key: key);
+  const ImportManagerContainer({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -52,7 +52,8 @@ class HoistModel extends Outlet implements Comparable<HoistModel> {
       name: (map['name'] ?? '') as String,
       locationId: (map['locationId'] ?? '') as String,
       parentController: HoistControllerChannelAssignment.fromMap(
-          map['parentController'] as Map<String, dynamic>),
+        map['parentController'] as Map<String, dynamic>,
+      ),
       number: map['number'] ?? 0,
       controllerNote: map['controllerNote'] ?? '',
     );
@@ -90,8 +91,9 @@ class HoistModel extends Outlet implements Comparable<HoistModel> {
 
     final countWithoutPicks = withoutCablePicks.length;
 
-    final multiPrefix =
-        location.multiPrefix.isEmpty ? location.name : location.multiPrefix;
+    final multiPrefix = location.multiPrefix.isEmpty
+        ? location.name
+        : location.multiPrefix;
 
     final lastMultiPrefixCharacter = multiPrefix.isNotEmpty
         ? multiPrefix.substring(multiPrefix.length - 1)
@@ -122,8 +124,8 @@ class HoistControllerChannelAssignment {
   });
 
   const HoistControllerChannelAssignment.unassigned()
-      : controllerId = '',
-        channel = 0;
+    : controllerId = '',
+      channel = 0;
 
   HoistControllerChannelAssignment copyWith({
     String? controllerId,
@@ -136,10 +138,7 @@ class HoistControllerChannelAssignment {
   }
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'controllerId': controllerId,
-      'channel': channel,
-    };
+    return <String, dynamic>{'controllerId': controllerId, 'channel': channel};
   }
 
   factory HoistControllerChannelAssignment.fromMap(Map<String, dynamic> map) {
@@ -153,5 +152,6 @@ class HoistControllerChannelAssignment {
 
   factory HoistControllerChannelAssignment.fromJson(String source) =>
       HoistControllerChannelAssignment.fromMap(
-          json.decode(source) as Map<String, dynamic>);
+        json.decode(source) as Map<String, dynamic>,
+      );
 }

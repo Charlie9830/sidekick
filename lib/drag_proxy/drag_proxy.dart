@@ -32,10 +32,10 @@ class _DragProxyControllerState extends State<DragProxyController> {
 class DragProxyMessenger extends InheritedWidget {
   const DragProxyMessenger({
     super.key,
-    required Widget child,
+    required super.child,
     required this.setDragState,
     required this.isDragging,
-  }) : super(child: child);
+  });
 
   final void Function(bool dragState) setDragState;
   final bool isDragging;

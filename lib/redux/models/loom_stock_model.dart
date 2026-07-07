@@ -20,11 +20,7 @@ class LoomStockModel extends ModelCollectionMember {
     required this.qty,
   });
 
-  LoomStockModel copyWith({
-    double? length,
-    String? compositionName,
-    int? qty,
-  }) {
+  LoomStockModel copyWith({double? length, String? compositionName, int? qty}) {
     return LoomStockModel(
       length: length ?? this.length,
       compositionName: compositionName ?? this.compositionName,

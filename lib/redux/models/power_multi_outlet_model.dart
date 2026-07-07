@@ -13,39 +13,34 @@ class PowerMultiOutletModel extends Outlet
   final PowerMultiRackAssignment parentRack;
 
   CurrentDraw get draw => children.fold(CurrentDraw(0, 0, 0), (accum, child) {
-        return accum.copyWith(
-          l1: child.multiPatch == 1 || child.multiPatch == 4
-              ? accum.l1 + child.load
-              : null,
-          l2: child.multiPatch == 2 || child.multiPatch == 5
-              ? accum.l2 + child.load
-              : null,
-          l3: child.multiPatch == 3 || child.multiPatch == 6
-              ? accum.l3 + child.load
-              : null,
-        );
-      });
+    return accum.copyWith(
+      l1: child.multiPatch == 1 || child.multiPatch == 4
+          ? accum.l1 + child.load
+          : null,
+      l2: child.multiPatch == 2 || child.multiPatch == 5
+          ? accum.l2 + child.load
+          : null,
+      l3: child.multiPatch == 3 || child.multiPatch == 6
+          ? accum.l3 + child.load
+          : null,
+    );
+  });
 
   PowerMultiOutletModel({
-    required String uid,
-    required String locationId,
+    required super.uid,
+    required super.locationId,
     required this.parentRack,
-    int number = 0,
-    String name = '',
+    super.number = 0,
+    super.name = '',
     required this.desiredSpareCircuits,
     required this.children,
-  }) : super(
-          uid: uid,
-          locationId: locationId,
-          number: number,
-          name: name,
-        );
+  });
 
   const PowerMultiOutletModel.none()
-      : desiredSpareCircuits = 0,
-        parentRack = const PowerMultiRackAssignment.unassigned(),
-        children = const [],
-        super(locationId: '', uid: '', number: 0, name: '');
+    : desiredSpareCircuits = 0,
+      parentRack = const PowerMultiRackAssignment.unassigned(),
+      children = const [],
+      super(locationId: '', uid: '', number: 0, name: '');
 
   LocationModel lookupLocation(Map<String, LocationModel> locations) {
     return locations[locationId] ?? const LocationModel.none();
@@ -157,21 +152,13 @@ class PowerMultiRackAssignment {
   final String rackId;
   final int channel;
 
-  const PowerMultiRackAssignment({
-    required this.rackId,
-    required this.channel,
-  });
+  const PowerMultiRackAssignment({required this.rackId, required this.channel});
 
   bool get isAssigned => channel != 0 && rackId.isNotEmpty;
 
-  const PowerMultiRackAssignment.unassigned()
-      : rackId = '',
-        channel = 0;
+  const PowerMultiRackAssignment.unassigned() : rackId = '', channel = 0;
 
-  PowerMultiRackAssignment copyWith({
-    String? rackId,
-    int? channel,
-  }) {
+  PowerMultiRackAssignment copyWith({String? rackId, int? channel}) {
     return PowerMultiRackAssignment(
       rackId: rackId ?? this.rackId,
       channel: channel ?? this.channel,
@@ -179,10 +166,7 @@ class PowerMultiRackAssignment {
   }
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'rackId': rackId,
-      'channel': channel,
-    };
+    return <String, dynamic>{'rackId': rackId, 'channel': channel};
   }
 
   factory PowerMultiRackAssignment.fromMap(Map<String, dynamic> map) {
@@ -196,5 +180,6 @@ class PowerMultiRackAssignment {
 
   factory PowerMultiRackAssignment.fromJson(String source) =>
       PowerMultiRackAssignment.fromMap(
-          json.decode(source) as Map<String, dynamic>);
+        json.decode(source) as Map<String, dynamic>,
+      );
 }

@@ -6,9 +6,7 @@ import 'package:path/path.dart' as p;
 
 FileState fileStateReducer(FileState state, dynamic a) {
   if (a is SetIsValidatingExportData) {
-    return state.copyWith(
-      isValidatingExportData: a.value,
-    );
+    return state.copyWith(isValidatingExportData: a.value);
   }
   if (a is SetExportErrors) {
     return state.copyWith(
@@ -32,14 +30,18 @@ FileState fileStateReducer(FileState state, dynamic a) {
 
   if (a is UpdateProjectName) {
     return state.copyWith(
-        projectMetadata:
-            state.projectMetadata.copyWith(projectName: a.newValue.trim()));
+      projectMetadata: state.projectMetadata.copyWith(
+        projectName: a.newValue.trim(),
+      ),
+    );
   }
 
   if (a is SetLastUsedExportDirectory) {
     return state.copyWith(
-        projectMetadata: state.projectMetadata
-            .copyWith(lastUsedExportDirectory: a.value.trim()));
+      projectMetadata: state.projectMetadata.copyWith(
+        lastUsedExportDirectory: a.value.trim(),
+      ),
+    );
   }
 
   if (a is SetIsFixtureTypeDatabasePathValid) {
@@ -47,15 +49,11 @@ FileState fileStateReducer(FileState state, dynamic a) {
   }
 
   if (a is SetFixtureTypeDatabasePath) {
-    return state.copyWith(
-      fixtureTypeDatabasePath: a.path,
-    );
+    return state.copyWith(fixtureTypeDatabasePath: a.path);
   }
 
   if (a is SetFixtureMappingFilePath) {
-    return state.copyWith(
-      fixtureMappingFilePath: a.value,
-    );
+    return state.copyWith(fixtureMappingFilePath: a.value);
   }
 
   if (a is SetPatchImportFilePath) {
@@ -64,10 +62,11 @@ FileState fileStateReducer(FileState state, dynamic a) {
 
   if (a is SetProjectFilePath) {
     return state.copyWith(
-        projectFilePath: a.path,
-        projectMetadata: state.projectMetadata.copyWith(
-          projectName: p.basenameWithoutExtension(a.path),
-        ));
+      projectFilePath: a.path,
+      projectMetadata: state.projectMetadata.copyWith(
+        projectName: p.basenameWithoutExtension(a.path),
+      ),
+    );
   }
 
   if (a is SetLastUsedProjectDirectory) {

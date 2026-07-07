@@ -14,12 +14,12 @@ class BalanceGauge extends StatelessWidget {
   final Variance variance;
 
   const BalanceGauge({
-    Key? key,
+    super.key,
     required this.phaseALoad,
     required this.phaseBLoad,
     required this.phaseCLoad,
     this.variance = Variance.normal,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

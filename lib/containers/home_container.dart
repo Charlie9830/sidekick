@@ -8,7 +8,7 @@ import 'package:sidekick/screens/home/home.dart';
 import 'package:sidekick/view_models/home_view_model.dart';
 
 class HomeContainer extends StatelessWidget {
-  const HomeContainer({Key? key}) : super(key: key);
+  const HomeContainer({super.key});
 
   @override
   Widget build(BuildContext context) {

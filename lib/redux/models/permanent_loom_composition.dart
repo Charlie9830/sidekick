@@ -27,11 +27,11 @@ class PermanentLoomComposition {
   });
 
   const PermanentLoomComposition.none()
-      : socaWays = 0,
-        wieland6Ways = 0,
-        dmxWays = 0,
-        sneakWays = 0,
-        validLengths = const {};
+    : socaWays = 0,
+      wieland6Ways = 0,
+      dmxWays = 0,
+      sneakWays = 0,
+      validLengths = const {};
 
   String get uid => name;
 
@@ -40,14 +40,18 @@ class PermanentLoomComposition {
   int get powerWays => socaWays != 0 ? socaWays : wieland6Ways;
 
   bool isValidComposition(List<CableModel> cables) {
-    final incomingSoca =
-        cables.where((cable) => cable.type == CableType.socapex).length;
-    final incomingWieland6way =
-        cables.where((cable) => cable.type == CableType.wieland6way).length;
-    final incomingDmx =
-        cables.where((cable) => cable.type == CableType.dmx).length;
-    final incomingSneak =
-        cables.where((cable) => cable.type == CableType.sneak).length;
+    final incomingSoca = cables
+        .where((cable) => cable.type == CableType.socapex)
+        .length;
+    final incomingWieland6way = cables
+        .where((cable) => cable.type == CableType.wieland6way)
+        .length;
+    final incomingDmx = cables
+        .where((cable) => cable.type == CableType.dmx)
+        .length;
+    final incomingSneak = cables
+        .where((cable) => cable.type == CableType.sneak)
+        .length;
 
     return incomingSoca == socaWays &&
         incomingWieland6way == wieland6Ways &&
@@ -64,30 +68,38 @@ class PermanentLoomComposition {
       );
     }
 
-    final incomingSoca =
-        cables.where((cable) => cable.type == CableType.socapex).length;
-    final incomingWieland6way =
-        cables.where((cable) => cable.type == CableType.wieland6way).length;
-    final incomingDmx =
-        cables.where((cable) => cable.type == CableType.dmx).length;
-    final incomingSneak =
-        cables.where((cable) => cable.type == CableType.sneak).length;
+    final incomingSoca = cables
+        .where((cable) => cable.type == CableType.socapex)
+        .length;
+    final incomingWieland6way = cables
+        .where((cable) => cable.type == CableType.wieland6way)
+        .length;
+    final incomingDmx = cables
+        .where((cable) => cable.type == CableType.dmx)
+        .length;
+    final incomingSneak = cables
+        .where((cable) => cable.type == CableType.sneak)
+        .length;
 
-    final socaSatisfied =
-        incomingWieland6way > 0 ? false : incomingSoca <= socaWays;
-    final wieland6Satisfied =
-        incomingSoca > 0 ? false : incomingWieland6way <= wieland6Ways;
+    final socaSatisfied = incomingWieland6way > 0
+        ? false
+        : incomingSoca <= socaWays;
+    final wieland6Satisfied = incomingSoca > 0
+        ? false
+        : incomingWieland6way <= wieland6Ways;
     final dmxSatisfied = incomingSneak > 0 ? false : incomingDmx <= dmxWays;
     final sneakSatisfied = incomingDmx > 0 ? false : incomingSneak <= sneakWays;
 
-    final compositionSatisfied = (socaSatisfied || wieland6Satisfied) &&
+    final compositionSatisfied =
+        (socaSatisfied || wieland6Satisfied) &&
         (sneakSatisfied || dmxSatisfied);
 
     if (compositionSatisfied == false) {
       return LoomSatisfactionResult(
-          satisfied: false,
-          satisfiedAtLength: 0,
-          error: UnsatisfiedError.noSuitableComposition);
+        satisfied: false,
+        satisfiedAtLength: 0,
+        error: UnsatisfiedError.noSuitableComposition,
+      );
     }
 
     final suitableLength = _matchSuitableLength(cables);
@@ -101,7 +113,10 @@ class PermanentLoomComposition {
     }
 
     return LoomSatisfactionResult(
-        satisfied: true, satisfiedAtLength: suitableLength, error: null);
+      satisfied: true,
+      satisfiedAtLength: suitableLength,
+      error: null,
+    );
   }
 
   double? _matchSuitableLength(List<CableModel> cables) {
@@ -109,8 +124,10 @@ class PermanentLoomComposition {
         .map((cable) => cable.length)
         .sorted((a, b) => a.ceil() - b.ceil())
         .last;
-    final longestValidLength =
-        validLengths.toList().sorted((a, b) => a.ceil() - b.ceil()).last;
+    final longestValidLength = validLengths
+        .toList()
+        .sorted((a, b) => a.ceil() - b.ceil())
+        .last;
 
     if (longestCandidateCableLength > longestValidLength) {
       return null;
@@ -170,7 +187,8 @@ class PermanentLoomComposition {
   }
 
   static List<PermanentLoomComposition> matchToPermanents(
-      List<CableModel> cables) {
+    List<CableModel> cables,
+  ) {
     final singleMatchResult = matchSuitablePermanent(cables);
 
     if (singleMatchResult.error != null) {
@@ -178,12 +196,19 @@ class PermanentLoomComposition {
       return [singleMatchResult.composition];
     }
 
-    final powerWayQueue = Queue<CableModel>.from(cables.where((cable) =>
-        cable.type == CableType.socapex ||
-        cable.type == CableType.wieland6way));
+    final powerWayQueue = Queue<CableModel>.from(
+      cables.where(
+        (cable) =>
+            cable.type == CableType.socapex ||
+            cable.type == CableType.wieland6way,
+      ),
+    );
 
-    final dataWayQueue = Queue<CableModel>.from(cables.where((cable) =>
-        cable.type == CableType.dmx || cable.type == CableType.sneak));
+    final dataWayQueue = Queue<CableModel>.from(
+      cables.where(
+        (cable) => cable.type == CableType.dmx || cable.type == CableType.sneak,
+      ),
+    );
 
     final matches = <PermanentLoomComposition>[];
 
@@ -202,31 +227,38 @@ class PermanentLoomComposition {
   }
 
   static PermanentLoomCompositionResult matchSuitablePermanent(
-      List<CableModel> cables) {
+    List<CableModel> cables,
+  ) {
     if (cables.isEmpty) {
       return PermanentLoomCompositionResult(
-          composition: const PermanentLoomComposition.none(),
-          length: 0,
-          error: 'No suitable candidate cables provided.');
+        composition: const PermanentLoomComposition.none(),
+        length: 0,
+        error: 'No suitable candidate cables provided.',
+      );
     }
 
-    if (cables.any((cable) =>
-            cable.type == CableType.socapex ||
-            cable.type == CableType.wieland6way) ==
+    if (cables.any(
+          (cable) =>
+              cable.type == CableType.socapex ||
+              cable.type == CableType.wieland6way,
+        ) ==
         false) {
       // Shouldn't return a Permanent if there are no suitable power ways.
       return PermanentLoomCompositionResult(
-          composition: const PermanentLoomComposition.none(),
-          length: 0,
-          error:
-              "Provided cables did not include any Socapex or 6way's. Consider using a Custom sneak or DMX loom, or create spare Socapex or 6way.");
+        composition: const PermanentLoomComposition.none(),
+        length: 0,
+        error:
+            "Provided cables did not include any Socapex or 6way's. Consider using a Custom sneak or DMX loom, or create spare Socapex or 6way.",
+      );
     }
 
-    final compositionResults =
-        validCompositions.map((comp) => (comp.satisfied(cables), comp));
+    final compositionResults = validCompositions.map(
+      (comp) => (comp.satisfied(cables), comp),
+    );
 
-    final firstValidResult =
-        compositionResults.firstWhereOrNull((result) => result.$1.satisfied);
+    final firstValidResult = compositionResults.firstWhereOrNull(
+      (result) => result.$1.satisfied,
+    );
 
     if (firstValidResult != null) {
       final (result, composition) = firstValidResult;
@@ -239,10 +271,11 @@ class PermanentLoomComposition {
     }
 
     return PermanentLoomCompositionResult(
-        composition: const PermanentLoomComposition.none(),
-        length: 0,
-        error:
-            'This could be caused by a cable being longer then 50m, or trying to convert too many cables at once.');
+      composition: const PermanentLoomComposition.none(),
+      length: 0,
+      error:
+          'This could be caused by a cable being longer then 50m, or trying to convert too many cables at once.',
+    );
   }
 
   static List<PermanentLoomComposition> validCompositions = [
@@ -266,11 +299,12 @@ class PermanentLoomComposition {
 
     // 5 way Socapex + Sneak.
     PermanentLoomComposition._(
-        socaWays: 5,
-        wieland6Ways: 0,
-        dmxWays: 0,
-        sneakWays: 1,
-        validLengths: _k3and5wayLengths),
+      socaWays: 5,
+      wieland6Ways: 0,
+      dmxWays: 0,
+      sneakWays: 1,
+      validLengths: _k3and5wayLengths,
+    ),
 
     // 2 way 6way + 2 DMX.
     PermanentLoomComposition._(
@@ -302,18 +336,17 @@ class PermanentLoomComposition {
 
   static Map<String, PermanentLoomComposition> byName =
       Map<String, PermanentLoomComposition>.fromEntries(
-    validCompositions.map(
-      (comp) => MapEntry(comp.name, comp),
-    ),
-  );
+        validCompositions.map((comp) => MapEntry(comp.name, comp)),
+      );
 
   static List<LoomStockModel> buildAllLoomQuantities() => validCompositions
       .expand(
         (comp) => comp.validLengths.map(
           (length) => LoomStockModel(
-              compositionName: comp.name,
-              length: length,
-              qty: _getDefaultStockQtyOfComposition(comp)),
+            compositionName: comp.name,
+            length: length,
+            qty: _getDefaultStockQtyOfComposition(comp),
+          ),
         ),
       )
       .toList();
@@ -348,11 +381,7 @@ class PermanentLoomCompositionResult {
   });
 }
 
-enum UnsatisfiedError {
-  noSuitableComposition,
-  noSuitableLength,
-  noCables,
-}
+enum UnsatisfiedError { noSuitableComposition, noSuitableLength, noCables }
 
 class LoomSatisfactionResult {
   final bool satisfied;

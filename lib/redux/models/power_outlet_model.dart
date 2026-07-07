@@ -17,13 +17,11 @@ class PowerOutletModel {
     this.isSpare = false,
   });
 
-  PowerOutletModel.spare({
-    required this.phase,
-    required this.multiPatch,
-  })  : isSpare = true,
-        load = 0,
-        fixtureIds = [],
-        fixtureTypePoolId = '';
+  PowerOutletModel.spare({required this.phase, required this.multiPatch})
+    : isSpare = true,
+      load = 0,
+      fixtureIds = [],
+      fixtureTypePoolId = '';
 
   PowerOutletModel copyWith({
     int? phase,

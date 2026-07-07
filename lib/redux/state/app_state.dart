@@ -15,9 +15,9 @@ class AppState {
   });
 
   AppState.initial()
-      : fixtureState = const FixtureState.initial(),
-        navstate = const NavigationState.initial(),
-        fileState = const FileState.initial();
+    : fixtureState = const FixtureState.initial(),
+      navstate = const NavigationState.initial(),
+      fileState = const FileState.initial();
 
   AppState copyWith({
     FixtureState? fixtureState,
@@ -47,8 +47,6 @@ class DiffAppState extends AppState {
     NavigationState? navstate,
     FileState? fileState,
   }) {
-    return DiffAppState(
-      fixtureState: fixtureState ?? this.fixtureState,
-    );
+    return DiffAppState(fixtureState: fixtureState ?? this.fixtureState);
   }
 }

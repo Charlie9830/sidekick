@@ -10,7 +10,7 @@ import 'package:sidekick/widgets/property_field.dart';
 
 class Export extends StatelessWidget {
   final ExportViewModel vm;
-  const Export({Key? key, required this.vm}) : super(key: key);
+  const Export({super.key, required this.vm});
 
   @override
   Widget build(BuildContext context) {

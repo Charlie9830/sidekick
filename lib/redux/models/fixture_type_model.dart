@@ -24,13 +24,13 @@ class FixtureTypeModel extends ModelCollectionMember {
   });
 
   const FixtureTypeModel.blank()
-      : uid = "",
-        name = "",
-        shortName = "",
-        make = '',
-        model = '',
-        amps = 0,
-        maxPiggybacks = 1;
+    : uid = "",
+      name = "",
+      shortName = "",
+      make = '',
+      model = '',
+      amps = 0,
+      maxPiggybacks = 1;
 
   bool get canPiggyback => maxPiggybacks != 1;
 

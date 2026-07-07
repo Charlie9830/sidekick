@@ -5,22 +5,19 @@ class CableVisibilityModel {
   final Set<CableRunType> powerState;
   final Set<CableRunType> dataState;
 
-  CableVisibilityModel({
-    required this.powerState,
-    required this.dataState,
-  });
+  CableVisibilityModel({required this.powerState, required this.dataState});
 
   const CableVisibilityModel.all()
-      : powerState = const {
-          CableRunType.fixtureRun,
-          CableRunType.homeRun,
-          CableRunType.link,
-        },
-        dataState = const {
-          CableRunType.fixtureRun,
-          CableRunType.homeRun,
-          CableRunType.link,
-        };
+    : powerState = const {
+        CableRunType.fixtureRun,
+        CableRunType.homeRun,
+        CableRunType.link,
+      },
+      dataState = const {
+        CableRunType.fixtureRun,
+        CableRunType.homeRun,
+        CableRunType.link,
+      };
 
   CableVisibilityModel copyWith({
     Set<CableRunType>? powerState,

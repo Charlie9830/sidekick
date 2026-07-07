@@ -16,7 +16,7 @@ final _modKeys = {
 class FixtureTable extends StatefulWidget {
   final FixtureTableViewModel vm;
 
-  const FixtureTable({Key? key, required this.vm}) : super(key: key);
+  const FixtureTable({super.key, required this.vm});
 
   @override
   State<FixtureTable> createState() => _FixtureTableState();

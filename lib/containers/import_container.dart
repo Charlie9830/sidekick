@@ -7,7 +7,7 @@ import 'package:sidekick/screens/file/import_module/import.dart';
 import 'package:sidekick/view_models/import_view_model.dart';
 
 class ImportContainer extends StatelessWidget {
-  const ImportContainer({Key? key}) : super(key: key);
+  const ImportContainer({super.key});
 
   @override
   Widget build(BuildContext context) {

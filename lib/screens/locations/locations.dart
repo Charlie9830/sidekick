@@ -26,7 +26,7 @@ class _Columns {
 
 class Locations extends StatefulWidget {
   final LocationsViewModel vm;
-  const Locations({Key? key, required this.vm}) : super(key: key);
+  const Locations({super.key, required this.vm});
 
   @override
   State<Locations> createState() => _LocationsState();

@@ -15,11 +15,7 @@ class HoistControllerModel extends ModelCollectionMember {
     required this.name,
   });
 
-  HoistControllerModel copyWith({
-    String? uid,
-    int? ways,
-    String? name,
-  }) {
+  HoistControllerModel copyWith({String? uid, int? ways, String? name}) {
     return HoistControllerModel(
       uid: uid ?? this.uid,
       ways: ways ?? this.ways,
@@ -28,11 +24,7 @@ class HoistControllerModel extends ModelCollectionMember {
   }
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'uid': uid,
-      'ways': ways,
-      'name': name,
-    };
+    return <String, dynamic>{'uid': uid, 'ways': ways, 'name': name};
   }
 
   factory HoistControllerModel.fromMap(Map<String, dynamic> map) {

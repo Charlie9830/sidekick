@@ -10,12 +10,12 @@ class TableRow extends StatefulWidget {
   final void Function(bool selected) onPressed;
 
   const TableRow({
-    Key? key,
+    super.key,
     this.selected = false,
     this.rangeSelected = false,
     required this.onPressed,
     required this.cells,
-  }) : super(key: key);
+  });
 
   @override
   State<TableRow> createState() => _TableRowState();
@@ -51,7 +51,7 @@ class _TableRowState extends State<TableRow> {
                             width: ColumnWidths.asList[index],
                             child: widget.cells[index],
                           ))
-                      .toList(),
+                      ,
                 ],
               )),
         ),

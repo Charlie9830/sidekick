@@ -7,7 +7,7 @@ import 'package:sidekick/widgets/toolbar.dart';
 class FixtureTypes extends StatelessWidget {
   final FixtureTypesViewModel vm;
 
-  const FixtureTypes({Key? key, required this.vm}) : super(key: key);
+  const FixtureTypes({super.key, required this.vm});
 
   @override
   Widget build(BuildContext context) {

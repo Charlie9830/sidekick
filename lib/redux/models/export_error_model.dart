@@ -3,16 +3,9 @@ import 'package:sidekick/redux/models/hoist_controller_model.dart';
 import 'package:sidekick/redux/models/power_feed_model.dart';
 import 'package:sidekick/redux/models/power_rack_model.dart';
 
-enum ExportErrorLevel {
-  warning,
-  critical,
-}
+enum ExportErrorLevel { warning, critical }
 
-enum ErrorScope {
-  power,
-  data,
-  hoist,
-}
+enum ErrorScope { power, data, hoist }
 
 class ExportErrorModel {
   final ExportErrorLevel level;
@@ -29,55 +22,64 @@ class ExportErrorModel {
 
   factory ExportErrorModel.unassignedHoist(String hoistName) {
     return ExportErrorModel(
-        scope: ErrorScope.hoist,
-        level: ExportErrorLevel.warning,
-        name: 'Unassigned Hoist',
-        message: "$hoistName has not been assigned a rack outlet");
+      scope: ErrorScope.hoist,
+      level: ExportErrorLevel.warning,
+      name: 'Unassigned Hoist',
+      message: "$hoistName has not been assigned a rack outlet",
+    );
   }
 
   factory ExportErrorModel.unassignedPowerMulti(String multiName) {
     return ExportErrorModel(
-        scope: ErrorScope.power,
-        level: ExportErrorLevel.warning,
-        name: 'Unassigned Power Multi',
-        message: "$multiName has not been assigned a rack outlet");
+      scope: ErrorScope.power,
+      level: ExportErrorLevel.warning,
+      name: 'Unassigned Power Multi',
+      message: "$multiName has not been assigned a rack outlet",
+    );
   }
 
   factory ExportErrorModel.unassignedDataPatch(String patchName) {
     return ExportErrorModel(
-        scope: ErrorScope.data,
-        level: ExportErrorLevel.warning,
-        name: 'Unassigned Data Outlet',
-        message: "$patchName has not been assigned a rack outlet");
+      scope: ErrorScope.data,
+      level: ExportErrorLevel.warning,
+      name: 'Unassigned Data Outlet',
+      message: "$patchName has not been assigned a rack outlet",
+    );
   }
 
   factory ExportErrorModel.overflowingPowerRack(PowerRackModel rack) {
     return ExportErrorModel(
-        scope: ErrorScope.power,
-        level: ExportErrorLevel.critical,
-        name: 'Overflowing Power Rack',
-        message: "${rack.name} has too many outlets assigned to it");
+      scope: ErrorScope.power,
+      level: ExportErrorLevel.critical,
+      name: 'Overflowing Power Rack',
+      message: "${rack.name} has too many outlets assigned to it",
+    );
   }
 
   factory ExportErrorModel.overflowingDataRack(DataRackModel rack) {
     return ExportErrorModel(
-        scope: ErrorScope.data,
-        level: ExportErrorLevel.critical,
-        name: 'Overflowing Data Rack',
-        message: "${rack.name} has too many data outlets assigned to it");
+      scope: ErrorScope.data,
+      level: ExportErrorLevel.critical,
+      name: 'Overflowing Data Rack',
+      message: "${rack.name} has too many data outlets assigned to it",
+    );
   }
 
   factory ExportErrorModel.overflowingHoistController(
-      HoistControllerModel controller) {
+    HoistControllerModel controller,
+  ) {
     return ExportErrorModel(
-        scope: ErrorScope.hoist,
-        level: ExportErrorLevel.warning,
-        name: 'Overflowing Hoist Controller',
-        message: "${controller.name} has too many hoists assigned to it");
+      scope: ErrorScope.hoist,
+      level: ExportErrorLevel.warning,
+      name: 'Overflowing Hoist Controller',
+      message: "${controller.name} has too many hoists assigned to it",
+    );
   }
 
   factory ExportErrorModel.powerFeedNearingCapacity(
-      PowerFeedModel feed, double load) {
+    PowerFeedModel feed,
+    double load,
+  ) {
     return ExportErrorModel(
       scope: ErrorScope.power,
       level: ExportErrorLevel.warning,
@@ -87,7 +89,9 @@ class ExportErrorModel {
   }
 
   factory ExportErrorModel.powerFeedOverloaded(
-      PowerFeedModel feed, double load) {
+    PowerFeedModel feed,
+    double load,
+  ) {
     return ExportErrorModel(
       scope: ErrorScope.power,
       level: ExportErrorLevel.critical,

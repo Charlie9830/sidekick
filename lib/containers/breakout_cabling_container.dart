@@ -25,7 +25,7 @@ const ViewProjection _kProjection = PlanProjection();
 const double _kHeaderDiagramOffsetMm = 600;
 
 class BreakoutCablingContainer extends StatelessWidget {
-  const BreakoutCablingContainer({Key? key}) : super(key: key);
+  const BreakoutCablingContainer({super.key});
 
   @override
   Widget build(BuildContext context) {

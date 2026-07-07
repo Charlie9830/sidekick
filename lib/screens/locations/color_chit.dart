@@ -7,11 +7,11 @@ class ColorChit extends StatelessWidget {
   final double size;
 
   const ColorChit({
-    Key? key,
+    super.key,
     required this.color,
     this.size = 16,
     this.brightness = Brightness.light,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -38,11 +38,11 @@ class SelectableColorChit extends StatelessWidget {
   final void Function() onSelect;
 
   const SelectableColorChit({
-    Key? key,
+    super.key,
     required this.value,
     required this.isSelected,
     required this.onSelect,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

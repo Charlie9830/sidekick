@@ -5,8 +5,7 @@ typedef OnHoverChangedCallback = void Function(bool hovering, bool mouseDown);
 class HoverRegion extends StatelessWidget {
   final Widget? child;
   final OnHoverChangedCallback? onHoverChanged;
-  const HoverRegion({Key? key, this.child, this.onHoverChanged})
-      : super(key: key);
+  const HoverRegion({super.key, this.child, this.onHoverChanged});
 
   @override
   Widget build(BuildContext context) {

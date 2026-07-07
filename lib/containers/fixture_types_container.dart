@@ -11,7 +11,7 @@ import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
 import 'package:sidekick/view_models/fixture_types_view_model.dart';
 
 class FixtureTypesContainer extends StatelessWidget {
-  const FixtureTypesContainer({Key? key}) : super(key: key);
+  const FixtureTypesContainer({super.key});
 
   @override
   Widget build(BuildContext context) {

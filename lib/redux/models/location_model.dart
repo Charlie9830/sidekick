@@ -41,14 +41,14 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
   });
 
   const LocationModel.none()
-      : uid = 'none',
-        name = '',
-        multiPrefix = '',
-        color = const LabelColorModel.none(),
-        delimiter = '',
-        hybridIds = const {},
-        overrides = const LocationOverrideModel.none(),
-        isRiggingOnlyLocation = false;
+    : uid = 'none',
+      name = '',
+      multiPrefix = '',
+      color = const LabelColorModel.none(),
+      delimiter = '',
+      hybridIds = const {},
+      overrides = const LocationOverrideModel.none(),
+      isRiggingOnlyLocation = false;
 
   bool get isHybrid => hybridIds.isNotEmpty;
 
@@ -84,7 +84,10 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
   }
 
   String getPrefixedNameByType(
-      Outlet outlet, int number, List<Outlet> outletsInLocationOfSameType) {
+    Outlet outlet,
+    int number,
+    List<Outlet> outletsInLocationOfSameType,
+  ) {
     // For Multi Labels, if it is the only multi of that type in the location, we don't want to needlessly append a number to the end.
     // This behavior is a bit wishy washy in real life, Maybe it's relevant for Motor Multi, but not really relevant for Socapex/Wieland..
     // I dunno... Anyway, if you decide to change this in the future its just below. We make multiNumber null if we don't want the number to
@@ -98,7 +101,8 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       HoistModel _ => getPrefixedHoistPatch(number),
       HoistMultiModel _ => getPrefixedHoistMultiPatch(multiNumber),
       _ => throw UnimplementedError(
-          'No handling for outlet Type ${outlet.runtimeType}'),
+        'No handling for outlet Type ${outlet.runtimeType}',
+      ),
     };
   }
 
@@ -189,8 +193,8 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       hybridIds: map['hybridIds'] == null
           ? const <String>{}
           : (map['hybridIds'] as List<dynamic>)
-              .map((x) => x.toString())
-              .toSet(),
+                .map((x) => x.toString())
+                .toSet(),
       overrides: map['overrides'] == null
           ? const LocationOverrideModel.none()
           : LocationOverrideModel.fromMap(map['overrides']),
@@ -262,16 +266,15 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       RegExp(r'VERT', caseSensitive: false): NamedColors.grey,
     };
 
-    final key =
-        lookup.keys.firstWhereOrNull((regex) => regex.hasMatch(locationName));
+    final key = lookup.keys.firstWhereOrNull(
+      (regex) => regex.hasMatch(locationName),
+    );
 
     if (key == null) {
       return const LabelColorModel.none();
     }
 
-    return LabelColorModel(colors: [
-      lookup[key]!,
-    ]);
+    return LabelColorModel(colors: [lookup[key]!]);
   }
 
   static String matchMultiPrefix(String locationName) {
@@ -420,8 +423,9 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       RegExp('H ', caseSensitive: false): 'H',
     };
 
-    final key =
-        lookup.keys.firstWhereOrNull((regex) => regex.hasMatch(locationName));
+    final key = lookup.keys.firstWhereOrNull(
+      (regex) => regex.hasMatch(locationName),
+    );
 
     if (key == null) {
       return '';
@@ -440,9 +444,9 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
 
   @override
   Map<PropertyDeltaName, Object> getDiffValues() => {
-        PropertyDeltaName.name: name,
-        PropertyDeltaName.color: color,
-        PropertyDeltaName.multiPrefix: multiPrefix,
-        PropertyDeltaName.delimiter: delimiter,
-      };
+    PropertyDeltaName.name: name,
+    PropertyDeltaName.color: color,
+    PropertyDeltaName.multiPrefix: multiPrefix,
+    PropertyDeltaName.delimiter: delimiter,
+  };
 }

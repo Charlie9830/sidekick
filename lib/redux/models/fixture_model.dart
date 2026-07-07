@@ -163,17 +163,23 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
         locationId.hashCode;
   }
 
-  static Map<String, FixtureModel> sort(Map<String, FixtureModel> fixtures,
-      Map<String, LocationModel> locations) {
-    final fixturesByLocation =
-        fixtures.values.groupListsBy((fixture) => fixture.locationId);
+  static Map<String, FixtureModel> sort(
+    Map<String, FixtureModel> fixtures,
+    Map<String, LocationModel> locations,
+  ) {
+    final fixturesByLocation = fixtures.values.groupListsBy(
+      (fixture) => fixture.locationId,
+    );
 
-    final sortedFixturesByLocation = fixturesByLocation
-        .map((locationId, fixtures) => MapEntry(locationId, fixtures.sorted()));
+    final sortedFixturesByLocation = fixturesByLocation.map(
+      (locationId, fixtures) => MapEntry(locationId, fixtures.sorted()),
+    );
 
-    return Map<String, FixtureModel>.fromEntries(sortedFixturesByLocation
-        .values.flattened
-        .map((fixture) => MapEntry(fixture.uid, fixture)));
+    return Map<String, FixtureModel>.fromEntries(
+      sortedFixturesByLocation.values.flattened.map(
+        (fixture) => MapEntry(fixture.uid, fixture),
+      ),
+    );
   }
 
   @override

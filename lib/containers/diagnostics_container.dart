@@ -7,7 +7,7 @@ import 'package:sidekick/screens/file/diagnostics_screen.dart';
 import 'package:sidekick/view_models/diagnostics_view_model.dart';
 
 class DiagnosticsContainer extends StatelessWidget {
-  const DiagnosticsContainer({Key? key}) : super(key: key);
+  const DiagnosticsContainer({super.key});
 
   @override
   Widget build(BuildContext context) {

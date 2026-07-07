@@ -52,7 +52,7 @@ class _AddSpareCablesState extends State<AddSpareCables> {
                                 }),
                       ),
                     ))
-                .toList(),
+                ,
             _Footer(
               onAddRow: () => setState(() => _valueRows.add(
                     _valueRows.first.copyWith(),

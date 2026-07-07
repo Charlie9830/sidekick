@@ -18,7 +18,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 class Home extends StatefulWidget {
   final HomeViewModel vm;
 
-  const Home({Key? key, required this.vm}) : super(key: key);
+  const Home({super.key, required this.vm});
 
   @override
   State<Home> createState() => _HomeState();

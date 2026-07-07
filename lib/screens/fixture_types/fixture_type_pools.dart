@@ -203,7 +203,7 @@ class _PoolItem extends StatelessWidget {
                     ),
                   ),
                 if (vm.childVms.isNotEmpty) const Divider(height: 16),
-                ...vm.childVms.map((child) => _PoolChild(vm: child)).toList(),
+                ...vm.childVms.map((child) => _PoolChild(vm: child)),
               ],
             ),
           ),

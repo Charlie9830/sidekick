@@ -31,29 +31,24 @@ sealed class MultiOutlet extends Outlet {
   });
 
   @override
-  MultiOutlet copyWith({
-    bool? isDetached,
-  }) {
+  MultiOutlet copyWith({bool? isDetached}) {
     return switch (this) {
       DataMultiModel o => o.copyWith(isDetached: isDetached ?? this.isDetached),
-      HoistMultiModel o => o.copyWith(isDetached: isDetached ?? this.isDetached)
+      HoistMultiModel o => o.copyWith(
+        isDetached: isDetached ?? this.isDetached,
+      ),
     };
   }
 }
 
 class DataMultiModel extends MultiOutlet implements Comparable<DataMultiModel> {
   DataMultiModel({
-    required String uid,
-    required String locationId,
-    String name = '',
-    int number = 0,
-    bool isDetached = false,
-  }) : super(
-            uid: uid,
-            locationId: locationId,
-            number: number,
-            name: name,
-            isDetached: isDetached);
+    required super.uid,
+    required super.locationId,
+    super.name = '',
+    super.number = 0,
+    super.isDetached = false,
+  });
 
   @override
   DataMultiModel copyWith({

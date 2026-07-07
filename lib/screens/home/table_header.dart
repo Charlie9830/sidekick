@@ -7,12 +7,12 @@ class TableHeader extends StatelessWidget {
   final bool enabled;
 
   const TableHeader({
-    Key? key,
+    super.key,
     required this.columns,
     required this.hasSelections,
     required this.onSelectAll,
     this.enabled = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

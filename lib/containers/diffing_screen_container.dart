@@ -31,7 +31,7 @@ import 'package:sidekick/view_models/patch_diffing_item_view_model.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';
 
 class DiffingScreenContainer extends StatelessWidget {
-  const DiffingScreenContainer({Key? key}) : super(key: key);
+  const DiffingScreenContainer({super.key});
 
   @override
   Widget build(BuildContext context) {
