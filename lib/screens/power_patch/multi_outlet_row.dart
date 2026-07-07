@@ -4,6 +4,7 @@ import 'package:sidekick/diff_state_overlay.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/screens/power_patch/power_outlet_table.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';
 
 class MultiOutletRow extends StatelessWidget {
@@ -33,7 +34,8 @@ class MultiOutletRow extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Icon(Icons.electric_bolt, color: Colors.yellow, size: 20),
+              const Icon(Icons.electric_bolt,
+                  color: SidekickColors.powerRun, size: 20),
               const SizedBox(width: 8),
               DiffStateOverlay(
                 diff: propertyDeltas?.lookup(PropertyDeltaName.multiName),

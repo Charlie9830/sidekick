@@ -7,10 +7,7 @@ import 'package:sidekick/widgets/toolbar.dart';
 class FixtureTypes extends StatelessWidget {
   final FixtureTypesViewModel vm;
 
-  const FixtureTypes({
-    Key? key,
-    required this.vm,
-  }) : super(key: key);
+  const FixtureTypes({Key? key, required this.vm}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -18,44 +15,45 @@ class FixtureTypes extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        NavigationBar(
-          selectedKey: ValueKey(vm.tabIndex),
-          onSelected: (key) => vm.onTabChanged((key as ValueKey<int>).value),
-          alignment: NavigationBarAlignment.start,
-          expanded: false,
-          children: const [
-            NavigationItem(
-              key: ValueKey(0),
-              child: Text('Fixture Types'),
-            ),
-            NavigationItem(
-              key: ValueKey(1),
-              child: Text('Pools'),
-            )
-          ],
-        ),
         Toolbar(
-            child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Checkbox(
-              state: vm.showAllFixtureTypes
-                  ? CheckboxState.checked
-                  : CheckboxState.unchecked,
-              onChanged: (newValue) => vm.onShowAllFixtureTypesChanged(
-                  newValue == CheckboxState.checked ? true : false),
-            ),
-            const SizedBox(width: 8),
-            const Text('Show All'),
-          ],
-        )),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Checkbox(
+                state: vm.showAllFixtureTypes
+                    ? CheckboxState.checked
+                    : CheckboxState.unchecked,
+                onChanged: (newValue) => vm.onShowAllFixtureTypesChanged(
+                  newValue == CheckboxState.checked ? true : false,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text('Show All'),
+              const Spacer(),
+              NavigationBar(
+                backgroundColor: Colors.transparent,
+                selectedKey: ValueKey(vm.tabIndex),
+                onSelected: (key) =>
+                    vm.onTabChanged((key as ValueKey<int>).value),
+                alignment: NavigationBarAlignment.start,
+                expanded: false,
+                children: const [
+                  NavigationItem(
+                    key: ValueKey(0),
+                    child: Text('Fixture Types'),
+                  ),
+                  NavigationItem(key: ValueKey(1), child: Text('Pools')),
+                ],
+              ),
+            ],
+          ),
+        ),
         Expanded(
-            child: switch (vm.tabIndex) {
-          0 => FixtureTypeDataTable(
-              items: vm.fixtureTypeVms,
-            ),
-          _ => FixtureTypePools(viewModel: vm)
-        }),
+          child: switch (vm.tabIndex) {
+            0 => FixtureTypeDataTable(items: vm.fixtureTypeVms),
+            _ => FixtureTypePools(viewModel: vm),
+          },
+        ),
       ],
     );
   }

@@ -32,6 +32,16 @@ abstract final class SidekickColors {
   /// Control/data-multi accent (teal).
   static const Color control = Color(0xFF2FA79E);
 
+  // --- Electrical phases (L1 / L2 / L3) ----------------------------------
+  /// Phase 1 marker/text (red family).
+  static const Color phase1 = Color(0xFFE05C5C);
+
+  /// Phase 2 marker/text (neutral light steel; the "white" phase).
+  static const Color phase2 = Color(0xFFB8C0CC);
+
+  /// Phase 3 marker/text (blue family).
+  static const Color phase3 = Color(0xFF4C86E0);
+
   // --- Graph node / marker accents ---------------------------------------
   /// Physical location marker (amber; replaces raw yellow).
   static const Color locationMarker = Color(0xFFE0B341);
@@ -47,6 +57,16 @@ abstract final class SidekickColors {
   static const Color warning = Color(0xFFE0A030);
   static const Color error = Color(0xFFE05555);
   static const Color success = Color(0xFF4FAE6E);
+
+  // --- Diff states --------------------------------------------------------
+  /// Newly added item in a diff.
+  static const Color diffAdded = success;
+
+  /// Modified item in a diff.
+  static const Color diffChanged = warning;
+
+  /// Removed item in a diff.
+  static const Color diffDeleted = error;
 
   // --- Flag / classification accents -------------------------------------
   /// Motor / rigging cable classification.

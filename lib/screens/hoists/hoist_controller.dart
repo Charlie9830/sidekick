@@ -9,6 +9,7 @@ import 'package:sidekick/screens/hoists/hoist_channel_content.dart';
 import 'package:sidekick/screens/hoists/hoist_controller_column_widths.dart';
 import 'package:sidekick/simple_tooltip.dart';
 import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';
 
@@ -51,7 +52,7 @@ class _HoistControllerState extends State<HoistController> {
                       value: widget.viewModel.controller.name,
                       style: Theme.of(context).typography.large.copyWith(
                           color: widget.viewModel.hasOverflowed
-                              ? Colors.amber
+                              ? SidekickColors.warning
                               : null),
                     ),
                   ),
@@ -125,7 +126,7 @@ class _ChannelArea extends StatelessWidget {
                           style: channelVm.isOverflowing
                               ? Theme.of(context).typography.normal.copyWith(
                                     color: channelVm.isOverflowing
-                                        ? Colors.amber
+                                        ? SidekickColors.warning
                                         : null,
                                   )
                               : Theme.of(context).typography.extraLight),

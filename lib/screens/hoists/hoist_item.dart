@@ -1,5 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/editable_text_field.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/widgets/hover_region.dart';
 
 class HoistItem extends StatelessWidget {
@@ -32,7 +33,7 @@ class HoistItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Icon(Icons.construction,
-                size: 16, color: assigned ? Colors.gray : Colors.blue),
+                size: 16, color: assigned ? Colors.gray : SidekickColors.hoist),
             const SizedBox(width: 8),
             SizedBox(
               width: 148,

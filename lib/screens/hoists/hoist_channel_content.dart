@@ -5,6 +5,7 @@ import 'package:sidekick/editable_text_field.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/screens/hoists/hoist_controller_column_widths.dart';
 import 'package:sidekick/simple_tooltip.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/view_models/hoists_view_model.dart';
 import 'package:sidekick/widgets/hover_region.dart';
 
@@ -69,7 +70,7 @@ class HoistChannelContent extends StatelessWidget {
                         child: Icon(
                           Icons.error,
                           size: 20,
-                          color: Colors.orange,
+                          color: SidekickColors.warning,
                         ),
                       )
                   ],

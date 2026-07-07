@@ -2,6 +2,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/drag_proxy/drag_proxy.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/screens/file/import_module/raw_location_model.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/widgets/hover_region.dart';
 
 class MergeDataStep extends StatelessWidget {
@@ -129,10 +130,10 @@ class _ExistingLocation extends StatelessWidget {
                   onPressed: onClearAssignment,
                 ),
               switch (isAssigned) {
-                true =>
-                  const Icon(Icons.check_circle, color: Colors.green, size: 16),
+                true => const Icon(Icons.check_circle,
+                    color: SidekickColors.success, size: 16),
                 false => const Icon(Icons.highlight_remove,
-                    color: Colors.amber, size: 16)
+                    color: SidekickColors.warning, size: 16)
               }
             ],
           );

@@ -6,6 +6,7 @@ import 'package:sidekick/screens/locations/color_select_dialog.dart';
 import 'package:sidekick/screens/locations/multi_color_chit.dart';
 import 'package:sidekick/simple_tooltip.dart';
 import 'package:sidekick/table_view_config.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 
 import 'package:sidekick/view_models/locations_view_model.dart';
 
@@ -155,7 +156,7 @@ class _LocationsState extends State<Locations> {
       _Columns.powerMultis => TableViewCell(
           child: centerAlign(
             const _IconTitle(
-              icon: Icon(Icons.electric_bolt, color: Colors.yellow),
+              icon: Icon(Icons.electric_bolt, color: SidekickColors.powerRun),
               title: 'Power Multi Quantity',
             ),
           ),
@@ -163,7 +164,8 @@ class _LocationsState extends State<Locations> {
       _Columns.data => TableViewCell(
           child: centerAlign(
             const _IconTitle(
-              icon: Icon(Icons.settings_input_svideo, color: Colors.blue),
+              icon: Icon(Icons.settings_input_svideo,
+                  color: SidekickColors.dataRun),
               title: 'Data Multi Quantity (Patch Quantity)',
             ),
           ),

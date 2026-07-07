@@ -2,6 +2,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/card_subtitle.dart';
 import 'package:sidekick/redux/models/export_error_model.dart';
 import 'package:sidekick/shad_list_item.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/titled_card.dart';
 
 import 'package:sidekick/view_models/export_view_model.dart';
@@ -128,9 +129,9 @@ class _ExportErrorItem extends StatelessWidget {
     return ShadListItem(
         leading: switch (errorItem.level) {
           ExportErrorLevel.warning =>
-            const Icon(Icons.error, color: Colors.amber),
+            const Icon(Icons.error, color: SidekickColors.warning),
           ExportErrorLevel.critical =>
-            const Icon(Icons.error, color: Colors.red),
+            const Icon(Icons.error, color: SidekickColors.error),
         },
         title: Text(errorItem.name),
         subtitle: Text(errorItem.message));

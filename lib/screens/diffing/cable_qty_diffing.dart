@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
 import 'package:sidekick/view_models/cable_qty_diffing_item_view_model.dart';
 
@@ -81,9 +82,9 @@ class _DeltaRow extends StatelessWidget {
   }
 
   Color _colorFor(DiffState state) => switch (state) {
-        DiffState.added => Colors.green,
-        DiffState.deleted => Colors.red,
-        DiffState.changed => Colors.orange,
+        DiffState.added => SidekickColors.diffAdded,
+        DiffState.deleted => SidekickColors.diffDeleted,
+        DiffState.changed => SidekickColors.diffChanged,
         DiffState.unchanged => Colors.grey,
       };
 }

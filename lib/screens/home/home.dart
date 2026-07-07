@@ -42,124 +42,137 @@ class _HomeState extends State<Home> {
     return PageStorage(
       bucket: _pageStorageBucket,
       child: Scaffold(
-          key: homeScaffoldKey,
-          headers: [
-            // Navigation Bar
-            NavigationBar(
-              onSelected: (key) =>
-                  setState(() => _tabIndex = (key as ValueKey<int>).value),
-              selectedKey: ValueKey(_tabIndex),
-              expanded: false,
-              labelType: NavigationLabelType.all,
-              alignment: NavigationBarAlignment.start,
-              children: const [
-                _NavigationItem(
-                  index: 0,
-                  label: Text('File'),
-                  child: Icon(Icons.folder),
-                ),
-                _NavigationItem(
-                  index: 1,
-                  label: Text('Fixtures'),
-                  child: Icon(Icons.lightbulb),
-                ),
-                _NavigationItem(
-                  index: 2,
-                  label: Text('Patch'),
-                  child: Icon(Icons.electric_bolt),
-                ),
-                _NavigationItem(
-                  index: 3,
-                  label: Text('Racks'),
-                  child: Icon(Icons.dns),
-                ),
-                _NavigationItem(
-                  index: 4,
-                  label: Text('Hoists'),
-                  child: Icon(Icons.construction),
-                ),
-                _NavigationItem(
-                  index: 5,
-                  label: Text('Looms'),
-                  child: Icon(Icons.cable),
-                ),
-                _NavigationItem(
-                  index: 6,
-                  label: Text('Breakout Cabling'),
-                  child: Icon(Icons.auto_graph),
-                ),
-                _NavigationItem(
-                  index: 7,
-                  label: Text('Locations'),
-                  child: Icon(Icons.location_pin),
-                ),
-                _NavigationItem(
-                  index: 8,
-                  label: Text('Fixture Types'),
-                  child: Icon(Icons.light),
-                ),
-                _NavigationItem(
-                  index: 9,
-                  label: Text('Export'),
-                  child: Icon(Icons.save_alt),
-                ),
-                _NavigationItem(
-                  index: 10,
-                  label: Text('Diff'),
-                  child: Icon(Icons.difference),
-                ),
-                _NavigationItem(
-                  index: 11,
-                  label: Text('Lab'),
-                  child: Icon(Icons.build),
-                ),
-                _NavigationItem(
-                  index: 12,
-                  label: Text("Diagnostics"),
-                  child: Icon(Icons.bug_report),
-                ),
-              ],
-            ),
+        key: homeScaffoldKey,
+        headers: [
+          // Navigation Bar
+          NavigationBar(
+            onSelected: (key) =>
+                setState(() => _tabIndex = (key as ValueKey<int>).value),
+            selectedKey: ValueKey(_tabIndex),
+            expanded: false,
+            labelType: NavigationLabelType.all,
+            alignment: NavigationBarAlignment.start,
+            children: const [
+              // --- Project: file I/O ---
+              _NavigationItem(
+                index: 0,
+                label: Text('File'),
+                child: Icon(Icons.folder),
+              ),
+              _NavigationItem(
+                index: 9,
+                label: Text('Export'),
+                child: Icon(Icons.save_alt),
+              ),
+              _NavigationItem(
+                index: 10,
+                label: Text('Diff'),
+                child: Icon(Icons.difference),
+              ),
 
-            if (_tabIndex == 3)
-              SizedBox(
-                height: 48,
-                child: NavigationBar(
-                  labelType: NavigationLabelType.all,
-                  selectedKey: ValueKey(widget.vm.racksTabIndex),
-                  onSelected: (key) => widget.vm
-                      .onRacksTabIndexChanged((key as ValueKey<int>).value),
-                  expanded: false,
-                  alignment: NavigationBarAlignment.start,
-                  children: const [
-                    NavigationItem(
-                      key: ValueKey(0),
-                      child: Text('Power'),
-                    ),
-                    NavigationItem(
-                      key: ValueKey(1),
-                      child: Text('Data'),
-                    )
-                  ],
+              _NavGroupDivider(),
+
+              // --- Plot Items ---
+              _NavigationItem(
+                index: 1,
+                label: Text('Fixtures'),
+                child: Icon(Icons.lightbulb),
+              ),
+              _NavigationItem(
+                index: 8,
+                label: Text('Fixture Types'),
+                child: Icon(Icons.light),
+              ),
+              _NavigationItem(
+                index: 7,
+                label: Text('Locations'),
+                child: Icon(Icons.location_pin),
+              ),
+              _NavigationItem(
+                index: 4,
+                label: Text('Hoists'),
+                child: Icon(Icons.construction),
+              ),
+
+              _NavGroupDivider(),
+
+              // --- Power & data distribution ---
+              _NavigationItem(
+                index: 2,
+                label: Text('Patch'),
+                child: Icon(Icons.electric_bolt),
+              ),
+              _NavigationItem(
+                index: 3,
+                label: Text('Racks'),
+                child: Icon(Icons.dns),
+              ),
+
+              _NavGroupDivider(),
+
+              // --- Rigging & cabling ---
+              _NavigationItem(
+                index: 5,
+                label: Text('Looms'),
+                child: Icon(Icons.cable),
+              ),
+              _NavigationItem(
+                index: 6,
+                label: Text('Breakout Cabling'),
+                child: Icon(Icons.auto_graph),
+              ),
+
+              _NavGroupDivider(),
+
+              // --- Developer tools ---
+              _NavigationItem(
+                index: 11,
+                label: Text('Lab'),
+                child: Icon(Icons.build),
+              ),
+              _NavigationItem(
+                index: 12,
+                label: Text("Diagnostics"),
+                child: Icon(Icons.bug_report),
+              ),
+            ],
+          ),
+
+          if (_tabIndex == 3)
+            SizedBox(
+              height: 48,
+              child: NavigationBar(
+                labelType: NavigationLabelType.all,
+                selectedKey: ValueKey(widget.vm.racksTabIndex),
+                onSelected: (key) => widget.vm.onRacksTabIndexChanged(
+                  (key as ValueKey<int>).value,
                 ),
-              )
-          ],
-          child: switch (_tabIndex) {
-            0 => const FileContainer(),
-            1 => const FixtureTableContainer(),
-            2 => const PowerPatchContainer(),
-            3 => const RacksContainer(),
-            4 => const HoistsContainer(),
-            5 => const LoomsContainer(),
-            6 => const BreakoutCablingContainer(),
-            7 => const LocationsContainer(),
-            8 => const FixtureTypesContainer(),
-            9 => const ExportContainer(),
-            10 => const DiffingScreenContainer(),
-            11 => const TheLab(),
-            12 => const DiagnosticsContainer(),
-            _ => throw "Missing Switch clause for index $_tabIndex",
-          }),
+                expanded: false,
+                alignment: NavigationBarAlignment.start,
+                children: const [
+                  NavigationItem(key: ValueKey(0), child: Text('Power')),
+                  NavigationItem(key: ValueKey(1), child: Text('Data')),
+                ],
+              ),
+            ),
+        ],
+        child: switch (_tabIndex) {
+          0 => const FileContainer(),
+          1 => const FixtureTableContainer(),
+          2 => const PowerPatchContainer(),
+          3 => const RacksContainer(),
+          4 => const HoistsContainer(),
+          5 => const LoomsContainer(),
+          6 => const BreakoutCablingContainer(),
+          7 => const LocationsContainer(),
+          8 => const FixtureTypesContainer(),
+          9 => const ExportContainer(),
+          10 => const DiffingScreenContainer(),
+          11 => const TheLab(),
+          12 => const DiagnosticsContainer(),
+          _ => throw "Missing Switch clause for index $_tabIndex",
+        },
+      ),
     );
   }
 }
@@ -179,9 +192,30 @@ class _NavigationItem extends StatelessWidget {
     return NavigationItem(
       key: ValueKey(index),
       style: const ButtonStyle.muted(density: ButtonDensity.icon),
-      selectedStyle: const ButtonStyle.fixed(density: ButtonDensity.icon),
+      selectedStyle: const ButtonStyle.secondary(density: ButtonDensity.icon),
       label: label,
       child: child,
+    );
+  }
+}
+
+/// Vertical separator inset into the top navigation bar to visually group
+/// related destinations (project / fixtures / distribution / rigging / dev).
+class _NavGroupDivider extends StatelessWidget {
+  const _NavGroupDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: SizedBox(
+        height: 24,
+        child: VerticalDivider(
+          width: 1,
+          thickness: 1,
+          color: Theme.of(context).colorScheme.border,
+        ),
+      ),
     );
   }
 }

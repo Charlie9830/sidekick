@@ -3,6 +3,7 @@ import 'package:sidekick/file_select_button.dart';
 import 'package:sidekick/screens/file/import_module/fixture_mapping_view_model.dart';
 import 'package:sidekick/screens/file/import_module/map_fixture_types.dart';
 import 'package:sidekick/simple_tooltip.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 
 class FixtureMappingStep extends StatelessWidget {
   final List<FixtureMappingViewModel> viewModels;
@@ -199,7 +200,7 @@ class _MappingErrorDisplay extends StatelessWidget {
           child: Row(
             spacing: 8,
             children: [
-              const Icon(Icons.error, color: Colors.red),
+              const Icon(Icons.error, color: SidekickColors.error),
               Text("Multiple matches", style: tooltipContentTextStyle),
             ],
           ),
@@ -209,7 +210,7 @@ class _MappingErrorDisplay extends StatelessWidget {
           child: Row(
             spacing: 8,
             children: [
-              const Icon(Icons.error, color: Colors.red),
+              const Icon(Icons.error, color: SidekickColors.error),
               Text("No matches", style: tooltipContentTextStyle),
             ],
           ),
@@ -219,7 +220,7 @@ class _MappingErrorDisplay extends StatelessWidget {
           child: Row(
             spacing: 8,
             children: [
-              const Icon(Icons.error, color: Colors.red),
+              const Icon(Icons.error, color: SidekickColors.error),
               Text("Invalid name (blank)", style: tooltipContentTextStyle),
             ],
           ),
@@ -275,12 +276,12 @@ class _ExistsInDatabaseIcon extends StatelessWidget {
         ? Row(
             spacing: 8,
             children: [
-              const Icon(Icons.check, color: Colors.green),
+              const Icon(Icons.check, color: SidekickColors.success),
               Text('Found in Database',
                   style: Theme.of(context)
                       .typography
                       .small
-                      .copyWith(color: Colors.green)),
+                      .copyWith(color: SidekickColors.success)),
             ],
           )
         : SimpleTooltip(
@@ -290,12 +291,12 @@ class _ExistsInDatabaseIcon extends StatelessWidget {
             child: Row(
               spacing: 8,
               children: [
-                const Icon(Icons.close, color: Colors.red),
+                const Icon(Icons.close, color: SidekickColors.error),
                 Text('Not found in Database',
                     style: Theme.of(context)
                         .typography
                         .small
-                        .copyWith(color: Colors.red)),
+                        .copyWith(color: SidekickColors.error)),
               ],
             ),
           );

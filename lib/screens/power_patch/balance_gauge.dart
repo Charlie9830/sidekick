@@ -1,4 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/utils/electrical_equations.dart';
 
 enum Variance {
@@ -37,19 +38,19 @@ class BalanceGauge extends StatelessWidget {
         Text('${phaseALoad.round().toString()}A',
             style: Theme.of(context).typography.large.copyWith(
                   fontSize: variance == Variance.small ? 12 : null,
-                  color: Colors.red,
+                  color: SidekickColors.phase1,
                 )),
         divider,
         Text('${phaseBLoad.round().toString()}A',
             style: Theme.of(context).typography.large.copyWith(
                   fontSize: variance == Variance.small ? 12 : null,
-                  color: Colors.white,
+                  color: SidekickColors.phase2,
                 )),
         divider,
         Text('${phaseCLoad.round().toString()}A',
             style: Theme.of(context).typography.large.copyWith(
                   fontSize: variance == Variance.small ? 12 : null,
-                  color: Colors.blue,
+                  color: SidekickColors.phase3,
                 )),
         SizedBox(width: variance == Variance.small ? 14 : 24),
         FocusCard(

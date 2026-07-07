@@ -4,6 +4,7 @@ import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/screens/locations/color_select_dialog.dart';
 import 'package:sidekick/screens/locations/multi_color_chit.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/widgets/property_field.dart';
 
 class AddOrEditRiggingLocation extends StatefulWidget {
@@ -92,7 +93,8 @@ class _AddOrEditRiggingLocationState extends State<AddOrEditRiggingLocation> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   IconButton.secondary(
-                    icon: const Icon(Icons.check_circle, color: Colors.green),
+                    icon: const Icon(Icons.check_circle,
+                        color: SidekickColors.success),
                     trailing: Text(
                         widget.existingLocation == null ? 'Create' : 'Update'),
                     onPressed: onSubmit,

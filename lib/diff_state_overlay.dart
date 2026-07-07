@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 
 class DiffStateOverlay extends StatelessWidget {
   final Widget child;
@@ -32,9 +33,9 @@ class DiffStateOverlay extends StatelessWidget {
   Color? _getDiffStateColor(DiffState diffState) {
     return switch (diffState) {
       DiffState.unchanged => null,
-      DiffState.added => Colors.lightGreenAccent.withAlpha(100),
-      DiffState.changed => Colors.yellow.withAlpha(75),
-      DiffState.deleted => Colors.redAccent.withAlpha(100),
+      DiffState.added => SidekickColors.diffAdded.withAlpha(100),
+      DiffState.changed => SidekickColors.diffChanged.withAlpha(90),
+      DiffState.deleted => SidekickColors.diffDeleted.withAlpha(100),
     };
   }
 }

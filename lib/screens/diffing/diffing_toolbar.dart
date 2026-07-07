@@ -37,6 +37,7 @@ class DiffingToolbar extends StatelessWidget {
           const Spacer(),
           Expanded(
             child: NavigationBar(
+              backgroundColor: Colors.transparent,
               onSelected: (key) =>
                   onTabSelected((key as ValueKey<int>).value),
               selectedKey: ValueKey(selectedTab),

@@ -1,5 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/simple_tooltip.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 
 class OverrideSettingsButton extends StatelessWidget {
   const OverrideSettingsButton({
@@ -20,7 +21,7 @@ class OverrideSettingsButton extends StatelessWidget {
       child: OutlineBadge(
           style: const ButtonStyle.outline(),
           trailing: hasOverrides
-              ? const Icon(Icons.check_circle, color: Colors.teal)
+              ? const Icon(Icons.check_circle, color: SidekickColors.success)
               : null,
           onPressed: onPressed,
           child: const Text('Settings')),

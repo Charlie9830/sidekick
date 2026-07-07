@@ -1,8 +1,9 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/screens/home/column_widths.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 
-class TableRow extends StatelessWidget {
+class TableRow extends StatefulWidget {
   final bool selected;
   final bool rangeSelected;
   final List<Widget> cells;
@@ -17,35 +18,57 @@ class TableRow extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<TableRow> createState() => _TableRowState();
+}
+
+class _TableRowState extends State<TableRow> {
+  bool _hovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    assert(cells.length == ColumnWidths.asList.length,
+    assert(widget.cells.length == ColumnWidths.asList.length,
         'Cells.length does not equal ColumnWidths.asList.length');
 
-    return InkWell(
-      onTap: () => onPressed(!selected),
-      child: Container(
-        color: rangeSelected
-            ? Colors.green[900]
-            : selected
-                ? Theme.of(context).focusColor
-                : null,
-        child: SizedBox(
-            height: 56,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-              const SizedBox(
-                  width:
-                      56), // Offset to match Header Row Left Padding (Checkbox etc),
-              ...cells
-                  .mapIndexed((index, element) => SizedBox(
-                        width: ColumnWidths.asList[index],
-                        child: cells[index],
-                      ))
-                  .toList(),
-            ])),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => widget.onPressed(!widget.selected),
+        child: Container(
+          color: _backgroundColor(),
+          child: SizedBox(
+              height: 56,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const SizedBox(
+                      width:
+                          56), // Offset to match Header Row Left Padding (Checkbox etc),
+                  ...widget.cells
+                      .mapIndexed((index, element) => SizedBox(
+                            width: ColumnWidths.asList[index],
+                            child: widget.cells[index],
+                          ))
+                      .toList(),
+                ],
+              )),
+        ),
       ),
     );
+  }
+
+  Color? _backgroundColor() {
+    if (widget.rangeSelected) {
+      return SidekickColors.rowRangeSelected;
+    }
+    if (widget.selected) {
+      return SidekickColors.rowSelected;
+    }
+    if (_hovered) {
+      return SidekickColors.rowHover;
+    }
+    return null;
   }
 }

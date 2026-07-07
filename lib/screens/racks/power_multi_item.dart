@@ -1,5 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/shad_list_item.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/widgets/hover_region.dart';
 
 class PowerMultiItem extends StatelessWidget {
@@ -21,7 +22,7 @@ class PowerMultiItem extends StatelessWidget {
         selected: selected,
         enabled: !assigned,
         leading: Icon(Icons.electric_bolt,
-            size: 16, color: assigned ? Colors.gray : Colors.yellow),
+            size: 16, color: assigned ? Colors.gray : SidekickColors.powerRun),
         title: Text(
           name,
           style: Theme.of(context)

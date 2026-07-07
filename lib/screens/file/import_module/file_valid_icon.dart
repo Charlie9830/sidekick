@@ -1,4 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 
 class FileValidIcon extends StatelessWidget {
   final bool isValid;
@@ -7,7 +8,7 @@ class FileValidIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return isValid
-        ? const Icon(Icons.check_circle, color: Colors.green)
-        : const Icon(Icons.clear_rounded, color: Colors.red);
+        ? const Icon(Icons.check_circle, color: SidekickColors.success)
+        : const Icon(Icons.clear_rounded, color: SidekickColors.error);
   }
 }

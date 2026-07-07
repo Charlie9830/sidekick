@@ -6,6 +6,7 @@ import 'package:sidekick/editable_text_field.dart';
 import 'package:sidekick/screens/racks/data_outlet_channel_content.dart';
 import 'package:sidekick/screens/racks/data_outlet_column_widths.dart';
 import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/view_models/racks_screen_view_model.dart';
 
 class DataRack extends StatefulWidget {
@@ -63,7 +64,10 @@ class _RackHeader extends StatelessWidget {
             style: Theme.of(context)
                 .typography
                 .large
-                .copyWith(color: viewModel.hasOverflowed ? Colors.amber : null),
+                .copyWith(
+                    color: viewModel.hasOverflowed
+                        ? SidekickColors.warning
+                        : null),
           ),
         ),
         const Spacer(),
@@ -148,7 +152,7 @@ class _ChannelArea extends StatelessWidget {
                           style: channelVm.isOverflowing
                               ? Theme.of(context).typography.normal.copyWith(
                                     color: channelVm.isOverflowing
-                                        ? Colors.amber
+                                        ? SidekickColors.warning
                                         : null,
                                   )
                               : Theme.of(context).typography.extraLight),

@@ -1,5 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/shad_list_item.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/widgets/hover_region.dart';
 
 class DataOutletItem extends StatelessWidget {
@@ -25,7 +26,7 @@ class DataOutletItem extends StatelessWidget {
         selected: selected,
         enabled: !assigned,
         leading: Icon(Icons.settings_input_svideo,
-            size: 16, color: assigned ? Colors.gray : Colors.blue),
+            size: 16, color: assigned ? Colors.gray : SidekickColors.dataRun),
         title: Text(
           name,
           style: Theme.of(context)

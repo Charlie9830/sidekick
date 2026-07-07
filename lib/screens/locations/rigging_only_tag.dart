@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/simple_tooltip.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 
 class RiggingOnlyTag extends StatelessWidget {
   const RiggingOnlyTag({
@@ -7,15 +9,15 @@ class RiggingOnlyTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
+    return SimpleTooltip(
       message:
           'Location intended to represent "Rigging Only" locations without any Fixtures, EG: Cable Bridge, Mothergrid',
       child: Container(
         decoration: BoxDecoration(
-            color: Colors.grey.shade900,
+            color: SidekickColors.neutralFlag,
             borderRadius: BorderRadius.circular(4.0)),
         padding: const EdgeInsets.all(4.0),
-        child: Text('Rigging', style: Theme.of(context).textTheme.bodySmall),
+        child: Text('Rigging', style: Theme.of(context).typography.small),
       ),
     );
   }
