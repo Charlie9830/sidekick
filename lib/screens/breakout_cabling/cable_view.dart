@@ -3,6 +3,7 @@ import 'package:collection/collection.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/cable_graph/cable_graph.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
+import 'package:sidekick/screens/breakout_cabling/route_tuning_control.dart';
 import 'package:sidekick/screens/breakout_cabling/visibility_control.dart';
 import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
@@ -27,6 +28,7 @@ class CableView extends StatefulWidget {
 class _CableViewState extends State<CableView> {
   final TransformationController _controller = TransformationController();
   double _labelOpacity = 0;
+  CableRouteTuning _tuning = const CableRouteTuning();
 
   @override
   void initState() {
@@ -235,6 +237,15 @@ class _CableViewState extends State<CableView> {
           left: 8,
           child: _Legend(),
         ),
+        Positioned(
+          top: 8,
+          right: 8,
+          width: 200,
+          child: RouteTuningControl(
+            tuning: _tuning,
+            onChanged: (tuning) => setState(() => _tuning = tuning),
+          ),
+        ),
       ],
     );
   }
@@ -253,6 +264,7 @@ class _CableViewState extends State<CableView> {
       to: toOffset,
       runType: edge.runType,
       label: _formatLength(edge.length),
+      tuning: _tuning,
     );
   }
 
@@ -270,6 +282,7 @@ class _CableViewState extends State<CableView> {
       to: toOffset,
       label: _formatLength(edge.length),
       runType: edge.runType,
+      tuning: _tuning,
     );
   }
 
@@ -670,17 +683,19 @@ class _PowerCableEdge extends StatelessWidget {
   final Offset to;
   final String? label;
   final CableRunType runType;
+  final CableRouteTuning tuning;
 
   const _PowerCableEdge({
     required this.from,
     required this.to,
     required this.runType,
+    required this.tuning,
     this.label,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ArcConnector(
+    return ChannelConnector(
       start: from,
       end: to,
       color: switch (runType) {
@@ -694,7 +709,9 @@ class _PowerCableEdge extends StatelessWidget {
         CableRunType.homeRun => 2,
       },
       label: label,
-      arcRadius: const Radius.elliptical(20, 20),
+      riser: tuning.powerRiser((to.dx - from.dx).abs()),
+      cornerRadius: tuning.cornerRadius,
+      directionUp: CableRouteTuning.directionUpFor(runType),
     );
   }
 }
@@ -704,17 +721,19 @@ class _DataCableEdge extends StatelessWidget {
   final Offset to;
   final String? label;
   final CableRunType runType;
+  final CableRouteTuning tuning;
 
   const _DataCableEdge({
     required this.from,
     required this.to,
     required this.runType,
+    required this.tuning,
     this.label,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ArcConnector(
+    return ChannelConnector(
       start: from,
       end: to,
       color: switch (runType) {
@@ -728,8 +747,9 @@ class _DataCableEdge extends StatelessWidget {
         CableRunType.homeRun => 2,
       },
       label: label,
-      clockwise: false,
-      arcRadius: const Radius.elliptical(20, 20),
+      riser: tuning.dataRiser((to.dx - from.dx).abs()),
+      cornerRadius: tuning.cornerRadius,
+      directionUp: CableRouteTuning.directionUpFor(runType),
     );
   }
 }
