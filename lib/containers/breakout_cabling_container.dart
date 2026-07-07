@@ -4,12 +4,25 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 
 import 'package:sidekick/cable_graph/cable_graph.dart';
+import 'package:sidekick/cable_graph/view_projection.dart';
 import 'package:sidekick/data_selectors/select_cable_qtys.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
+import 'package:sidekick/redux/models/truss_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/breakout_cabling/breakout_cabling.dart';
 import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
+
+/// The viewpoint used to flatten the 3D rig into the cable view. Swapping this
+/// (e.g. for a front or side view) re-orients fixtures, cables and trusses
+/// together, because every world coordinate is projected through it here at the
+/// container level rather than in the widgets.
+const ViewProjection _kProjection = PlanProjection();
+
+/// Diagram-space nudge (mm) that lifts header/location markers clear of the
+/// fixtures they serve, so overlapping outlets stay legible. Presentation only;
+/// it never feeds into cable-length calculations.
+const double _kHeaderDiagramOffsetMm = 600;
 
 class BreakoutCablingContainer extends StatelessWidget {
   const BreakoutCablingContainer({Key? key}) : super(key: key);
@@ -58,7 +71,7 @@ CableViewViewModel _selectCableViewVm({
     return CableViewViewModel(
       elements: [],
       edges: [],
-      trusses: _selectTrussVms(store),
+      trusses: _selectTrussVms(store, _kProjection),
       cableVisibility: store.state.navstate.breakoutCableVisibility,
       onVisibilityChanged: (value) => store.dispatch(
         SetBreakoutCableVisibilityState(value),
@@ -71,7 +84,9 @@ CableViewViewModel _selectCableViewVm({
 
   for (final node in graph.walk(locationNode)) {
     nodeElements.putIfAbsent(
-        node.id, () => _buildNodeElement(node: node, fixtureVms: fixtureVms));
+        node.id,
+        () => _buildNodeElement(
+            node: node, fixtureVms: fixtureVms, projection: _kProjection));
 
     for (final edge in node.edges) {
       edgeElements.add(_buildEdgeElement(
@@ -79,18 +94,22 @@ CableViewViewModel _selectCableViewVm({
           fromElement: nodeElements.putIfAbsent(
               edge.from,
               () => _buildNodeElement(
-                  node: graph.getNode(edge.from)!, fixtureVms: fixtureVms)),
+                  node: graph.getNode(edge.from)!,
+                  fixtureVms: fixtureVms,
+                  projection: _kProjection)),
           toElement: nodeElements.putIfAbsent(
               edge.to,
               () => _buildNodeElement(
-                  node: graph.getNode(edge.to)!, fixtureVms: fixtureVms))));
+                  node: graph.getNode(edge.to)!,
+                  fixtureVms: fixtureVms,
+                  projection: _kProjection))));
     }
   }
 
   return CableViewViewModel(
     elements: nodeElements.values.toList(),
     edges: edgeElements,
-    trusses: _selectTrussVms(store),
+    trusses: _selectTrussVms(store, _kProjection),
     cableVisibility: store.state.navstate.breakoutCableVisibility,
     onVisibilityChanged: (value) => store.dispatch(
       SetBreakoutCableVisibilityState(value),
@@ -101,32 +120,49 @@ CableViewViewModel _selectCableViewVm({
 NodeElement _buildNodeElement({
   required Node node,
   required Map<String, FixtureViewModel> fixtureVms,
+  required ViewProjection projection,
 }) {
-  return switch (node) {
-    FixtureNode() => FixtureElement(fixtureVm: fixtureVms[node.id]!),
-    PowerMultiHeaderNode() => PowerMultiHeaderElement(
-        screenX: node.screenX,
-        screenY: node.screenY,
-        powerMultiVm: PowerMultiHeaderViewModel(
-            type: node.cableType, name: node.outletName)),
-    LocationNode() => LocationElement(
-        locationId: node.locationId,
-        screenX: node.screenX,
-        screenY: node.screenY),
-    DataMultiHeaderNode() => DataMultiHeaderElement(
-        outletName: node.outletName,
-        screenX: node.screenX,
-        screenY: node.screenY),
-    DataPatchHeaderNode() => DataPatchHeaderElement(
-        outletName: node.outletName,
-        universe: node.universe,
-        screenX: node.screenX,
-        screenY: node.screenY),
-    TrussBreakNode() => TrussBreakElement(
-        screenX: node.screenX,
-        screenY: node.screenY),
-  };
+  switch (node) {
+    case FixtureNode():
+      final fixtureVm = fixtureVms[node.id]!;
+      final fixture = fixtureVm.fixture;
+      final p = projection.project(fixture.x, fixture.y, fixture.z);
+      return FixtureElement(
+          fixtureVm: fixtureVm, screenX: p.dx, screenY: p.dy);
+    case PowerMultiHeaderNode():
+      final p = _projectHeader(projection, node.x, node.y, node.z);
+      return PowerMultiHeaderElement(
+          screenX: p.dx,
+          screenY: p.dy,
+          powerMultiVm: PowerMultiHeaderViewModel(
+              type: node.cableType, name: node.outletName));
+    case LocationNode():
+      final p = _projectHeader(projection, node.x, node.y, node.z);
+      return LocationElement(
+          locationId: node.locationId, screenX: p.dx, screenY: p.dy);
+    case DataMultiHeaderNode():
+      final p = _projectHeader(projection, node.x, node.y, node.z);
+      return DataMultiHeaderElement(
+          outletName: node.outletName, screenX: p.dx, screenY: p.dy);
+    case DataPatchHeaderNode():
+      final p = _projectHeader(projection, node.x, node.y, node.z);
+      return DataPatchHeaderElement(
+          outletName: node.outletName,
+          universe: node.universe,
+          screenX: p.dx,
+          screenY: p.dy);
+    case TrussBreakNode():
+      final p = projection.project(node.x, node.y, node.z);
+      return TrussBreakElement(screenX: p.dx, screenY: p.dy);
+  }
 }
+
+/// Projects a header/location marker and lifts it clear of its fixtures.
+Offset _projectHeader(
+        ViewProjection projection, double x, double y, double z) =>
+    projection
+        .project(x, y, z)
+        .translate(0, -_kHeaderDiagramOffsetMm);
 
 EdgeElement _buildEdgeElement(
     {required Edge edge,
@@ -146,19 +182,36 @@ EdgeElement _buildEdgeElement(
   };
 }
 
-List<TrussViewModel> _selectTrussVms(Store<AppState> store) {
+List<TrussViewModel> _selectTrussVms(
+    Store<AppState> store, ViewProjection projection) {
   return store.state.fixtureState.trusses.values
       .where((truss) => truss.length > 0)
       .map((truss) => TrussViewModel(
             uid: truss.uid,
             name: truss.name,
-            x: truss.x,
-            y: truss.y,
-            rotationZ: truss.rotationZ,
-            length: truss.length,
-            width: truss.width,
+            hull: _projectTrussHull(truss, projection),
           ))
       .toList();
+}
+
+/// Projects a truss's eight world corners into diagram space and returns their
+/// outline, so the painter draws the correct footprint for any orientation.
+List<Offset> _projectTrussHull(TrussModel truss, ViewProjection projection) {
+  final halfLength = truss.lengthAxis * (truss.length / 2);
+  final halfWidth = truss.widthAxis * (truss.width / 2);
+  final halfHeight = truss.heightAxis * (truss.height / 2);
+
+  final corners = <Offset>[
+    for (final sl in const [-1.0, 1.0])
+      for (final sw in const [-1.0, 1.0])
+        for (final sh in const [-1.0, 1.0])
+          projection.projectVector(truss.center +
+              halfLength * sl +
+              halfWidth * sw +
+              halfHeight * sh),
+  ];
+
+  return convexHull(corners);
 }
 
 CableGraph _selectCableGraph(Store<AppState> store) {

@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:mvr/mvr.dart';
+import 'package:sidekick/cable_graph/vector3.dart';
 import 'package:sidekick/screens/file/import_module/patch_import_settings.dart';
 
 import 'package:sidekick/screens/file/import_module/raw_truss_model.dart';
@@ -40,28 +41,31 @@ Future<ImportRawTrussesResult> _readMvrTrussing({
       .toList();
 
   return ImportRawTrussesResult(
-    trusses: trusses
-        .map(
-          (truss) => RawTrussModel(
-            mvrId: truss.uuid,
-            name: truss.name,
-            classing: truss.classing,
-            rotationX: truss.matrix.rotationX,
-            rotationY: truss.matrix.rotationY,
-            rotationZ: truss.matrix.rotationZ,
-            length: truss.length,
-            width: truss.width,
-            height: truss.height,
-            offsetLength: truss.offsetLength,
-            offsetWidth: truss.offsetWidth,
-            offsetHeight: truss.offsetHeight,
-            x: truss.matrix.x,
-            y: truss.matrix.y,
-            z: truss.matrix.z,
-          ),
-        )
-        .toList(),
+    trusses: trusses.map(_mapTruss).toList(),
     error: '',
+  );
+}
+
+/// Maps a parsed [MVRTruss] into the app's [RawTrussModel].
+///
+/// The centroid comes from the truss's world bounding-box centre and the local
+/// dimensions from its object-space box, both already in mm. The orientation is
+/// taken as the (normalised) basis rows of the transform matrix, so any rake or
+/// roll of the truss is preserved rather than collapsed to a Z rotation.
+RawTrussModel _mapTruss(MVRTruss truss) {
+  Vector3 axis(MVRVector3 v) => Vector3(v.x, v.y, v.z).normalized;
+
+  return RawTrussModel(
+    mvrId: truss.uuid,
+    name: truss.name,
+    classing: truss.classing,
+    center: Vector3(truss.center.x, truss.center.y, truss.center.z),
+    lengthAxis: axis(truss.matrix.xAxis),
+    widthAxis: axis(truss.matrix.yAxis),
+    heightAxis: axis(truss.matrix.zAxis),
+    length: truss.objectBoundingBox.length,
+    width: truss.objectBoundingBox.width,
+    height: truss.objectBoundingBox.height,
   );
 }
 

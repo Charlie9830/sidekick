@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:sidekick/cable_graph/cable_graph.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
@@ -70,29 +72,25 @@ class CableViewViewModel {
   });
 }
 
-/// The geometry of a single truss stick, expressed in world coordinates (mm)
-/// for rendering the physical rig layout beneath the cabling.
+/// A single truss stick's footprint, already projected into diagram space.
+///
+/// [hull] is the ordered outline (mm, diagram space) of the truss's eight
+/// world corners as seen from the current [ViewProjection], so the painter can
+/// draw it directly without knowing anything about world orientation.
 class TrussViewModel {
   final String uid;
   final String name;
-  final double x;
-  final double y;
-  final double rotationZ;
-  final double length;
-  final double width;
+  final List<Offset> hull;
 
   TrussViewModel({
     required this.uid,
     required this.name,
-    required this.x,
-    required this.y,
-    required this.rotationZ,
-    required this.length,
-    required this.width,
+    required this.hull,
   });
 }
 
 sealed class NodeElement {
+  /// Position in diagram space (mm, post-[ViewProjection], pre-viewport fit).
   final double screenX;
   final double screenY;
 
@@ -107,10 +105,9 @@ class FixtureElement extends NodeElement {
 
   FixtureElement({
     required this.fixtureVm,
-  }) : super(
-          screenX: fixtureVm.fixture.screenX,
-          screenY: fixtureVm.fixture.screenY,
-        );
+    required super.screenX,
+    required super.screenY,
+  });
 }
 
 class LocationElement extends NodeElement {

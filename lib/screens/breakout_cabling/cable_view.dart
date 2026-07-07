@@ -3,7 +3,6 @@ import 'package:collection/collection.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/cable_graph/cable_graph.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
-import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/screens/breakout_cabling/visibility_control.dart';
 import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
@@ -64,11 +63,15 @@ class _CableViewState extends State<CableView> {
           transformationController: _controller,
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final viewport = ViewportTransformer.fromFixtures(
-                fixtures: widget.vm.elements
-                    .whereType<FixtureElement>()
-                    .map((e) => e.fixtureVm.fixture)
-                    .toList(),
+              // Fit the viewport over every projected point — fixtures, headers
+              // and truss outlines alike — so nothing is clipped or offset.
+              final points = <Offset>[
+                for (final element in widget.vm.elements)
+                  Offset(element.screenX, element.screenY),
+                for (final truss in widget.vm.trusses) ...truss.hull,
+              ];
+              final viewport = ViewportTransformer.fit(
+                points: points,
                 constraints: constraints,
               );
 
@@ -294,15 +297,17 @@ class ViewportTransformer {
     required this.minY,
   });
 
-  factory ViewportTransformer.fromFixtures({
-    required List<FixtureModel> fixtures,
+  factory ViewportTransformer.fit({
+    required Iterable<Offset> points,
     required BoxConstraints constraints,
     double padding = 240.0,
   }) {
-    double minX = fixtures.map((f) => f.screenX).minOrNull ?? 0;
-    double maxX = fixtures.map((f) => f.screenX).maxOrNull ?? 0;
-    double minY = fixtures.map((f) => f.screenY).minOrNull ?? 0;
-    double maxY = fixtures.map((f) => f.screenY).maxOrNull ?? 0;
+    final xs = points.map((p) => p.dx).toList();
+    final ys = points.map((p) => p.dy).toList();
+    double minX = xs.minOrNull ?? 0;
+    double maxX = xs.maxOrNull ?? 0;
+    double minY = ys.minOrNull ?? 0;
+    double maxY = ys.maxOrNull ?? 0;
 
     final mmWidth = maxX - minX;
     final mmHeight = maxY - minY;
@@ -634,32 +639,18 @@ class _TrussPainter extends CustomPainter {
       ..strokeWidth = 1;
 
     for (final truss in trusses) {
-      final radians = truss.rotationZ * pi / 180.0;
-      final axisX = cos(radians);
-      final axisY = sin(radians);
-      final perpX = -sin(radians);
-      final perpY = cos(radians);
-      final halfLength = truss.length / 2;
-      final halfWidth = truss.width / 2;
+      if (truss.hull.length < 2) continue;
 
-      Offset corner(double along, double across) {
-        final worldX = truss.x + axisX * along + perpX * across;
-        final worldY = truss.y + axisY * along + perpY * across;
-        // Fixtures negate Y to move from world to screen space; match that here.
-        return viewport.transform(worldX, -worldY);
+      // The hull is already projected into diagram space; only the viewport fit
+      // remains, so a truss lands in the same frame as its fixtures and cables.
+      final path = Path();
+      final start = viewport.transform(truss.hull.first.dx, truss.hull.first.dy);
+      path.moveTo(start.dx, start.dy);
+      for (final point in truss.hull.skip(1)) {
+        final p = viewport.transform(point.dx, point.dy);
+        path.lineTo(p.dx, p.dy);
       }
-
-      final c1 = corner(halfLength, halfWidth);
-      final c2 = corner(halfLength, -halfWidth);
-      final c3 = corner(-halfLength, -halfWidth);
-      final c4 = corner(-halfLength, halfWidth);
-
-      final path = Path()
-        ..moveTo(c1.dx, c1.dy)
-        ..lineTo(c2.dx, c2.dy)
-        ..lineTo(c3.dx, c3.dy)
-        ..lineTo(c4.dx, c4.dy)
-        ..close();
+      path.close();
 
       canvas.drawPath(path, fillPaint);
       canvas.drawPath(path, strokePaint);

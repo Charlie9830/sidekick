@@ -12,6 +12,7 @@ import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
 import 'package:sidekick/redux/models/truss_model.dart';
 import 'package:sidekick/cable_graph/truss_geometry.dart';
+import 'package:sidekick/cable_graph/vector3.dart';
 import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
 
 sealed class Node {
@@ -81,11 +82,6 @@ class DataMultiHeaderNode extends MultiHeaderNode {
   final double y;
   final double z;
 
-  double get screenX => x;
-  double get screenY =>
-      (y * -1) -
-      600; // 2' Offset. // TODO: This is a bit Jank. We should be calculating Screen Coords later on in the Process.
-
   DataMultiHeaderNode({
     required this.outletId,
     required this.outletName,
@@ -106,11 +102,6 @@ class DataPatchHeaderNode extends Node {
   final double x;
   final double y;
   final double z;
-
-  double get screenX => x;
-  double get screenY =>
-      (y * -1) -
-      600; // 2' Offset. // TODO: This is a bit Jank. We should be calculating Screen Coords later on in the Process.
 
   DataPatchHeaderNode({
     required this.outletId,
@@ -133,11 +124,6 @@ class PowerMultiHeaderNode extends MultiHeaderNode {
   final double y;
   final double z;
 
-  double get screenX => x;
-  double get screenY =>
-      (y * -1) -
-      600; // 2' Offset. // TODO: This is a bit Jank. We should be calculating Screen Coords later on in the Process.
-
   PowerMultiHeaderNode({
     required this.outletId,
     required this.outletName,
@@ -155,9 +141,6 @@ class LocationNode extends Node {
   final double x;
   final double y;
   final double z;
-
-  double get screenX => x;
-  double get screenY => (y * -1) - 600; // 2' Offset.
 
   LocationNode({
     required this.locationId,
@@ -177,12 +160,6 @@ class TrussBreakNode extends Node {
   final double x;
   final double y;
   final double z;
-
-  double get screenX => x;
-  // A truss break physically sits on the truss line, so it uses the same raw
-  // world-to-screen mapping as fixtures (no header "2' offset"), keeping it
-  // aligned with the drawn truss geometry.
-  double get screenY => y * -1;
 
   TrussBreakNode({
     required super.id,
@@ -336,6 +313,7 @@ CableGraph buildCableGraph({
     final powerMultiNodes = _buildPowerMultiHeaderNodes(
       powerMultis.values.where((multi) => multi.locationId == location.uid),
       fixturesInLocation,
+      truss,
     );
     graph.addNodes(powerMultiNodes);
 
@@ -344,7 +322,8 @@ CableGraph buildCableGraph({
             .where((patch) => patch.locationId == location.uid),
         cables: cables,
         fixtures: fixturesInLocation,
-        dataMultis: dataMultis);
+        dataMultis: dataMultis,
+        truss: truss);
 
     graph.addNodes(dataMultiNodes);
     graph.addNodes(dataPatchNodes);
@@ -492,6 +471,20 @@ class _TrussContext {
 
     return _TrussContext(geometry: geometry, assignments: assignments);
   }
+
+  /// Length of a home run from a header at [from] to [fixture].
+  ///
+  /// Trussed fixtures follow their run's chord (entering at the nearest point);
+  /// floor fixtures fall back to a straight line plus a [kFloorRiserMm] riser.
+  double homeRunLength(Vector3 from, FixtureModel fixture) {
+    final assignment = assignments[fixture.uid];
+    if (assignment != null) {
+      final length = geometry.homeRunLength(from: from, assignment: assignment);
+      if (length != null) return length;
+    }
+    return from.distanceTo(Vector3(fixture.x, fixture.y, fixture.z)) +
+        kFloorRiserMm;
+  }
 }
 
 /// Builds the cable edge(s) for a fixture-to-fixture run, splitting at any truss
@@ -513,8 +506,8 @@ List<CableEdge> _buildRunEdges({
   required List<double> breakpoints,
 }) {
   final split = truss.geometry.splitRun(
-    from: (x: from.x, y: from.y, z: from.z),
-    to: (x: to.x, y: to.y, z: to.z),
+    from: Vector3(from.x, from.y, from.z),
+    to: Vector3(to.x, to.y, to.z),
     fromAssignment: truss.assignments[from.uid],
     toAssignment: truss.assignments[to.uid],
   );
@@ -575,7 +568,9 @@ List<CableEdge> _buildRunEdges({
 }
 
 List<PowerMultiHeaderNode> _buildPowerMultiHeaderNodes(
-    Iterable<PowerMultiOutletModel> outlets, Iterable<FixtureModel> fixtures) {
+    Iterable<PowerMultiOutletModel> outlets,
+    Iterable<FixtureModel> fixtures,
+    _TrussContext truss) {
   return outlets.map((outlet) {
     final downstreamFixtures =
         fixtures.where((fix) => fix.powerMultiOutletId == outlet.uid).toList();
@@ -597,14 +592,14 @@ List<PowerMultiHeaderNode> _buildPowerMultiHeaderNodes(
           // Create edges representing the Fixture Home Runs. That is the cables that go from the Header to the first (or only) fixture of each circuit.
           ..._extractFirstFixturesInPower(outlet.uid, downstreamFixtures)
               .map((fix) {
-            final eucLength = fix.distanceToCoord(x, y, z);
+            final runLength = truss.homeRunLength(Vector3(x, y, z), fix);
             return CableEdge(
               from: outlet.uid,
               to: fix.uid,
-              euclidianLength: eucLength,
+              euclidianLength: runLength,
               runType: CableRunType.fixtureRun,
               length: _roundUpCableLength(
-                  eucLength,
+                  runLength,
                   CableLengthBreakpoints
                       .au10A), // TODO: Tie to actual Cable Type.
               locationId: outlet.locationId,
@@ -621,6 +616,7 @@ List<PowerMultiHeaderNode> _buildPowerMultiHeaderNodes(
   required Map<String, CableModel> cables,
   required Iterable<FixtureModel> fixtures,
   required Map<String, DataMultiModel> dataMultis,
+  required _TrussContext truss,
 }) {
   final cablesByOutletId =
       cables.values.groupListsBy((cable) => cable.outletId);
@@ -644,8 +640,9 @@ List<PowerMultiHeaderNode> _buildPowerMultiHeaderNodes(
 
   final dataPatchNodes = dataPatches.map((outlet) {
     final firstFixture = universeLeaders[outlet.universe];
-    final eucLength =
-        firstFixture?.distanceToCoord(firstX, firstY, firstZ) ?? 0;
+    final runLength = firstFixture == null
+        ? 0.0
+        : truss.homeRunLength(Vector3(firstX, firstY, firstZ), firstFixture);
     return DataPatchHeaderNode(
         outletId: outlet.uid,
         outletName: outlet.name,
@@ -658,9 +655,9 @@ List<PowerMultiHeaderNode> _buildPowerMultiHeaderNodes(
         edges: {
           if (firstFixture != null)
             CableEdge(
-              euclidianLength: eucLength,
+              euclidianLength: runLength,
               length:
-                  _roundUpCableLength(eucLength, CableLengthBreakpoints.dmx),
+                  _roundUpCableLength(runLength, CableLengthBreakpoints.dmx),
               from: outlet.uid,
               to: firstFixture.uid,
               locationId: outlet.locationId,

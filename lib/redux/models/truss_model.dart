@@ -1,24 +1,40 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
+import 'dart:math' as math;
 
+import 'package:sidekick/cable_graph/vector3.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 
 /// A single physical truss stick imported from an MVR.
 ///
 /// Each [TrussModel] represents one truss section; the boundary between two
 /// adjacent collinear sticks is a "join" where cables must be broken.
+///
+/// The stick is modelled as an oriented box: [center] is its world-space
+/// centroid (mm) and [lengthAxis], [widthAxis] and [heightAxis] are the unit
+/// world directions of its local length, width and height axes. Storing the
+/// full basis (rather than a single Z rotation) lets the geometry engine handle
+/// trusses raked or rolled about any axis, not just flat ones.
 class TrussModel implements ModelCollectionMember {
   @override
   final String uid;
   final String mvrId;
   final String name;
   final String classing;
-  final double x;
-  final double y;
-  final double z;
-  final double rotationX;
-  final double rotationY;
-  final double rotationZ;
+
+  /// World-space centroid of the stick (mm).
+  final Vector3 center;
+
+  /// Unit world direction of the stick's local length (long) axis.
+  final Vector3 lengthAxis;
+
+  /// Unit world direction of the stick's local width axis.
+  final Vector3 widthAxis;
+
+  /// Unit world direction of the stick's local height (up) axis.
+  final Vector3 heightAxis;
+
+  /// Physical dimensions of the stick in its own local frame (mm).
   final double length;
   final double width;
   final double height;
@@ -28,28 +44,41 @@ class TrussModel implements ModelCollectionMember {
     this.mvrId = '',
     this.name = '',
     this.classing = '',
-    this.x = 0,
-    this.y = 0,
-    this.z = 0,
-    this.rotationX = 0,
-    this.rotationY = 0,
-    this.rotationZ = 0,
+    this.center = Vector3.zero,
+    this.lengthAxis = Vector3.unitX,
+    this.widthAxis = Vector3.unitY,
+    this.heightAxis = Vector3.unitZ,
     this.length = 0,
     this.width = 0,
     this.height = 0,
   });
+
+  /// World X of the centroid.
+  double get x => center.x;
+
+  /// World Y of the centroid.
+  double get y => center.y;
+
+  /// World Z of the centroid.
+  double get z => center.z;
+
+  /// The stick's orientation about the vertical (Z) axis, in degrees.
+  ///
+  /// Derived from the length axis for the top-down plan view. Trusses raked out
+  /// of the horizontal plane also carry that information in [lengthAxis] /
+  /// [heightAxis]; this getter only exposes the planar component.
+  double get rotationZ =>
+      math.atan2(lengthAxis.y, lengthAxis.x) * 180 / math.pi;
 
   TrussModel copyWith({
     String? uid,
     String? mvrId,
     String? name,
     String? classing,
-    double? x,
-    double? y,
-    double? z,
-    double? rotationX,
-    double? rotationY,
-    double? rotationZ,
+    Vector3? center,
+    Vector3? lengthAxis,
+    Vector3? widthAxis,
+    Vector3? heightAxis,
     double? length,
     double? width,
     double? height,
@@ -59,12 +88,10 @@ class TrussModel implements ModelCollectionMember {
       mvrId: mvrId ?? this.mvrId,
       name: name ?? this.name,
       classing: classing ?? this.classing,
-      x: x ?? this.x,
-      y: y ?? this.y,
-      z: z ?? this.z,
-      rotationX: rotationX ?? this.rotationX,
-      rotationY: rotationY ?? this.rotationY,
-      rotationZ: rotationZ ?? this.rotationZ,
+      center: center ?? this.center,
+      lengthAxis: lengthAxis ?? this.lengthAxis,
+      widthAxis: widthAxis ?? this.widthAxis,
+      heightAxis: heightAxis ?? this.heightAxis,
       length: length ?? this.length,
       width: width ?? this.width,
       height: height ?? this.height,
@@ -77,12 +104,10 @@ class TrussModel implements ModelCollectionMember {
       'mvrId': mvrId,
       'name': name,
       'classing': classing,
-      'x': x,
-      'y': y,
-      'z': z,
-      'rotationX': rotationX,
-      'rotationY': rotationY,
-      'rotationZ': rotationZ,
+      'center': center.toMap(),
+      'lengthAxis': lengthAxis.toMap(),
+      'widthAxis': widthAxis.toMap(),
+      'heightAxis': heightAxis.toMap(),
       'length': length,
       'width': width,
       'height': height,
@@ -90,17 +115,24 @@ class TrussModel implements ModelCollectionMember {
   }
 
   factory TrussModel.fromMap(Map<String, dynamic> map) {
+    Vector3 axis(String key, Vector3 fallback) {
+      final value = map[key];
+      return value is Map<String, dynamic> ? Vector3.fromMap(value) : fallback;
+    }
+
+    final center = map['center'] is Map<String, dynamic>
+        ? Vector3.fromMap(map['center'] as Map<String, dynamic>)
+        : Vector3.zero;
+
     return TrussModel(
       uid: (map['uid'] ?? '') as String,
       mvrId: (map['mvrId'] ?? '') as String,
       name: (map['name'] ?? '') as String,
       classing: (map['classing'] ?? '') as String,
-      x: (map['x'] ?? 0).toDouble(),
-      y: (map['y'] ?? 0).toDouble(),
-      z: (map['z'] ?? 0).toDouble(),
-      rotationX: (map['rotationX'] ?? 0).toDouble(),
-      rotationY: (map['rotationY'] ?? 0).toDouble(),
-      rotationZ: (map['rotationZ'] ?? 0).toDouble(),
+      center: center,
+      lengthAxis: axis('lengthAxis', Vector3.unitX),
+      widthAxis: axis('widthAxis', Vector3.unitY),
+      heightAxis: axis('heightAxis', Vector3.unitZ),
       length: (map['length'] ?? 0).toDouble(),
       width: (map['width'] ?? 0).toDouble(),
       height: (map['height'] ?? 0).toDouble(),

@@ -1,5 +1,8 @@
-import 'dart:math';
+import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
+
+import 'package:sidekick/cable_graph/vector3.dart';
 import 'package:sidekick/redux/models/truss_model.dart';
 
 /// Distance (in mm) within which a fixture is considered to be hanging from a
@@ -8,223 +11,398 @@ import 'package:sidekick/redux/models/truss_model.dart';
 const double kTrussAssignmentToleranceMm = 2500;
 
 /// Tolerance (in mm) for deciding that two stick end-points coincide and that
-/// the sticks therefore share a join.
+/// the sticks therefore share a join (whether in-line or around a corner).
 const double kJoinCoincidenceToleranceMm = 250;
 
-/// A 3D point expressed as a record. All coordinates are in millimetres.
-typedef Point3 = ({double x, double y, double z});
+/// Cables are dressed to the truss chord that is *furthest* from the fixtures,
+/// but only if that chord is no more than this far beyond the nearest chord.
+/// This picks the far rail for normal box truss while guarding against routing
+/// cable to an absurd corner on an oversized or compound truss line.
+const double kFurthestChordCapMm = 800;
 
-/// Where a fixture hangs: which truss line and the index of the stick within it.
+/// The vertical allowance (in mm) added at each end of a run for a floor
+/// (un-trussed) fixture, standing in for the drop from the cable to the fixture.
+const double kFloorRiserMm = 500;
+
+/// Where a fixture attaches to a truss run: which run, and its foot position and
+/// riser on that run's chosen cable chord.
 class TrussAssignment {
-  final String lineId;
-  final int sectionIndex;
-  final String stickUid;
+  /// Id of the truss run the fixture hangs from.
+  final String runId;
+
+  /// Arc-length (mm) of the fixture's foot along the run's chosen chord.
+  final double s;
+
+  /// Perpendicular distance (mm) from the fixture to that chord.
+  final double riser;
 
   const TrussAssignment({
-    required this.lineId,
-    required this.sectionIndex,
-    required this.stickUid,
+    required this.runId,
+    required this.s,
+    required this.riser,
   });
 }
 
-/// The result of splitting a cable run at the truss joins it crosses.
+/// The result of routing a cable run, split at the truss joins it crosses.
 ///
 /// [segmentLengths] always has one more entry than [breakPoints]. Lengths are
-/// the raw euclidean length (mm) of each segment, before rounding to a cable
-/// breakpoint.
+/// the raw run length (mm) of each segment — including the vertical risers at
+/// the two ends — before rounding to a cable breakpoint.
 class RunSplit {
   final List<double> segmentLengths;
-  final List<Point3> breakPoints;
+  final List<Vector3> breakPoints;
 
   const RunSplit({required this.segmentLengths, required this.breakPoints});
 
   bool get hasBreaks => breakPoints.isNotEmpty;
 }
 
-class _StickInfo {
+/// One physical truss stick, modelled as an oriented box.
+class _Stick {
   final String uid;
-  final Point3 centre;
-  final Point3 axis;
-  final double halfLength;
-  final double halfWidth;
-  final double halfHeight;
-  String lineId = '';
-  int index = 0;
+  final Vector3 center;
+  final Vector3 lAxis;
+  final Vector3 wAxis;
+  final Vector3 hAxis;
+  final double halfL;
+  final double halfW;
+  final double halfH;
 
-  _StickInfo({
+  /// The stick's ends after it is oriented within its run (start → finish along
+  /// the run direction). Defaults to the raw length-axis ends.
+  Vector3 startEnd;
+  Vector3 finishEnd;
+
+  _Stick({
     required this.uid,
-    required this.centre,
-    required this.axis,
-    required this.halfLength,
-    required this.halfWidth,
-    required this.halfHeight,
-  });
+    required this.center,
+    required this.lAxis,
+    required this.wAxis,
+    required this.hAxis,
+    required this.halfL,
+    required this.halfW,
+    required this.halfH,
+  })  : startEnd = center - lAxis * halfL,
+        finishEnd = center + lAxis * halfL;
 
-  Point3 get endA => (
-        x: centre.x - axis.x * halfLength,
-        y: centre.y - axis.y * halfLength,
-        z: centre.z - axis.z * halfLength,
-      );
+  Vector3 get rawEnd0 => center - lAxis * halfL;
+  Vector3 get rawEnd1 => center + lAxis * halfL;
 
-  Point3 get endB => (
-        x: centre.x + axis.x * halfLength,
-        y: centre.y + axis.y * halfLength,
-        z: centre.z + axis.z * halfLength,
-      );
+  /// Shortest distance from [p] to this stick's oriented bounding box.
+  double distanceToBox(Vector3 p) {
+    final d = p - center;
+    final lx = d.dot(lAxis);
+    final ly = d.dot(wAxis);
+    final lz = d.dot(hAxis);
+    final ox = lx - lx.clamp(-halfL, halfL);
+    final oy = ly - ly.clamp(-halfW, halfW);
+    final oz = lz - lz.clamp(-halfH, halfH);
+    return math.sqrt(ox * ox + oy * oy + oz * oz);
+  }
 }
 
-/// Pre-computed truss topology: each stick's line membership and ordering, plus
-/// the world-space join points between consecutive sticks of a line.
+/// A connected chain of sticks (possibly bending around corners), plus the
+/// single cable chord chosen for it once its fixtures are known.
+class _Run {
+  final String id;
+  final List<_Stick> sticks;
+
+  /// The chosen cable chord as a polyline, set by [chooseChord].
+  _Polyline? chord;
+
+  /// Arc-lengths (mm) along [chord] of the interior joins between sticks.
+  List<double> joinArcLengths = const [];
+
+  _Run(this.id, this.sticks);
+
+  /// Picks the cable chord: the longitudinal edge furthest from [fixtures] whose
+  /// mean fixture distance is within [kFurthestChordCapMm] of the nearest edge.
+  void chooseChord(List<Vector3> fixtures) {
+    const patterns = [(-1.0, -1.0), (-1.0, 1.0), (1.0, -1.0), (1.0, 1.0)];
+
+    final candidates = patterns.map((pattern) {
+      final built = _buildChord(pattern.$1, pattern.$2);
+      final mean = fixtures.isEmpty
+          ? 0.0
+          : fixtures
+                  .map((f) => built.poly.project(f).distance)
+                  .reduce((a, b) => a + b) /
+              fixtures.length;
+      return (poly: built.poly, joins: built.joinArcLengths, mean: mean);
+    }).toList();
+
+    final near = candidates.map((c) => c.mean).reduce(math.min);
+    final eligible =
+        candidates.where((c) => c.mean <= near + kFurthestChordCapMm);
+    final chosen = eligible.reduce((a, b) => b.mean > a.mean ? b : a);
+
+    chord = chosen.poly;
+    joinArcLengths = chosen.joins;
+  }
+
+  ({_Polyline poly, List<double> joinArcLengths}) _buildChord(
+      double signW, double signH) {
+    final rawPoints = <Vector3>[];
+    final joinIndices = <int>[];
+
+    for (var i = 0; i < sticks.length; i++) {
+      final stick = sticks[i];
+      final offset =
+          stick.wAxis * (signW * stick.halfW) + stick.hAxis * (signH * stick.halfH);
+      rawPoints.add(stick.startEnd + offset);
+      rawPoints.add(stick.finishEnd + offset);
+      if (i < sticks.length - 1) joinIndices.add(rawPoints.length - 1);
+    }
+
+    // Arc-length up to each raw point, used for the join positions. Dedup in
+    // [_Polyline] only removes zero-length segments, so these stay valid.
+    final cumulative = <double>[0];
+    for (var i = 1; i < rawPoints.length; i++) {
+      cumulative.add(cumulative[i - 1] + rawPoints[i - 1].distanceTo(rawPoints[i]));
+    }
+
+    return (
+      poly: _Polyline(rawPoints),
+      joinArcLengths: joinIndices.map((i) => cumulative[i]).toList(),
+    );
+  }
+}
+
+/// A 3D polyline with arc-length helpers, expressed in world millimetres.
+class _Polyline {
+  final List<Vector3> points;
+  final List<double> _cumulative;
+
+  _Polyline._(this.points, this._cumulative);
+
+  factory _Polyline(List<Vector3> rawPoints) {
+    final points = <Vector3>[];
+    for (final p in rawPoints) {
+      if (points.isEmpty || points.last.distanceTo(p) > 1e-6) points.add(p);
+    }
+    if (points.isEmpty) points.add(Vector3.zero);
+
+    final cumulative = <double>[0];
+    for (var i = 1; i < points.length; i++) {
+      cumulative.add(cumulative[i - 1] + points[i - 1].distanceTo(points[i]));
+    }
+
+    return _Polyline._(points, cumulative);
+  }
+
+  double get length => _cumulative.last;
+
+  /// The arc-length of [p]'s closest foot on the polyline, and its distance.
+  ({double s, double distance}) project(Vector3 p) {
+    if (points.length == 1) {
+      return (s: 0, distance: p.distanceTo(points.first));
+    }
+
+    var bestDistance = double.infinity;
+    var bestS = 0.0;
+    for (var i = 0; i < points.length - 1; i++) {
+      final a = points[i];
+      final ab = points[i + 1] - a;
+      final segLengthSquared = ab.dot(ab);
+      final t = segLengthSquared == 0
+          ? 0.0
+          : ((p - a).dot(ab) / segLengthSquared).clamp(0.0, 1.0);
+      final foot = a + ab * t;
+      final distance = p.distanceTo(foot);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestS = _cumulative[i] + (_cumulative[i + 1] - _cumulative[i]) * t;
+      }
+    }
+    return (s: bestS, distance: bestDistance);
+  }
+
+  /// The world point at arc-length [s] along the polyline.
+  Vector3 pointAt(double s) {
+    if (s <= 0) return points.first;
+    if (s >= length) return points.last;
+    for (var i = 0; i < points.length - 1; i++) {
+      if (s <= _cumulative[i + 1]) {
+        final segLength = _cumulative[i + 1] - _cumulative[i];
+        final t = segLength == 0 ? 0.0 : (s - _cumulative[i]) / segLength;
+        return points[i] + (points[i + 1] - points[i]) * t;
+      }
+    }
+    return points.last;
+  }
+}
+
+/// Pre-computed truss topology: sticks grouped into connected runs, each with a
+/// single cable chord chosen once its fixtures are known.
 ///
-/// Joins are derived purely from geometry: each [TrussModel] is one physical
-/// stick and a join is the boundary where two adjacent collinear sticks meet.
+/// Cable lengths follow the chord: a fixture-to-fixture link rises to the chord,
+/// tracks along it (breaking at each join it crosses), and drops to the next
+/// fixture. Home runs follow the chord too, entering at the point nearest the
+/// source. Fixtures with no truss within tolerance fall back to a flat run with
+/// a fixed [kFloorRiserMm] allowance at each end.
 class TrussGeometry {
-  final Map<String, _StickInfo> _sticks;
+  final List<_Run> _runs;
+  final Map<String, _Run> _runById;
+  final Map<String, _Run> _runByStickUid;
 
-  /// Ordered join points per line. `_joinsByLine[lineId][k]` is the join between
-  /// the stick at index `k` and the stick at index `k + 1`.
-  final Map<String, List<Point3>> _joinsByLine;
-
-  TrussGeometry._(this._sticks, this._joinsByLine);
+  TrussGeometry._(this._runs, this._runById, this._runByStickUid);
 
   /// Builds the topology from imported [trusses].
   factory TrussGeometry.fromTrusses(Iterable<TrussModel> trusses) {
-    final sticks = <String, _StickInfo>{};
+    final sticks = <_Stick>[];
     for (final truss in trusses) {
       if (truss.length <= 0) continue;
-      final radians = truss.rotationZ * pi / 180.0;
-      sticks[truss.uid] = _StickInfo(
+      sticks.add(_Stick(
         uid: truss.uid,
-        centre: (x: truss.x, y: truss.y, z: truss.z),
-        axis: (x: cos(radians), y: sin(radians), z: 0),
-        halfLength: truss.length / 2,
-        halfWidth: truss.width / 2,
-        halfHeight: truss.height / 2,
-      );
+        center: truss.center,
+        lAxis: truss.lengthAxis.normalized,
+        wAxis: truss.widthAxis.normalized,
+        hAxis: truss.heightAxis.normalized,
+        halfL: truss.length / 2,
+        halfW: truss.width / 2,
+        halfH: truss.height / 2,
+      ));
     }
 
-    _groupAndOrderLines(sticks);
-    final joins = _buildJoinPoints(sticks);
+    final runs = _groupIntoRuns(sticks);
+    final runById = {for (final run in runs) run.id: run};
+    final runByStickUid = <String, _Run>{
+      for (final run in runs)
+        for (final stick in run.sticks) stick.uid: run,
+    };
 
-    return TrussGeometry._(sticks, joins);
+    return TrussGeometry._(runs, runById, runByStickUid);
   }
 
-  bool get isEmpty => _sticks.isEmpty;
+  bool get isEmpty => _runs.isEmpty;
 
-  /// Assigns each fixture to the nearest truss stick by closest point on the
-  /// stick's oriented bounding box, gated by [kTrussAssignmentToleranceMm].
-  ///
-  /// Fixtures with no truss within tolerance are omitted (treated as floor).
+  /// Assigns each fixture to the nearest truss stick (by oriented-box distance,
+  /// gated by [kTrussAssignmentToleranceMm]), then resolves its foot and riser
+  /// on that run's chosen chord. Un-trussed fixtures are omitted.
   Map<String, TrussAssignment> assignFixtures(
     Iterable<({String uid, double x, double y, double z})> fixtures,
   ) {
     final result = <String, TrussAssignment>{};
-    if (_sticks.isEmpty) return result;
+    if (_runs.isEmpty) return result;
+
+    final fixturePositions = <String, Vector3>{};
+    final runOfFixture = <String, _Run>{};
 
     for (final fixture in fixtures) {
-      final point = (x: fixture.x, y: fixture.y, z: fixture.z);
-      _StickInfo? nearest;
-      double nearestDistance = double.infinity;
-
-      for (final stick in _sticks.values) {
-        final distance = _distanceToBox(point, stick);
-        if (distance < nearestDistance) {
-          nearestDistance = distance;
-          nearest = stick;
+      final point = Vector3(fixture.x, fixture.y, fixture.z);
+      _Stick? nearest;
+      var nearestDistance = double.infinity;
+      for (final run in _runs) {
+        for (final stick in run.sticks) {
+          final distance = stick.distanceToBox(point);
+          if (distance < nearestDistance) {
+            nearestDistance = distance;
+            nearest = stick;
+          }
         }
       }
 
       if (nearest != null && nearestDistance <= kTrussAssignmentToleranceMm) {
-        result[fixture.uid] = TrussAssignment(
-          lineId: nearest.lineId,
-          sectionIndex: nearest.index,
-          stickUid: nearest.uid,
-        );
+        fixturePositions[fixture.uid] = point;
+        runOfFixture[fixture.uid] = _runByStickUid[nearest.uid]!;
       }
     }
+
+    final fixturesByRun = <_Run, List<String>>{};
+    runOfFixture.forEach((uid, run) =>
+        fixturesByRun.putIfAbsent(run, () => []).add(uid));
+
+    fixturesByRun.forEach((run, uids) {
+      run.chooseChord(uids.map((uid) => fixturePositions[uid]!).toList());
+      final chord = run.chord!;
+      for (final uid in uids) {
+        final projection = chord.project(fixturePositions[uid]!);
+        result[uid] = TrussAssignment(
+          runId: run.id,
+          s: projection.s,
+          riser: projection.distance,
+        );
+      }
+    });
 
     return result;
   }
 
-  /// Splits a straight run between [from] and [to] at the joins it crosses.
+  /// Splits a fixture-to-fixture run into segments, following the truss chord
+  /// when both fixtures share a run and breaking at each join between them.
   ///
-  /// Same-line runs cross `|indexFrom - indexTo|` joins (the sections between the
-  /// two assigned sticks). Cross-line runs route via the line ends, crossing the
-  /// joins of both lines that fall along the run. Unassigned endpoints yield a
-  /// single unbroken segment.
+  /// Same-run runs route `riser → along-chord → riser`, split at the crossed
+  /// joins. Every other case (floor, cross-run, or a run without a chord) yields
+  /// a single unbroken `riser + horizontal + riser` segment.
   RunSplit splitRun({
-    required Point3 from,
-    required Point3 to,
+    required Vector3 from,
+    required Vector3 to,
     required TrussAssignment? fromAssignment,
     required TrussAssignment? toAssignment,
   }) {
-    final total = _distance(from, to);
-
-    if (fromAssignment == null || toAssignment == null || total == 0) {
-      return RunSplit(segmentLengths: [total], breakPoints: const []);
+    if (fromAssignment != null &&
+        toAssignment != null &&
+        fromAssignment.runId == toAssignment.runId) {
+      final run = _runById[fromAssignment.runId];
+      if (run?.chord != null) {
+        return _splitAlongRun(run!, fromAssignment, toAssignment);
+      }
     }
 
-    final List<Point3> candidateJoins;
-    if (fromAssignment.lineId == toAssignment.lineId) {
-      candidateJoins = _joinsBetween(
-        fromAssignment.lineId,
-        fromAssignment.sectionIndex,
-        toAssignment.sectionIndex,
-      );
-    } else {
-      candidateJoins = [
-        ...?_joinsByLine[fromAssignment.lineId],
-        ...?_joinsByLine[toAssignment.lineId],
-      ];
-    }
+    final riserFrom = fromAssignment?.riser ?? kFloorRiserMm;
+    final riserTo = toAssignment?.riser ?? kFloorRiserMm;
+    final total = riserFrom + _horizontalDistance(from, to) + riserTo;
+    return RunSplit(segmentLengths: [total], breakPoints: const []);
+  }
 
-    if (candidateJoins.isEmpty) {
-      return RunSplit(segmentLengths: [total], breakPoints: const []);
-    }
+  /// Length of a home run from [from] to a fixture, following the fixture's run
+  /// and entering at the point on the chord nearest [from].
+  ///
+  /// Returns `null` when the fixture's run has no chord, so the caller can apply
+  /// the floor fallback.
+  double? homeRunLength({
+    required Vector3 from,
+    required TrussAssignment assignment,
+  }) {
+    final chord = _runById[assignment.runId]?.chord;
+    if (chord == null) return null;
 
-    // Project each join onto the run, keep the ones that fall strictly inside,
-    // then order them from `from` to `to`.
-    final parameters = candidateJoins
-        .map((join) => _projectParameter(from, to, join))
-        .where((t) => t > 1e-6 && t < 1 - 1e-6)
+    final entry = chord.project(from);
+    final along = (assignment.s - entry.s).abs();
+    return entry.distance + along + assignment.riser;
+  }
+
+  RunSplit _splitAlongRun(_Run run, TrussAssignment a, TrussAssignment b) {
+    final chord = run.chord!;
+    final low = math.min(a.s, b.s);
+    final high = math.max(a.s, b.s);
+
+    final joinsBetween = run.joinArcLengths
+        .where((js) => js > low + 1e-6 && js < high - 1e-6)
         .toList()
       ..sort();
+    // Order the joins from `a` toward `b` so the break nodes chain correctly.
+    final ordered = b.s >= a.s ? joinsBetween : joinsBetween.reversed.toList();
 
-    if (parameters.isEmpty) {
-      return RunSplit(segmentLengths: [total], breakPoints: const []);
-    }
+    final boundaries = [a.s, ...ordered, b.s];
+    final breakPoints = ordered.map(chord.pointAt).toList(growable: false);
 
-    final breakPoints =
-        parameters.map((t) => _lerp(from, to, t)).toList(growable: false);
-
-    final boundaries = [0.0, ...parameters, 1.0];
-    final segmentLengths = [
+    final segments = <double>[
       for (var i = 0; i < boundaries.length - 1; i++)
-        total * (boundaries[i + 1] - boundaries[i]),
+        (boundaries[i + 1] - boundaries[i]).abs(),
     ];
 
-    return RunSplit(segmentLengths: segmentLengths, breakPoints: breakPoints);
+    // The end segments also carry the vertical risers to each fixture.
+    segments[0] += a.riser;
+    segments[segments.length - 1] += b.riser;
+
+    return RunSplit(segmentLengths: segments, breakPoints: breakPoints);
   }
 
-  List<Point3> _joinsBetween(String lineId, int indexA, int indexB) {
-    final joins = _joinsByLine[lineId];
-    if (joins == null) return const [];
-
-    final low = min(indexA, indexB);
-    final high = max(indexA, indexB);
-
-    // Join `k` separates sticks `k` and `k + 1`, so the joins between two sticks
-    // are those with index in [low, high).
-    return [
-      for (var k = low; k < high && k < joins.length; k++) joins[k],
-    ];
-  }
-
-  /// Groups sticks into collinear, contiguous lines via union-find on coincident
-  /// end-points, then orders each line along its axis.
-  static void _groupAndOrderLines(Map<String, _StickInfo> sticks) {
-    final stickList = sticks.values.toList();
-    final parent = {for (final stick in stickList) stick.uid: stick.uid};
+  /// Groups sticks into connected runs via union-find on coincident end-points
+  /// (any angle), then orders each run into a chain.
+  static List<_Run> _groupIntoRuns(List<_Stick> sticks) {
+    final parent = {for (final stick in sticks) stick.uid: stick.uid};
 
     String find(String id) {
       var root = id;
@@ -236,122 +414,97 @@ class TrussGeometry {
 
     void union(String a, String b) => parent[find(a)] = find(b);
 
-    for (var i = 0; i < stickList.length; i++) {
-      for (var j = i + 1; j < stickList.length; j++) {
-        if (_areJoined(stickList[i], stickList[j])) {
-          union(stickList[i].uid, stickList[j].uid);
+    for (var i = 0; i < sticks.length; i++) {
+      for (var j = i + 1; j < sticks.length; j++) {
+        if (_sticksConnected(sticks[i], sticks[j])) {
+          union(sticks[i].uid, sticks[j].uid);
         }
       }
     }
 
-    final byLine = <String, List<_StickInfo>>{};
-    for (final stick in stickList) {
-      byLine.putIfAbsent(find(stick.uid), () => []).add(stick);
+    final byRoot = <String, List<_Stick>>{};
+    for (final stick in sticks) {
+      byRoot.putIfAbsent(find(stick.uid), () => []).add(stick);
     }
 
-    for (final entry in byLine.entries) {
-      final lineId = entry.key;
-      final lineSticks = entry.value;
-      final direction = lineSticks.first.axis;
-
-      lineSticks.sort((a, b) =>
-          _projectOntoAxis(a.centre, direction)
-              .compareTo(_projectOntoAxis(b.centre, direction)));
-
-      for (var index = 0; index < lineSticks.length; index++) {
-        lineSticks[index].lineId = lineId;
-        lineSticks[index].index = index;
-      }
-    }
+    return byRoot.entries
+        .map((entry) => _Run(entry.key, _orderChain(entry.value)))
+        .toList();
   }
 
-  static Map<String, List<Point3>> _buildJoinPoints(
-    Map<String, _StickInfo> sticks,
-  ) {
-    final byLine = <String, List<_StickInfo>>{};
-    for (final stick in sticks.values) {
-      byLine.putIfAbsent(stick.lineId, () => []).add(stick);
-    }
-
-    final result = <String, List<Point3>>{};
-    for (final entry in byLine.entries) {
-      final ordered = entry.value..sort((a, b) => a.index.compareTo(b.index));
-      final joins = <Point3>[];
-      for (var i = 0; i < ordered.length - 1; i++) {
-        joins.add(_midpoint(ordered[i].endB, ordered[i + 1].endA));
-      }
-      result[entry.key] = joins;
-    }
-    return result;
-  }
-
-  /// Two sticks join when their axes are parallel and they share an end-point.
-  static bool _areJoined(_StickInfo a, _StickInfo b) {
-    final cross = (a.axis.x * b.axis.y) - (a.axis.y * b.axis.x);
-    if (cross.abs() > 0.05) return false; // ~3 degrees of parallelism slack.
-
-    final ends = [a.endA, a.endB];
-    final otherEnds = [b.endA, b.endB];
-    for (final end in ends) {
-      for (final otherEnd in otherEnds) {
-        if (_distance(end, otherEnd) <= kJoinCoincidenceToleranceMm) {
-          return true;
-        }
+  static bool _sticksConnected(_Stick a, _Stick b) {
+    for (final aEnd in [a.rawEnd0, a.rawEnd1]) {
+      for (final bEnd in [b.rawEnd0, b.rawEnd1]) {
+        if (aEnd.distanceTo(bEnd) <= kJoinCoincidenceToleranceMm) return true;
       }
     }
     return false;
   }
 
-  /// Shortest distance from [point] to the stick's oriented bounding box.
-  static double _distanceToBox(Point3 point, _StickInfo stick) {
-    // Transform the point into the stick's local frame (axis = local X). Only
-    // rotation about Z is modelled, which holds for level trusses.
-    final dx = point.x - stick.centre.x;
-    final dy = point.y - stick.centre.y;
-    final dz = point.z - stick.centre.z;
+  /// Orders and orients a run's sticks into a single chain, walking from a free
+  /// (unshared) end. Falls back to input order for loops or branches.
+  static List<_Stick> _orderChain(List<_Stick> sticks) {
+    if (sticks.length <= 1) return sticks;
 
-    final localX = dx * stick.axis.x + dy * stick.axis.y;
-    final localY = -dx * stick.axis.y + dy * stick.axis.x;
-    final localZ = dz;
+    bool match(Vector3 a, Vector3 b) =>
+        a.distanceTo(b) <= kJoinCoincidenceToleranceMm;
 
-    final clampedX = localX.clamp(-stick.halfLength, stick.halfLength);
-    final clampedY = localY.clamp(-stick.halfWidth, stick.halfWidth);
-    final clampedZ = localZ.clamp(-stick.halfHeight, stick.halfHeight);
+    bool shared(Vector3 end, _Stick self) => sticks.any((s) =>
+        !identical(s, self) && (match(s.rawEnd0, end) || match(s.rawEnd1, end)));
 
-    final ox = localX - clampedX;
-    final oy = localY - clampedY;
-    final oz = localZ - clampedZ;
-    return sqrt(ox * ox + oy * oy + oz * oz);
+    var startStick = sticks.first;
+    var startFree = sticks.first.rawEnd0;
+    for (final stick in sticks) {
+      if (!shared(stick.rawEnd0, stick)) {
+        startStick = stick;
+        startFree = stick.rawEnd0;
+        break;
+      }
+      if (!shared(stick.rawEnd1, stick)) {
+        startStick = stick;
+        startFree = stick.rawEnd1;
+        break;
+      }
+    }
+
+    final ordered = <_Stick>[];
+    final used = <String>{};
+    _Stick? current = startStick;
+    var entry = startFree;
+
+    while (current != null) {
+      if (match(current.rawEnd0, entry)) {
+        current.startEnd = current.rawEnd0;
+        current.finishEnd = current.rawEnd1;
+      } else {
+        current.startEnd = current.rawEnd1;
+        current.finishEnd = current.rawEnd0;
+      }
+      ordered.add(current);
+      used.add(current.uid);
+
+      final exit = current.finishEnd;
+      entry = exit;
+      current = sticks.firstWhereOrNull((s) =>
+          !used.contains(s.uid) &&
+          (match(s.rawEnd0, exit) || match(s.rawEnd1, exit)));
+    }
+
+    // Any sticks not reached (disconnected/branching) keep their raw order.
+    for (final stick in sticks) {
+      if (!used.contains(stick.uid)) {
+        stick.startEnd = stick.rawEnd0;
+        stick.finishEnd = stick.rawEnd1;
+        ordered.add(stick);
+      }
+    }
+
+    return ordered;
   }
 
-  static double _projectParameter(Point3 from, Point3 to, Point3 point) {
-    final dx = to.x - from.x;
-    final dy = to.y - from.y;
-    final dz = to.z - from.z;
-    final lengthSquared = dx * dx + dy * dy + dz * dz;
-    if (lengthSquared == 0) return 0;
-    final dot = (point.x - from.x) * dx +
-        (point.y - from.y) * dy +
-        (point.z - from.z) * dz;
-    return dot / lengthSquared;
-  }
-
-  static double _projectOntoAxis(Point3 point, Point3 axis) =>
-      point.x * axis.x + point.y * axis.y + point.z * axis.z;
-
-  static Point3 _lerp(Point3 from, Point3 to, double t) => (
-        x: from.x + (to.x - from.x) * t,
-        y: from.y + (to.y - from.y) * t,
-        z: from.z + (to.z - from.z) * t,
-      );
-
-  static Point3 _midpoint(Point3 a, Point3 b) =>
-      (x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, z: (a.z + b.z) / 2);
-
-  static double _distance(Point3 a, Point3 b) {
+  static double _horizontalDistance(Vector3 a, Vector3 b) {
     final dx = a.x - b.x;
     final dy = a.y - b.y;
-    final dz = a.z - b.z;
-    return sqrt(dx * dx + dy * dy + dz * dz);
+    return math.sqrt(dx * dx + dy * dy);
   }
 }

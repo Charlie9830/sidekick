@@ -27,9 +27,6 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
   final double rotationY;
   final double rotationZ;
 
-  double get screenX => x;
-  double get screenY => y * -1;
-
   FixtureModel({
     this.uid = '',
     this.fid = 0,
