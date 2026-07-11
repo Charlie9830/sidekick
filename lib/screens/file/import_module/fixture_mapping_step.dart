@@ -9,11 +9,13 @@ class FixtureMappingStep extends StatelessWidget {
   final List<FixtureMappingViewModel> viewModels;
   final String fixtureMappingFilePath;
   final String fixtureDatabaseFilePath;
+  final bool isLoading;
   const FixtureMappingStep({
     super.key,
     required this.viewModels,
     required this.fixtureDatabaseFilePath,
     required this.fixtureMappingFilePath,
+    required this.isLoading,
   });
 
   @override
@@ -23,40 +25,63 @@ class FixtureMappingStep extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Fixture Name Mapping',
-              style: Theme.of(context).typography.medium),
+          Text(
+            'Fixture Name Mapping',
+            style: Theme.of(context).typography.medium,
+          ),
           const SizedBox(height: 8.0),
           const Divider(),
           Expanded(
-            child: ListView.builder(
-                itemCount: viewModels.length,
-                itemBuilder: (context, index) {
-                  final vm = viewModels[index];
+            child: isLoading
+                ? _LoadingFallback()
+                : ListView.builder(
+                    itemCount: viewModels.length,
+                    itemBuilder: (context, index) {
+                      final vm = viewModels[index];
 
-                  return _FixtureMappingItem(vm: vm);
-                }),
+                      return _FixtureMappingItem(vm: vm);
+                    },
+                  ),
           ),
           const SizedBox(height: 8.0),
           Card(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Fixture Name and Mode Mapping',
-                    style: Theme.of(context).typography.medium),
+                Text(
+                  'Fixture Name and Mode Mapping',
+                  style: Theme.of(context).typography.medium,
+                ),
                 FileSelectButton(
                   path: fixtureMappingFilePath,
                   showOpenButton: true,
                 ),
-                Text('Fixture Database',
-                    style: Theme.of(context).typography.medium),
+                Text(
+                  'Fixture Database',
+                  style: Theme.of(context).typography.medium,
+                ),
                 FileSelectButton(
                   path: fixtureDatabaseFilePath,
                   showOpenButton: true,
-                )
+                ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _LoadingFallback extends StatelessWidget {
+  const _LoadingFallback({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: .center,
+        children: [CircularProgressIndicator(size: 24)],
       ),
     );
   }
@@ -69,14 +94,13 @@ const double _kMapsToIconWidth = 100;
 
 class _FixtureMappingItem extends StatelessWidget {
   final FixtureMappingViewModel vm;
-  const _FixtureMappingItem({
-    required this.vm,
-  });
+  const _FixtureMappingItem({required this.vm});
 
   @override
   Widget build(BuildContext context) {
-    final labelTextStyle =
-        Theme.of(context).typography.xSmall.copyWith(color: Colors.gray);
+    final labelTextStyle = Theme.of(
+      context,
+    ).typography.xSmall.copyWith(color: Colors.gray);
 
     return Padding(
       padding: const EdgeInsets.only(top: 8.0),
@@ -86,84 +110,78 @@ class _FixtureMappingItem extends StatelessWidget {
           padding: const EdgeInsets.all(4.0),
           child: SizedBox(
             height: 48,
-            child: Row(children: [
-              // Label Segment.
-              SizedBox(
-                width: _kLeadingColumnWidth,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Text('Type', style: labelTextStyle),
-                    Text('Mode', style: labelTextStyle),
-                  ],
+            child: Row(
+              children: [
+                // Label Segment.
+                SizedBox(
+                  width: _kLeadingColumnWidth,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Text('Type', style: labelTextStyle),
+                      Text('Mode', style: labelTextStyle),
+                    ],
+                  ),
                 ),
-              ),
 
-              // Source Segment
-              SizedBox(
-                width: _kSourceWidth,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _Value(
-                      vm.mapping.sourceFixtureType,
-                    ),
-                    _Value(
-                      vm.mapping.sourceFixtureMode,
-                    ),
-                  ],
+                // Source Segment
+                SizedBox(
+                  width: _kSourceWidth,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _Value(vm.mapping.sourceFixtureType),
+                      _Value(vm.mapping.sourceFixtureMode),
+                    ],
+                  ),
                 ),
-              ),
 
-              // Maps To Icon
-              const SizedBox(
-                width: _kMapsToIconWidth,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _MapsToIcon(),
-                  ],
+                // Maps To Icon
+                const SizedBox(
+                  width: _kMapsToIconWidth,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [_MapsToIcon()],
+                  ),
                 ),
-              ),
 
-              // Mapped Segment
-              SizedBox(
-                width: _kMappedWidth,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _Value(
-                      vm.mapping.mappedFixtureType,
-                    ),
-                    _Value(
-                      vm.mapping.mappedFixtureMode,
-                    ),
-                  ],
+                // Mapped Segment
+                SizedBox(
+                  width: _kMappedWidth,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _Value(vm.mapping.mappedFixtureType),
+                      _Value(vm.mapping.mappedFixtureMode),
+                    ],
+                  ),
                 ),
-              ),
 
-              // Error Display.
-              Expanded(
-                child: _MappingErrorDisplay(
-                  fixtureError: vm.mapping.typeMappingError,
-                  modeError: vm.mapping.modeMappingError,
+                // Error Display.
+                Expanded(
+                  child: _MappingErrorDisplay(
+                    fixtureError: vm.mapping.typeMappingError,
+                    modeError: vm.mapping.modeMappingError,
+                  ),
                 ),
-              ),
 
-              // Database Existence Column.
-              Expanded(
+                // Database Existence Column.
+                Expanded(
                   child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  _ExistsInDatabaseIcon(
-                      mappedFixtureTypeValue: vm.mapping.mappedFixtureType,
-                      existsInDatabase: vm.existsInDatabase)
-                ],
-              ))
-            ]),
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      _ExistsInDatabaseIcon(
+                        mappedFixtureTypeValue: vm.mapping.mappedFixtureType,
+                        existsInDatabase: vm.existsInDatabase,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -196,36 +214,36 @@ class _MappingErrorDisplay extends StatelessWidget {
 
     return switch (error) {
       MultipleMatchesMappingError e => SimpleTooltip(
-          message: e.message,
-          child: Row(
-            spacing: 8,
-            children: [
-              const Icon(Icons.error, color: SidekickColors.error),
-              Text("Multiple matches", style: tooltipContentTextStyle),
-            ],
-          ),
+        message: e.message,
+        child: Row(
+          spacing: 8,
+          children: [
+            const Icon(Icons.error, color: SidekickColors.error),
+            Text("Multiple matches", style: tooltipContentTextStyle),
+          ],
         ),
+      ),
       NoResultMappingError _ => SimpleTooltip(
-          message: "No matches found for the supplied source value.",
-          child: Row(
-            spacing: 8,
-            children: [
-              const Icon(Icons.error, color: SidekickColors.error),
-              Text("No matches", style: tooltipContentTextStyle),
-            ],
-          ),
+        message: "No matches found for the supplied source value.",
+        child: Row(
+          spacing: 8,
+          children: [
+            const Icon(Icons.error, color: SidekickColors.error),
+            Text("No matches", style: tooltipContentTextStyle),
+          ],
         ),
+      ),
       BlankValueMappingError e => SimpleTooltip(
-          message: e.message,
-          child: Row(
-            spacing: 8,
-            children: [
-              const Icon(Icons.error, color: SidekickColors.error),
-              Text("Invalid name (blank)", style: tooltipContentTextStyle),
-            ],
-          ),
+        message: e.message,
+        child: Row(
+          spacing: 8,
+          children: [
+            const Icon(Icons.error, color: SidekickColors.error),
+            Text("Invalid name (blank)", style: tooltipContentTextStyle),
+          ],
         ),
-      _ => throw UnimplementedError()
+      ),
+      _ => throw UnimplementedError(),
     };
   }
 }
@@ -238,11 +256,9 @@ class _Value extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SimpleTooltip(
-        message: value,
-        child: Text(
-          value,
-          overflow: TextOverflow.ellipsis,
-        ));
+      message: value,
+      child: Text(value, overflow: TextOverflow.ellipsis),
+    );
   }
 }
 
@@ -253,11 +269,12 @@ class _MapsToIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text('Maps to',
-            style: Theme.of(context)
-                .typography
-                .xSmall
-                .copyWith(color: Colors.gray)),
+        Text(
+          'Maps to',
+          style: Theme.of(
+            context,
+          ).typography.xSmall.copyWith(color: Colors.gray),
+        ),
         const Icon(Icons.arrow_right_alt, size: 16, color: Colors.gray),
       ],
     );
@@ -267,8 +284,10 @@ class _MapsToIcon extends StatelessWidget {
 class _ExistsInDatabaseIcon extends StatelessWidget {
   final bool existsInDatabase;
   final String mappedFixtureTypeValue;
-  const _ExistsInDatabaseIcon(
-      {required this.mappedFixtureTypeValue, required this.existsInDatabase});
+  const _ExistsInDatabaseIcon({
+    required this.mappedFixtureTypeValue,
+    required this.existsInDatabase,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -277,11 +296,12 @@ class _ExistsInDatabaseIcon extends StatelessWidget {
             spacing: 8,
             children: [
               const Icon(Icons.check, color: SidekickColors.success),
-              Text('Found in Database',
-                  style: Theme.of(context)
-                      .typography
-                      .small
-                      .copyWith(color: SidekickColors.success)),
+              Text(
+                'Found in Database',
+                style: Theme.of(
+                  context,
+                ).typography.small.copyWith(color: SidekickColors.success),
+              ),
             ],
           )
         : SimpleTooltip(
@@ -292,11 +312,12 @@ class _ExistsInDatabaseIcon extends StatelessWidget {
               spacing: 8,
               children: [
                 const Icon(Icons.close, color: SidekickColors.error),
-                Text('Not found in Database',
-                    style: Theme.of(context)
-                        .typography
-                        .small
-                        .copyWith(color: SidekickColors.error)),
+                Text(
+                  'Not found in Database',
+                  style: Theme.of(
+                    context,
+                  ).typography.small.copyWith(color: SidekickColors.error),
+                ),
               ],
             ),
           );

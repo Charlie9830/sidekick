@@ -54,6 +54,7 @@ class _ImportManagerState extends State<ImportManager> {
   List<RawTrussModel> _incomingTrusses = const [];
   Map<String, FixtureGeometryModel> _incomingGeometriesBySpec = const {};
   Map<String, String> _locationMapping = {};
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -183,6 +184,7 @@ class _ImportManagerState extends State<ImportManager> {
                       viewModels: _selectFixtureMappingViewModels(
                         _fixtureTypeMapping,
                       ),
+                      isLoading: _isLoading,
                       fixtureDatabaseFilePath:
                           widget.vm.fixtureDatabaseFilePath,
                       fixtureMappingFilePath: widget.vm.fixtureMappingFilePath,
@@ -761,6 +763,10 @@ class _ImportManagerState extends State<ImportManager> {
   }
 
   void _loadFixtureMappingStep() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     final trussReadResult = await readRawTrusses(
       settings: _importSettings,
       patchFilePath: _fixturePatchFilePath,
@@ -808,6 +814,7 @@ class _ImportManagerState extends State<ImportManager> {
     }
 
     setState(() {
+      _isLoading = false;
       _fixtureTypeMapping = fixtureTypeMapping;
       _fixtureTypes = fixtureDatabaseResult;
       _incomingFixtures = fixtureReadResult.fixtures;
