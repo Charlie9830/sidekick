@@ -60,7 +60,7 @@ class RigFixtureNode extends StatelessWidget {
     required double fallbackSize,
     FixtureGeometryModel? geometry,
     double rotationZ = 0,
-    ViewProjection projection = const PlanProjection(),
+    ViewProjection projection = OrthogonalView.top,
     required String label,
     String? subLabel,
     bool selected = false,

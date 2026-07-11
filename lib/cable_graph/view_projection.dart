@@ -5,10 +5,10 @@ import 'package:sidekick/cable_graph/vector3.dart';
 /// Projects a 3D world point (mm, Z-up) into the 2D "diagram" space used by the
 /// cable view, before the viewport fit scales it to screen pixels.
 ///
-/// This is the single place the choice of viewpoint lives. Swapping
-/// [PlanProjection] for a front or side projection re-orients the whole cable
-/// view without touching any element, edge or truss code. Diagram space keeps
-/// millimetre units; the Y axis grows downward to match screen coordinates.
+/// This is the single place the choice of viewpoint lives. Swapping one
+/// [OrthogonalView] for another re-orients the whole rig view without touching
+/// any element, edge or truss code. Diagram space keeps millimetre units; the
+/// Y axis grows downward to match screen coordinates.
 abstract class ViewProjection {
   const ViewProjection();
 
@@ -19,13 +19,39 @@ abstract class ViewProjection {
   Offset projectVector(Vector3 v) => project(v.x, v.y, v.z);
 }
 
-/// Top-down plan view: world X → right, world Y → up the page (hence negated so
-/// diagram Y grows downward), world Z (height) discarded.
-class PlanProjection extends ViewProjection {
-  const PlanProjection();
+/// The six axis-aligned viewpoints of the rig, each usable directly as a
+/// [ViewProjection].
+///
+/// Each mapping is what a viewer on the named side of the rig sees looking
+/// toward it: [top] keeps world +Y up the page (a standard plan), the four
+/// side views keep world +Z (height) up the page, and opposite views mirror
+/// each other horizontally — as physically viewing the rig from the other
+/// side would. Diagram Y grows downward, hence the negated vertical axis.
+enum OrthogonalView implements ViewProjection {
+  top('Top'),
+  bottom('Bottom'),
+  front('Front'),
+  back('Back'),
+  left('Left'),
+  right('Right');
+
+  const OrthogonalView(this.label);
+
+  /// Human-readable name shown by view-switching controls.
+  final String label;
 
   @override
-  Offset project(double x, double y, double z) => Offset(x, -y);
+  Offset project(double x, double y, double z) => switch (this) {
+    top => Offset(x, -y),
+    bottom => Offset(-x, -y),
+    front => Offset(x, -z),
+    back => Offset(-x, -z),
+    left => Offset(-y, -z),
+    right => Offset(y, -z),
+  };
+
+  @override
+  Offset projectVector(Vector3 v) => project(v.x, v.y, v.z);
 }
 
 /// Returns the convex hull of [points] as an ordered polygon (Andrew's monotone
@@ -37,8 +63,9 @@ class PlanProjection extends ViewProjection {
 List<Offset> convexHull(List<Offset> points) {
   if (points.length <= 2) return List.of(points);
 
-  final sorted = [...points]
-    ..sort((a, b) => a.dx != b.dx ? a.dx.compareTo(b.dx) : a.dy.compareTo(b.dy));
+  final sorted = [
+    ...points,
+  ]..sort((a, b) => a.dx != b.dx ? a.dx.compareTo(b.dx) : a.dy.compareTo(b.dy));
 
   double cross(Offset o, Offset a, Offset b) =>
       (a.dx - o.dx) * (b.dy - o.dy) - (a.dy - o.dy) * (b.dx - o.dx);

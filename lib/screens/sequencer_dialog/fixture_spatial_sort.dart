@@ -13,7 +13,7 @@ enum FixtureSortAxis {
   y,
 }
 
-const ViewProjection _kProjection = PlanProjection();
+const ViewProjection _kProjection = OrthogonalView.top;
 
 /// Whether [fixtures] carry real world coordinates worth sorting or plotting.
 ///
@@ -42,10 +42,12 @@ List<FixtureModel> sortFixturesSpatially(
       final pa = _kProjection.project(a.x, a.y, a.z);
       final pb = _kProjection.project(b.x, b.y, b.z);
 
-      final (primaryA, secondaryA) =
-          axis == FixtureSortAxis.x ? (pa.dx, pa.dy) : (pa.dy, pa.dx);
-      final (primaryB, secondaryB) =
-          axis == FixtureSortAxis.x ? (pb.dx, pb.dy) : (pb.dy, pb.dx);
+      final (primaryA, secondaryA) = axis == FixtureSortAxis.x
+          ? (pa.dx, pa.dy)
+          : (pa.dy, pa.dx);
+      final (primaryB, secondaryB) = axis == FixtureSortAxis.x
+          ? (pb.dx, pb.dy)
+          : (pb.dy, pb.dx);
 
       final primary = primaryA.compareTo(primaryB);
       return primary != 0 ? primary : secondaryA.compareTo(secondaryB);

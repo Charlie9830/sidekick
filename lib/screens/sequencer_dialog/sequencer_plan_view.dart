@@ -1,4 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/cable_graph/vector3.dart';
 import 'package:sidekick/cable_graph/view_projection.dart';
 import 'package:sidekick/cable_graph/viewport_transformer.dart';
 import 'package:sidekick/redux/models/fixture_geometry_model.dart';
@@ -8,8 +9,6 @@ import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/widgets/rig_viewer/rig_fixture_node.dart';
 import 'package:sidekick/widgets/rig_viewer/rig_viewer.dart';
 
-const ViewProjection _kProjection = PlanProjection();
-
 /// Fallback node size (px) for fixture types without imported geometry.
 const double _kNodeSize = 30;
 
@@ -18,8 +17,9 @@ const double _kNodeSize = 30;
 /// and the default 240px would zero out the fit scale and stack every node.
 const double _kPlanPadding = 48;
 
-/// A top-down plot of the selected fixtures used to assign sequence numbers by
-/// clicking fixtures in physical order.
+/// A plot of the selected fixtures (top-down by default, switchable to any
+/// orthogonal view) used to assign sequence numbers by clicking fixtures in
+/// physical order.
 ///
 /// Tapping an unassigned fixture calls [onAssign]; tapping an assigned one calls
 /// [onUnassign]. A polyline connects assigned fixtures in sequence order so the
@@ -54,41 +54,50 @@ class SequencerPlanView extends StatelessWidget {
       for (final entry in mapping.entries) entry.value.uid: entry.key,
     };
 
-    final positions = <String, Offset>{
-      for (final fixture in fixtures)
-        fixture.uid: _kProjection.project(fixture.x, fixture.y, fixture.z),
-    };
-
     return RigViewer(
-      fitPoints: positions.values.toList(),
+      fitPoints: [
+        for (final fixture in fixtures)
+          Vector3(fixture.x, fixture.y, fixture.z),
+      ],
       fitPadding: _kPlanPadding,
-      underlayBuilder: (context, viewport, labelOpacity) => [
+      underlayBuilder: (context, viewport, projection, labelOpacity) => [
         Positioned.fill(
           child: CustomPaint(
             painter: _SequencePathPainter(
               mapping: mapping,
-              positions: positions,
+              positions: _projectPositions(projection),
               viewport: viewport,
               color: SidekickColors.selectionAccent,
             ),
           ),
         ),
       ],
-      nodesBuilder: (context, viewport, labelOpacity) => [
-        for (final fixture in fixtures)
-          _buildFixtureNode(
-            fixture: fixture,
-            viewport: viewport,
-            sequence: sequenceByUid[fixture.uid],
-            diagramPosition: positions[fixture.uid]!,
-          ),
-      ],
+      nodesBuilder: (context, viewport, projection, labelOpacity) {
+        final positions = _projectPositions(projection);
+        return [
+          for (final fixture in fixtures)
+            _buildFixtureNode(
+              fixture: fixture,
+              viewport: viewport,
+              projection: projection,
+              sequence: sequenceByUid[fixture.uid],
+              diagramPosition: positions[fixture.uid]!,
+            ),
+        ];
+      },
     );
   }
+
+  /// Each fixture's diagram-space position under [projection], keyed by uid.
+  Map<String, Offset> _projectPositions(ViewProjection projection) => {
+    for (final fixture in fixtures)
+      fixture.uid: projection.project(fixture.x, fixture.y, fixture.z),
+  };
 
   Positioned _buildFixtureNode({
     required FixtureModel fixture,
     required ViewportTransformer viewport,
+    required ViewProjection projection,
     required int? sequence,
     required Offset diagramPosition,
   }) {
@@ -102,7 +111,7 @@ class SequencerPlanView extends StatelessWidget {
       fallbackSize: _kNodeSize,
       geometry: fixtureGeometries[fixture.typeId],
       rotationZ: fixture.rotationZ,
-      projection: _kProjection,
+      projection: projection,
       label: isAssigned ? sequence.toString() : fixture.fid.toString(),
       selected: isAssigned,
       tooltip:

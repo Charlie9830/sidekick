@@ -1,6 +1,5 @@
-import 'dart:ui';
-
 import 'package:sidekick/cable_graph/cable_graph.dart';
+import 'package:sidekick/cable_graph/vector3.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/cable_visibility_model.dart';
@@ -58,10 +57,7 @@ class PowerMultiHeaderViewModel {
   final CableType type;
   final String name;
 
-  PowerMultiHeaderViewModel({
-    required this.type,
-    required this.name,
-  });
+  PowerMultiHeaderViewModel({required this.type, required this.name});
 }
 
 class CableViewViewModel {
@@ -80,52 +76,41 @@ class CableViewViewModel {
   });
 }
 
-/// A single truss stick's footprint, already projected into diagram space.
+/// A single truss stick, carried as its eight world-space corners (mm).
 ///
-/// [hull] is the ordered outline (mm, diagram space) of the truss's eight
-/// world corners as seen from the current [ViewProjection], so the painter can
-/// draw it directly without knowing anything about world orientation.
+/// The rig viewer projects the corners through its current view and paints
+/// their convex hull, so the footprint is correct for any orientation and any
+/// viewpoint without the view model knowing which view is selected.
 class TrussViewModel {
   final String uid;
   final String name;
-  final List<Offset> hull;
+  final List<Vector3> corners;
 
   TrussViewModel({
     required this.uid,
     required this.name,
-    required this.hull,
+    required this.corners,
   });
 }
 
 sealed class NodeElement {
-  /// Position in diagram space (mm, post-[ViewProjection], pre-viewport fit).
-  final double screenX;
-  final double screenY;
+  /// Position in world space (mm, Z-up), projected per-view by the rig
+  /// viewer's layer builders.
+  final Vector3 position;
 
-  NodeElement({
-    required this.screenX,
-    required this.screenY,
-  });
+  NodeElement({required this.position});
 }
 
 class FixtureElement extends NodeElement {
   final FixtureViewModel fixtureVm;
 
-  FixtureElement({
-    required this.fixtureVm,
-    required super.screenX,
-    required super.screenY,
-  });
+  FixtureElement({required this.fixtureVm, required super.position});
 }
 
 class LocationElement extends NodeElement {
   final String locationId;
 
-  LocationElement({
-    required this.locationId,
-    required super.screenX,
-    required super.screenY,
-  });
+  LocationElement({required this.locationId, required super.position});
 }
 
 class PowerMultiHeaderElement extends NodeElement {
@@ -133,19 +118,14 @@ class PowerMultiHeaderElement extends NodeElement {
 
   PowerMultiHeaderElement({
     required this.powerMultiVm,
-    required super.screenX,
-    required super.screenY,
+    required super.position,
   });
 }
 
 class DataMultiHeaderElement extends NodeElement {
   final String outletName;
 
-  DataMultiHeaderElement({
-    required this.outletName,
-    required super.screenX,
-    required super.screenY,
-  });
+  DataMultiHeaderElement({required this.outletName, required super.position});
 }
 
 class DataPatchHeaderElement extends NodeElement {
@@ -155,26 +135,19 @@ class DataPatchHeaderElement extends NodeElement {
   DataPatchHeaderElement({
     required this.outletName,
     required this.universe,
-    required super.screenX,
-    required super.screenY,
+    required super.position,
   });
 }
 
 class TrussBreakElement extends NodeElement {
-  TrussBreakElement({
-    required super.screenX,
-    required super.screenY,
-  });
+  TrussBreakElement({required super.position});
 }
 
 sealed class EdgeElement {
   final NodeElement fromElement;
   final NodeElement toElement;
 
-  EdgeElement({
-    required this.fromElement,
-    required this.toElement,
-  });
+  EdgeElement({required this.fromElement, required this.toElement});
 }
 
 class CableEdgeElement extends EdgeElement {
@@ -182,12 +155,13 @@ class CableEdgeElement extends EdgeElement {
   final double length;
   final CableRunType runType;
 
-  CableEdgeElement(
-      {required this.type,
-      required this.length,
-      required this.runType,
-      required super.toElement,
-      required super.fromElement});
+  CableEdgeElement({
+    required this.type,
+    required this.length,
+    required this.runType,
+    required super.toElement,
+    required super.fromElement,
+  });
 }
 
 class PsuedoEdgeElement extends EdgeElement {
@@ -210,7 +184,7 @@ class CableLengthBreakpoints {
     35,
     40,
     45,
-    50
+    50,
   ];
 
   static List<double> wieland6Way = [
@@ -227,7 +201,7 @@ class CableLengthBreakpoints {
     35,
     40,
     45,
-    50
+    50,
   ];
 
   static List<double> dmx = [1, 2, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
@@ -239,32 +213,37 @@ class CableQtyGroup {
   final CableType type;
   final double length;
 
-  CableQtyGroup({
-    required this.type,
-    required this.length,
-  });
+  CableQtyGroup({required this.type, required this.length});
 
   static List<CableQtyGroup> socapexGroups = [
     CableQtyGroup(type: CableType.socapexToAu10ALampHeader, length: 0),
     CableQtyGroup(type: CableType.socapexToTrue1LampHeader, length: 0),
-    ..._buildQtyGroups(CableLengthBreakpoints.socapex, CableType.socapex)
+    ..._buildQtyGroups(CableLengthBreakpoints.socapex, CableType.socapex),
   ];
   static List<CableQtyGroup> wieland6WayGroups = [
     CableQtyGroup(type: CableType.wieland6WayLampHeader, length: 0),
     ..._buildQtyGroups(
-        CableLengthBreakpoints.wieland6Way, CableType.wieland6way)
+      CableLengthBreakpoints.wieland6Way,
+      CableType.wieland6way,
+    ),
   ];
   static List<CableQtyGroup> dmxGroups = [
     CableQtyGroup(type: CableType.sneakLampHeader, length: 0),
-    ..._buildQtyGroups(CableLengthBreakpoints.dmx, CableType.dmx)
+    ..._buildQtyGroups(CableLengthBreakpoints.dmx, CableType.dmx),
   ];
-  static List<CableQtyGroup> au10AGroups =
-      _buildQtyGroups(CableLengthBreakpoints.au10A, CableType.au10a);
-  static List<CableQtyGroup> true1Groups =
-      _buildQtyGroups(CableLengthBreakpoints.true1, CableType.true1);
+  static List<CableQtyGroup> au10AGroups = _buildQtyGroups(
+    CableLengthBreakpoints.au10A,
+    CableType.au10a,
+  );
+  static List<CableQtyGroup> true1Groups = _buildQtyGroups(
+    CableLengthBreakpoints.true1,
+    CableType.true1,
+  );
 
-  static List<CableQtyGroup> sneakGroups =
-      _buildQtyGroups(CableLengthBreakpoints.sneak, CableType.sneak);
+  static List<CableQtyGroup> sneakGroups = _buildQtyGroups(
+    CableLengthBreakpoints.sneak,
+    CableType.sneak,
+  );
 
   static List<CableQtyGroup> allGroups = [
     ...socapexGroups,
@@ -276,7 +255,9 @@ class CableQtyGroup {
   ];
 
   static List<CableQtyGroup> _buildQtyGroups(
-      List<double> lengths, CableType type) {
+    List<double> lengths,
+    CableType type,
+  ) {
     return lengths
         .map((length) => CableQtyGroup(length: length, type: type))
         .toList();

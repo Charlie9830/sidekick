@@ -1,5 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/cable_graph/cable_graph.dart';
+import 'package:sidekick/cable_graph/view_projection.dart';
 import 'package:sidekick/cable_graph/viewport_transformer.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/screens/breakout_cabling/route_tuning_control.dart';
@@ -9,6 +10,11 @@ import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
 import 'package:sidekick/widgets/connector_painters.dart';
 import 'package:sidekick/widgets/rig_viewer/rig_fixture_node.dart';
 import 'package:sidekick/widgets/rig_viewer/rig_viewer.dart';
+
+/// Diagram-space nudge (mm) that lifts header/location markers clear of the
+/// fixtures they serve, so overlapping outlets stay legible. Presentation only;
+/// it never feeds into cable-length calculations.
+const double _kHeaderDiagramOffsetMm = 600;
 
 /// The breakout cabling graph: trusses, fixtures, headers and cables drawn in
 /// a shared [RigViewer].
@@ -30,23 +36,16 @@ class _CableViewState extends State<CableView> {
       return const SizedBox.shrink();
     }
 
-    // Fit the viewport over every projected point — fixtures, headers
-    // and truss outlines alike — so nothing is clipped or offset.
-    final fitPoints = <Offset>[
-      for (final element in widget.vm.elements)
-        Offset(element.screenX, element.screenY),
-      for (final truss in widget.vm.trusses) ...truss.hull,
-    ];
-
     return RigViewer(
-      fitPoints: fitPoints,
-      trussHulls: [for (final truss in widget.vm.trusses) truss.hull],
-      underlayBuilder: (context, viewport, labelOpacity) => [
-        for (final edge in widget.vm.edges) _buildEdge(edge, viewport),
+      fitPoints: [for (final element in widget.vm.elements) element.position],
+      trussCorners: [for (final truss in widget.vm.trusses) truss.corners],
+      underlayBuilder: (context, viewport, projection, labelOpacity) => [
+        for (final edge in widget.vm.edges)
+          _buildEdge(edge, viewport, projection),
       ],
-      nodesBuilder: (context, viewport, labelOpacity) => [
+      nodesBuilder: (context, viewport, projection, labelOpacity) => [
         for (final node in widget.vm.elements)
-          _buildNode(node, viewport, labelOpacity),
+          _buildNode(node, viewport, projection, labelOpacity),
       ],
       overlays: [
         Positioned(
@@ -58,11 +57,7 @@ class _CableViewState extends State<CableView> {
             onVisibilityChanged: widget.vm.onVisibilityChanged,
           ),
         ),
-        const Positioned(
-          bottom: 8,
-          left: 8,
-          child: _Legend(),
-        ),
+        const Positioned(bottom: 8, left: 8, child: _Legend()),
         Positioned(
           top: 8,
           right: 8,
@@ -76,17 +71,28 @@ class _CableViewState extends State<CableView> {
     );
   }
 
-  Widget _buildEdge(EdgeElement edge, ViewportTransformer viewport) {
-    final fromElement = edge.fromElement;
-    final toElement = edge.toElement;
-    final fromOffset = viewport.transform(
-      fromElement.screenX,
-      fromElement.screenY,
-    );
-    final toOffset = viewport.transform(
-      toElement.screenX,
-      toElement.screenY,
-    );
+  /// Projects [node] into diagram space, lifting header/location markers
+  /// clear of the fixtures they serve so overlapping outlets stay legible.
+  Offset _diagramPosition(NodeElement node, ViewProjection projection) {
+    final p = projection.projectVector(node.position);
+    return switch (node) {
+      LocationElement() ||
+      PowerMultiHeaderElement() ||
+      DataMultiHeaderElement() ||
+      DataPatchHeaderElement() => p.translate(0, -_kHeaderDiagramOffsetMm),
+      FixtureElement() || TrussBreakElement() => p,
+    };
+  }
+
+  Widget _buildEdge(
+    EdgeElement edge,
+    ViewportTransformer viewport,
+    ViewProjection projection,
+  ) {
+    final from = _diagramPosition(edge.fromElement, projection);
+    final to = _diagramPosition(edge.toElement, projection);
+    final fromOffset = viewport.transform(from.dx, from.dy);
+    final toOffset = viewport.transform(to.dx, to.dy);
 
     return Positioned.fill(
       child: switch (edge) {
@@ -122,9 +128,11 @@ class _CableViewState extends State<CableView> {
   Positioned _buildNode(
     NodeElement node,
     ViewportTransformer viewport,
+    ViewProjection projection,
     double labelOpacity,
   ) {
-    final origin = viewport.transform(node.screenX, node.screenY);
+    final diagram = _diagramPosition(node, projection);
+    final origin = viewport.transform(diagram.dx, diagram.dy);
     return switch (node) {
       LocationElement() => Positioned(
         width: 10,
@@ -137,11 +145,12 @@ class _CableViewState extends State<CableView> {
         ),
       ),
       FixtureElement() => RigFixtureNode.positioned(
-        diagramPosition: Offset(node.screenX, node.screenY),
+        diagramPosition: diagram,
         viewport: viewport,
         fallbackSize: 16,
         geometry: node.fixtureVm.geometry,
         rotationZ: node.fixtureVm.fixture.rotationZ,
+        projection: projection,
         label: node.fixtureVm.fixture.fid.toString(),
         subLabel: node.fixtureVm.fixtureType.shortName,
         labelOpacity: labelOpacity,
@@ -272,8 +281,9 @@ class _Legend extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final labelStyle = theme.typography.xSmall
-        .copyWith(color: theme.colorScheme.mutedForeground);
+    final labelStyle = theme.typography.xSmall.copyWith(
+      color: theme.colorScheme.mutedForeground,
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -286,22 +296,34 @@ class _Legend extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Legend', style: theme.typography.xSmall.copyWith(
+          Text(
+            'Legend',
+            style: theme.typography.xSmall.copyWith(
               color: theme.colorScheme.foreground,
-              fontWeight: FontWeight.w600)),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: 8),
           _LegendSwatch(
-              color: SidekickColors.powerRun, label: 'Power', style: labelStyle),
+            color: SidekickColors.powerRun,
+            label: 'Power',
+            style: labelStyle,
+          ),
           _LegendSwatch(
-              color: SidekickColors.dataRun, label: 'Data', style: labelStyle),
+            color: SidekickColors.dataRun,
+            label: 'Data',
+            style: labelStyle,
+          ),
           _LegendSwatch(
-              color: SidekickColors.dataMultiNode,
-              label: 'Data multi',
-              style: labelStyle),
+            color: SidekickColors.dataMultiNode,
+            label: 'Data multi',
+            style: labelStyle,
+          ),
           _LegendSwatch(
-              color: SidekickColors.locationMarker,
-              label: 'Location',
-              style: labelStyle),
+            color: SidekickColors.locationMarker,
+            label: 'Location',
+            style: labelStyle,
+          ),
           const SizedBox(height: 8),
           _LegendLine(weight: 1, label: 'Link', style: labelStyle),
           _LegendLine(weight: 2, label: 'Fixture run', style: labelStyle),

@@ -1,5 +1,8 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/cable_graph/vector3.dart';
+import 'package:sidekick/cable_graph/view_projection.dart';
 import 'package:sidekick/cable_graph/viewport_transformer.dart';
+import 'package:sidekick/widgets/hover_region.dart';
 import 'package:sidekick/widgets/rig_viewer/truss_painter.dart';
 
 /// Below [_kLabelFadeStart] node labels are hidden; above [_kLabelFadeEnd]
@@ -9,13 +12,17 @@ import 'package:sidekick/widgets/rig_viewer/truss_painter.dart';
 const double _kLabelFadeStart = 1.6;
 const double _kLabelFadeEnd = 3.2;
 
-/// Builds the widgets of one rig layer, given the fitted viewport and the
-/// zoom-driven label opacity. Returned widgets sit directly in the viewer's
-/// Stack, so they must be [Positioned] (or otherwise Stack-legal).
+/// Builds the widgets of one rig layer, given the fitted viewport, the
+/// projection of the currently selected orthogonal view, and the zoom-driven
+/// label opacity. Content must project its own world coordinates through
+/// [projection] so every layer re-orients together when the view changes.
+/// Returned widgets sit directly in the viewer's Stack, so they must be
+/// [Positioned] (or otherwise Stack-legal).
 typedef RigViewerLayerBuilder =
     List<Widget> Function(
       BuildContext context,
       ViewportTransformer viewport,
+      ViewProjection projection,
       double labelOpacity,
     );
 
@@ -24,30 +31,36 @@ typedef RigViewerLayerBuilder =
 ///
 /// The viewer owns the chrome both views used to duplicate: the
 /// [InteractiveViewer], the [ViewportTransformer] fit over [fitPoints], the
-/// truss footprint underlay and the zoom-driven label fade. Content stays with
-/// the caller — [underlayBuilder] draws beneath the nodes (cables, sequence
-/// paths) and [nodesBuilder] places the nodes themselves, both receiving the
-/// fitted viewport so everything shares one diagram-to-screen mapping.
-/// [overlays] are screen-fixed chrome (legends, controls) outside the
-/// pan/zoom surface.
+/// truss footprint underlay, the zoom-driven label fade, and the orthogonal
+/// view selector (Top / Bottom / Front / Back / Left / Right). The selected
+/// view's projection is handed to the layer builders, so all inputs are
+/// world-space (mm, Z-up). Content stays with the caller — [underlayBuilder]
+/// draws beneath the nodes (cables, sequence paths) and [nodesBuilder] places
+/// the nodes themselves, both receiving the fitted viewport and projection so
+/// everything shares one world-to-screen mapping. [overlays] are screen-fixed
+/// chrome (legends, controls) outside the pan/zoom surface.
 class RigViewer extends StatefulWidget {
-  /// Diagram-space points (mm) the viewport must fit around. An empty list
-  /// collapses the viewer to nothing.
-  final List<Offset> fitPoints;
+  /// World-space points (mm) the viewport must fit around, in addition to the
+  /// corners of [trussCorners]. An empty list collapses the viewer to nothing.
+  final List<Vector3> fitPoints;
 
   /// Inset kept clear around the plot so edge nodes aren't clipped.
   final double fitPadding;
 
   final double maxScale;
 
-  /// Truss footprints (diagram mm) painted beneath everything else.
-  final List<List<Offset>> trussHulls;
+  /// World-space corner sets, one per truss, whose projected outlines are
+  /// painted beneath everything else.
+  final List<List<Vector3>> trussCorners;
 
   final RigViewerLayerBuilder? underlayBuilder;
   final RigViewerLayerBuilder nodesBuilder;
 
   /// Screen-fixed widgets stacked over the viewer (legends, control panels).
   final List<Widget> overlays;
+
+  /// The orthogonal view shown until the user selects another.
+  final OrthogonalView initialView;
 
   const RigViewer({
     super.key,
@@ -56,8 +69,9 @@ class RigViewer extends StatefulWidget {
     this.underlayBuilder,
     this.fitPadding = 240,
     this.maxScale = 50,
-    this.trussHulls = const [],
+    this.trussCorners = const [],
     this.overlays = const [],
+    this.initialView = OrthogonalView.top,
   });
 
   @override
@@ -67,6 +81,7 @@ class RigViewer extends StatefulWidget {
 class _RigViewerState extends State<RigViewer> {
   final TransformationController _controller = TransformationController();
   double _labelOpacity = 0;
+  late OrthogonalView _view = widget.initialView;
 
   @override
   void initState() {
@@ -91,11 +106,30 @@ class _RigViewerState extends State<RigViewer> {
     }
   }
 
+  void _handleViewChanged(OrthogonalView view) {
+    if (view == _view) return;
+    setState(() {
+      _view = view;
+      // A new view has new bounds; reset pan/zoom so the fit is visible.
+      _controller.value = Matrix4.identity();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.fitPoints.isEmpty) {
       return const SizedBox.shrink();
     }
+
+    final hulls = [
+      for (final corners in widget.trussCorners)
+        convexHull([for (final corner in corners) _view.projectVector(corner)]),
+    ];
+
+    final fitPoints = [
+      for (final point in widget.fitPoints) _view.projectVector(point),
+      for (final hull in hulls) ...hull,
+    ];
 
     return Stack(
       children: [
@@ -105,18 +139,18 @@ class _RigViewerState extends State<RigViewer> {
           child: LayoutBuilder(
             builder: (context, constraints) {
               final viewport = ViewportTransformer.fit(
-                points: widget.fitPoints,
+                points: fitPoints,
                 constraints: constraints,
                 padding: widget.fitPadding,
               );
 
               return Stack(
                 children: [
-                  if (widget.trussHulls.isNotEmpty)
+                  if (hulls.isNotEmpty)
                     Positioned.fill(
                       child: CustomPaint(
                         painter: TrussPainter(
-                          hulls: widget.trussHulls,
+                          hulls: hulls,
                           viewport: viewport,
                           color: Theme.of(context).colorScheme.mutedForeground,
                         ),
@@ -125,16 +159,95 @@ class _RigViewerState extends State<RigViewer> {
                   ...?widget.underlayBuilder?.call(
                     context,
                     viewport,
+                    _view,
                     _labelOpacity,
                   ),
-                  ...widget.nodesBuilder(context, viewport, _labelOpacity),
+                  ...widget.nodesBuilder(
+                    context,
+                    viewport,
+                    _view,
+                    _labelOpacity,
+                  ),
                 ],
               );
             },
           ),
         ),
+        Positioned(
+          top: 8,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: _ViewSelector(
+              selected: _view,
+              onChanged: _handleViewChanged,
+            ),
+          ),
+        ),
         ...widget.overlays,
       ],
     );
+  }
+}
+
+/// Segmented control switching the viewer between the six orthogonal views.
+class _ViewSelector extends StatelessWidget {
+  final OrthogonalView selected;
+  final ValueChanged<OrthogonalView> onChanged;
+
+  const _ViewSelector({required this.selected, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return HoverRegionBuilder(
+      builder: (context, isHovering) {
+        return Opacity(
+          opacity: isHovering ? 1 : 0.25,
+          child: Card(
+            padding: const EdgeInsets.all(4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 2,
+              children: [
+                for (final view in OrthogonalView.values)
+                  _ViewSegment(
+                    view: view,
+                    selected: view == selected,
+                    onPressed: () => onChanged(view),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ViewSegment extends StatelessWidget {
+  final OrthogonalView view;
+  final bool selected;
+  final VoidCallback onPressed;
+
+  const _ViewSegment({
+    required this.view,
+    required this.selected,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final label = Text(view.label);
+    return selected
+        ? PrimaryButton(
+            size: ButtonSize.small,
+            onPressed: onPressed,
+            child: label,
+          )
+        : GhostButton(
+            size: ButtonSize.small,
+            onPressed: onPressed,
+            child: label,
+          );
   }
 }
