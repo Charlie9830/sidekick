@@ -21,15 +21,12 @@ String selectCableLabel({
   }
 
   if (cable.parentMultiId.isNotEmpty && cable.type == CableType.dmx) {
-    return _selectSneakChildLabel(
-      dataPatches[cable.outletId],
-    );
+    return _selectSneakChildLabel(dataPatches[cable.outletId]);
   }
 
   return switch (cable.type) {
     CableType.socapex ||
-    CableType.wieland6way =>
-      powerMultiOutlets[cable.outletId]?.name ?? '',
+    CableType.wieland6way => powerMultiOutlets[cable.outletId]?.name ?? '',
     CableType.sneak => _selectSneakLabel(dataMultis[cable.outletId]),
     CableType.dmx => _selectDMXLabel(dataPatches[cable.outletId]),
     CableType.hoist => _selectSingleHoistLabel(hoistOutlets[cable.outletId]),
@@ -43,6 +40,15 @@ String selectCableLabel({
     CableType.sneakLampHeader => throw UnimplementedError(),
     CableType.hoistMultiLampHeader => throw UnimplementedError(),
     CableType.hoistMultiRackHeader => throw UnimplementedError(),
+    CableType.socapexTo6wayAdaptor => throw UnimplementedError(),
+    CableType.sneakRackHeader => throw UnimplementedError(),
+    CableType.nac3Joiner => throw UnimplementedError(),
+    CableType.nac3 => throw UnimplementedError(),
+    CableType.wilco32a => throw UnimplementedError(),
+    CableType.consoleLoom => throw UnimplementedError(),
+    CableType.etherconJoiner => throw UnimplementedError(),
+    CableType.ethercon => throw UnimplementedError(),
+    CableType.wieland6WayRackHeader => throw UnimplementedError(),
   };
 }
 

@@ -28,51 +28,57 @@ List<LoomViewModel> selectLoomViewModels(
 }) {
   // Wrapper Function to wrap multiple similiar calls to Cable VM creation.
   CableViewModel wrapCableVm(
-      CableModel cable, int localNumber, int selectionIndex) {
+    CableModel cable,
+    int localNumber,
+    int selectionIndex,
+  ) {
     final associatedLocation = selectCableLocation(cable, store);
 
     return CableViewModel(
-        cable: cable,
-        selectionIndex: selectionIndex,
-        locationId: associatedLocation?.uid ?? '',
-        labelColor: associatedLocation?.color ?? const LabelColorModel.none(),
-        isExtension: cable.upstreamId.isNotEmpty,
-        universe: selectDmxUniverse(store.state.fixtureState, cable),
-        missingUpstreamCable: cable.upstreamId.isNotEmpty
-            ? store.state.fixtureState.cables.containsKey(cable.upstreamId) ==
+      cable: cable,
+      selectionIndex: selectionIndex,
+      locationId: associatedLocation?.uid ?? '',
+      labelColor: associatedLocation?.color ?? const LabelColorModel.none(),
+      isExtension: cable.upstreamId.isNotEmpty,
+      universe: selectDmxUniverse(store.state.fixtureState, cable),
+      missingUpstreamCable: cable.upstreamId.isNotEmpty
+          ? store.state.fixtureState.cables.containsKey(cable.upstreamId) ==
                 false
-            : false,
-        label: selectCableLabel(
-          powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
-          dataPatches: store.state.fixtureState.dataPatches,
-          dataMultis: store.state.fixtureState.dataMultis,
-          hoistMultis: store.state.fixtureState.hoistMultis,
-          hoistOutlets: store.state.fixtureState.hoists,
-          cable: cable,
-        ),
-        labelHint: selectCableLabelHint(
-          powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
-          dataPatches: store.state.fixtureState.dataPatches,
-          dataMultis: store.state.fixtureState.dataMultis,
-          hoistMultis: store.state.fixtureState.hoistMultis,
-          hoistOutlets: store.state.fixtureState.hoists,
-          cable: cable,
-        ),
-        isDetached: selectCableDetachedState(
-            dataMultis: store.state.fixtureState.dataMultis, cable: cable),
-        typeLabel: _getTypeLabel(
-          cable.type,
-          localNumber,
-          isMultiChild: cable.parentMultiId.isNotEmpty,
-        ),
-        onLengthChanged: (newValue) =>
-            store.dispatch(UpdateCableLength(cable.uid, newValue)),
-        onNotesChanged: (newValue) =>
-            store.dispatch(UpdateCableNote(cable.uid, newValue)));
+          : false,
+      label: selectCableLabel(
+        powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
+        dataPatches: store.state.fixtureState.dataPatches,
+        dataMultis: store.state.fixtureState.dataMultis,
+        hoistMultis: store.state.fixtureState.hoistMultis,
+        hoistOutlets: store.state.fixtureState.hoists,
+        cable: cable,
+      ),
+      labelHint: selectCableLabelHint(
+        powerMultiOutlets: store.state.fixtureState.powerMultiOutlets,
+        dataPatches: store.state.fixtureState.dataPatches,
+        dataMultis: store.state.fixtureState.dataMultis,
+        hoistMultis: store.state.fixtureState.hoistMultis,
+        hoistOutlets: store.state.fixtureState.hoists,
+        cable: cable,
+      ),
+      isDetached: selectCableDetachedState(
+        dataMultis: store.state.fixtureState.dataMultis,
+        cable: cable,
+      ),
+      typeLabel: _getTypeLabel(
+        cable.type,
+        localNumber,
+        isMultiChild: cable.parentMultiId.isNotEmpty,
+      ),
+      onLengthChanged: (newValue) =>
+          store.dispatch(UpdateCableLength(cable.uid, newValue)),
+      onNotesChanged: (newValue) =>
+          store.dispatch(UpdateCableNote(cable.uid, newValue)),
+    );
   }
 
-  final List<LoomModel> orderedLooms =
-      store.state.fixtureState.looms.values.toList();
+  final List<LoomModel> orderedLooms = store.state.fixtureState.looms.values
+      .toList();
 
   // Getting a bit stupidly smarty pants here. Create a local closure to track the current 'localNumber' of a cable.
   // The local number pertains to the current count of a type of cable within a loom, for example Soca 1, Soca 2, Soca 3, Sneak 1 etc.
@@ -94,93 +100,93 @@ List<LoomViewModel> selectLoomViewModels(
 
   final getSelectionIndex = getItemSelectionIndexClosure();
 
-  final loomVms = orderedLooms.mapIndexed(
-    (index, loom) {
-      final topLevelCables = store.state.fixtureState.cables.values
-          .where((cable) =>
-              cable.loomId == loom.uid && cable.parentMultiId.isEmpty)
-          .toList();
+  final loomVms = orderedLooms.mapIndexed((index, loom) {
+    final topLevelCables = store.state.fixtureState.cables.values
+        .where(
+          (cable) => cable.loomId == loom.uid && cable.parentMultiId.isEmpty,
+        )
+        .toList();
 
-      final getCount = localNumberCounterClosure();
+    final getCount = localNumberCounterClosure();
 
-      final loomedCableVms = topLevelCables
-          .sorted((a, b) => CableModel.compareByType(a, b))
-          .map((cable) {
-            return [
-              // Top Level Cable
-              if (cable.parentMultiId.isEmpty)
-                wrapCableVm(cable, getCount(cable.type), getSelectionIndex()),
+    final loomedCableVms = topLevelCables
+        .sorted((a, b) => CableModel.compareByType(a, b))
+        .map((cable) {
+          return [
+            // Top Level Cable
+            if (cable.parentMultiId.isEmpty)
+              wrapCableVm(cable, getCount(cable.type), getSelectionIndex()),
 
-              // Optional Children of Multi Cables.
-              ...selectChildCables(cable, store.state.fixtureState).mapIndexed(
-                  (index, child) =>
-                      wrapCableVm(child, index + 1, getSelectionIndex()))
-            ];
-          })
-          .flattened
-          .toList();
+            // Optional Children of Multi Cables.
+            ...selectChildCables(cable, store.state.fixtureState).mapIndexed(
+              (index, child) =>
+                  wrapCableVm(child, index + 1, getSelectionIndex()),
+            ),
+          ];
+        })
+        .flattened
+        .toList();
 
-      return LoomViewModel(
-          loom: loom,
-          loomsOnlyIndex: index,
-          containsMotorCables: topLevelCables.any((cable) =>
-              cable.type == CableType.hoist ||
-              cable.type == CableType.hoistMulti),
-          hasVariedLengthChildren:
-              topLevelCables.map((cable) => cable.length).toSet().length > 1,
-          name: _getLoomName(loom, store),
-          addOutletsToLoom: (loomId, outletIds) =>
-              store.dispatch(addOutletsToLoom(context!, loomId, outletIds)),
-          isValidComposition: loom.type.type == LoomType.permanent
-              ? loom.type.checkIsValid(topLevelCables)
-              : true,
-          children: loomedCableVms,
-          onRepairCompositionButtonPressed: () =>
-              store.dispatch(repairLoomComposition(loom, context!)),
-          onLengthChanged: (newValue) =>
-              store.dispatch(UpdateLoomLength(loom.uid, newValue)),
-          onDelete: () => store.dispatch(
-                deleteLoom(context!, loom.uid),
-              ),
-          onDropperToggleButtonPressed: () => store.dispatch(
-                ToggleCableDropperStateByLoom(
-                  loom.uid,
-                ),
-              ),
-          onSwitchType: () => store.dispatch(switchLoomType(
-                context!,
-                loom.uid,
-              )),
-          addSpareCablesToLoom: () =>
-              store.dispatch(addSpareCablesToLoom(context!, loom.uid)),
-          onNameChanged: (newValue) =>
-              store.dispatch(UpdateLoomName(loom.uid, newValue)),
-          onMoveCablesIntoLoom: (loomId, cableIds) =>
-              store.dispatch(moveCablesIntoLoom(context!, loomId, cableIds)),
-          onAddCablesIntoLoomAsExtensions: (loomId, cableIds) => store.dispatch(
-              addCablesToLoomAsExtensions(context!, loomId, cableIds)),
-          permCompEntries: _getPermCompEntries(
-              context,
-              loom,
-              topLevelCables
-                  .where((cable) => cable.parentMultiId.isEmpty)
-                  .toList()),
-          onChangeToSpecificComposition: (newComposition) =>
-              store.dispatch(changeToSpecificComposition(context!, loom.uid, newComposition)));
-    },
-  ).toList();
+    return LoomViewModel(
+      loom: loom,
+      loomsOnlyIndex: index,
+      containsMotorCables: topLevelCables.any(
+        (cable) =>
+            cable.type == CableType.hoist || cable.type == CableType.hoistMulti,
+      ),
+      hasVariedLengthChildren:
+          topLevelCables.map((cable) => cable.length).toSet().length > 1,
+      name: _getLoomName(loom, store),
+      addOutletsToLoom: (loomId, outletIds) =>
+          store.dispatch(addOutletsToLoom(context!, loomId, outletIds)),
+      isValidComposition: loom.type.type == LoomType.permanent
+          ? loom.type.checkIsValid(topLevelCables)
+          : true,
+      children: loomedCableVms,
+      onRepairCompositionButtonPressed: () =>
+          store.dispatch(repairLoomComposition(loom, context!)),
+      onLengthChanged: (newValue) =>
+          store.dispatch(UpdateLoomLength(loom.uid, newValue)),
+      onDelete: () => store.dispatch(deleteLoom(context!, loom.uid)),
+      onDropperToggleButtonPressed: () =>
+          store.dispatch(ToggleCableDropperStateByLoom(loom.uid)),
+      onSwitchType: () => store.dispatch(switchLoomType(context!, loom.uid)),
+      addSpareCablesToLoom: () =>
+          store.dispatch(addSpareCablesToLoom(context!, loom.uid)),
+      onNameChanged: (newValue) =>
+          store.dispatch(UpdateLoomName(loom.uid, newValue)),
+      onMoveCablesIntoLoom: (loomId, cableIds) =>
+          store.dispatch(moveCablesIntoLoom(context!, loomId, cableIds)),
+      onAddCablesIntoLoomAsExtensions: (loomId, cableIds) => store.dispatch(
+        addCablesToLoomAsExtensions(context!, loomId, cableIds),
+      ),
+      permCompEntries: _getPermCompEntries(
+        context,
+        loom,
+        topLevelCables.where((cable) => cable.parentMultiId.isEmpty).toList(),
+      ),
+      onChangeToSpecificComposition: (newComposition) => store.dispatch(
+        changeToSpecificComposition(context!, loom.uid, newComposition),
+      ),
+    );
+  }).toList();
 
   return loomVms;
 }
 
 List<SelectItemButton<PermanentCompositionSelection>> _getPermCompEntries(
-    BuildContext? context, LoomModel loom, List<CableModel> topLevelChildren) {
+  BuildContext? context,
+  LoomModel loom,
+  List<CableModel> topLevelChildren,
+) {
   SelectItemButton<PermanentCompositionSelection> mapComp(
-      PermanentLoomComposition comp) {
+    PermanentLoomComposition comp,
+  ) {
     final satisfiedOnAllCables = comp.satisfied(topLevelChildren).satisfied;
     final satisfiedOnActiveCablesOnly = comp
         .satisfied(
-            topLevelChildren.where((cable) => cable.isSpare == false).toList())
+          topLevelChildren.where((cable) => cable.isSpare == false).toList(),
+        )
         .satisfied;
     final cutSpares =
         satisfiedOnAllCables == false && satisfiedOnActiveCablesOnly == true;
@@ -191,12 +197,15 @@ List<SelectItemButton<PermanentCompositionSelection>> _getPermCompEntries(
     final trailing = cutSpares
         ? const SimpleTooltip(
             message: 'Spares will get deleted',
-            child: Icon(Icons.cut, size: 16, color: Colors.pink))
+            child: Icon(Icons.cut, size: 16, color: Colors.pink),
+          )
         : null;
 
     return SelectItemButton<PermanentCompositionSelection>(
-      value:
-          PermanentCompositionSelection(name: comp.name, cutSpares: cutSpares),
+      value: PermanentCompositionSelection(
+        name: comp.name,
+        cutSpares: cutSpares,
+      ),
       enabled: satisfiedOnAllCables || satisfiedOnActiveCablesOnly,
       child: Row(
         children: [
@@ -210,12 +219,12 @@ List<SelectItemButton<PermanentCompositionSelection>> _getPermCompEntries(
   }
 
   SelectItemButton<PermanentCompositionSelection> buildSubtitle(
-          String subtitle) =>
-      SelectItemButton<PermanentCompositionSelection>(
-        value: PermanentCompositionSelection(name: subtitle, cutSpares: false),
-        enabled: false,
-        child: Text(subtitle).small,
-      );
+    String subtitle,
+  ) => SelectItemButton<PermanentCompositionSelection>(
+    value: PermanentCompositionSelection(name: subtitle, cutSpares: false),
+    enabled: false,
+    child: Text(subtitle).small,
+  );
 
   return [
     buildSubtitle('Socapex'),
@@ -225,18 +234,22 @@ List<SelectItemButton<PermanentCompositionSelection>> _getPermCompEntries(
     buildSubtitle('6 way'),
     ...PermanentLoomComposition.validCompositions
         .where((comp) => comp.wieland6Ways > 0)
-        .map(mapComp)
+        .map(mapComp),
   ];
 }
 
-String _getTypeLabel(CableType type, int localNumber,
-    {bool isMultiChild = false}) {
+String _getTypeLabel(
+  CableType type,
+  int localNumber, {
+  bool isMultiChild = false,
+}) {
   if (isMultiChild) {
     return switch (type) {
       CableType.dmx => 'Data $localNumber',
       CableType.hoist => 'Line $localNumber',
       _ => throw ArgumentError(
-          'Invalid multi child, the argument [isMultiChild] has not been set correctly.'),
+        'Invalid multi child, the argument [isMultiChild] has not been set correctly.',
+      ),
     };
   }
 
@@ -256,6 +269,15 @@ String _getTypeLabel(CableType type, int localNumber,
     CableType.sneakLampHeader => throw UnimplementedError(),
     CableType.hoistMultiLampHeader => throw UnimplementedError(),
     CableType.hoistMultiRackHeader => throw UnimplementedError(),
+    CableType.socapexTo6wayAdaptor => throw UnimplementedError(),
+    CableType.sneakRackHeader => throw UnimplementedError(),
+    CableType.nac3Joiner => throw UnimplementedError(),
+    CableType.nac3 => throw UnimplementedError(),
+    CableType.wilco32a => throw UnimplementedError(),
+    CableType.consoleLoom => throw UnimplementedError(),
+    CableType.etherconJoiner => throw UnimplementedError(),
+    CableType.ethercon => throw UnimplementedError(),
+    CableType.wieland6WayRackHeader => throw UnimplementedError(),
   };
 }
 

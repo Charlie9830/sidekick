@@ -38,6 +38,9 @@ class ExportFilePaths {
   String get hoistPatchPath =>
       '${p.join(directoryPath, _appendSlug('Motor_Patch'))}$excelFileExtension';
 
+  String get breakoutCablingPath =>
+      '${p.join(directoryPath, _appendSlug('Breakout_Cabling'))}$excelFileExtension';
+
   Future<bool> get parentDirectoryExists => Directory(directoryPath).exists();
 
   Future<List<String>> getAlreadyExistingFileNames() async {
@@ -53,6 +56,7 @@ class ExportFilePaths {
       checkExistsDelegate(addressesPath),
       checkExistsDelegate(fixtureInfoPath),
       checkExistsDelegate(hoistPatchPath),
+      checkExistsDelegate(breakoutCablingPath),
     ];
 
     final existingFileNames = await Future.wait(delegates);

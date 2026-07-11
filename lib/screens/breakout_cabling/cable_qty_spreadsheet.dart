@@ -1,5 +1,4 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
@@ -113,7 +112,7 @@ class CableQtySpreadsheet extends StatelessWidget {
       child: Align(
         alignment: Alignment.centerLeft,
         child: Text(
-          _formatCableGroup(cableGroup),
+          cableGroup?.label ?? '',
           style: Theme.of(context).typography.small,
         ),
       ),
@@ -135,44 +134,5 @@ class CableQtySpreadsheet extends StatelessWidget {
     final cellValue = location.cableQtys[qtyGroup]?.toString() ?? '';
 
     return TableViewCell(child: Center(child: Text(cellValue)));
-  }
-
-  String _formatCableGroup(CableQtyGroup? group) {
-    if (group == null) {
-      return '';
-    }
-
-    String lengthText = group.length.remainder(1) == 0
-        ? '${group.length.toStringAsFixed(0)}m'
-        : '${group.length.toStringAsFixed(1)}m';
-
-    final typeSlug = switch (group.type) {
-      CableType.unknown => throw UnimplementedError(),
-      CableType.socapex => 'Soca',
-      CableType.wieland6way => '6way',
-      CableType.sneak => 'Sneak',
-      CableType.dmx => 'DMX',
-      CableType.hoist => 'Motor Cable',
-      CableType.hoistMulti => 'Motor Multi',
-      CableType.au10a => '10A Ext',
-      CableType.true1 => 'True1 Ext',
-      CableType.socapexToAu10ALampHeader => 'Soca AU10A Header',
-      CableType.socapexToTrue1LampHeader => 'Socapex True1 Header',
-      CableType.wieland6WayLampHeader => '6way AU10A Header',
-      CableType.sneakLampHeader => 'SS Lamp Header',
-      CableType.hoistMultiLampHeader => 'Motor Multi Lamp Header',
-      CableType.hoistMultiRackHeader => 'Motor Multi Rack Header',
-    };
-
-    if (group.type == CableType.socapexToAu10ALampHeader ||
-        group.type == CableType.socapexToTrue1LampHeader ||
-        group.type == CableType.sneakLampHeader ||
-        group.type == CableType.hoistMultiRackHeader ||
-        group.type == CableType.hoistMultiLampHeader ||
-        group.type == CableType.wieland6WayLampHeader) {
-      return typeSlug;
-    }
-
-    return '$lengthText $typeSlug';
   }
 }

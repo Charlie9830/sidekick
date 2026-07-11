@@ -170,21 +170,6 @@ ThunkAction<AppState> export(BuildContext context) {
       dataRacks: store.state.fixtureState.dataRacks,
     );
 
-    createBreakoutCablingSheet(
-      excel: referenceDataExcel,
-      locations: store.state.fixtureState.locations,
-      cableGraph: buildCableGraph(
-        fixtures: store.state.fixtureState.fixtures,
-        fixtureTypes: store.state.fixtureState.fixtureTypes,
-        powerMultis: store.state.fixtureState.powerMultiOutlets,
-        cables: store.state.fixtureState.cables,
-        locations: store.state.fixtureState.locations,
-        dataMultis: store.state.fixtureState.dataMultis,
-        dataPatches: store.state.fixtureState.dataPatches,
-        trusses: store.state.fixtureState.trusses,
-      ),
-    );
-
     referenceDataExcel.delete('Sheet1');
 
     final loomsExcel = Excel.createExcel();
@@ -218,6 +203,24 @@ ThunkAction<AppState> export(BuildContext context) {
     createHoistPatchSheet(excel: hoistPatchExcel, store: store);
     hoistPatchExcel.delete('Sheet1');
 
+    final breakoutCablingExcel = Excel.createExcel();
+
+    createBreakoutCablingSheet(
+      excel: breakoutCablingExcel,
+      locations: store.state.fixtureState.locations,
+      cableGraph: buildCableGraph(
+        fixtures: store.state.fixtureState.fixtures,
+        fixtureTypes: store.state.fixtureState.fixtureTypes,
+        powerMultis: store.state.fixtureState.powerMultiOutlets,
+        cables: store.state.fixtureState.cables,
+        locations: store.state.fixtureState.locations,
+        dataMultis: store.state.fixtureState.dataMultis,
+        dataPatches: store.state.fixtureState.dataPatches,
+        trusses: store.state.fixtureState.trusses,
+      ),
+    );
+    breakoutCablingExcel.delete('Sheet1');
+
     final referenceDataBytes = referenceDataExcel.save();
     final loomsBytes = loomsExcel.save();
     final powerPatchTemplateBytes = await rootBundle.load(
@@ -229,6 +232,7 @@ ThunkAction<AppState> export(BuildContext context) {
     final addressingBytes = addressingExcel.save();
     final fixtureInfoBytes = fixtureInfoExcel.save();
     final hoistPatchBytes = hoistPatchExcel.save();
+    final breakoutCablingBytes = breakoutCablingExcel.save();
 
     if (referenceDataBytes == null) {
       if (context.mounted) {
@@ -290,6 +294,18 @@ ThunkAction<AppState> export(BuildContext context) {
       return;
     }
 
+    if (breakoutCablingBytes == null) {
+      if (context.mounted) {
+        showGenericErrorToast(
+          context: context,
+          title: 'Excel output error',
+          subtitle: 'An error occurred writing breakout cabling data',
+        );
+      }
+
+      return;
+    }
+
     final fileWrites = [
       File(outputPaths.referenceDataPath).writeAsBytes(referenceDataBytes),
       File(outputPaths.loomsPath).writeAsBytes(loomsBytes),
@@ -302,6 +318,7 @@ ThunkAction<AppState> export(BuildContext context) {
       File(outputPaths.addressesPath).writeAsBytes(addressingBytes),
       File(outputPaths.fixtureInfoPath).writeAsBytes(fixtureInfoBytes),
       File(outputPaths.hoistPatchPath).writeAsBytes(hoistPatchBytes),
+      File(outputPaths.breakoutCablingPath).writeAsBytes(breakoutCablingBytes),
     ];
 
     try {
@@ -331,6 +348,7 @@ ThunkAction<AppState> export(BuildContext context) {
       await launchUrl(Uri.file(outputPaths.loomsPath));
       await launchUrl(Uri.file(outputPaths.addressesPath));
       await launchUrl(Uri.file(outputPaths.hoistPatchPath));
+      await launchUrl(Uri.file(outputPaths.breakoutCablingPath));
     }
   };
 }

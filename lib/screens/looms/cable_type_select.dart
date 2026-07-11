@@ -6,11 +6,12 @@ class CableTypeSelect extends StatelessWidget {
   final void Function(CableType newValue) onChanged;
   final Set<CableType>? allowedTypes;
 
-  const CableTypeSelect(
-      {super.key,
-      required this.value,
-      required this.onChanged,
-      this.allowedTypes});
+  const CableTypeSelect({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    this.allowedTypes,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,8 +27,9 @@ class CableTypeSelect extends StatelessWidget {
           children: typeOptions
               .map(
                 (type) => SelectItemButton(
-                    value: type,
-                    child: Text(_getHumanFriendlyCableTypeName(type))),
+                  value: type,
+                  child: Text(_getHumanFriendlyCableTypeName(type)),
+                ),
               )
               .toList(),
         ),
@@ -52,6 +54,15 @@ class CableTypeSelect extends StatelessWidget {
       CableType.sneakLampHeader => throw UnimplementedError(),
       CableType.hoistMultiLampHeader => throw UnimplementedError(),
       CableType.hoistMultiRackHeader => throw UnimplementedError(),
+      CableType.socapexTo6wayAdaptor => throw UnimplementedError(),
+      CableType.sneakRackHeader => throw UnimplementedError(),
+      CableType.nac3Joiner => throw UnimplementedError(),
+      CableType.nac3 => throw UnimplementedError(),
+      CableType.wilco32a => throw UnimplementedError(),
+      CableType.consoleLoom => throw UnimplementedError(),
+      CableType.etherconJoiner => throw UnimplementedError(),
+      CableType.ethercon => throw UnimplementedError(),
+      CableType.wieland6WayRackHeader => throw UnimplementedError(),
     };
   }
 }

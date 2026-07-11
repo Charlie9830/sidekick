@@ -16,10 +16,19 @@ enum CableType {
   true1,
   socapexToAu10ALampHeader,
   socapexToTrue1LampHeader,
+  socapexTo6wayAdaptor,
   wieland6WayLampHeader,
   sneakLampHeader,
+  sneakRackHeader,
   hoistMultiLampHeader,
   hoistMultiRackHeader,
+  nac3Joiner,
+  nac3,
+  wilco32a,
+  consoleLoom,
+  etherconJoiner,
+  ethercon,
+  wieland6WayRackHeader,
 }
 
 enum CableClass {

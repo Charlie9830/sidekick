@@ -63,19 +63,26 @@ class _CableRowItemState extends State<CableRowItem> {
     final scaling = Theme.of(context).scaling;
     final typography = Theme.of(context).typography;
 
-    final primaryTypography =
-        typography.base.copyWith(color: scheme.foreground, fontSize: 14 * scaling);
-    final secondaryTypography = typography.base
-        .copyWith(color: scheme.mutedForeground, fontSize: 14 * scaling);
+    final primaryTypography = typography.base.copyWith(
+      color: scheme.foreground,
+      fontSize: 14 * scaling,
+    );
+    final secondaryTypography = typography.base.copyWith(
+      color: scheme.mutedForeground,
+      fontSize: 14 * scaling,
+    );
 
     final lengthTypography = typography.mono.copyWith(color: scheme.foreground);
     final labelTypography = typography.mono.copyWith(color: scheme.foreground);
-    final labelHintTypography =
-        typography.mono.copyWith(color: scheme.mutedForeground);
-    final typePrimaryTypography =
-        typography.base.copyWith(color: scheme.foreground);
-    final typeSecondaryTypography =
-        typography.base.copyWith(color: scheme.mutedForeground);
+    final labelHintTypography = typography.mono.copyWith(
+      color: scheme.mutedForeground,
+    );
+    final typePrimaryTypography = typography.base.copyWith(
+      color: scheme.foreground,
+    );
+    final typeSecondaryTypography = typography.base.copyWith(
+      color: scheme.mutedForeground,
+    );
     final iconColor = scheme.mutedForeground;
 
     return DiffStateOverlay(
@@ -97,7 +104,8 @@ class _CableRowItemState extends State<CableRowItem> {
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(
-                horizontal: SidekickDensity.cellPaddingH),
+              horizontal: SidekickDensity.cellPaddingH,
+            ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.start,
@@ -108,8 +116,9 @@ class _CableRowItemState extends State<CableRowItem> {
                   child: widget.disableLength
                       ? Center(child: Text('-', style: secondaryTypography))
                       : DiffStateOverlay(
-                          diff: widget.cableDelta?.properties
-                              .lookup(PropertyDeltaName.cableLength),
+                          diff: widget.cableDelta?.properties.lookup(
+                            PropertyDeltaName.cableLength,
+                          ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -117,9 +126,8 @@ class _CableRowItemState extends State<CableRowItem> {
                                 width: length.length >= 3 ? 48 : 40,
                                 child: Center(
                                   child: EditableTextField(
-                                    onChanged: (newValue) => widget
-                                        .onLengthChanged
-                                        ?.call(newValue),
+                                    onChanged: (newValue) =>
+                                        widget.onLengthChanged?.call(newValue),
                                     selectAllOnFocus: true,
                                     style: lengthTypography,
                                     value: cable.length.floor().toString(),
@@ -131,9 +139,11 @@ class _CableRowItemState extends State<CableRowItem> {
                                 const SimpleTooltip(
                                   waitDuration: Duration(milliseconds: 500),
                                   message: 'Invalid Length',
-                                  child: Icon(Icons.error,
-                                      color: SidekickColors.warning),
-                                )
+                                  child: Icon(
+                                    Icons.error,
+                                    color: SidekickColors.warning,
+                                  ),
+                                ),
                             ],
                           ),
                         ),
@@ -144,8 +154,9 @@ class _CableRowItemState extends State<CableRowItem> {
                 SizedBox(
                   width: 184,
                   child: DiffStateOverlay(
-                    diff: widget.cableDelta?.properties
-                        .lookup(PropertyDeltaName.cableType),
+                    diff: widget.cableDelta?.properties.lookup(
+                      PropertyDeltaName.cableType,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -178,35 +189,42 @@ class _CableRowItemState extends State<CableRowItem> {
                     children: [
                       const SizedBox(width: SidekickDensity.gap),
                       DiffStateOverlay(
-                          diff: widget.cableDelta?.properties
-                              .lookup(PropertyDeltaName.label),
-                          child: Text(widget.label, style: labelTypography)),
+                        diff: widget.cableDelta?.properties.lookup(
+                          PropertyDeltaName.label,
+                        ),
+                        child: Text(widget.label, style: labelTypography),
+                      ),
                       if (widget.labelHint.isNotEmpty) ...[
                         const SizedBox(width: 24),
                         DiffStateOverlay(
-                          diff: widget.cableDelta?.properties
-                              .lookup(PropertyDeltaName.labelHint),
-                          child: Text(widget.labelHint,
-                              style: labelHintTypography),
+                          diff: widget.cableDelta?.properties.lookup(
+                            PropertyDeltaName.labelHint,
+                          ),
+                          child: Text(
+                            widget.labelHint,
+                            style: labelHintTypography,
+                          ),
                         ),
                       ],
                       const Spacer(),
                       if (widget.isDetached)
                         SimpleTooltip(
-                            message:
-                                'Detached Outlet:\nThis cable will not appear on the patch sheet',
-                            child: Icon(Icons.info, color: iconColor, size: 20)),
+                          message:
+                              'Detached Outlet:\nThis cable will not appear on the patch sheet',
+                          child: Icon(Icons.info, color: iconColor, size: 20),
+                        ),
                       if (cable.upstreamId.isNotEmpty)
                         widget.missingUpstreamCable
                             ? const _MissingUpstreamCableIcon()
                             : cable.isDropper
-                                ? const CableFlag(
-                                    text: 'Drop',
-                                    color: SidekickColors.dropper)
-                                : const CableFlag(
-                                    text: 'Ext',
-                                    color: SidekickColors.extension,
-                                  ),
+                            ? const CableFlag(
+                                text: 'Drop',
+                                color: SidekickColors.dropper,
+                              )
+                            : const CableFlag(
+                                text: 'Ext',
+                                color: SidekickColors.extension,
+                              ),
                       if (cable.isSpare)
                         const CableFlag(
                           text: 'SP',
@@ -221,31 +239,35 @@ class _CableRowItemState extends State<CableRowItem> {
                 SizedBox(
                   width: 64,
                   child: DiffStateOverlay(
-                    diff: widget.cableDelta?.properties
-                        .lookup(PropertyDeltaName.color),
+                    diff: widget.cableDelta?.properties.lookup(
+                      PropertyDeltaName.color,
+                    ),
                     child: Center(
-                        child: MultiColorChit(
-                      value: widget.labelColor,
-                      showPickerIcon: false,
-                    )),
+                      child: MultiColorChit(
+                        value: widget.labelColor,
+                        showPickerIcon: false,
+                      ),
+                    ),
                   ),
                 ),
                 const VerticalDivider(color: borderColor),
 
                 Expanded(
                   child: DiffStateOverlay(
-                    diff: widget.cableDelta?.properties
-                        .lookup(PropertyDeltaName.notes),
+                    diff: widget.cableDelta?.properties.lookup(
+                      PropertyDeltaName.notes,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
-                            child: EditableTextField(
-                          value: cable.notes,
-                          style: primaryTypography,
-                          onChanged: (newValue) =>
-                              widget.onNotesChanged(newValue),
-                        )),
+                          child: EditableTextField(
+                            value: cable.notes,
+                            style: primaryTypography,
+                            onChanged: (newValue) =>
+                                widget.onNotesChanged(newValue),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -262,14 +284,14 @@ class _CableRowItemState extends State<CableRowItem> {
     return switch (widget.cable.type) {
       CableType.socapex => Icon(Icons.bolt, size: 16, color: color),
       CableType.wieland6way => Icon(Icons.power, size: 16, color: color),
-      CableType.sneak =>
-        Icon(Icons.settings_ethernet, size: 16, color: color),
+      CableType.sneak => Icon(Icons.settings_ethernet, size: 16, color: color),
       CableType.dmx => Icon(
-          widget.cable.parentMultiId.isEmpty
-              ? Icons.settings_input_svideo
-              : Icons.subdirectory_arrow_right,
-          size: 16,
-          color: color),
+        widget.cable.parentMultiId.isEmpty
+            ? Icons.settings_input_svideo
+            : Icons.subdirectory_arrow_right,
+        size: 16,
+        color: color,
+      ),
       CableType.hoist => Icon(Icons.construction, size: 16, color: color),
       CableType.hoistMulti => Icon(Icons.view_module_outlined, color: color),
       CableType.au10a => const SizedBox(),
@@ -281,6 +303,15 @@ class _CableRowItemState extends State<CableRowItem> {
       CableType.sneakLampHeader => throw UnimplementedError(),
       CableType.hoistMultiLampHeader => throw UnimplementedError(),
       CableType.hoistMultiRackHeader => throw UnimplementedError(),
+      CableType.socapexTo6wayAdaptor => throw UnimplementedError(),
+      CableType.sneakRackHeader => throw UnimplementedError(),
+      CableType.nac3Joiner => throw UnimplementedError(),
+      CableType.nac3 => throw UnimplementedError(),
+      CableType.wilco32a => throw UnimplementedError(),
+      CableType.consoleLoom => throw UnimplementedError(),
+      CableType.etherconJoiner => throw UnimplementedError(),
+      CableType.ethercon => throw UnimplementedError(),
+      CableType.wieland6WayRackHeader => throw UnimplementedError(),
     };
   }
 
@@ -301,8 +332,9 @@ class _MissingUpstreamCableIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const SimpleTooltip(
-        message:
-            "The upstream leg of this cable, eg: The feeder, has been deleted.",
-        child: Icon(Icons.link_off, color: SidekickColors.error));
+      message:
+          "The upstream leg of this cable, eg: The feeder, has been deleted.",
+      child: Icon(Icons.link_off, color: SidekickColors.error),
+    );
   }
 }
