@@ -797,47 +797,6 @@ Map<int, FixtureModel> _mapFirstFixturesInUniverses(
   );
 }
 
-CableType _calculatePowerMultiCableType(
-  PowerMultiOutletModel outlet,
-  Map<String, CableModel> cables,
-) {
-  final associatedCables = cables.values.where(
-    (cable) => cable.outletId == outlet.uid,
-  );
-
-  if (associatedCables.isEmpty) {
-    return CableType.unknown;
-  }
-
-  if (associatedCables.length == 1) {
-    return associatedCables.first.type;
-  }
-
-  final upstreamCableIds = associatedCables
-      .map((cable) => cable.upstreamId)
-      .toSet();
-
-  return associatedCables
-          .lastWhereOrNull(
-            (cable) => upstreamCableIds.contains(cable.uid) == false,
-          )
-          ?.type ??
-      CableType.unknown;
-}
-
-(double x, double y, double z) _calculateDataHeaderPosition(
-  DataMultiModel multiOutlet,
-  List<FixtureModel> fixtures,
-) {
-  if (fixtures.isEmpty) {
-    return (0, 0, 0);
-  }
-
-  final first = fixtures.first;
-
-  return (first.x, first.y, first.z);
-}
-
 (double x, double y, double z) _calculatePowerHeaderPosition(
   PowerMultiOutletModel multiOutlet,
   List<FixtureModel> fixtures,
