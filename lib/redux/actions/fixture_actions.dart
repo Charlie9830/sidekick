@@ -137,6 +137,7 @@ ThunkAction<AppState> setSequenceNumbers(BuildContext context) {
 
     final result = await showDialog(
       context: context,
+      fullScreen: true,
       builder: (context) => SequencerDialog(
         fixtures: selectedFixtures,
         fixtureTypes: store.state.fixtureState.fixtureTypes,

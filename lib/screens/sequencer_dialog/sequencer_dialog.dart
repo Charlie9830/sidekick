@@ -15,9 +15,20 @@ import 'package:sidekick/widgets/property_field.dart';
 
 const double _kMappingListItemExtent = 56;
 
+/// Width of the central controls column in every layout.
+const double _kControlsPaneWidth = 400;
+
 /// How the unassigned fixtures are presented: a flat list or the spatial plot.
 enum _FixtureViewMode { list, plan }
 
+/// Where the rig (plan) view sits when it is visible: a full-height panel
+/// down the left (default), or a full-width strip across the top for rigs
+/// whose fixtures are laid out horizontally.
+enum _RigViewPlacement { left, top }
+
+/// Full-screen dialog for assigning sequence numbers to the selected
+/// fixtures, either by typing fixture numbers or by clicking fixtures in the
+/// rig (plan) view. Pops with the sequence → fixture mapping on Done.
 class SequencerDialog extends StatefulWidget {
   final List<FixtureModel> fixtures;
   final Map<String, FixtureTypeModel> fixtureTypes;
@@ -41,6 +52,7 @@ class _SequencerDialogState extends State<SequencerDialog> {
   Map<int, FixtureModel> _mapping = {};
   late List<FixtureModel> _fixtures;
   _FixtureViewMode _viewMode = _FixtureViewMode.list;
+  _RigViewPlacement _rigPlacement = _RigViewPlacement.left;
   FixtureSortAxis _sortAxis = FixtureSortAxis.selectionOrder;
   bool _sortDescending = false;
   late final TextEditingController _fixtureNumberController;
@@ -101,276 +113,167 @@ class _SequencerDialogState extends State<SequencerDialog> {
         .toList();
 
     final hasCoords = hasUsableCoords(_fixtures);
+    final planMode = _viewMode == _FixtureViewMode.plan && hasCoords;
 
-    return SizedBox(
-      width: 1366,
-      height: 800,
+    return SizedBox.expand(
       child: Card(
+        padding: EdgeInsets.zero,
+        borderRadius: BorderRadius.zero,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Top Toolbar
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                IconButton.ghost(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
+            _DialogHeader(
+              viewMode: _viewMode,
+              planEnabled: hasCoords,
+              rigPlacement: _rigPlacement,
+              onViewModeChanged: (mode) => setState(() => _viewMode = mode),
+              onRigPlacementChanged: (placement) =>
+                  setState(() => _rigPlacement = placement),
+              onClose: () => Navigator.of(context).pop(),
             ),
-
-            // Content
+            const Divider(),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Fixtures',
-                                style: Theme.of(context).typography.lead,
-                              ),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (_viewMode == _FixtureViewMode.list)
-                                    _SortControl(
-                                      axis: _sortAxis,
-                                      descending: _sortDescending,
-                                      hasCoords: hasCoords,
-                                      onAxisChanged: (axis) =>
-                                          _applySort(axis: axis),
-                                      onToggleDirection: () => _applySort(
-                                        descending: !_sortDescending,
-                                      ),
-                                    ),
-                                  const SizedBox(width: 8),
-                                  _ViewModeToggle(
-                                    mode: _viewMode,
-                                    planEnabled: hasCoords,
-                                    onChanged: (mode) =>
-                                        setState(() => _viewMode = mode),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const Divider(height: 16),
-                          Expanded(
-                            child: _viewMode == _FixtureViewMode.list
-                                ? ListView.builder(
-                                    shrinkWrap: true,
-                                    itemCount: unassignedFixtures.length,
-                                    itemBuilder: (context, index) {
-                                      final fixture = unassignedFixtures[index];
-
-                                      return ShadListItem(
-                                        key: Key(fixture.uid),
-                                        title: Text(
-                                          '#${fixture.fid.toString()}',
-                                        ),
-                                        trailing: Text(
-                                          widget
-                                                  .fixtureTypes[fixture.typeId]
-                                                  ?.name ??
-                                              '',
-                                        ),
-                                      );
-                                    },
-                                  )
-                                : SequencerPlanView(
-                                    fixtures: _fixtures,
-                                    fixtureTypes: widget.fixtureTypes,
-                                    fixtureGeometries:
-                                        widget.fixtureGeometries,
-                                    mapping: _mapping,
-                                    onAssign: _assignFixtureToCurrentSequence,
-                                    onUnassign: _unassignFixture,
-                                  ),
-                          ),
-                        ],
+                padding: const EdgeInsets.all(16),
+                child: planMode
+                    ? _buildPlanBody(unassignedFixtures, sortedAssignedFixtures)
+                    : _buildListBody(
+                        unassignedFixtures,
+                        sortedAssignedFixtures,
+                        hasCoords,
                       ),
-                    ),
-                    const ArrowedDivider(),
-                    SizedBox(
-                      width: 400,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            OutlineButton(
-                              leading: const Icon(
-                                Icons.keyboard_double_arrow_right,
-                              ),
-                              onPressed: unassignedFixtures.isNotEmpty
-                                  ? () => _assignRemaining(unassignedFixtures)
-                                  : null,
-                              child: const Text('Assign all'),
-                            ),
-                            const SizedBox(height: 16),
-                            OutlineButton(
-                              leading: const Icon(
-                                Icons.keyboard_double_arrow_left,
-                              ),
-                              onPressed: _mapping.values.isNotEmpty
-                                  ? () => setState(() => _mapping.clear())
-                                  : null,
-                              child: const Text('Remove All'),
-                            ),
-                            Row(
-                              children: [
-                                SimpleTooltip(
-                                  message: "Round Robin Assign",
-                                  child: IconButton.ghost(
-                                    icon: const Icon(
-                                      Icons.roundabout_right_rounded,
-                                    ),
-                                    onPressed: unassignedFixtures.isNotEmpty
-                                        ? () => _roundRobinAssign(
-                                            unassignedFixtures,
-                                          )
-                                        : null,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 64),
-                            Row(
-                              children: [
-                                const Text('Sequence Number'),
-                                const SizedBox(width: 16),
-                                SizedBox(
-                                  width: 164,
-                                  child: PropertyField(
-                                    focusNode: _sequenceNumberFocusNode,
-                                    controller: _seqNumberController,
-                                    textAlign: TextAlign.center,
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                    ],
-                                    label: 'Sequence Number',
-                                    labelAlign: LabelAlign.center,
-                                    onBlur: (_) => _updateSequenceNumber(),
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                SimpleTooltip(
-                                  message: 'Next Available',
-                                  child: IconButton.ghost(
-                                    icon: const Icon(Icons.fast_forward),
-                                    onPressed: () =>
-                                        _handleFindNextAvailableSequenceNumberPressed(),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 24),
-                            Row(
-                              children: [
-                                const Text('Fixture Number'),
-                                const SizedBox(width: 36),
-                                SizedBox(
-                                  width: 212,
-                                  child: PropertyField(
-                                    focusNode: _fixtureNumberFocusNode,
-                                    autofocus: true,
-                                    error: _error.isEmpty ? null : _error,
-                                    controller: _fixtureNumberController,
-                                    textAlign: TextAlign.center,
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                    ],
-                                    onBlur: (_) => _enumerate(),
-                                    submitAction:
-                                        PropertyFieldSubmitAction.none,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const ArrowedDivider(),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Assigned Fixtures',
-                            style: Theme.of(context).typography.lead,
-                          ),
-                          const Divider(),
-                          Expanded(
-                            child: ListView.builder(
-                              itemExtent: _kMappingListItemExtent,
-                              controller: _listScrollController,
-                              itemCount: sortedAssignedFixtures.length,
-                              itemBuilder: (context, index) {
-                                final (seq, fixture) =
-                                    sortedAssignedFixtures[index];
-                                return ShadListItem(
-                                  leading: Text(seq.toString()),
-                                  title: Text('#${fixture.fid.toString()}'),
-                                  trailing: Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        widget
-                                                .fixtureTypes[fixture.typeId]
-                                                ?.name ??
-                                            '',
-                                      ),
-                                      IconButton.ghost(
-                                        icon: const Icon(
-                                          Icons.remove_circle,
-                                          color: Colors.gray,
-                                        ),
-                                        onPressed: () {
-                                          setState(() {
-                                            _mapping =
-                                                Map<int, FixtureModel>.from(
-                                                  _mapping,
-                                                )..remove(seq);
-                                          });
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                PrimaryButton(
-                  child: const Text('Done'),
-                  onPressed: () => Navigator.of(context).pop(_mapping),
-                ),
-              ],
+            const Divider(),
+            _Footer(
+              assignedCount: _mapping.length,
+              totalCount: _fixtures.length,
+              onDone: () => Navigator.of(context).pop(_mapping),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  /// Three columns: unassigned list, controls, assigned list. Capped in width
+  /// and centered so the lists stay readable on wide displays.
+  Widget _buildListBody(
+    List<FixtureModel> unassignedFixtures,
+    List<(int, FixtureModel)> assignedFixtures,
+    bool hasCoords,
+  ) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _UnassignedListPane(
+                fixtures: unassignedFixtures,
+                fixtureTypes: widget.fixtureTypes,
+                sortAxis: _sortAxis,
+                sortDescending: _sortDescending,
+                hasCoords: hasCoords,
+                onAxisChanged: (axis) => _applySort(axis: axis),
+                onToggleDirection: () =>
+                    _applySort(descending: !_sortDescending),
+              ),
+            ),
+            const ArrowedDivider(),
+            SizedBox(
+              width: _kControlsPaneWidth,
+              child: _buildControlsPane(unassignedFixtures),
+            ),
+            const ArrowedDivider(),
+            Expanded(child: _buildAssignedPane(assignedFixtures)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Rig view layouts: a full-height panel down the left (default) or a
+  /// full-width strip across the top, with the controls and assigned list
+  /// arranged around it.
+  Widget _buildPlanBody(
+    List<FixtureModel> unassignedFixtures,
+    List<(int, FixtureModel)> assignedFixtures,
+  ) {
+    final rigView = _RigViewPane(
+      child: SequencerPlanView(
+        fixtures: _fixtures,
+        fixtureTypes: widget.fixtureTypes,
+        fixtureGeometries: widget.fixtureGeometries,
+        mapping: _mapping,
+        onAssign: _assignFixtureToCurrentSequence,
+        onUnassign: _unassignFixture,
+      ),
+    );
+
+    final controls = SizedBox(
+      width: _kControlsPaneWidth,
+      child: _buildControlsPane(unassignedFixtures),
+    );
+
+    return switch (_rigPlacement) {
+      _RigViewPlacement.left => Row(
+        children: [
+          Expanded(flex: 2, child: rigView),
+          const ArrowedDivider(),
+          controls,
+          const ArrowedDivider(),
+          Expanded(child: _buildAssignedPane(assignedFixtures)),
+        ],
+      ),
+      _RigViewPlacement.top => Column(
+        children: [
+          Expanded(flex: 3, child: rigView),
+          const ArrowedDivider(axis: Axis.horizontal),
+          Expanded(
+            flex: 2,
+            child: Row(
+              children: [
+                controls,
+                const ArrowedDivider(),
+                Expanded(child: _buildAssignedPane(assignedFixtures)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    };
+  }
+
+  Widget _buildControlsPane(List<FixtureModel> unassignedFixtures) {
+    return _ControlsPane(
+      canAssign: unassignedFixtures.isNotEmpty,
+      canRemoveAll: _mapping.isNotEmpty,
+      error: _error,
+      sequenceNumberController: _seqNumberController,
+      fixtureNumberController: _fixtureNumberController,
+      sequenceNumberFocusNode: _sequenceNumberFocusNode,
+      fixtureNumberFocusNode: _fixtureNumberFocusNode,
+      onSequenceNumberBlur: _updateSequenceNumber,
+      onFixtureNumberBlur: _enumerate,
+      onNextAvailable: _handleFindNextAvailableSequenceNumberPressed,
+      onAssignAll: () => _assignRemaining(unassignedFixtures),
+      onRemoveAll: () => setState(() => _mapping.clear()),
+      onRoundRobin: () => _roundRobinAssign(unassignedFixtures),
+    );
+  }
+
+  Widget _buildAssignedPane(List<(int, FixtureModel)> assignedFixtures) {
+    return _AssignedListPane(
+      assignedFixtures: assignedFixtures,
+      fixtureTypes: widget.fixtureTypes,
+      scrollController: _listScrollController,
+      onRemove: (seq) {
+        setState(() {
+          _mapping = Map<int, FixtureModel>.from(_mapping)..remove(seq);
+        });
+      },
     );
   }
 
@@ -532,6 +435,320 @@ class _SequencerDialogState extends State<SequencerDialog> {
   }
 }
 
+/// Title bar for the full-screen dialog: an explicit title on the left, the
+/// list/plan toggle, the rig view placement toggle and the close button in
+/// the top-right corner.
+class _DialogHeader extends StatelessWidget {
+  final _FixtureViewMode viewMode;
+  final bool planEnabled;
+  final _RigViewPlacement rigPlacement;
+  final ValueChanged<_FixtureViewMode> onViewModeChanged;
+  final ValueChanged<_RigViewPlacement> onRigPlacementChanged;
+  final VoidCallback onClose;
+
+  const _DialogHeader({
+    required this.viewMode,
+    required this.planEnabled,
+    required this.rigPlacement,
+    required this.onViewModeChanged,
+    required this.onRigPlacementChanged,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+      child: Row(
+        spacing: 8,
+        children: [
+          Text('Sequence Assignment', style: Theme.of(context).typography.h4),
+          const Spacer(),
+          _ViewModeToggle(
+            mode: viewMode,
+            planEnabled: planEnabled,
+            onChanged: onViewModeChanged,
+          ),
+          _RigPlacementToggle(
+            placement: rigPlacement,
+            enabled: viewMode == _FixtureViewMode.plan && planEnabled,
+            onChanged: onRigPlacementChanged,
+          ),
+          const SizedBox(height: 24, child: VerticalDivider()),
+          IconButton.ghost(icon: const Icon(Icons.close), onPressed: onClose),
+        ],
+      ),
+    );
+  }
+}
+
+/// Footer with a running assignment count and the Done button.
+class _Footer extends StatelessWidget {
+  final int assignedCount;
+  final int totalCount;
+  final VoidCallback onDone;
+
+  const _Footer({
+    required this.assignedCount,
+    required this.totalCount,
+    required this.onDone,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Text(
+            '$assignedCount of $totalCount fixtures assigned',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.mutedForeground,
+            ),
+          ),
+          const Spacer(),
+          PrimaryButton(onPressed: onDone, child: const Text('Done')),
+        ],
+      ),
+    );
+  }
+}
+
+/// The unassigned fixtures as a sortable flat list with its pane header.
+class _UnassignedListPane extends StatelessWidget {
+  final List<FixtureModel> fixtures;
+  final Map<String, FixtureTypeModel> fixtureTypes;
+  final FixtureSortAxis sortAxis;
+  final bool sortDescending;
+  final bool hasCoords;
+  final ValueChanged<FixtureSortAxis> onAxisChanged;
+  final VoidCallback onToggleDirection;
+
+  const _UnassignedListPane({
+    required this.fixtures,
+    required this.fixtureTypes,
+    required this.sortAxis,
+    required this.sortDescending,
+    required this.hasCoords,
+    required this.onAxisChanged,
+    required this.onToggleDirection,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Fixtures', style: Theme.of(context).typography.lead),
+            _SortControl(
+              axis: sortAxis,
+              descending: sortDescending,
+              hasCoords: hasCoords,
+              onAxisChanged: onAxisChanged,
+              onToggleDirection: onToggleDirection,
+            ),
+          ],
+        ),
+        const Divider(height: 16),
+        Expanded(
+          child: ListView.builder(
+            itemCount: fixtures.length,
+            itemBuilder: (context, index) {
+              final fixture = fixtures[index];
+
+              return ShadListItem(
+                key: Key(fixture.uid),
+                title: Text('#${fixture.fid.toString()}'),
+                trailing: Text(fixtureTypes[fixture.typeId]?.name ?? ''),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The assigned fixtures in sequence order, each removable, with its pane
+/// header.
+class _AssignedListPane extends StatelessWidget {
+  final List<(int, FixtureModel)> assignedFixtures;
+  final Map<String, FixtureTypeModel> fixtureTypes;
+  final ScrollController scrollController;
+  final void Function(int sequenceNumber) onRemove;
+
+  const _AssignedListPane({
+    required this.assignedFixtures,
+    required this.fixtureTypes,
+    required this.scrollController,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Assigned Fixtures', style: Theme.of(context).typography.lead),
+        const Divider(height: 16),
+        Expanded(
+          child: ListView.builder(
+            itemExtent: _kMappingListItemExtent,
+            controller: scrollController,
+            itemCount: assignedFixtures.length,
+            itemBuilder: (context, index) {
+              final (seq, fixture) = assignedFixtures[index];
+              return ShadListItem(
+                leading: Text(seq.toString()),
+                title: Text('#${fixture.fid.toString()}'),
+                trailing: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(fixtureTypes[fixture.typeId]?.name ?? ''),
+                    IconButton.ghost(
+                      icon: const Icon(Icons.remove_circle, color: Colors.gray),
+                      onPressed: () => onRemove(seq),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The central controls: sequence and fixture number entry on top, bulk
+/// assignment actions below. Scrolls if the pane is shorter than its content
+/// (e.g. when the rig view strip is across the top).
+class _ControlsPane extends StatelessWidget {
+  final bool canAssign;
+  final bool canRemoveAll;
+  final String error;
+  final TextEditingController sequenceNumberController;
+  final TextEditingController fixtureNumberController;
+  final FocusNode sequenceNumberFocusNode;
+  final FocusNode fixtureNumberFocusNode;
+  final VoidCallback onSequenceNumberBlur;
+  final VoidCallback onFixtureNumberBlur;
+  final VoidCallback onNextAvailable;
+  final VoidCallback onAssignAll;
+  final VoidCallback onRemoveAll;
+  final VoidCallback onRoundRobin;
+
+  const _ControlsPane({
+    required this.canAssign,
+    required this.canRemoveAll,
+    required this.error,
+    required this.sequenceNumberController,
+    required this.fixtureNumberController,
+    required this.sequenceNumberFocusNode,
+    required this.fixtureNumberFocusNode,
+    required this.onSequenceNumberBlur,
+    required this.onFixtureNumberBlur,
+    required this.onNextAvailable,
+    required this.onAssignAll,
+    required this.onRemoveAll,
+    required this.onRoundRobin,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 8,
+          children: [
+            Row(
+              spacing: 8,
+              children: [
+                Expanded(
+                  child: PropertyField(
+                    focusNode: sequenceNumberFocusNode,
+                    controller: sequenceNumberController,
+                    textAlign: TextAlign.center,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    label: 'Sequence Number',
+                    labelAlign: LabelAlign.center,
+                    onBlur: (_) => onSequenceNumberBlur(),
+                  ),
+                ),
+                SimpleTooltip(
+                  message: 'Next Available',
+                  child: IconButton.ghost(
+                    icon: const Icon(Icons.fast_forward),
+                    onPressed: onNextAvailable,
+                  ),
+                ),
+              ],
+            ),
+            PropertyField(
+              focusNode: fixtureNumberFocusNode,
+              autofocus: true,
+              error: error.isEmpty ? null : error,
+              controller: fixtureNumberController,
+              textAlign: TextAlign.center,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              label: 'Fixture Number',
+              labelAlign: LabelAlign.center,
+              onBlur: (_) => onFixtureNumberBlur(),
+              submitAction: PropertyFieldSubmitAction.none,
+            ),
+            const SizedBox(height: 8),
+            const Divider(),
+            const SizedBox(height: 8),
+            OutlineButton(
+              leading: const Icon(Icons.keyboard_double_arrow_right),
+              onPressed: canAssign ? onAssignAll : null,
+              child: const Text('Assign all'),
+            ),
+            OutlineButton(
+              leading: const Icon(Icons.roundabout_right_rounded),
+              onPressed: canAssign ? onRoundRobin : null,
+              child: const Text('Round Robin Assign'),
+            ),
+            OutlineButton(
+              leading: const Icon(Icons.keyboard_double_arrow_left),
+              onPressed: canRemoveAll ? onRemoveAll : null,
+              child: const Text('Remove All'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Bordered container delineating the rig (plan) view from the surrounding
+/// panes.
+class _RigViewPane extends StatelessWidget {
+  final Widget child;
+
+  const _RigViewPane({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        border: Border.all(color: theme.colorScheme.border),
+        borderRadius: theme.borderRadiusLg,
+      ),
+      child: child,
+    );
+  }
+}
+
 /// Segmented toggle switching the fixtures pane between the flat list and the
 /// spatial plan view. The plan segment is disabled without position data.
 class _ViewModeToggle extends StatelessWidget {
@@ -549,22 +766,22 @@ class _ViewModeToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
+      spacing: 4,
       children: [
         SimpleTooltip(
           message: 'List view',
-          child: _segment(
+          child: _ToggleSegment(
             icon: Icons.view_list,
             selected: mode == _FixtureViewMode.list,
             enabled: true,
             onTap: () => onChanged(_FixtureViewMode.list),
           ),
         ),
-        const SizedBox(width: 4),
         SimpleTooltip(
           message: planEnabled
-              ? 'Plan view'
+              ? 'Rig view'
               : 'No position data for this selection',
-          child: _segment(
+          child: _ToggleSegment(
             icon: Icons.scatter_plot,
             selected: mode == _FixtureViewMode.plan,
             enabled: planEnabled,
@@ -574,15 +791,75 @@ class _ViewModeToggle extends StatelessWidget {
       ],
     );
   }
+}
 
-  Widget _segment({
-    required IconData icon,
-    required bool selected,
-    required bool enabled,
-    required VoidCallback onTap,
-  }) {
+/// Segmented toggle choosing where the rig view sits: a panel down the left
+/// or a strip across the top. Only active while the rig view is showing.
+class _RigPlacementToggle extends StatelessWidget {
+  final _RigViewPlacement placement;
+  final bool enabled;
+  final ValueChanged<_RigViewPlacement> onChanged;
+
+  const _RigPlacementToggle({
+    required this.placement,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 4,
+      children: [
+        SimpleTooltip(
+          message: enabled
+              ? 'Rig view down the left'
+              : 'Switch to the rig view to change its layout',
+          child: _ToggleSegment(
+            icon: Icons.vertical_split,
+            selected: placement == _RigViewPlacement.left,
+            enabled: enabled,
+            onTap: () => onChanged(_RigViewPlacement.left),
+          ),
+        ),
+        SimpleTooltip(
+          message: enabled
+              ? 'Rig view across the top'
+              : 'Switch to the rig view to change its layout',
+          child: _ToggleSegment(
+            icon: Icons.horizontal_split,
+            selected: placement == _RigViewPlacement.top,
+            enabled: enabled,
+            onTap: () => onChanged(_RigViewPlacement.top),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// One segment of an icon toggle: primary when selected, outline otherwise.
+class _ToggleSegment extends StatelessWidget {
+  final IconData icon;
+  final bool selected;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  const _ToggleSegment({
+    required this.icon,
+    required this.selected,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     if (selected) {
-      return IconButton.primary(icon: Icon(icon), onPressed: onTap);
+      return IconButton.primary(
+        icon: Icon(icon),
+        onPressed: enabled ? onTap : null,
+      );
     }
     return IconButton.outline(
       icon: Icon(icon),
