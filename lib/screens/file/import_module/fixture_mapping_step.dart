@@ -74,7 +74,7 @@ class FixtureMappingStep extends StatelessWidget {
 }
 
 class _LoadingFallback extends StatelessWidget {
-  const _LoadingFallback({super.key});
+  const _LoadingFallback();
 
   @override
   Widget build(BuildContext context) {
