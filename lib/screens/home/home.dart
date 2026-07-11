@@ -45,114 +45,120 @@ class _HomeState extends State<Home> {
         key: homeScaffoldKey,
         headers: [
           // Navigation Bar
-          NavigationBar(
-            onSelected: (key) =>
-                setState(() => _tabIndex = (key as ValueKey<int>).value),
-            selectedKey: ValueKey(_tabIndex),
-            expanded: false,
-            labelType: NavigationLabelType.all,
-            alignment: NavigationBarAlignment.start,
-            children: const [
-              // --- Project: file I/O ---
-              _NavigationItem(
-                index: 0,
-                label: Text('File'),
-                child: Icon(Icons.folder),
-              ),
-              _NavigationItem(
-                index: 9,
-                label: Text('Export'),
-                child: Icon(Icons.save_alt),
-              ),
-              _NavigationItem(
-                index: 10,
-                label: Text('Diff'),
-                child: Icon(Icons.difference),
-              ),
+          _NavBarSurface(
+            child: NavigationBar(
+              backgroundColor: Theme.of(context).colorScheme.card,
+              onSelected: (key) =>
+                  setState(() => _tabIndex = (key as ValueKey<int>).value),
+              selectedKey: ValueKey(_tabIndex),
+              expanded: false,
+              labelType: NavigationLabelType.all,
+              alignment: NavigationBarAlignment.start,
+              children: const [
+                // --- Project: file I/O ---
+                _NavigationItem(
+                  index: 0,
+                  label: Text('File'),
+                  child: Icon(Icons.folder),
+                ),
+                _NavigationItem(
+                  index: 9,
+                  label: Text('Export'),
+                  child: Icon(Icons.save_alt),
+                ),
+                _NavigationItem(
+                  index: 10,
+                  label: Text('Diff'),
+                  child: Icon(Icons.difference),
+                ),
 
-              _NavGroupDivider(),
+                _NavGroupDivider(),
 
-              // --- Plot Items ---
-              _NavigationItem(
-                index: 1,
-                label: Text('Fixtures'),
-                child: Icon(Icons.lightbulb),
-              ),
-              _NavigationItem(
-                index: 8,
-                label: Text('Fixture Types'),
-                child: Icon(Icons.light),
-              ),
-              _NavigationItem(
-                index: 7,
-                label: Text('Locations'),
-                child: Icon(Icons.location_pin),
-              ),
-              _NavigationItem(
-                index: 4,
-                label: Text('Hoists'),
-                child: Icon(Icons.construction),
-              ),
+                // --- Plot Items ---
+                _NavigationItem(
+                  index: 1,
+                  label: Text('Fixtures'),
+                  child: Icon(Icons.lightbulb),
+                ),
+                _NavigationItem(
+                  index: 8,
+                  label: Text('Fixture Types'),
+                  child: Icon(Icons.light),
+                ),
+                _NavigationItem(
+                  index: 7,
+                  label: Text('Locations'),
+                  child: Icon(Icons.location_pin),
+                ),
+                _NavigationItem(
+                  index: 4,
+                  label: Text('Hoists'),
+                  child: Icon(Icons.construction),
+                ),
 
-              _NavGroupDivider(),
+                _NavGroupDivider(),
 
-              // --- Power & data distribution ---
-              _NavigationItem(
-                index: 2,
-                label: Text('Patch'),
-                child: Icon(Icons.electric_bolt),
-              ),
-              _NavigationItem(
-                index: 3,
-                label: Text('Racks'),
-                child: Icon(Icons.dns),
-              ),
+                // --- Power & data distribution ---
+                _NavigationItem(
+                  index: 2,
+                  label: Text('Patch'),
+                  child: Icon(Icons.electric_bolt),
+                ),
+                _NavigationItem(
+                  index: 3,
+                  label: Text('Racks'),
+                  child: Icon(Icons.dns),
+                ),
 
-              _NavGroupDivider(),
+                _NavGroupDivider(),
 
-              // --- Rigging & cabling ---
-              _NavigationItem(
-                index: 5,
-                label: Text('Looms'),
-                child: Icon(Icons.cable),
-              ),
-              _NavigationItem(
-                index: 6,
-                label: Text('Breakout Cabling'),
-                child: Icon(Icons.auto_graph),
-              ),
+                // --- Rigging & cabling ---
+                _NavigationItem(
+                  index: 5,
+                  label: Text('Looms'),
+                  child: Icon(Icons.cable),
+                ),
+                _NavigationItem(
+                  index: 6,
+                  label: Text('Breakout Cabling'),
+                  child: Icon(Icons.auto_graph),
+                ),
 
-              _NavGroupDivider(),
+                _NavGroupDivider(),
 
-              // --- Developer tools ---
-              _NavigationItem(
-                index: 11,
-                label: Text('Lab'),
-                child: Icon(Icons.build),
-              ),
-              _NavigationItem(
-                index: 12,
-                label: Text("Diagnostics"),
-                child: Icon(Icons.bug_report),
-              ),
-            ],
+                // --- Developer tools ---
+                _NavigationItem(
+                  index: 11,
+                  label: Text('Lab'),
+                  child: Icon(Icons.build),
+                ),
+                _NavigationItem(
+                  index: 12,
+                  label: Text("Diagnostics"),
+                  child: Icon(Icons.bug_report),
+                ),
+              ],
+            ),
           ),
 
           if (_tabIndex == 3)
-            SizedBox(
-              height: 48,
-              child: NavigationBar(
-                labelType: NavigationLabelType.all,
-                selectedKey: ValueKey(widget.vm.racksTabIndex),
-                onSelected: (key) => widget.vm.onRacksTabIndexChanged(
-                  (key as ValueKey<int>).value,
+            _NavBarSurface(
+              child: SizedBox(
+                height: 48,
+                child: NavigationBar(
+                  backgroundColor: Theme.of(context).colorScheme.card,
+                  labelType: NavigationLabelType.all,
+                  selectedKey: ValueKey(widget.vm.racksTabIndex),
+                  onSelected: (key) => widget.vm.onRacksTabIndexChanged(
+                    (key as ValueKey<int>).value,
+                  ),
+                  expanded: false,
+                  alignment: NavigationBarAlignment.start,
+                  children: const [
+                    NavigationItem(key: ValueKey(0), child: Text('Power')),
+                    NavigationItem(key: ValueKey(1), child: Text('Data')),
+                  ],
                 ),
-                expanded: false,
-                alignment: NavigationBarAlignment.start,
-                children: const [
-                  NavigationItem(key: ValueKey(0), child: Text('Power')),
-                  NavigationItem(key: ValueKey(1), child: Text('Data')),
-                ],
               ),
             ),
         ],
@@ -173,6 +179,26 @@ class _HomeState extends State<Home> {
           _ => throw "Missing Switch clause for index $_tabIndex",
         },
       ),
+    );
+  }
+}
+
+/// Elevated surface behind the persistent navigation bars: a [ColorScheme.card]
+/// fill with a hairline bottom border, lifting the app chrome one surface step
+/// above the page content.
+class _NavBarSurface extends StatelessWidget {
+  final Widget child;
+
+  const _NavBarSurface({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: colorScheme.border)),
+      ),
+      child: child,
     );
   }
 }
