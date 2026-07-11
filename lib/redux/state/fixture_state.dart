@@ -5,6 +5,7 @@ import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
 import 'package:sidekick/redux/models/data_rack_model.dart';
 import 'package:sidekick/redux/models/data_rack_type_model.dart';
+import 'package:sidekick/redux/models/fixture_geometry_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/fixture_type_pool_model.dart';
@@ -44,6 +45,9 @@ class FixtureState {
   final Map<String, FixtureTypePoolModel> fixtureTypePools;
   final Map<String, TrussModel> trusses;
 
+  /// Imported GDTF fixture geometry, keyed by fixture type uid.
+  final Map<String, FixtureGeometryModel> fixtureGeometries;
+
   FixtureState({
     required this.fixtures,
     required this.powerMultiOutlets,
@@ -67,6 +71,7 @@ class FixtureState {
     required this.dataRacks,
     required this.fixtureTypePools,
     required this.trusses,
+    required this.fixtureGeometries,
   });
 
   const FixtureState.initial()
@@ -93,7 +98,8 @@ class FixtureState {
       powerRackTypes = BuiltInPowerRackTypes.types,
       dataRackTypes = BuiltInDataRackTypes.types,
       dataRacks = const {},
-      trusses = const {};
+      trusses = const {},
+      fixtureGeometries = const {};
 
   FixtureState copyWith({
     Map<String, FixtureModel>? fixtures,
@@ -118,6 +124,7 @@ class FixtureState {
     Map<String, DataRackTypeModel>? dataRackTypes,
     Map<String, FixtureTypePoolModel>? fixtureTypePools,
     Map<String, TrussModel>? trusses,
+    Map<String, FixtureGeometryModel>? fixtureGeometries,
   }) {
     return FixtureState(
       fixtures: fixtures ?? this.fixtures,
@@ -142,6 +149,7 @@ class FixtureState {
       dataRackTypes: dataRackTypes ?? this.dataRackTypes,
       fixtureTypePools: fixtureTypePools ?? this.fixtureTypePools,
       trusses: trusses ?? this.trusses,
+      fixtureGeometries: fixtureGeometries ?? this.fixtureGeometries,
     );
   }
 }

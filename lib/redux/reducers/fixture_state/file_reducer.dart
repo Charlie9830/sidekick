@@ -23,6 +23,7 @@ FixtureState? reduceFileActions(FixtureState state, dynamic a) {
       locations: a.locations,
       fixtureTypes: a.fixtureTypes,
       trusses: a.trusses,
+      fixtureGeometries: a.fixtureGeometries,
       powerMultiOutlets: powerPatch.powerMultiOutlets,
       dataPatches: performDataPatch(
         fixtures: a.fixtures,

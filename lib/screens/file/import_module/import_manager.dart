@@ -6,6 +6,7 @@ import 'package:sidekick/enums.dart';
 import 'package:sidekick/excel/read_fixture_type_database.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/fixture_type_mapping_parser/fixture_type_mapping_parser.dart';
+import 'package:sidekick/redux/models/fixture_geometry_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 
 import 'package:sidekick/redux/models/fixture_type_model.dart';
@@ -51,6 +52,7 @@ class _ImportManagerState extends State<ImportManager> {
   List<RawFixtureModel> _incomingFixtures = const [];
   List<RawLocationModel> _incomingLocations = const [];
   List<RawTrussModel> _incomingTrusses = const [];
+  Map<String, FixtureGeometryModel> _incomingGeometriesBySpec = const {};
   Map<String, String> _locationMapping = {};
 
   @override
@@ -582,11 +584,36 @@ class _ImportManagerState extends State<ImportManager> {
         x: incomingFixture.x,
         y: incomingFixture.y,
         z: incomingFixture.z,
-        rotationX: incomingFixture.x,
-        rotationY: incomingFixture.y,
-        rotationZ: incomingFixture.z,
+        rotationX: incomingFixture.rotationX,
+        rotationY: incomingFixture.rotationY,
+        rotationZ: incomingFixture.rotationZ,
       );
     }).toList();
+
+    // Re-key the imported GDTF geometry from spec name to the fixture type it
+    // was mapped to, so views can find it straight from a fixture's typeId.
+    final fixtureGeometries = <String, FixtureGeometryModel>{};
+    for (final incomingFixture in _incomingFixtures) {
+      final geometry = _incomingGeometriesBySpec[incomingFixture.fixtureType];
+      if (geometry == null) {
+        continue;
+      }
+
+      final fixtureMapping =
+          _fixtureTypeMapping[FixtureMappingModel.getSourceKey(
+            incomingFixture.fixtureType,
+            incomingFixture.fixtureMode,
+          )];
+
+      final typeId =
+          fixtureTypesByShortName[fixtureMapping?.mappedFixtureType]?.uid;
+
+      if (typeId == null || fixtureGeometries.containsKey(typeId)) {
+        continue;
+      }
+
+      fixtureGeometries[typeId] = geometry.copyWith(uid: typeId);
+    }
 
     final locationIdRemappings = <_LocationIdRemapping>[];
 
@@ -703,6 +730,7 @@ class _ImportManagerState extends State<ImportManager> {
         locations: locations.toList(),
         fixtureTypes: mergedFixtureTypes,
         trusses: trusses.toList(),
+        fixtureGeometries: fixtureGeometries.values.toList(),
       ),
     );
   }
@@ -785,6 +813,7 @@ class _ImportManagerState extends State<ImportManager> {
       _incomingFixtures = fixtureReadResult.fixtures;
       _incomingLocations = fixtureReadResult.locations;
       _incomingTrusses = trussReadResult.trusses;
+      _incomingGeometriesBySpec = fixtureReadResult.geometriesBySpec;
     });
   }
 

@@ -7,14 +7,11 @@ import 'package:sidekick/screens/breakout_cabling/visibility_control.dart';
 import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
 import 'package:sidekick/widgets/connector_painters.dart';
+import 'package:sidekick/widgets/rig_viewer/rig_fixture_node.dart';
+import 'package:sidekick/widgets/rig_viewer/rig_viewer.dart';
 
-/// Below [_kLabelFadeStart] the fixture labels are hidden; above
-/// [_kLabelFadeEnd] they are fully opaque. Between the two they fade in —
-/// semantic zoom that keeps the graph uncluttered when zoomed out and
-/// legible when zoomed in, instead of rendering sub-pixel text.
-const double _kLabelFadeStart = 1.6;
-const double _kLabelFadeEnd = 3.2;
-
+/// The breakout cabling graph: trusses, fixtures, headers and cables drawn in
+/// a shared [RigViewer].
 class CableView extends StatefulWidget {
   final CableViewViewModel vm;
 
@@ -25,203 +22,33 @@ class CableView extends StatefulWidget {
 }
 
 class _CableViewState extends State<CableView> {
-  final TransformationController _controller = TransformationController();
-  double _labelOpacity = 0;
   CableRouteTuning _tuning = const CableRouteTuning();
-
-  @override
-  void initState() {
-    super.initState();
-    _controller.addListener(_handleTransformChanged);
-  }
-
-  @override
-  void dispose() {
-    _controller.removeListener(_handleTransformChanged);
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _handleTransformChanged() {
-    final scale = _controller.value.getMaxScaleOnAxis();
-    final opacity =
-        ((scale - _kLabelFadeStart) / (_kLabelFadeEnd - _kLabelFadeStart))
-            .clamp(0.0, 1.0);
-    if ((opacity - _labelOpacity).abs() > 0.02) {
-      setState(() => _labelOpacity = opacity);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     if (widget.vm.elements.isEmpty) {
       return const SizedBox.shrink();
     }
-    return Stack(
-      children: [
-        InteractiveViewer(
-          maxScale: 50,
-          transformationController: _controller,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              // Fit the viewport over every projected point — fixtures, headers
-              // and truss outlines alike — so nothing is clipped or offset.
-              final points = <Offset>[
-                for (final element in widget.vm.elements)
-                  Offset(element.screenX, element.screenY),
-                for (final truss in widget.vm.trusses) ...truss.hull,
-              ];
-              final viewport = ViewportTransformer.fit(
-                points: points,
-                constraints: constraints,
-              );
 
-              return Stack(
-                children: [
-                  // Truss geometry (drawn beneath the cabling).
-                  if (widget.vm.trusses.isNotEmpty)
-                    Positioned.fill(
-                      child: CustomPaint(
-                        painter: _TrussPainter(
-                          trusses: widget.vm.trusses,
-                          viewport: viewport,
-                          color: Theme.of(context).colorScheme.mutedForeground,
-                        ),
-                      ),
-                    ),
+    // Fit the viewport over every projected point — fixtures, headers
+    // and truss outlines alike — so nothing is clipped or offset.
+    final fitPoints = <Offset>[
+      for (final element in widget.vm.elements)
+        Offset(element.screenX, element.screenY),
+      for (final truss in widget.vm.trusses) ...truss.hull,
+    ];
 
-                  // Edges (Cables)
-                  ...widget.vm.edges.map((edge) {
-                    final fromElement = edge.fromElement;
-                    final toElement = edge.toElement;
-                    final fromOffset = viewport.transform(
-                      fromElement.screenX,
-                      fromElement.screenY,
-                    );
-                    final toOffset = viewport.transform(
-                      toElement.screenX,
-                      toElement.screenY,
-                    );
-
-                    return Positioned.fill(
-                      child: switch (edge) {
-                        PsuedoEdgeElement() => const SizedBox(),
-                        CableEdgeElement() => switch (edge.type) {
-                          CableType.unknown => throw UnimplementedError(),
-                          CableType.wieland6way => throw UnimplementedError(),
-                          CableType.sneak => throw UnimplementedError(),
-                          CableType.hoist => throw UnimplementedError(),
-                          CableType.hoistMulti => throw UnimplementedError(),
-                          CableType.true1 => throw UnimplementedError(),
-                          CableType.dmx => _buildDataCableEdge(
-                            edge: edge,
-                            fromOffset: fromOffset,
-                            toOffset: toOffset,
-                          ),
-                          CableType.au10a ||
-                          CableType.socapex => _buildPowerCableEdge(
-                            edge: edge,
-                            fromOffset: fromOffset,
-                            toOffset: toOffset,
-                          ),
-                          CableType.socapexToAu10ALampHeader =>
-                            throw UnimplementedError(),
-                          CableType.socapexToTrue1LampHeader =>
-                            throw UnimplementedError(),
-                          CableType.wieland6WayLampHeader =>
-                            throw UnimplementedError(),
-                          CableType.sneakLampHeader =>
-                            throw UnimplementedError(),
-                          CableType.hoistMultiLampHeader =>
-                            throw UnimplementedError(),
-                          CableType.hoistMultiRackHeader =>
-                            throw UnimplementedError(),
-                        },
-                      },
-                    );
-                  }),
-
-                  // Nodes (Fixtures, Headers etc)
-                  ...widget.vm.elements.map((node) {
-                    final origin = viewport.transform(
-                      node.screenX,
-                      node.screenY,
-                    );
-                    return switch (node) {
-                      LocationElement() => Positioned(
-                        width: 10,
-                        height: 10,
-                        left: origin.dx,
-                        top: origin.dy,
-                        child: const FractionalTranslation(
-                          translation: Offset(-0.5, -0.5),
-                          child: _LocationNode(),
-                        ),
-                      ),
-                      FixtureElement() => Positioned(
-                        width: 16,
-                        height: 16,
-                        left: origin.dx,
-                        top: origin.dy,
-                        child: FractionalTranslation(
-                          // Shift the node by half its own size so the coordinate is at its center.
-                          translation: const Offset(-0.5, -0.5),
-                          child: _FixtureNode(
-                            vm: node.fixtureVm,
-                            labelOpacity: _labelOpacity,
-                          ),
-                        ),
-                      ),
-                      PowerMultiHeaderElement() => Positioned(
-                        width: 16,
-                        height: 16,
-                        left: origin.dx,
-                        top: origin.dy,
-                        child: FractionalTranslation(
-                          translation: const Offset(-0.5, -0.5),
-                          child: _PowerMultiNode(vm: node.powerMultiVm),
-                        ),
-                      ),
-                      DataMultiHeaderElement() => Positioned(
-                        width: 16,
-                        height: 16,
-                        left: origin.dx,
-                        top: origin.dy,
-                        child: FractionalTranslation(
-                          translation: const Offset(-0.5, -0.5),
-                          child: _DataMultiNode(outletName: node.outletName),
-                        ),
-                      ),
-                      DataPatchHeaderElement() => Positioned(
-                        width: 16,
-                        height: 16,
-                        left: origin.dx,
-                        top: origin.dy,
-                        child: FractionalTranslation(
-                          translation: const Offset(-0.5, -0.5),
-                          child: _DataPatchNode(
-                            outletName: node.outletName,
-                            universe: node.universe,
-                          ),
-                        ),
-                      ),
-                      TrussBreakElement() => Positioned(
-                        width: 6,
-                        height: 6,
-                        left: origin.dx,
-                        top: origin.dy,
-                        child: const FractionalTranslation(
-                          translation: Offset(-0.5, -0.5),
-                          child: _TrussBreakNode(),
-                        ),
-                      ),
-                    };
-                  }),
-                ],
-              );
-            },
-          ),
-        ),
+    return RigViewer(
+      fitPoints: fitPoints,
+      trussHulls: [for (final truss in widget.vm.trusses) truss.hull],
+      underlayBuilder: (context, viewport, labelOpacity) => [
+        for (final edge in widget.vm.edges) _buildEdge(edge, viewport),
+      ],
+      nodesBuilder: (context, viewport, labelOpacity) => [
+        for (final node in widget.vm.elements)
+          _buildNode(node, viewport, labelOpacity),
+      ],
+      overlays: [
         Positioned(
           top: 8,
           left: 8,
@@ -247,6 +74,122 @@ class _CableViewState extends State<CableView> {
         ),
       ],
     );
+  }
+
+  Widget _buildEdge(EdgeElement edge, ViewportTransformer viewport) {
+    final fromElement = edge.fromElement;
+    final toElement = edge.toElement;
+    final fromOffset = viewport.transform(
+      fromElement.screenX,
+      fromElement.screenY,
+    );
+    final toOffset = viewport.transform(
+      toElement.screenX,
+      toElement.screenY,
+    );
+
+    return Positioned.fill(
+      child: switch (edge) {
+        PsuedoEdgeElement() => const SizedBox(),
+        CableEdgeElement() => switch (edge.type) {
+          CableType.unknown => throw UnimplementedError(),
+          CableType.wieland6way => throw UnimplementedError(),
+          CableType.sneak => throw UnimplementedError(),
+          CableType.hoist => throw UnimplementedError(),
+          CableType.hoistMulti => throw UnimplementedError(),
+          CableType.true1 => throw UnimplementedError(),
+          CableType.dmx => _buildDataCableEdge(
+            edge: edge,
+            fromOffset: fromOffset,
+            toOffset: toOffset,
+          ),
+          CableType.au10a || CableType.socapex => _buildPowerCableEdge(
+            edge: edge,
+            fromOffset: fromOffset,
+            toOffset: toOffset,
+          ),
+          CableType.socapexToAu10ALampHeader => throw UnimplementedError(),
+          CableType.socapexToTrue1LampHeader => throw UnimplementedError(),
+          CableType.wieland6WayLampHeader => throw UnimplementedError(),
+          CableType.sneakLampHeader => throw UnimplementedError(),
+          CableType.hoistMultiLampHeader => throw UnimplementedError(),
+          CableType.hoistMultiRackHeader => throw UnimplementedError(),
+        },
+      },
+    );
+  }
+
+  Positioned _buildNode(
+    NodeElement node,
+    ViewportTransformer viewport,
+    double labelOpacity,
+  ) {
+    final origin = viewport.transform(node.screenX, node.screenY);
+    return switch (node) {
+      LocationElement() => Positioned(
+        width: 10,
+        height: 10,
+        left: origin.dx,
+        top: origin.dy,
+        child: const FractionalTranslation(
+          translation: Offset(-0.5, -0.5),
+          child: _LocationNode(),
+        ),
+      ),
+      FixtureElement() => RigFixtureNode.positioned(
+        diagramPosition: Offset(node.screenX, node.screenY),
+        viewport: viewport,
+        fallbackSize: 16,
+        geometry: node.fixtureVm.geometry,
+        rotationZ: node.fixtureVm.fixture.rotationZ,
+        label: node.fixtureVm.fixture.fid.toString(),
+        subLabel: node.fixtureVm.fixtureType.shortName,
+        labelOpacity: labelOpacity,
+      ),
+      PowerMultiHeaderElement() => Positioned(
+        width: 16,
+        height: 16,
+        left: origin.dx,
+        top: origin.dy,
+        child: FractionalTranslation(
+          translation: const Offset(-0.5, -0.5),
+          child: _PowerMultiNode(vm: node.powerMultiVm),
+        ),
+      ),
+      DataMultiHeaderElement() => Positioned(
+        width: 16,
+        height: 16,
+        left: origin.dx,
+        top: origin.dy,
+        child: FractionalTranslation(
+          translation: const Offset(-0.5, -0.5),
+          child: _DataMultiNode(outletName: node.outletName),
+        ),
+      ),
+      DataPatchHeaderElement() => Positioned(
+        width: 16,
+        height: 16,
+        left: origin.dx,
+        top: origin.dy,
+        child: FractionalTranslation(
+          translation: const Offset(-0.5, -0.5),
+          child: _DataPatchNode(
+            outletName: node.outletName,
+            universe: node.universe,
+          ),
+        ),
+      ),
+      TrussBreakElement() => Positioned(
+        width: 6,
+        height: 6,
+        left: origin.dx,
+        top: origin.dy,
+        child: const FractionalTranslation(
+          translation: Offset(-0.5, -0.5),
+          child: _TrussBreakNode(),
+        ),
+      ),
+    };
   }
 
   Widget _buildDataCableEdge({
@@ -317,59 +260,6 @@ class _TrussBreakNode extends StatelessWidget {
         color: Theme.of(context).colorScheme.background,
         border: Border.all(color: Theme.of(context).colorScheme.border),
       ),
-    );
-  }
-}
-
-class _FixtureNode extends StatelessWidget {
-  final FixtureViewModel vm;
-
-  /// Opacity of the fid/type labels, driven by the viewer's zoom level so the
-  /// text only appears once it is large enough to read.
-  final double labelOpacity;
-
-  const _FixtureNode({required this.vm, this.labelOpacity = 1});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.rectangle,
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
-        color: Theme.of(context).colorScheme.card,
-        border: Border.all(color: Theme.of(context).colorScheme.border),
-      ),
-      child: labelOpacity <= 0
-          ? null
-          : Opacity(
-              opacity: labelOpacity,
-              child: FittedBox(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      vm.fixture.fid.toString(),
-                      style: Theme.of(context)
-                          .typography
-                          .mono
-                          .copyWith(fontSize: 6),
-                      textAlign: TextAlign.center,
-                      overflow: TextOverflow.clip,
-                    ),
-                    Text(
-                      vm.fixtureType.shortName,
-                      style: Theme.of(context)
-                          .typography
-                          .light
-                          .copyWith(fontSize: 4),
-                      textAlign: TextAlign.center,
-                      overflow: TextOverflow.clip,
-                    ),
-                  ],
-                ),
-              ),
-            ),
     );
   }
 }
@@ -561,56 +451,6 @@ class _DataPatchNode extends StatelessWidget {
   }
 }
 
-/// Paints each truss stick as an oriented rectangle in the same viewport space
-/// as the fixtures and cables, giving a physical footprint for the rig.
-class _TrussPainter extends CustomPainter {
-  final List<TrussViewModel> trusses;
-  final ViewportTransformer viewport;
-  final Color color;
-
-  _TrussPainter({
-    required this.trusses,
-    required this.viewport,
-    required this.color,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final fillPaint = Paint()
-      ..color = color.withValues(alpha: 0.12)
-      ..style = PaintingStyle.fill;
-    final strokePaint = Paint()
-      ..color = color.withValues(alpha: 0.6)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-
-    for (final truss in trusses) {
-      if (truss.hull.length < 2) continue;
-
-      // The hull is already projected into diagram space; only the viewport fit
-      // remains, so a truss lands in the same frame as its fixtures and cables.
-      final path = Path();
-      final start = viewport.transform(truss.hull.first.dx, truss.hull.first.dy);
-      path.moveTo(start.dx, start.dy);
-      for (final point in truss.hull.skip(1)) {
-        final p = viewport.transform(point.dx, point.dy);
-        path.lineTo(p.dx, p.dy);
-      }
-      path.close();
-
-      canvas.drawPath(path, fillPaint);
-      canvas.drawPath(path, strokePaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _TrussPainter oldDelegate) {
-    return oldDelegate.trusses != trusses ||
-        oldDelegate.viewport != viewport ||
-        oldDelegate.color != color;
-  }
-}
-
 class _PowerCableEdge extends StatelessWidget {
   final Offset from;
   final Offset to;
@@ -674,12 +514,12 @@ class _DataCableEdge extends StatelessWidget {
         CableRunType.fixtureRun => SidekickColors.dataRun,
         CableRunType.homeRun => SidekickColors.dataHome,
       },
+      label: label,
       width: switch (runType) {
         CableRunType.link => 1,
         CableRunType.fixtureRun => 1,
         CableRunType.homeRun => 2,
       },
-      label: label,
       riser: tuning.dataRiser((to.dx - from.dx).abs()),
       cornerRadius: tuning.cornerRadius,
       directionUp: CableRouteTuning.directionUpFor(runType),

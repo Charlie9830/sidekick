@@ -4,6 +4,7 @@ import 'package:sidekick/cable_graph/cable_graph.dart';
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/models/cable_visibility_model.dart';
+import 'package:sidekick/redux/models/fixture_geometry_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
@@ -43,7 +44,14 @@ class FixtureViewModel implements ModelCollectionMember {
   final FixtureModel fixture;
   final FixtureTypeModel fixtureType;
 
-  FixtureViewModel({required this.fixture, required this.fixtureType});
+  /// Imported GDTF geometry of the fixture's type, when available.
+  final FixtureGeometryModel? geometry;
+
+  FixtureViewModel({
+    required this.fixture,
+    required this.fixtureType,
+    this.geometry,
+  });
 }
 
 class PowerMultiHeaderViewModel {

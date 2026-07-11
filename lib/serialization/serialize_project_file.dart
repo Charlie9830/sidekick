@@ -43,6 +43,7 @@ Future<ProjectFileMetadataModel> serializeProjectFile(
     dataRacks: state.fixtureState.dataRacks.values.toList(),
     fixtureTypePools: state.fixtureState.fixtureTypePools.values.toList(),
     trusses: state.fixtureState.trusses.values.toList(),
+    fixtureGeometries: state.fixtureState.fixtureGeometries.values.toList(),
   );
 
   final json = projectFile.toJson();

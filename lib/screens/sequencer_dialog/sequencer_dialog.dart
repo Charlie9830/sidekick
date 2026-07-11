@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/redux/models/fixture_geometry_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/screens/sequencer_dialog/arrowed_divider.dart';
@@ -20,12 +21,14 @@ enum _FixtureViewMode { list, plan }
 class SequencerDialog extends StatefulWidget {
   final List<FixtureModel> fixtures;
   final Map<String, FixtureTypeModel> fixtureTypes;
+  final Map<String, FixtureGeometryModel> fixtureGeometries;
   final int nextAvailableSequenceNumber;
 
   const SequencerDialog({
     super.key,
     required this.fixtures,
     required this.fixtureTypes,
+    required this.fixtureGeometries,
     required this.nextAvailableSequenceNumber,
   });
 
@@ -187,6 +190,8 @@ class _SequencerDialogState extends State<SequencerDialog> {
                                 : SequencerPlanView(
                                     fixtures: _fixtures,
                                     fixtureTypes: widget.fixtureTypes,
+                                    fixtureGeometries:
+                                        widget.fixtureGeometries,
                                     mapping: _mapping,
                                     onAssign: _assignFixtureToCurrentSequence,
                                     onUnassign: _unassignFixture,

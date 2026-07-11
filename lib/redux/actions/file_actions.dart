@@ -58,6 +58,7 @@ ThunkAction<AppState> showImportManager(BuildContext context) {
           locations: result.locations.toModelMap(),
           fixtureTypes: result.fixtureTypes.toModelMap(),
           trusses: result.trusses.toModelMap(),
+          fixtureGeometries: result.fixtureGeometries.toModelMap(),
         ),
       );
 

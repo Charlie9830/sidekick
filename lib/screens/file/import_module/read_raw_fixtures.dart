@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:mvr/mvr.dart';
+import 'package:sidekick/cable_graph/vector3.dart';
 import 'package:sidekick/redux/models/dmx_address_model.dart';
+import 'package:sidekick/redux/models/fixture_geometry_model.dart';
 import 'package:sidekick/screens/file/import_module/mvr_import_settings.dart';
 import 'package:sidekick/screens/file/import_module/patch_import_settings.dart';
 import 'package:sidekick/screens/file/import_module/raw_fixture_model.dart';
@@ -126,7 +128,7 @@ Future<ImportRawFixturesResult> _readMvrPatch({
   required PatchImportSettings settings,
 }) async {
   final mvrReader = MVR(filePath: patchFilePath);
-  final readResult = await mvrReader.read(expandGdtfFiles: false);
+  final readResult = await mvrReader.read();
 
   if (readResult == false) {
     return ImportRawFixturesResult(
@@ -180,7 +182,69 @@ Future<ImportRawFixturesResult> _readMvrPatch({
     fixtures: rawFixtures.toList(),
     error: null,
     locations: locations.values.toList(),
+    geometriesBySpec: _readGeometries(mvrReader, rawFixtures),
   );
+}
+
+/// Extracts the GDTF geometry of every fixture type referenced by [fixtures],
+/// keyed by the raw GDTF spec name (the value carried on
+/// [RawFixtureModel.fixtureType]).
+///
+/// Parts are resolved for the DMX mode of the first fixture seen for each
+/// spec; [GDTFFixtureType.partsForMode] falls back to the default geometry
+/// when the mode is unknown. Fixture types without usable geometry are
+/// omitted.
+Map<String, FixtureGeometryModel> _readGeometries(
+  MVR mvrReader,
+  Iterable<RawFixtureModel> fixtures,
+) {
+  final geometries = <String, FixtureGeometryModel>{};
+
+  for (final fixture in fixtures) {
+    if (fixture.fixtureType.isEmpty ||
+        geometries.containsKey(fixture.fixtureType)) {
+      continue;
+    }
+
+    final fixtureType = mvrReader.fixtureTypeByName(fixture.fixtureType);
+    if (fixtureType == null) {
+      continue;
+    }
+
+    final parts = fixtureType.partsForMode(fixture.fixtureMode);
+    if (parts.isEmpty) {
+      continue;
+    }
+
+    final boundingBox = fixtureType.boundingBoxForMode(fixture.fixtureMode);
+
+    geometries[fixture.fixtureType] = FixtureGeometryModel(
+      gdtfName: fixtureType.name,
+      parts: [
+        for (final part in parts)
+          GeometryPartModel(
+            name: part.geometry.name,
+            primitiveType: part.model.primitiveType.name,
+            corners: [
+              for (final corner in part.corners)
+                Vector3(corner.x, corner.y, corner.z),
+            ],
+          ),
+      ],
+      boundingBoxMin: Vector3(
+        boundingBox.min.x,
+        boundingBox.min.y,
+        boundingBox.min.z,
+      ),
+      boundingBoxMax: Vector3(
+        boundingBox.max.x,
+        boundingBox.max.y,
+        boundingBox.max.z,
+      ),
+    );
+  }
+
+  return geometries;
 }
 
 RawFixtureModel _mapFixture({
@@ -248,11 +312,17 @@ String _extractMa2FixtureNameData(XmlElement fixtureElement) {
 class ImportRawFixturesResult {
   final List<RawFixtureModel> fixtures;
   final List<RawLocationModel> locations;
+
+  /// Imported GDTF geometry keyed by the raw GDTF spec name
+  /// ([RawFixtureModel.fixtureType]). Empty for sources without geometry.
+  final Map<String, FixtureGeometryModel> geometriesBySpec;
+
   final String? error;
 
   ImportRawFixturesResult({
     required this.fixtures,
     required this.error,
     required this.locations,
+    this.geometriesBySpec = const {},
   });
 }

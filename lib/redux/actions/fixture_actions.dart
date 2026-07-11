@@ -140,6 +140,7 @@ ThunkAction<AppState> setSequenceNumbers(BuildContext context) {
       builder: (context) => SequencerDialog(
         fixtures: selectedFixtures,
         fixtureTypes: store.state.fixtureState.fixtureTypes,
+        fixtureGeometries: store.state.fixtureState.fixtureGeometries,
         nextAvailableSequenceNumber: _findNextAvailableSequenceNumber(
           selectedFixtures.map((fix) => fix.sequence).toList(),
         ),

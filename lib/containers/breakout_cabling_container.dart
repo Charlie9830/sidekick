@@ -251,6 +251,7 @@ Map<String, FixtureViewModel> _selectFixtureVms(Store<AppState> store) {
   return store.state.fixtureState.fixtures.values
       .map((fixture) => FixtureViewModel(
           fixture: fixture,
-          fixtureType: store.state.fixtureState.fixtureTypes[fixture.typeId]!))
+          fixtureType: store.state.fixtureState.fixtureTypes[fixture.typeId]!,
+          geometry: store.state.fixtureState.fixtureGeometries[fixture.typeId]))
       .toModelMap();
 }

@@ -24,7 +24,7 @@ Future<ImportRawTrussesResult> _readMvrTrussing({
   required PatchImportSettings settings,
 }) async {
   final mvrReader = MVR(filePath: patchFilePath);
-  final readResult = await mvrReader.read(expandGdtfFiles: false);
+  final readResult = await mvrReader.read(parseGdtfFiles: false);
 
   if (readResult == false) {
     return ImportRawTrussesResult(

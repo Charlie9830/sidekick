@@ -2,6 +2,7 @@ import 'package:excel_community/excel_community.dart';
 import 'package:sidekick/diffing/union_proxy.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
+import 'package:sidekick/redux/models/fixture_geometry_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
@@ -28,12 +29,14 @@ class SetImportedFixtureData {
   Map<String, LocationModel> locations;
   Map<String, FixtureTypeModel> fixtureTypes;
   Map<String, TrussModel> trusses;
+  Map<String, FixtureGeometryModel> fixtureGeometries;
 
   SetImportedFixtureData({
     required this.fixtures,
     required this.locations,
     required this.fixtureTypes,
     required this.trusses,
+    required this.fixtureGeometries,
   });
 }
 

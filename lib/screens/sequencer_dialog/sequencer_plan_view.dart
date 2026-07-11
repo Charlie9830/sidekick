@@ -1,12 +1,16 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/cable_graph/view_projection.dart';
 import 'package:sidekick/cable_graph/viewport_transformer.dart';
+import 'package:sidekick/redux/models/fixture_geometry_model.dart';
 import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
-import 'package:sidekick/simple_tooltip.dart';
 import 'package:sidekick/theme/sidekick_colors.dart';
+import 'package:sidekick/widgets/rig_viewer/rig_fixture_node.dart';
+import 'package:sidekick/widgets/rig_viewer/rig_viewer.dart';
 
 const ViewProjection _kProjection = PlanProjection();
+
+/// Fallback node size (px) for fixture types without imported geometry.
 const double _kNodeSize = 30;
 
 /// Inset kept clear around the plot so edge nodes aren't clipped. Much smaller
@@ -19,10 +23,14 @@ const double _kPlanPadding = 48;
 ///
 /// Tapping an unassigned fixture calls [onAssign]; tapping an assigned one calls
 /// [onUnassign]. A polyline connects assigned fixtures in sequence order so the
-/// operator can see the path they are drawing.
+/// operator can see the path they are drawing. Fixture types with imported
+/// GDTF geometry are drawn at their physical footprint.
 class SequencerPlanView extends StatelessWidget {
   final List<FixtureModel> fixtures;
   final Map<String, FixtureTypeModel> fixtureTypes;
+
+  /// Imported GDTF geometry keyed by fixture type uid.
+  final Map<String, FixtureGeometryModel> fixtureGeometries;
 
   /// Sequence number → fixture, as currently assigned in the dialog.
   final Map<int, FixtureModel> mapping;
@@ -34,6 +42,7 @@ class SequencerPlanView extends StatelessWidget {
     super.key,
     required this.fixtures,
     required this.fixtureTypes,
+    required this.fixtureGeometries,
     required this.mapping,
     required this.onAssign,
     required this.onUnassign,
@@ -41,10 +50,6 @@ class SequencerPlanView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (fixtures.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
     final sequenceByUid = <String, int>{
       for (final entry in mapping.entries) entry.value.uid: entry.key,
     };
@@ -54,116 +59,57 @@ class SequencerPlanView extends StatelessWidget {
         fixture.uid: _kProjection.project(fixture.x, fixture.y, fixture.z),
     };
 
-    return InteractiveViewer(
-      maxScale: 50,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final viewport = ViewportTransformer.fit(
-            points: positions.values,
-            constraints: constraints,
-            padding: _kPlanPadding,
-          );
-
-          return Stack(
-            children: [
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: _SequencePathPainter(
-                    mapping: mapping,
-                    positions: positions,
-                    viewport: viewport,
-                    color: SidekickColors.selectionAccent,
-                  ),
-                ),
-              ),
-              ...fixtures.map((fixture) {
-                final origin = viewport.transform(
-                  positions[fixture.uid]!.dx,
-                  positions[fixture.uid]!.dy,
-                );
-                final sequence = sequenceByUid[fixture.uid];
-                return Positioned(
-                  width: _kNodeSize,
-                  height: _kNodeSize,
-                  left: origin.dx,
-                  top: origin.dy,
-                  child: FractionalTranslation(
-                    translation: const Offset(-0.5, -0.5),
-                    child: _FixtureNode(
-                      fixture: fixture,
-                      typeName: fixtureTypes[fixture.typeId]?.name ?? '',
-                      sequence: sequence,
-                      onTap: () => sequence == null
-                          ? onAssign(fixture)
-                          : onUnassign(fixture),
-                    ),
-                  ),
-                );
-              }),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _FixtureNode extends StatelessWidget {
-  final FixtureModel fixture;
-  final String typeName;
-  final int? sequence;
-  final VoidCallback onTap;
-
-  const _FixtureNode({
-    required this.fixture,
-    required this.typeName,
-    required this.sequence,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isAssigned = sequence != null;
-    final label = isAssigned ? sequence.toString() : fixture.fid.toString();
-
-    return SimpleTooltip(
-      message:
-          '#${fixture.fid}'
-          '${typeName.isEmpty ? '' : ' · $typeName'}'
-          '${isAssigned ? ' · Seq $sequence' : ''}',
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.rectangle,
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-            color: isAssigned
-                ? SidekickColors.selectionAccent
-                : theme.colorScheme.card,
-            border: Border.all(
-              color: isAssigned
-                  ? SidekickColors.selectionAccent
-                  : theme.colorScheme.border,
-            ),
-          ),
-          child: FittedBox(
-            child: Padding(
-              padding: const EdgeInsets.all(3),
-              child: Text(
-                label,
-                style: theme.typography.mono.copyWith(
-                  fontSize: 10,
-                  color: isAssigned
-                      ? Colors.white
-                      : theme.colorScheme.foreground,
-                ),
-              ),
+    return RigViewer(
+      fitPoints: positions.values.toList(),
+      fitPadding: _kPlanPadding,
+      underlayBuilder: (context, viewport, labelOpacity) => [
+        Positioned.fill(
+          child: CustomPaint(
+            painter: _SequencePathPainter(
+              mapping: mapping,
+              positions: positions,
+              viewport: viewport,
+              color: SidekickColors.selectionAccent,
             ),
           ),
         ),
-      ),
+      ],
+      nodesBuilder: (context, viewport, labelOpacity) => [
+        for (final fixture in fixtures)
+          _buildFixtureNode(
+            fixture: fixture,
+            viewport: viewport,
+            sequence: sequenceByUid[fixture.uid],
+            diagramPosition: positions[fixture.uid]!,
+          ),
+      ],
+    );
+  }
+
+  Positioned _buildFixtureNode({
+    required FixtureModel fixture,
+    required ViewportTransformer viewport,
+    required int? sequence,
+    required Offset diagramPosition,
+  }) {
+    final typeName = fixtureTypes[fixture.typeId]?.name ?? '';
+    final isAssigned = sequence != null;
+
+    return RigFixtureNode.positioned(
+      key: Key(fixture.uid),
+      diagramPosition: diagramPosition,
+      viewport: viewport,
+      fallbackSize: _kNodeSize,
+      geometry: fixtureGeometries[fixture.typeId],
+      rotationZ: fixture.rotationZ,
+      projection: _kProjection,
+      label: isAssigned ? sequence.toString() : fixture.fid.toString(),
+      selected: isAssigned,
+      tooltip:
+          '#${fixture.fid}'
+          '${typeName.isEmpty ? '' : ' · $typeName'}'
+          '${isAssigned ? ' · Seq $sequence' : ''}',
+      onTap: () => isAssigned ? onUnassign(fixture) : onAssign(fixture),
     );
   }
 }
