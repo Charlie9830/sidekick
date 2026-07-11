@@ -171,6 +171,7 @@ class PsuedoEdgeElement extends EdgeElement {
 class CableLengthBreakpoints {
   static List<double> au10A = [1, 2, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
   static List<double> socapex = [
+    2,
     3,
     5,
     7.5,
@@ -188,6 +189,7 @@ class CableLengthBreakpoints {
   ];
 
   static List<double> wieland6Way = [
+    2,
     3,
     5,
     7.5,
