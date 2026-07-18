@@ -74,6 +74,7 @@ Future<void> buildWindows(List<String> args) async {
   final config = loadReleaseConfig();
   final githubRepo = configValue(config, 'publish.github.repo');
   final displayName = configValue(config, 'app.display_name');
+  final artifactSlug = configValue(config, 'app.artifact_slug');
   final draft = configValue(config, 'publish.github.draft') == 'true';
 
   final pubspec = readPubspecInfo();
@@ -143,7 +144,7 @@ Future<void> buildWindows(List<String> args) async {
   step('Verifying artifact');
 
   final distDir = Directory(p.join(repoRoot, 'dist'));
-  final artifactName = 'its-just-a-phase-$version-windows-x64.msix';
+  final artifactName = '$artifactSlug-$version-windows-x64.msix';
   final built = _newestBuiltMsix(distDir, exclude: artifactName);
   final artifact = File(p.join(distDir.path, artifactName));
   built.copySync(artifact.path);
@@ -184,7 +185,10 @@ Future<void> buildWindows(List<String> args) async {
   step('Publishing to $githubRepo');
 
   final tag = 'v$version';
-  final mvrRef = configValue(config, 'dependencies.mvr.ref');
+  final dependencyNotes = [
+    for (final dependency in loadDependencies(config))
+      '- ${dependency.name} ref: `${dependency.ref}`',
+  ].join('\n');
   final date = DateTime.now().toIso8601String().split('T').first;
   final notesFile = File(
     p.join(Directory.systemTemp.path, 'release-notes-$tag.md'),
@@ -193,8 +197,7 @@ Future<void> buildWindows(List<String> args) async {
 # $displayName $tag
 
 - Date: $date
-- Source commit: `$commit`
-- mvr ref: `$mvrRef`
+- Source commit: `$commit`${dependencyNotes.isEmpty ? '' : '\n$dependencyNotes'}
 
 ## Checksums (SHA-256)
 

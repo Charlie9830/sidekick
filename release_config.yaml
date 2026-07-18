@@ -10,7 +10,14 @@ app:
   # Human name used in release titles. Version comes from pubspec.yaml,
   # never from this file.
   display_name: "It's Just a Phase"
+  # Filename-safe slug used to name build artifacts, e.g.
+  # `<slug>-<version>-windows-x64.msix`. Lowercase, hyphenated.
+  artifact_slug: its-just-a-phase
 
+# Local sibling packages the release must pin before building. List one
+# block per dependency under `dependencies:`; the release scripts sync
+# every entry. Omit the section entirely for apps with no local
+# dependencies.
 dependencies:
   mvr:
     git: https://github.com/Charlie9830/mvr.git

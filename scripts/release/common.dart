@@ -119,6 +119,56 @@ YamlMap loadReleaseConfig() {
   return loadYaml(file.readAsStringSync()) as YamlMap;
 }
 
+/// A local sibling package pinned by the release process.
+///
+/// Each entry under `dependencies:` in `release_config.yaml` describes a
+/// git checkout that must exist beside this repo (so pubspec `path:`
+/// references resolve) at a reproducible ref before a release build.
+class ReleaseDependency {
+  ReleaseDependency({
+    required this.name,
+    required this.git,
+    required this.ref,
+    required this.path,
+  });
+
+  /// The dependency's key in `release_config.yaml`, e.g. `mvr`.
+  final String name;
+
+  /// The git remote to clone from.
+  final String git;
+
+  /// A tag (preferred) or full commit SHA. Branch names are rejected.
+  final String ref;
+
+  /// Where the checkout must live, relative to this repo's root.
+  final String path;
+}
+
+/// Reads every entry under `dependencies:` in [config].
+///
+/// Returns an empty list when the section is absent or empty, so apps
+/// with no local dependencies need no special handling.
+List<ReleaseDependency> loadDependencies(YamlMap config) {
+  final section = config['dependencies'];
+  if (section == null) return const [];
+  if (section is! YamlMap) {
+    throw ReleaseException(
+      "release_config.yaml key 'dependencies' must be a mapping of named "
+      'dependencies.',
+    );
+  }
+  return [
+    for (final key in section.keys)
+      ReleaseDependency(
+        name: key.toString(),
+        git: configValue(config, 'dependencies.$key.git'),
+        ref: configValue(config, 'dependencies.$key.ref'),
+        path: configValue(config, 'dependencies.$key.path'),
+      ),
+  ];
+}
+
 /// Reads a required scalar from [config] by dotted key, e.g.
 /// `dependencies.mvr.ref`.
 String configValue(YamlMap config, String dottedKey) {
