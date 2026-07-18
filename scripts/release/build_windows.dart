@@ -45,21 +45,18 @@ Future<void> buildWindows(List<String> args) async {
 
   step('Preflight');
 
-  final flutterVersion = (await capture(
-    'flutter',
-    ['--version'],
-    runInShell: true,
-  ))
-      .split('\n')
-      .first
-      .trim();
+  final flutterVersion = (await capture('flutter', [
+    '--version',
+  ], runInShell: true)).split('\n').first.trim();
   stdout.writeln(flutterVersion);
 
   final treeStatus = await capture('git', ['status', '--porcelain']);
   if (treeStatus.isNotEmpty) {
     if (allowDirty) {
-      warn('Working tree is dirty (--allow-dirty given). NOT a release '
-          'build.');
+      warn(
+        'Working tree is dirty (--allow-dirty given). NOT a release '
+        'build.',
+      );
     } else {
       throw ReleaseException(
         'The working tree has uncommitted changes. Release builds must '
@@ -133,11 +130,13 @@ Future<void> buildWindows(List<String> args) async {
 
   step('fastforge package (windows/msix)');
   final fastforge = await _resolveFastforge();
-  await runChecked(
-    fastforge,
-    ['package', '--platform', 'windows', '--targets', 'msix'],
-    runInShell: true,
-  );
+  await runChecked(fastforge, [
+    'package',
+    '--platform',
+    'windows',
+    '--targets',
+    'msix',
+  ], runInShell: true);
 
   // -------------------------------------------------------------- artifacts
 
@@ -165,9 +164,9 @@ Future<void> buildWindows(List<String> args) async {
   final checksumsFile = File(p.join(distDir.path, 'checksums-$version.txt'));
   final otherLines = checksumsFile.existsSync()
       ? checksumsFile
-          .readAsLinesSync()
-          .where((line) => !line.endsWith('  $artifactName'))
-          .toList()
+            .readAsLinesSync()
+            .where((line) => !line.endsWith('  $artifactName'))
+            .toList()
       : <String>[];
   checksumsFile.writeAsStringSync(
     '${[...otherLines, '$sha256Hex  $artifactName'].join('\n')}\n',
@@ -187,8 +186,9 @@ Future<void> buildWindows(List<String> args) async {
   final tag = 'v$version';
   final mvrRef = configValue(config, 'dependencies.mvr.ref');
   final date = DateTime.now().toIso8601String().split('T').first;
-  final notesFile =
-      File(p.join(Directory.systemTemp.path, 'release-notes-$tag.md'));
+  final notesFile = File(
+    p.join(Directory.systemTemp.path, 'release-notes-$tag.md'),
+  );
   notesFile.writeAsStringSync('''
 # $displayName $tag
 
@@ -203,27 +203,52 @@ ${checksumsFile.readAsStringSync().trim()}
 ```
 ''');
 
-  final releaseExists =
-      await succeeds('gh', ['release', 'view', tag, '--repo', githubRepo]);
+  final releaseExists = await succeeds('gh', [
+    'release',
+    'view',
+    tag,
+    '--repo',
+    githubRepo,
+  ]);
   if (releaseExists) {
     stdout.writeln('Release $tag exists; uploading assets.');
     await runChecked('gh', [
-      'release', 'upload', tag, '--repo', githubRepo,
-      artifact.path, checksumsFile.path,
+      'release',
+      'upload',
+      tag,
+      '--repo',
+      githubRepo,
+      artifact.path,
+      checksumsFile.path,
       if (force) '--clobber',
     ]);
   } else {
     await runChecked('gh', [
-      'release', 'create', tag, '--repo', githubRepo,
-      '--title', '$displayName $tag', '--notes-file', notesFile.path,
+      'release',
+      'create',
+      tag,
+      '--repo',
+      githubRepo,
+      '--title',
+      '$displayName $tag',
+      '--notes-file',
+      notesFile.path,
       if (draft) '--draft',
-      artifact.path, checksumsFile.path,
+      artifact.path,
+      checksumsFile.path,
     ]);
   }
 
   final releaseUrl = await capture('gh', [
-    'release', 'view', tag, '--repo', githubRepo, '--json', 'url',
-    '--jq', '.url',
+    'release',
+    'view',
+    tag,
+    '--repo',
+    githubRepo,
+    '--json',
+    'url',
+    '--jq',
+    '.url',
   ]);
   step('Done');
   stdout.writeln('Release: $releaseUrl');
@@ -252,15 +277,16 @@ File _newestBuiltMsix(Directory distDir, {required String exclude}) {
   if (!distDir.existsSync()) {
     throw ReleaseException('No dist directory at ${distDir.path}.');
   }
-  final candidates = distDir
-      .listSync(recursive: true)
-      .whereType<File>()
-      .where((file) =>
-          file.path.endsWith('.msix') && p.basename(file.path) != exclude)
-      .toList()
-    ..sort(
-      (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()),
-    );
+  final candidates =
+      distDir
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where(
+            (file) =>
+                file.path.endsWith('.msix') && p.basename(file.path) != exclude,
+          )
+          .toList()
+        ..sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
   if (candidates.isEmpty) {
     throw ReleaseException('No .msix produced under ${distDir.path}.');
   }
