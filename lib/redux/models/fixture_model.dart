@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:sidekick/extension_methods/to_model_map.dart';
 
 import 'package:sidekick/model_collection/model_collection_member.dart';
 import 'package:sidekick/redux/models/dmx_address_model.dart';
@@ -171,15 +172,17 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
       (fixture) => fixture.locationId,
     );
 
-    final sortedFixturesByLocation = fixturesByLocation.map(
-      (locationId, fixtures) => MapEntry(locationId, fixtures.sorted()),
-    );
-
-    return Map<String, FixtureModel>.fromEntries(
-      sortedFixturesByLocation.values.flattened.map(
-        (fixture) => MapEntry(fixture.uid, fixture),
+    final sortedFixturesByLocation = locations.values.map(
+      (location) => MapEntry(
+        location.uid,
+        fixturesByLocation[location.uid]?.sorted() ?? [],
       ),
     );
+
+    return sortedFixturesByLocation
+        .map((entry) => entry.value)
+        .flattened
+        .toModelMap();
   }
 
   @override
