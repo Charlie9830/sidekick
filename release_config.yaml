@@ -28,6 +28,19 @@ dependencies:
     # pubspec's `path: ../mvr/` resolves.
     path: ../mvr
 
+# macOS signing and notarization. All three values must resolve to
+# material already present on the build Mac; nothing secret lives here.
+macos:
+  # Full identity strings as shown by `security find-identity -v`. The
+  # Application identity signs the .app (hardened runtime); the Installer
+  # identity signs the .pkg via productbuild.
+  application_identity: "Developer ID Application: Charlie Hall (7MGD5674RY)"
+  installer_identity: "Developer ID Installer: Charlie Hall (7MGD5674RY)"
+  # A notarytool credential profile created once with
+  # `xcrun notarytool store-credentials`. NEVER put the app-specific
+  # password in this file — only the profile name.
+  notary_profile: notarytool
+
 publish:
   github:
     # The separate binaries-only repository.

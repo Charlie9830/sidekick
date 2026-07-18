@@ -7,6 +7,7 @@ library;
 
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
@@ -240,4 +241,116 @@ PubspecInfo readPubspecInfo() {
     msixVersion: msixVersion,
     certThumbprint: thumbprint,
   );
+}
+
+/// Records the SHA-256 of [artifact] against [artifactName] in the
+/// per-version [checksumsFile], replacing any prior line for the same
+/// name so re-runs stay idempotent. Returns the checksum hex.
+String recordChecksum(File checksumsFile, File artifact, String artifactName) {
+  final sha256Hex = sha256.convert(artifact.readAsBytesSync()).toString();
+  final otherLines = checksumsFile.existsSync()
+      ? checksumsFile
+            .readAsLinesSync()
+            .where((line) => !line.endsWith('  $artifactName'))
+            .toList()
+      : <String>[];
+  checksumsFile.writeAsStringSync(
+    '${[...otherLines, '$sha256Hex  $artifactName'].join('\n')}\n',
+  );
+  return sha256Hex;
+}
+
+/// Writes a minimal release-notes stub (spec §8) to a temp file and
+/// returns it: version, date, code-repo commit, pinned dependency refs
+/// and the checksums block.
+File writeReleaseNotes({
+  required String tag,
+  required String displayName,
+  required String commit,
+  required List<ReleaseDependency> dependencies,
+  required File checksumsFile,
+  required String date,
+}) {
+  final dependencyNotes = [
+    for (final dependency in dependencies)
+      '- ${dependency.name} ref: `${dependency.ref}`',
+  ].join('\n');
+  final notesFile = File(
+    p.join(Directory.systemTemp.path, 'release-notes-$tag.md'),
+  );
+  notesFile.writeAsStringSync('''
+# $displayName $tag
+
+- Date: $date
+- Source commit: `$commit`${dependencyNotes.isEmpty ? '' : '\n$dependencyNotes'}
+
+## Checksums (SHA-256)
+
+```
+${checksumsFile.readAsStringSync().trim()}
+```
+''');
+  return notesFile;
+}
+
+/// Creates the `v<version>` GitHub release in [githubRepo] (or uploads
+/// into it if it already exists) with [assets], then returns its URL.
+///
+/// Mirrors spec §8: a release created by whichever platform publishes
+/// first is reused by the second. [force] adds `--clobber` so an
+/// already-uploaded asset can be replaced.
+Future<String> publishRelease({
+  required String tag,
+  required String githubRepo,
+  required String title,
+  required File notesFile,
+  required bool draft,
+  required bool force,
+  required List<File> assets,
+}) async {
+  final assetPaths = [for (final asset in assets) asset.path];
+  final releaseExists = await succeeds('gh', [
+    'release',
+    'view',
+    tag,
+    '--repo',
+    githubRepo,
+  ]);
+  if (releaseExists) {
+    stdout.writeln('Release $tag exists; uploading assets.');
+    await runChecked('gh', [
+      'release',
+      'upload',
+      tag,
+      '--repo',
+      githubRepo,
+      ...assetPaths,
+      if (force) '--clobber',
+    ]);
+  } else {
+    await runChecked('gh', [
+      'release',
+      'create',
+      tag,
+      '--repo',
+      githubRepo,
+      '--title',
+      title,
+      '--notes-file',
+      notesFile.path,
+      if (draft) '--draft',
+      ...assetPaths,
+    ]);
+  }
+  return capture('gh', [
+    'release',
+    'view',
+    tag,
+    '--repo',
+    githubRepo,
+    '--json',
+    'url',
+    '--jq',
+    '.url',
+  ]);
 }

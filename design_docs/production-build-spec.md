@@ -255,12 +255,15 @@ consistency), plus:
 ### 7.3 Build, sign, notarize
 
 1. `flutter clean && flutter pub get && flutter test`
-2. `fastforge package --platform macos --targets pkg` — the pkg maker's
-   `macos/packaging/pkg/make_config.yaml` holds installer identity/paths.
-3. Sign: .app with Developer ID Application (with hardened runtime,
-   `codesign --options runtime`), .pkg with Developer ID Installer via
-   `productsign` (verify whether Fastforge's pkg config can do this
-   inline; explicit steps are acceptable and easier to debug).
+2. `flutter build macos --release` — produces the universal .app.
+   > **Implemented:** Fastforge is *not* used on macOS. The hardened-
+   > runtime signature must land on the .app *before* the .pkg wraps it,
+   > and the explicit path (below) controls that ordering cleanly, which
+   > this section already permitted. Fastforge stays the Windows backbone.
+3. Sign: nested frameworks/dylibs first, then the .app with Developer ID
+   Application (hardened runtime, `codesign --options runtime --timestamp`,
+   Release.entitlements on the outer bundle). The .pkg is built and signed
+   in one step with `productbuild --sign "Developer ID Installer: …"`.
 4. Notarize: `xcrun notarytool submit <pkg> --keychain-profile <name>
    --wait` — fail the build on `status: Invalid`, printing the log URL.
 5. Staple: `xcrun stapler staple <pkg>`.
@@ -333,7 +336,8 @@ pipeline already created it.
    (architecture only); pubspec remains the single source of truth.
 3. **Test gate** — spec currently makes `flutter test` a hard gate for
    release builds. Acceptable, or should it be skippable via flag?
-4. **macOS architecture** — universal binary vs Apple-silicon-only.
-   Decide when the macOS pipeline is implemented.
+4. ~~**macOS architecture**~~ — resolved: universal (arm64 + x86_64), the
+   default `flutter build macos --release` output. Artifact name uses the
+   `-macos-universal.pkg` suffix.
 5. **Draft releases** — spec defaults to `draft: true` with manual
    publish from the GitHub UI. Confirm this matches the intended flow.
