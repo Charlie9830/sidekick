@@ -6,7 +6,7 @@ import 'package:sidekick/view_models/power_patch_view_model.dart';
 
 class DiffAppStateViewModel {
   final Map<String, LoomViewModel> originalLoomViewModels;
-  final void Function(String path) onFileSelectedForCompare;
+  final void Function({String? path}) onSelectFileForCompareButtonPressed;
   final Map<String, PowerPatchRowViewModel> originalPatchViewModels;
   final Map<String, FixtureTableRowViewModel> originalFixtureViewModels;
   final Map<String, HoistControllerViewModel> originalHoistControllerViewModels;
@@ -16,7 +16,7 @@ class DiffAppStateViewModel {
 
   DiffAppStateViewModel({
     required this.originalLoomViewModels,
-    required this.onFileSelectedForCompare,
+    required this.onSelectFileForCompareButtonPressed,
     required this.originalPatchViewModels,
     required this.originalFixtureViewModels,
     required this.originalHoistControllerViewModels,

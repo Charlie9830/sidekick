@@ -9,10 +9,7 @@ import 'package:sidekick/view_models/diffing_screen_view_model.dart';
 
 class DiffingScreen extends StatefulWidget {
   final DiffingScreenViewModel viewModel;
-  const DiffingScreen({
-    super.key,
-    required this.viewModel,
-  });
+  const DiffingScreen({super.key, required this.viewModel});
 
   @override
   State<DiffingScreen> createState() => _DiffingScreenState();
@@ -32,26 +29,23 @@ class _DiffingScreenState extends State<DiffingScreen>
         DiffingToolbar(
           comparisonFileInitialDirectory: widget.viewModel.initialDirectory,
           comparisonFilePath: widget.viewModel.comparisonFilePath,
-          onFileSelectedForCompare: widget.viewModel.onFileSelectedForCompare,
+          onSelectFileForCompareButtonPressed: ({String? path}) =>
+              widget.viewModel.onFileSelectedForCompare(path: path),
           onTabSelected: widget.viewModel.onTabSelected,
           selectedTab: widget.viewModel.selectedTab,
         ),
         Expanded(
-            child: switch (widget.viewModel.selectedTab) {
-          0 => FixtureDiffing(itemVms: widget.viewModel.fixtureItemVms),
-          1 => PatchDiffing(itemVms: widget.viewModel.patchItemVms),
-          2 => LoomDiffing(
-              itemVms: widget.viewModel.loomItemVms,
+          child: switch (widget.viewModel.selectedTab) {
+            0 => FixtureDiffing(itemVms: widget.viewModel.fixtureItemVms),
+            1 => PatchDiffing(itemVms: widget.viewModel.patchItemVms),
+            2 => LoomDiffing(itemVms: widget.viewModel.loomItemVms),
+            3 => HoistDiffing(itemVms: widget.viewModel.hoistControllerVms),
+            4 => CableQtyDiffing(itemVms: widget.viewModel.cableQtyItemVms),
+            _ => throw UnimplementedError(
+              'No Corresponding Screen for Diffing Tab Index ${widget.viewModel.selectedTab}',
             ),
-          3 => HoistDiffing(
-              itemVms: widget.viewModel.hoistControllerVms,
-            ),
-          4 => CableQtyDiffing(
-              itemVms: widget.viewModel.cableQtyItemVms,
-            ),
-          _ => throw UnimplementedError(
-              'No Corresponding Screen for Diffing Tab Index ${widget.viewModel.selectedTab}'),
-        })
+          },
+        ),
       ],
     );
   }

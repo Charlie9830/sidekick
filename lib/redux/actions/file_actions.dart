@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_selector/file_selector.dart';
@@ -18,6 +19,7 @@ import 'package:sidekick/redux/app_store.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/file/import_module/import_manager_result.dart';
 import 'package:sidekick/serialization/deserialize_project_file.dart';
+import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/serialize_project_file.dart';
 import 'package:sidekick/toasts.dart';
 
@@ -100,7 +102,42 @@ ThunkAction<AppState> initializeApp(BuildContext context) {
 ThunkAction<AppState> startNewProject(BuildContext context, bool saveCurrent) {
   return (Store<AppState> store) async {
     if (saveCurrent) {
-      store.dispatch(saveProjectFile(context, SaveType.save));
+      final result = await _saveProjectFile(
+        projectFilePath: store.state.fileState.projectFilePath,
+        lastUsedProjectDirectory:
+            store.state.fileState.lastUsedProjectDirectory,
+        state: store.state,
+      );
+
+      // User Cancelled Save
+      if (result is _WriteProjectCancel) {
+        return;
+      }
+
+      // File Saved Succesfully.
+      if (result is _WriteProjectSuccess) {
+        store.dispatch(SetProjectFileMetadata(result.metadata));
+        store.dispatch(
+          SetLastUsedProjectDirectory(result.lastUsedProjectDirectory),
+        );
+        store.dispatch(SetProjectFilePath(result.projectFilePath));
+
+        if (context.mounted) {
+          showFileSaveSuccessToast(context: context);
+        }
+      }
+
+      // An error occurred.
+      if (result is _WriteProjectError) {
+        if (context.mounted) {
+          showGenericErrorToast(
+            context: context,
+            title: 'An error occured.',
+            subtitle: 'Project saving failed.',
+            extendedMessage: result.message,
+          );
+        }
+      }
     }
 
     store.dispatch(NewProject());
@@ -109,86 +146,211 @@ ThunkAction<AppState> startNewProject(BuildContext context, bool saveCurrent) {
   };
 }
 
+/// Opens a project file into [store].
+///
+/// When [path] is provided (e.g. from a drag-and-drop) the file open dialog is
+/// skipped and that file is loaded directly. When dispatched on the
+/// [diffAppStore], the file loads into the diffing store and its path is
+/// recorded on the live [appStore] as the comparison file path.
 ThunkAction<AppState> openProjectFile(
   BuildContext context,
-  bool saveCurrent,
-  String path,
-) {
+  bool saveCurrent, {
+  String? path,
+}) {
   return (Store<AppState> store) async {
-    final projectFile = await deserializeProjectFile(path);
+    if (saveCurrent) {
+      final result = await _saveProjectFile(
+        projectFilePath: store.state.fileState.projectFilePath,
+        lastUsedProjectDirectory:
+            store.state.fileState.lastUsedProjectDirectory,
+        state: store.state,
+      );
+
+      // User Cancelled Save
+      if (result is _WriteProjectCancel) {
+        return;
+      }
+
+      // File Saved Succesfully.
+      if (result is _WriteProjectSuccess) {
+        store.dispatch(SetProjectFileMetadata(result.metadata));
+        store.dispatch(
+          SetLastUsedProjectDirectory(result.lastUsedProjectDirectory),
+        );
+        store.dispatch(SetProjectFilePath(result.projectFilePath));
+      }
+
+      // An error occurred.
+      if (result is _WriteProjectError) {
+        if (context.mounted) {
+          showGenericErrorToast(
+            context: context,
+            title: 'An error occured.',
+            subtitle: 'Project saving failed.',
+            extendedMessage: result.message,
+          );
+        }
+
+        return;
+      }
+    }
+
+    // Use the provided path (e.g. drag-and-drop), otherwise show the open
+    // file dialog.
+    final selectedFilePath =
+        path ??
+        (await openFile(acceptedTypeGroups: kProjectFileTypes))?.path;
+
+    if (selectedFilePath == null) {
+      return;
+    }
+
+    final projectFile = await deserializeProjectFile(selectedFilePath);
 
     store.dispatch(
       OpenProject(
         project: projectFile,
-        parentDirectory: p.dirname(path),
-        path: path,
+        parentDirectory: p.dirname(selectedFilePath),
+        path: selectedFilePath,
       ),
     );
 
-    // Reset the Diff App State.
-    if (store is! Store<DiffAppState>) {
+    if (store is Store<DiffAppState>) {
+      // Loaded a comparison file into the diffing store; record its path on the
+      // live store so the diffing UI can display which file is being compared.
+      appStore.dispatch(SetComparisonFilePath(selectedFilePath));
+    } else {
+      // Opened a new live project, so the existing comparison is stale.
       diffAppStore.dispatch(NewProject());
+    }
+
+    if (context.mounted) {
+      showGenericSuccessToast(
+        context: context,
+        icon: Icon(Icons.file_open),
+        title: '${p.basename(selectedFilePath)} opened.',
+      );
     }
   };
 }
 
-ThunkAction<AppState> saveProjectFile(BuildContext context, SaveType saveType) {
+ThunkAction<AppState> saveProjectFile(
+  BuildContext context,
+  SaveType saveTypeOverride,
+) {
   return (Store<AppState> store) async {
-    final saveAsNeeded =
-        store.state.fileState.projectFilePath.isEmpty ||
-        saveType == SaveType.saveAs;
+    // Save the Project.
+    final result = await _saveProjectFile(
+      projectFilePath: store.state.fileState.projectFilePath,
+      lastUsedProjectDirectory: store.state.fileState.lastUsedProjectDirectory,
+      saveTypeOverride: saveTypeOverride,
+      state: store.state,
+    );
 
-    String targetFilePath = store.state.fileState.projectFilePath;
-
-    // If a save as is required, collect the new File path and store it to target File Path.
-    if (saveAsNeeded == true) {
-      // Post a dialog to collect the new file location.
-      final selectedFilePath = await getSaveLocation(
-        acceptedTypeGroups: kProjectFileTypes,
-        initialDirectory:
-            await Directory(
-              store.state.fileState.lastUsedProjectDirectory,
-            ).exists()
-            ? store.state.fileState.lastUsedProjectDirectory
-            : null,
-        confirmButtonText: 'Save As',
+    // File Saved Succesfully.
+    if (result is _WriteProjectSuccess) {
+      store.dispatch(SetProjectFileMetadata(result.metadata));
+      store.dispatch(
+        SetLastUsedProjectDirectory(result.lastUsedProjectDirectory),
       );
-
-      if (selectedFilePath == null || selectedFilePath.path.isEmpty) {
-        return;
-      }
-
-      targetFilePath = selectedFilePath.path;
-    }
-
-    try {
-      // Ensure the file path contains the correct extension.
-      if (p.extension(targetFilePath).trim() != '.$kProjectFileExtension') {
-        targetFilePath = '$targetFilePath.$kProjectFileExtension';
-      }
-
-      // Perform the File Operations.
-      var newMetadata = await serializeProjectFile(store.state, targetFilePath);
-
-      // Save the updated Metadata.
-      store.dispatch(SetProjectFileMetadata(newMetadata));
-      store.dispatch(SetLastUsedProjectDirectory(p.dirname(targetFilePath)));
-      store.dispatch(SetProjectFilePath(targetFilePath));
+      store.dispatch(SetProjectFilePath(result.projectFilePath));
 
       if (context.mounted) {
         showFileSaveSuccessToast(context: context);
       }
-    } catch (e) {
+    }
+
+    // An error occurred.
+    if (result is _WriteProjectError) {
       if (context.mounted) {
         showGenericErrorToast(
           context: context,
           title: 'An error occured.',
           subtitle: 'Project saving failed.',
-          extendedMessage: e.toString(),
+          extendedMessage: result.message,
         );
       }
     }
   };
+}
+
+Future<_WriteProjectResult> _saveProjectFile({
+  required String projectFilePath,
+  required String lastUsedProjectDirectory,
+  SaveType saveTypeOverride = SaveType.save,
+  required AppState state,
+}) async {
+  // Collect the target file path of the save, this could be over an existing Save, or as a Save As operation.
+  final targetFilePath = switch (saveTypeOverride) {
+    // If we don't have an existing valid path, then this is the first save and thus we need to follow the 'save as' procedure.
+    SaveType.save =>
+      projectFilePath.isNotEmpty
+          ? projectFilePath
+          : await _postSaveAsDialog(
+              lastUsedProjectDirectory: lastUsedProjectDirectory,
+              currentFileName: p.basename(projectFilePath),
+            ),
+    SaveType.saveAs => await _postSaveAsDialog(
+      lastUsedProjectDirectory: lastUsedProjectDirectory,
+      currentFileName: p.basename(projectFilePath),
+    ),
+  };
+
+  if (targetFilePath.isEmpty) {
+    // If the Target file path is still empty, the user likely cancelled the 'Save as' dilaog.
+    return _WriteProjectCancel();
+  }
+
+  return await _writeProjectFile(targetFilePath: targetFilePath, state: state);
+}
+
+Future<String> _postSaveAsDialog({
+  required String lastUsedProjectDirectory,
+  required String currentFileName,
+}) async {
+  final selectedFilePath = await getSaveLocation(
+    acceptedTypeGroups: kProjectFileTypes,
+    suggestedName: currentFileName.isNotEmpty ? currentFileName : null,
+    initialDirectory: await Directory(lastUsedProjectDirectory).exists()
+        ? lastUsedProjectDirectory
+        : null,
+    confirmButtonText: 'Save As',
+  );
+
+  if (selectedFilePath == null || selectedFilePath.path.isEmpty) {
+    return '';
+  }
+
+  return selectedFilePath.path;
+}
+
+Future<_WriteProjectResult> _writeProjectFile({
+  required String targetFilePath,
+  required AppState state,
+}) async {
+  // Ensure the Target File Path carries the correct extension.
+  if (p.extension(targetFilePath).trim() != '.$kProjectFileExtension') {
+    targetFilePath = '$targetFilePath.$kProjectFileExtension';
+  }
+
+  try {
+    // Perform the File Operations.
+    var newMetadata = await serializeProjectFile(state, targetFilePath);
+
+    print('Saved ${DateTime.now().second}');
+
+    return _WriteProjectSuccess(
+      metadata: newMetadata,
+      lastUsedProjectDirectory: p.dirname(targetFilePath),
+      projectFilePath: targetFilePath,
+    );
+  } on FileSystemException catch (e) {
+    return _WriteProjectError(message: e.message);
+  } catch (e) {
+    return _WriteProjectError(
+      message: 'Unknown error occurred. ${e.toString()}',
+    );
+  }
 }
 
 String getTestDataPath() {
@@ -197,3 +359,25 @@ String getTestDataPath() {
   final String testDataPath = p.join(testDataDirectory, testFileName);
   return testDataPath;
 }
+
+sealed class _WriteProjectResult {}
+
+class _WriteProjectSuccess extends _WriteProjectResult {
+  final ProjectFileMetadataModel metadata;
+  final String lastUsedProjectDirectory;
+  final String projectFilePath;
+
+  _WriteProjectSuccess({
+    required this.metadata,
+    required this.lastUsedProjectDirectory,
+    required this.projectFilePath,
+  });
+}
+
+class _WriteProjectError extends _WriteProjectResult {
+  final String message;
+
+  _WriteProjectError({required this.message});
+}
+
+class _WriteProjectCancel extends _WriteProjectResult {}

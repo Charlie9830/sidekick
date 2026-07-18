@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart' as mat;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:sidekick/containers/diffing_screen_container.dart';
+import 'package:sidekick/diffing/compute_diffs.dart';
 import 'package:sidekick/diff_state_overlay.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/screens/power_patch/phase_icon.dart';

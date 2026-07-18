@@ -1,13 +1,11 @@
-import 'package:file_selector/file_selector.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/file_select_button.dart';
-import 'package:sidekick/file_type_groups.dart';
 import 'package:sidekick/widgets/toolbar.dart';
 
 class DiffingToolbar extends StatelessWidget {
   final String comparisonFilePath;
   final String comparisonFileInitialDirectory;
-  final void Function(String path) onFileSelectedForCompare;
+  final void Function({String? path}) onSelectFileForCompareButtonPressed;
   final void Function(int index) onTabSelected;
   final int selectedTab;
 
@@ -15,7 +13,7 @@ class DiffingToolbar extends StatelessWidget {
     super.key,
     required this.comparisonFilePath,
     required this.comparisonFileInitialDirectory,
-    required this.onFileSelectedForCompare,
+    required this.onSelectFileForCompareButtonPressed,
     required this.onTabSelected,
     required this.selectedTab,
   });
@@ -29,17 +27,17 @@ class DiffingToolbar extends StatelessWidget {
         children: [
           FileSelectButton(
             path: comparisonFilePath,
-            onFileSelectPressed: _handleSelectFileForComparePressed,
+            onFileSelectPressed: () => onSelectFileForCompareButtonPressed(),
             hintText: 'Select file to compare with..',
-            dropTargetName: 'Drop Phase Project here',
-            onFileDropped: onFileSelectedForCompare,
+            onFileDropped: (path) =>
+                onSelectFileForCompareButtonPressed(path: path),
+            dropTargetName: 'Drop Phase file here...',
           ),
           const Spacer(),
           Expanded(
             child: NavigationBar(
               backgroundColor: Colors.transparent,
-              onSelected: (key) =>
-                  onTabSelected((key as ValueKey<int>).value),
+              onSelected: (key) => onTabSelected((key as ValueKey<int>).value),
               selectedKey: ValueKey(selectedTab),
               alignment: NavigationBarAlignment.end,
               children: const [
@@ -54,17 +52,5 @@ class DiffingToolbar extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  void _handleSelectFileForComparePressed() async {
-    final result = await openFile(
-      confirmButtonText: 'Select',
-      acceptedTypeGroups: kProjectFileTypes,
-      initialDirectory: comparisonFileInitialDirectory,
-    );
-
-    if (result != null) {
-      onFileSelectedForCompare(result.path);
-    }
   }
 }

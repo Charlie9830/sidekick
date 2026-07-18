@@ -1,4 +1,4 @@
-import 'package:sidekick/containers/diffing_screen_container.dart';
+import 'package:sidekick/diffing/compute_diffs.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';

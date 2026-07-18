@@ -12,23 +12,24 @@ class FileContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, FileViewModel>(
-        builder: (context, viewModel) {
-      return FileScreen(
-        vm: viewModel,
-      );
-    }, converter: (Store<AppState> store) {
-      return FileViewModel(
-        onNewProjectButtonPressed: (saveCurrent) =>
-            store.dispatch(startNewProject(context, saveCurrent)),
-        onOpenProjectButtonPressed: (saveCurrent, path) =>
-            store.dispatch(openProjectFile(context, saveCurrent, path)),
-        onSaveProjectButtonPressed: (saveType) =>
-            store.dispatch(saveProjectFile(context, saveType)),
-        projectFilePath: store.state.fileState.projectFilePath,
-        fixtureTypeDatabasePath: store.state.fileState.fixtureTypeDatabasePath,
-        isFixtureTypeDatabasePathValid:
-            store.state.fileState.isFixtureTypeDatabasePathValid,
-      );
-    });
+      builder: (context, viewModel) {
+        return FileScreen(vm: viewModel);
+      },
+      converter: (Store<AppState> store) {
+        return FileViewModel(
+          onNewProjectButtonPressed: (saveCurrent) =>
+              store.dispatch(startNewProject(context, saveCurrent)),
+          onOpenProjectButtonPressed: (saveCurrent) =>
+              store.dispatch(openProjectFile(context, saveCurrent)),
+          onSaveProjectButtonPressed: (saveType) =>
+              store.dispatch(saveProjectFile(context, saveType)),
+          projectFilePath: store.state.fileState.projectFilePath,
+          fixtureTypeDatabasePath:
+              store.state.fileState.fixtureTypeDatabasePath,
+          isFixtureTypeDatabasePathValid:
+              store.state.fileState.isFixtureTypeDatabasePathValid,
+        );
+      },
+    );
   }
 }

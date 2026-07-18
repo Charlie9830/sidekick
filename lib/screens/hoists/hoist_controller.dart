@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:sidekick/containers/diffing_screen_container.dart';
+import 'package:sidekick/diffing/compute_diffs.dart';
 import 'package:sidekick/diff_state_overlay.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/editable_text_field.dart';

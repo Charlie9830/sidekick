@@ -5,7 +5,7 @@ import 'package:sidekick/view_models/loom_diffing_item_view_model.dart';
 import 'package:sidekick/view_models/patch_diffing_item_view_model.dart';
 
 class DiffingScreenViewModel {
-  final void Function(String path) onFileSelectedForCompare;
+  final void Function({String? path}) onFileSelectedForCompare;
   final List<LoomDiffingItemViewModel> loomItemVms;
   final List<PatchDiffingItemViewModel> patchItemVms;
   final List<FixtureDiffingItemViewModel> fixtureItemVms;
