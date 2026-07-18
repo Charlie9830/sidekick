@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Concept 3: "Phi" - Windows full-bleed variant.
+       The electrical phase symbol (phi) drawn as pure geometry: a white
+       ring crossed by a violet-blue stroke bent into a gentle sine. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#171A22"/>
+      <stop offset="1" stop-color="#0C0E13"/>
+    </linearGradient>
+    <linearGradient id="volt" x1="512" y1="138" x2="512" y2="928"
+                    gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8B5CF6"/>
+      <stop offset="1" stop-color="#3B82F6"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#8B5CF6" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#8B5CF6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <circle cx="512" cy="533" r="440" fill="url(#glow)"/>
+  <!-- Phi ring -->
+  <circle cx="512" cy="576" r="225" fill="none" stroke="#F4F6FB"
+          stroke-width="92"/>
+  <!-- Phi stem as a gentle sine -->
+  <path d="M 512 138 C 400 350 624 660 512 928"
+        fill="none" stroke="url(#volt)" stroke-width="92"
+        stroke-linecap="round"/>
+</svg>

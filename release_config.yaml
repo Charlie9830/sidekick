@@ -1,0 +1,29 @@
+# Production release configuration.
+# See design_docs/production-build-spec.md (section 3).
+#
+# NOTE: This file is parsed by the scripts in scripts/release/ with a
+# deliberately simple line-based parser. Keep the structure flat as shown
+# here — two-space indentation, `key: value` pairs, no anchors or flow
+# syntax.
+
+app:
+  # Human name used in release titles. Version comes from pubspec.yaml,
+  # never from this file.
+  display_name: "It's Just a Phase"
+
+dependencies:
+  mvr:
+    git: https://github.com/Charlie9830/mvr.git
+    # A tag (preferred) or full commit SHA. Branch names are rejected by
+    # preflight because they are not reproducible.
+    ref: v0.1.0
+    # Where the checkout must live, relative to this repo's root, so that
+    # pubspec's `path: ../mvr/` resolves.
+    path: ../mvr
+
+publish:
+  github:
+    # The separate binaries-only repository.
+    repo: Charlie9830/Phase
+    draft: true
+    prerelease: false

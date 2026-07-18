@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Concept 2: "Phase Dial" - Windows full-bleed variant.
+       powerCON-style connector face: steel ring with a keyway gap at the
+       bottom and three amber contact slots arranged at 120 degrees. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#191D25"/>
+      <stop offset="1" stop-color="#0C0E13"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F5F7FA"/>
+      <stop offset="1" stop-color="#B9C1CF"/>
+    </linearGradient>
+    <linearGradient id="amber" x1="0" y1="0" x2="0" y2="1024"
+                    gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFC94D"/>
+      <stop offset="1" stop-color="#FF8A00"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <!-- Locking ring with keyway gap at the bottom (dash trick) -->
+  <circle cx="512" cy="512" r="360" fill="none" stroke="url(#steel)"
+          stroke-width="58" stroke-linecap="round"
+          stroke-dasharray="2165.95 96" stroke-dashoffset="1648.46"/>
+  <!-- Three contact slots at 120 degrees -->
+  <g fill="url(#amber)">
+    <rect x="456" y="202" width="112" height="210" rx="56"/>
+    <rect x="456" y="202" width="112" height="210" rx="56"
+          transform="rotate(120 512 512)"/>
+    <rect x="456" y="202" width="112" height="210" rx="56"
+          transform="rotate(240 512 512)"/>
+  </g>
+</svg>

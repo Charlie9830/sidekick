@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Concept 1: "Three Phases" - Windows full-bleed variant.
+       Three sine waves offset by 120 deg in Australian phase colours. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1B1F27"/>
+      <stop offset="1" stop-color="#0D0F14"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <!-- Phase B (blue) -->
+  <path d="M -256 512 Q -64 -88 128 512 Q 320 1112 512 512
+           Q 704 -88 896 512 Q 1088 1112 1280 512"
+        fill="none" stroke="#2F80FF" stroke-width="96"/>
+  <!-- Phase W (white) -->
+  <path d="M -128 512 Q 64 1112 256 512 Q 448 -88 640 512
+           Q 832 1112 1024 512 Q 1216 -88 1408 512"
+        fill="none" stroke="#F4F6FB" stroke-width="96"/>
+  <!-- Phase R (red) -->
+  <path d="M -384 512 Q -192 1112 0 512 Q 192 -88 384 512
+           Q 576 1112 768 512 Q 960 -88 1152 512"
+        fill="none" stroke="#FF4152" stroke-width="96"/>
+</svg>

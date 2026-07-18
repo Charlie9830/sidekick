@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Concept 3: "Phi" - macOS squircle variant. -->
+  <defs>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1F232D"/>
+      <stop offset="1" stop-color="#0C0E13"/>
+    </linearGradient>
+    <linearGradient id="volt" x1="512" y1="138" x2="512" y2="928"
+                    gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8B5CF6"/>
+      <stop offset="1" stop-color="#3B82F6"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#8B5CF6" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#8B5CF6" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="cardClip">
+      <rect x="102.4" y="102.4" width="819.2" height="819.2" rx="183.3"/>
+    </clipPath>
+  </defs>
+  <rect x="102.4" y="102.4" width="819.2" height="819.2" rx="183.3"
+        fill="url(#card)"/>
+  <g clip-path="url(#cardClip)">
+    <g transform="translate(102.4 102.4) scale(0.8)">
+      <circle cx="512" cy="533" r="440" fill="url(#glow)"/>
+      <circle cx="512" cy="576" r="225" fill="none" stroke="#F4F6FB"
+              stroke-width="92"/>
+      <path d="M 512 138 C 400 350 624 660 512 928"
+            fill="none" stroke="url(#volt)" stroke-width="92"
+            stroke-linecap="round"/>
+    </g>
+  </g>
+  <rect x="103.9" y="103.9" width="816.2" height="816.2" rx="182"
+        fill="none" stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="3"/>
+</svg>

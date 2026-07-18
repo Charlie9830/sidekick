@@ -32,6 +32,9 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Release build output (see design_docs/production-build-spec.md)
+/dist/
+
 # Symbolication related
 app.*.symbols
 

@@ -1,0 +1,8 @@
+# Required by fastforge's msix maker (it fails if this file is absent).
+#
+# Keys placed here are passed to the `msix` package as command-line flags
+# and OVERRIDE the `msix_config` section in pubspec.yaml. Keep this file
+# minimal: pubspec.yaml remains the single source of truth for MSIX
+# identity, signing, and logo configuration.
+# See design_docs/production-build-spec.md (section 2 / open question 2).
+architecture: x64
