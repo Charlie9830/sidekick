@@ -14,6 +14,7 @@ import 'package:sidekick/redux/models/permanent_loom_composition.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/sequencer_dialog/sequencer_dialog.dart';
 import 'package:sidekick/screens/setup_quantities_dialog/setup_quantities_dialog.dart';
+import 'package:sidekick/show_dialog.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
 ThunkAction<AppState> createFixtureTypePool() {

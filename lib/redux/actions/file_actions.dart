@@ -21,6 +21,7 @@ import 'package:sidekick/screens/file/import_module/import_manager_result.dart';
 import 'package:sidekick/serialization/deserialize_project_file.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 import 'package:sidekick/serialization/serialize_project_file.dart';
+import 'package:sidekick/show_dialog.dart';
 import 'package:sidekick/toasts.dart';
 
 ThunkAction<AppState> updateFixtureDatabaseFilePath(String path) {
@@ -198,8 +199,7 @@ ThunkAction<AppState> openProjectFile(
     // Use the provided path (e.g. drag-and-drop), otherwise show the open
     // file dialog.
     final selectedFilePath =
-        path ??
-        (await openFile(acceptedTypeGroups: kProjectFileTypes))?.path;
+        path ?? (await openFile(acceptedTypeGroups: kProjectFileTypes))?.path;
 
     if (selectedFilePath == null) {
       return;
@@ -336,8 +336,6 @@ Future<_WriteProjectResult> _writeProjectFile({
   try {
     // Perform the File Operations.
     var newMetadata = await serializeProjectFile(state, targetFilePath);
-
-    print('Saved ${DateTime.now().second}');
 
     return _WriteProjectSuccess(
       metadata: newMetadata,

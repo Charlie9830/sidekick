@@ -4,6 +4,7 @@ import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/screens/locations/color_select_dialog.dart';
 
 import 'package:sidekick/screens/locations/multi_color_chit.dart';
+import 'package:sidekick/show_dialog.dart';
 import 'package:sidekick/simple_tooltip.dart';
 import 'package:sidekick/table_view_config.dart';
 import 'package:sidekick/theme/sidekick_colors.dart';
@@ -38,23 +39,23 @@ class _LocationsState extends State<Locations> {
   @override
   void initState() {
     _scrollableDetails = ScrollableDetails.horizontal(
-        controller: ScrollController(
-            keepScrollOffset:
-                false)); // Stops PageStorageKey triggering weird animations on Page navigation.
+      controller: ScrollController(keepScrollOffset: false),
+    ); // Stops PageStorageKey triggering weird animations on Page navigation.
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return TableView.builder(
-        key: locationsPageStorageKey,
-        horizontalDetails: _scrollableDetails,
-        pinnedRowCount: 1,
-        columnCount: 8,
-        rowCount: widget.vm.itemVms.length + 1,
-        columnBuilder: _columnBuilder,
-        rowBuilder: (index) => _rowBuilder(context, index),
-        cellBuilder: _cellBuilder);
+      key: locationsPageStorageKey,
+      horizontalDetails: _scrollableDetails,
+      pinnedRowCount: 1,
+      columnCount: 8,
+      rowCount: widget.vm.itemVms.length + 1,
+      columnBuilder: _columnBuilder,
+      rowBuilder: (index) => _rowBuilder(context, index),
+      cellBuilder: _cellBuilder,
+    );
   }
 
   TableViewCell _cellBuilder(BuildContext context, TableVicinity vicinity) {
@@ -65,68 +66,78 @@ class _LocationsState extends State<Locations> {
     final item = widget.vm.itemVms[vicinity.row - 1];
 
     return TableViewCell(
-        child: switch (vicinity.column) {
-      _Columns.name =>
-        Align(alignment: Alignment.centerLeft, child: Text(item.location.name)),
-      _Columns.color => Button.ghost(
+      child: switch (vicinity.column) {
+        _Columns.name => Align(
+          alignment: Alignment.centerLeft,
+          child: Text(item.location.name),
+        ),
+        _Columns.color => Button.ghost(
           onPressed: () => _showColorPickerDialog(
-              context, item.location.uid, item.location.color),
+            context,
+            item.location.uid,
+            item.location.color,
+          ),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: MultiColorChit(
-                height: 18,
-                value: item.location.color,
-              ),
+              child: MultiColorChit(height: 18, value: item.location.color),
             ),
           ),
         ),
-      _Columns.prefix => PropertyField(
+        _Columns.prefix => PropertyField(
           value: item.location.multiPrefix,
           onBlur: (newValue) =>
               widget.vm.onMultiPrefixChanged(item.location.uid, newValue),
         ),
-      _Columns.delimiter => PropertyField(
+        _Columns.delimiter => PropertyField(
           value: item.location.delimiter,
           onBlur: (newValue) =>
               widget.vm.onLocationDelimiterChanged(item.location.uid, newValue),
         ),
-      _Columns.hoists => Align(
-          alignment: Alignment.center, child: Text(item.motorCount.toString())),
-      _Columns.powerMultis => Align(
+        _Columns.hoists => Align(
           alignment: Alignment.center,
-          child: Text(item.powerMultiCount.toString())),
-      _Columns.data => Align(
+          child: Text(item.motorCount.toString()),
+        ),
+        _Columns.powerMultis => Align(
           alignment: Alignment.center,
-          child: Text('${item.dataMultiCount} (${item.dataPatchCount})')),
-      _Columns.actions => Builder(builder: (context) {
-          return IconButton.ghost(
-            icon: const Icon(Icons.more_vert),
-            onPressed: item.location.isRiggingOnlyLocation
-                ? () => showDropdown(
-                    context: context,
-                    builder: (context) => DropdownMenu(
-                          children: [
-                            MenuButton(
-                              enabled: item.location.isRiggingOnlyLocation,
-                              onPressed: (_) => item.onEditName(),
-                              child: const Text('Edit'),
-                            ),
-                            const MenuDivider(),
-                            MenuButton(
-                              enabled: item.location.isRiggingOnlyLocation,
-                              onPressed: (_) => item.onDelete(),
-                              leading: const Icon(Icons.delete),
-                              child: const Text('Delete'),
-                            )
-                          ],
-                        ))
-                : null,
-          );
-        }),
-      _ => throw "Unexpected Vicinity $vicinity",
-    });
+          child: Text(item.powerMultiCount.toString()),
+        ),
+        _Columns.data => Align(
+          alignment: Alignment.center,
+          child: Text('${item.dataMultiCount} (${item.dataPatchCount})'),
+        ),
+        _Columns.actions => Builder(
+          builder: (context) {
+            return IconButton.ghost(
+              icon: const Icon(Icons.more_vert),
+              onPressed: item.location.isRiggingOnlyLocation
+                  ? () => showDropdown(
+                      context: context,
+                      builder: (context) => DropdownMenu(
+                        children: [
+                          MenuButton(
+                            enabled: item.location.isRiggingOnlyLocation,
+                            onPressed: (_) => item.onEditName(),
+                            child: const Text('Edit'),
+                          ),
+                          const MenuDivider(),
+                          MenuButton(
+                            enabled: item.location.isRiggingOnlyLocation,
+                            onPressed: (_) => item.onDelete(),
+                            leading: const Icon(Icons.delete),
+                            child: const Text('Delete'),
+                          ),
+                        ],
+                      ),
+                    )
+                  : null,
+            );
+          },
+        ),
+        _ => throw "Unexpected Vicinity $vicinity",
+      },
+    );
   }
 
   TableViewCell _buildHeaderCell(BuildContext context, int columnIndex) {
@@ -143,35 +154,39 @@ class _LocationsState extends State<Locations> {
       _Columns.name => TableViewCell(child: leftAlign(const Text('Name'))),
       _Columns.color => TableViewCell(child: leftAlign(const Text('Color'))),
       _Columns.prefix => TableViewCell(child: leftAlign(const Text('Prefix'))),
-      _Columns.delimiter =>
-        TableViewCell(child: leftAlign(const Text('Delimiter'))),
+      _Columns.delimiter => TableViewCell(
+        child: leftAlign(const Text('Delimiter')),
+      ),
       _Columns.hoists => TableViewCell(
-          child: centerAlign(
-            const _IconTitle(
-              icon: Icon(Icons.construction),
-              title: 'Hoist Quantity',
-            ),
+        child: centerAlign(
+          const _IconTitle(
+            icon: Icon(Icons.construction),
+            title: 'Hoist Quantity',
           ),
         ),
+      ),
       _Columns.powerMultis => TableViewCell(
-          child: centerAlign(
-            const _IconTitle(
-              icon: Icon(Icons.electric_bolt, color: SidekickColors.powerRun),
-              title: 'Power Multi Quantity',
-            ),
+        child: centerAlign(
+          const _IconTitle(
+            icon: Icon(Icons.electric_bolt, color: SidekickColors.powerRun),
+            title: 'Power Multi Quantity',
           ),
         ),
+      ),
       _Columns.data => TableViewCell(
-          child: centerAlign(
-            const _IconTitle(
-              icon: Icon(Icons.settings_input_svideo,
-                  color: SidekickColors.dataRun),
-              title: 'Data Multi Quantity (Patch Quantity)',
+        child: centerAlign(
+          const _IconTitle(
+            icon: Icon(
+              Icons.settings_input_svideo,
+              color: SidekickColors.dataRun,
             ),
+            title: 'Data Multi Quantity (Patch Quantity)',
           ),
         ),
-      _Columns.actions =>
-        TableViewCell(child: rightAlign(const Text('Actions'))),
+      ),
+      _Columns.actions => TableViewCell(
+        child: rightAlign(const Text('Actions')),
+      ),
       _ => throw "Unexpected Column Index $columnIndex",
     };
   }
@@ -181,41 +196,41 @@ class _LocationsState extends State<Locations> {
 
     return switch (index) {
       _Columns.name => const TableSpan(
-          extent: FixedSpanExtent(240),
-          padding: defaultPadding,
-        ),
+        extent: FixedSpanExtent(240),
+        padding: defaultPadding,
+      ),
       _Columns.color => const TableSpan(
-          extent: FixedSpanExtent(120),
-          padding: defaultPadding,
-        ),
+        extent: FixedSpanExtent(120),
+        padding: defaultPadding,
+      ),
       _Columns.prefix => const TableSpan(
-          extent: FixedSpanExtent(190),
-          padding: defaultPadding,
-        ),
+        extent: FixedSpanExtent(190),
+        padding: defaultPadding,
+      ),
       _Columns.delimiter => const TableSpan(
-          extent: FixedSpanExtent(190),
-          padding: defaultPadding,
-        ),
+        extent: FixedSpanExtent(190),
+        padding: defaultPadding,
+      ),
       _Columns.hoists => TableSpan(
-          extent: const FixedSpanExtent(64),
-          foregroundDecoration: TableViewConfig.defaultForegroundDecoration,
-          padding: defaultPadding,
-        ),
+        extent: const FixedSpanExtent(64),
+        foregroundDecoration: TableViewConfig.defaultForegroundDecoration,
+        padding: defaultPadding,
+      ),
       _Columns.powerMultis => TableSpan(
-          extent: const FixedSpanExtent(64),
-          foregroundDecoration: TableViewConfig.defaultForegroundDecoration,
-          padding: defaultPadding,
-        ),
+        extent: const FixedSpanExtent(64),
+        foregroundDecoration: TableViewConfig.defaultForegroundDecoration,
+        padding: defaultPadding,
+      ),
       _Columns.data => TableSpan(
-          extent: const FixedSpanExtent(64),
-          foregroundDecoration:
-              TableViewConfig.defaultTrailingForegroundDecoration,
-          padding: defaultPadding,
-        ),
+        extent: const FixedSpanExtent(64),
+        foregroundDecoration:
+            TableViewConfig.defaultTrailingForegroundDecoration,
+        padding: defaultPadding,
+      ),
       _Columns.actions => const TableSpan(
-          extent: FixedSpanExtent(120),
-          padding: defaultPadding,
-        ),
+        extent: FixedSpanExtent(120),
+        padding: defaultPadding,
+      ),
       _ => throw "Unexpect column Index $index",
     };
   }
@@ -231,9 +246,14 @@ class _LocationsState extends State<Locations> {
   }
 
   void _showColorPickerDialog(
-      BuildContext context, String id, LabelColorModel color) async {
+    BuildContext context,
+    String id,
+    LabelColorModel color,
+  ) async {
     final result = await showDialog(
-        context: context, builder: (_) => ColorSelectDialog(color: color));
+      context: context,
+      builder: (_) => ColorSelectDialog(color: color),
+    );
 
     if (result == null) {
       return;
@@ -248,16 +268,10 @@ class _LocationsState extends State<Locations> {
 class _IconTitle extends StatelessWidget {
   final Icon icon;
   final String title;
-  const _IconTitle({
-    required this.icon,
-    required this.title,
-  });
+  const _IconTitle({required this.icon, required this.title});
 
   @override
   Widget build(BuildContext context) {
-    return SimpleTooltip(
-      message: title,
-      child: icon,
-    );
+    return SimpleTooltip(message: title, child: icon);
   }
 }

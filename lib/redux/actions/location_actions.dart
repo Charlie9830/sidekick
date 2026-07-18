@@ -13,6 +13,7 @@ import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/hoists/add_or_edit_rigging_location.dart';
 import 'package:sidekick/screens/location_overrides_dialog/location_overrides_dialog.dart';
+import 'package:sidekick/show_dialog.dart';
 import 'package:sidekick/utils/get_uid.dart';
 
 ThunkAction<AppState> deleteLocation(BuildContext context, String locationId) {

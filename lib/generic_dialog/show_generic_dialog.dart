@@ -1,4 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/show_dialog.dart';
 
 Future<bool?> showGenericDialog({
   required BuildContext context,
@@ -11,36 +12,39 @@ Future<bool?> showGenericDialog({
   bool destructiveAffirmative = false,
 }) async {
   if (declineText != null && declineText.trim().isEmpty) {
-    assert(false,
-        '[declineText] must not be an empty String, it must also contain non white-space characters.');
+    assert(
+      false,
+      '[declineText] must not be an empty String, it must also contain non white-space characters.',
+    );
   }
 
   Widget wrapScrollView(Widget child) =>
       scrollable ? SingleChildScrollView(child: child) : child;
 
   return await showDialog<bool>(
-      context: context,
-      builder: (innerContext) {
-        return AlertDialog(
-          title: Text(title),
-          content: wrapScrollView(Text(message)),
-          actions: [
-            if (declineText != null)
-              Button(
-                style: destructiveDecline
-                    ? const ButtonStyle.destructive()
-                    : const ButtonStyle.text(),
-                child: Text(declineText),
-                onPressed: () => Navigator.of(innerContext).pop(false),
-              ),
+    context: context,
+    builder: (innerContext) {
+      return AlertDialog(
+        title: Text(title),
+        content: wrapScrollView(Text(message)),
+        actions: [
+          if (declineText != null)
             Button(
-              style: destructiveAffirmative
+              style: destructiveDecline
                   ? const ButtonStyle.destructive()
                   : const ButtonStyle.text(),
-              child: Text(affirmativeText),
-              onPressed: () => Navigator.of(innerContext).pop(true),
+              child: Text(declineText),
+              onPressed: () => Navigator.of(innerContext).pop(false),
             ),
-          ],
-        );
-      });
+          Button(
+            style: destructiveAffirmative
+                ? const ButtonStyle.destructive()
+                : const ButtonStyle.text(),
+            child: Text(affirmativeText),
+            onPressed: () => Navigator.of(innerContext).pop(true),
+          ),
+        ],
+      );
+    },
+  );
 }

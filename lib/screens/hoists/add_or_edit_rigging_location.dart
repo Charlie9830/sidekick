@@ -4,6 +4,7 @@ import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/screens/locations/color_select_dialog.dart';
 import 'package:sidekick/screens/locations/multi_color_chit.dart';
+import 'package:sidekick/show_dialog.dart';
 import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/widgets/property_field.dart';
 
@@ -28,13 +29,16 @@ class _AddOrEditRiggingLocationState extends State<AddOrEditRiggingLocation> {
     _labelColor =
         widget.existingLocation?.color ?? const LabelColorModel.none();
 
-    _nameController =
-        TextEditingController(text: widget.existingLocation?.name ?? '');
-    _prefixController =
-        TextEditingController(text: widget.existingLocation?.multiPrefix ?? '');
+    _nameController = TextEditingController(
+      text: widget.existingLocation?.name ?? '',
+    );
+    _prefixController = TextEditingController(
+      text: widget.existingLocation?.multiPrefix ?? '',
+    );
 
-    _delimiterController =
-        TextEditingController(text: widget.existingLocation?.delimiter ?? '');
+    _delimiterController = TextEditingController(
+      text: widget.existingLocation?.delimiter ?? '',
+    );
 
     super.initState();
   }
@@ -76,31 +80,34 @@ class _AddOrEditRiggingLocationState extends State<AddOrEditRiggingLocation> {
                 ),
               ),
               CardButton(
-                  onPressed: _handleColorSelect,
-                  leading: MultiColorChit(
-                    value: _labelColor,
+                onPressed: _handleColorSelect,
+                leading: MultiColorChit(value: _labelColor),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 24.0),
+                  child: Text(
+                    'Colour',
+                    style: Theme.of(
+                      context,
+                    ).typography.xSmall.copyWith(color: Colors.gray),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 24.0),
-                    child: Text('Colour',
-                        style: Theme.of(context)
-                            .typography
-                            .xSmall
-                            .copyWith(color: Colors.gray)),
-                  )),
+                ),
+              ),
               const Spacer(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   IconButton.secondary(
-                    icon: const Icon(Icons.check_circle,
-                        color: SidekickColors.success),
+                    icon: const Icon(
+                      Icons.check_circle,
+                      color: SidekickColors.success,
+                    ),
                     trailing: Text(
-                        widget.existingLocation == null ? 'Create' : 'Update'),
+                      widget.existingLocation == null ? 'Create' : 'Update',
+                    ),
                     onPressed: onSubmit,
                   ),
                 ],
-              )
+              ),
             ],
           ),
         ),
@@ -116,8 +123,9 @@ class _AddOrEditRiggingLocationState extends State<AddOrEditRiggingLocation> {
 
   void _handleColorSelect() async {
     final result = await showDialog(
-        context: context,
-        builder: (_) => ColorSelectDialog(color: _labelColor));
+      context: context,
+      builder: (_) => ColorSelectDialog(color: _labelColor),
+    );
 
     if (result is LabelColorModel) {
       setState(() => _labelColor = result);
@@ -126,12 +134,14 @@ class _AddOrEditRiggingLocationState extends State<AddOrEditRiggingLocation> {
 
   void onSubmit() {
     if (Navigator.of(context).canPop() == true) {
-      Navigator.of(context).pop(AddRiggingLocationDialogResult(
-        name: _nameController.text,
-        prefix: _prefixController.text,
-        labelColor: _labelColor,
-        delimiter: _delimiterController.text,
-      ));
+      Navigator.of(context).pop(
+        AddRiggingLocationDialogResult(
+          name: _nameController.text,
+          prefix: _prefixController.text,
+          labelColor: _labelColor,
+          delimiter: _delimiterController.text,
+        ),
+      );
     }
   }
 }
