@@ -36,34 +36,33 @@ class _AddSpareCablesState extends State<AddSpareCables> {
           children: [
             const Text('Add Spare Cable').large,
             const SizedBox(height: 16),
-            ..._valueRows
-                .mapIndexed((index, row) => FocusTraversalGroup(
-                      child: _OptionRow(
-                        typeValue: row.type,
-                        qty: row.qty,
-                        onQtyChanged: (qty) => _handleQtyChanged(index, qty),
-                        onTypeChanged: (type) =>
-                            _handleTypeChanged(index, type),
-                        onClearButtonPressed: index == 0
-                            ? null
-                            : () => setState(() {
-                                  _valueRows = _valueRows.toList()
-                                    ..removeAt(index);
-                                }),
-                      ),
-                    ))
-                ,
+            ..._valueRows.mapIndexed(
+              (index, row) => FocusTraversalGroup(
+                child: _OptionRow(
+                  typeValue: row.type,
+                  qty: row.qty,
+                  onQtyChanged: (qty) => _handleQtyChanged(index, qty),
+                  onTypeChanged: (type) => _handleTypeChanged(index, type),
+                  onClearButtonPressed: index == 0
+                      ? null
+                      : () => setState(() {
+                          _valueRows = _valueRows.toList()..removeAt(index);
+                        }),
+                ),
+              ),
+            ),
             _Footer(
-              onAddRow: () => setState(() => _valueRows.add(
-                    _valueRows.first.copyWith(),
-                  )),
+              onAddRow: () =>
+                  setState(() => _valueRows.add(_valueRows.first.copyWith())),
             ),
             const Spacer(),
             Align(
               alignment: Alignment.bottomRight,
               child: IconButton.primary(
-                icon: const Icon(Icons.check_circle,
-                    color: SidekickColors.success),
+                icon: const Icon(
+                  Icons.check_circle,
+                  color: SidekickColors.success,
+                ),
                 trailing: const Text('Create'),
                 onPressed: () => _submit(_valueRows),
               ),
@@ -100,9 +99,7 @@ class _AddSpareCablesState extends State<AddSpareCables> {
 class _Footer extends StatelessWidget {
   final void Function() onAddRow;
 
-  const _Footer({
-    required this.onAddRow,
-  });
+  const _Footer({required this.onAddRow});
 
   @override
   Widget build(BuildContext context) {
@@ -111,9 +108,10 @@ class _Footer extends StatelessWidget {
       child: Row(
         children: [
           IconButton.secondary(
-              onPressed: onAddRow,
-              icon: const Icon(Icons.add_circle),
-              trailing: const Text('More')),
+            onPressed: onAddRow,
+            icon: const Icon(Icons.add_circle),
+            trailing: const Text('More'),
+          ),
         ],
       ),
     );
@@ -142,6 +140,14 @@ class _OptionRow extends StatelessWidget {
         CableTypeSelect(
           value: typeValue,
           onChanged: (value) => onTypeChanged(value),
+          allowedTypes: {
+            CableType.socapex,
+            CableType.wieland6way,
+            CableType.hoistMulti,
+            CableType.hoist,
+            CableType.dmx,
+            CableType.sneak,
+          },
         ),
         const SizedBox(width: 24),
         Padding(
@@ -164,7 +170,7 @@ class _OptionRow extends StatelessWidget {
         IconButton.destructive(
           icon: const Icon(Icons.remove_circle),
           onPressed: onClearButtonPressed,
-        )
+        ),
       ],
     );
   }
@@ -174,19 +180,10 @@ class CableRowValue {
   final CableType type;
   final int qty;
 
-  CableRowValue({
-    required this.type,
-    required this.qty,
-  });
+  CableRowValue({required this.type, required this.qty});
 
-  CableRowValue copyWith({
-    CableType? type,
-    int? qty,
-  }) {
-    return CableRowValue(
-      type: type ?? this.type,
-      qty: qty ?? this.qty,
-    );
+  CableRowValue copyWith({CableType? type, int? qty}) {
+    return CableRowValue(type: type ?? this.type, qty: qty ?? this.qty);
   }
 }
 
