@@ -5,15 +5,17 @@ class LocationsViewModel {
   final List<LocationItemViewModel> itemVms;
   final void Function(String location, String newValue) onMultiPrefixChanged;
   final void Function(String locationId, LabelColorModel color)
-      onLocationColorChanged;
+  onLocationColorChanged;
   final void Function(String locationId, String newValue)
-      onLocationDelimiterChanged;
+  onLocationDelimiterChanged;
+  final void Function() onReorderLocations;
 
   LocationsViewModel({
     required this.itemVms,
     required this.onMultiPrefixChanged,
     required this.onLocationColorChanged,
     required this.onLocationDelimiterChanged,
+    required this.onReorderLocations,
   });
 }
 

@@ -6,6 +6,8 @@ import 'package:sidekick/extension_methods/to_model_map.dart';
 import 'package:sidekick/perform_power_patch.dart';
 import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/data_patch_model.dart';
+import 'package:sidekick/redux/models/fixture_model.dart';
+import 'package:sidekick/redux/models/hoist_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/outlet.dart';
 import 'package:sidekick/redux/models/power_multi_outlet_model.dart';
@@ -37,6 +39,10 @@ FixtureState? reduceLocationActions(FixtureState state, dynamic a) {
           (existing) => existing.copyWith(color: a.newValue),
         ),
     );
+  }
+
+  if (a is ReorderLocations) {
+    return _reorderLocations(state, a.orderedLocationIds);
   }
 
   if (a is SetLocations) {
@@ -77,6 +83,100 @@ FixtureState? reduceLocationActions(FixtureState state, dynamic a) {
   }
 
   return null;
+}
+
+/// Applies a new location order and ripples it through every
+/// location-ordered collection. The patch is declarative: the power patch
+/// re-runs immediately against the new order, so phase assignments may
+/// shift — the diffing screen surfaces those changes for review.
+FixtureState _reorderLocations(
+  FixtureState state,
+  List<String> orderedLocationIds,
+) {
+  // Defend against a stale UI dispatch racing a location add/remove: the
+  // requested order must be an exact permutation of the current key set.
+  final newIdSet = orderedLocationIds.toSet();
+  if (newIdSet.length != orderedLocationIds.length ||
+      !const SetEquality<String>().equals(
+        newIdSet,
+        state.locations.keys.toSet(),
+      )) {
+    return state;
+  }
+
+  final newLocations = Map<String, LocationModel>.fromEntries(
+    orderedLocationIds.map((id) => MapEntry(id, state.locations[id]!)),
+  );
+
+  final patchResult = performPowerPatch(
+    fixtures: state.fixtures,
+    fixtureTypes: state.fixtureTypes,
+    powerMultiOutlets: state.powerMultiOutlets,
+    locations: newLocations,
+    maxSequenceBreak: state.maxSequenceBreak,
+    balanceTolerance: state.balanceTolerance,
+    powerRacks: state.powerRacks,
+    fixtureTypePools: state.fixtureTypePools,
+  );
+
+  final dataMultis = assertMultiOutletState<DataMultiModel>(
+    multiOutlets: state.dataMultis,
+    locations: newLocations,
+    cables: state.cables,
+  );
+
+  final hoistMultis = assertMultiOutletState<HoistMultiModel>(
+    multiOutlets: state.hoistMultis,
+    locations: newLocations,
+    cables: state.cables,
+  );
+
+  final dataPatches = assertDataPatchState(state.dataPatches, newLocations);
+
+  final hoists = _regroupHoistsByLocationOrder(state.hoists, newLocations);
+
+  // Cable order derives from outlet map order, so this must run against the
+  // already re-sorted outlet maps.
+  final cables = assertCableState(
+    cables: state.cables,
+    powerMultiOutlets: patchResult.powerMultiOutlets,
+    dataMultis: dataMultis,
+    dataPatches: dataPatches,
+    hoistMultis: hoistMultis,
+    hoistOutlets: hoists,
+  );
+
+  return state.copyWith(
+    locations: newLocations,
+    fixtures: FixtureModel.sort(patchResult.fixtures, newLocations),
+    powerMultiOutlets: patchResult.powerMultiOutlets,
+    dataMultis: dataMultis,
+    hoistMultis: hoistMultis,
+    dataPatches: dataPatches,
+    hoists: hoists,
+    cables: cables,
+  );
+}
+
+/// Regroups hoists by the new location order, preserving their existing
+/// relative order within each location. Hoist names and numbers are
+/// user-owned and never re-asserted. Hoists referencing an unknown location
+/// are appended at the end in their existing order rather than dropped.
+Map<String, HoistModel> _regroupHoistsByLocationOrder(
+  Map<String, HoistModel> hoists,
+  Map<String, LocationModel> locations,
+) {
+  final hoistsByLocationId = hoists.values.groupListsBy(
+    (hoist) => hoist.locationId,
+  );
+
+  final grouped = locations.keys
+      .map((locationId) => hoistsByLocationId.remove(locationId) ?? [])
+      .flattened;
+
+  final orphaned = hoistsByLocationId.values.flattened;
+
+  return [...grouped, ...orphaned].toModelMap();
 }
 
 FixtureState _removeLocation(FixtureState state, LocationModel location) {

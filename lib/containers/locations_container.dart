@@ -15,30 +15,34 @@ class LocationsContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return StoreConnector<AppState, LocationsViewModel>(
       builder: (context, viewModel) {
-        return Locations(
-          vm: viewModel,
-        );
+        return Locations(vm: viewModel);
       },
       converter: (Store<AppState> store) {
         return LocationsViewModel(
           itemVms: _selectLocationItems(context, store),
-          onMultiPrefixChanged: (locationId, newValue) => store.dispatch(
-            updateLocationMultiPrefix(locationId, newValue),
+          onMultiPrefixChanged: (locationId, newValue) =>
+              store.dispatch(updateLocationMultiPrefix(locationId, newValue)),
+          onLocationColorChanged: (locationId, color) =>
+              store.dispatch(UpdateLocationColor(locationId, color)),
+          onLocationDelimiterChanged: (locationId, newValue) => store.dispatch(
+            updateLocationMultiDelimiter(locationId, newValue),
           ),
-          onLocationColorChanged: (locationId, color) => store.dispatch(
-            UpdateLocationColor(locationId, color),
-          ),
-          onLocationDelimiterChanged: (locationId, newValue) => store
-              .dispatch(updateLocationMultiDelimiter(locationId, newValue)),
+          onReorderLocations: () =>
+              store.dispatch(showReorderLocationsSheet(context)),
         );
       },
     );
   }
 
   List<LocationItemViewModel> _selectLocationItems(
-      BuildContext context, Store<AppState> store) {
+    BuildContext context,
+    Store<AppState> store,
+  ) {
     final powerMultisByLocation = store
-        .state.fixtureState.powerMultiOutlets.values
+        .state
+        .fixtureState
+        .powerMultiOutlets
+        .values
         .groupListsBy((item) => item.locationId);
     final dataMultisByLocation = store.state.fixtureState.dataMultis.values
         .groupListsBy((item) => item.locationId);
@@ -49,21 +53,22 @@ class LocationsContainer extends StatelessWidget {
 
     return store.state.fixtureState.locations.values.map((location) {
       return LocationItemViewModel(
-          location: location,
-          powerMultiCount: powerMultisByLocation[location.uid]?.length ?? 0,
-          dataMultiCount: dataMultisByLocation[location.uid]?.length ?? 0,
-          dataPatchCount: dataPatchesByLocation[location.uid]?.length ?? 0,
-          motorCount: motorsByLocation[location.uid]?.length ?? 0,
-          otherLocationNames: location.isHybrid
-              ? location.hybridIds
+        location: location,
+        powerMultiCount: powerMultisByLocation[location.uid]?.length ?? 0,
+        dataMultiCount: dataMultisByLocation[location.uid]?.length ?? 0,
+        dataPatchCount: dataPatchesByLocation[location.uid]?.length ?? 0,
+        motorCount: motorsByLocation[location.uid]?.length ?? 0,
+        otherLocationNames: location.isHybrid
+            ? location.hybridIds
                   .map((id) => store.state.fixtureState.locations[id])
                   .nonNulls
                   .map((location) => location.name)
                   .toList()
-              : const [],
-          onDelete: () => store.dispatch(deleteLocation(context, location.uid)),
-          onEditName: () =>
-              store.dispatch(editRiggingLocation(context, location)));
+            : const [],
+        onDelete: () => store.dispatch(deleteLocation(context, location.uid)),
+        onEditName: () =>
+            store.dispatch(editRiggingLocation(context, location)),
+      );
     }).toList();
   }
 }

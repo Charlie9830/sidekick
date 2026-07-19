@@ -12,6 +12,7 @@ import 'package:sidekick/redux/actions/sync_actions.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/screens/hoists/add_or_edit_rigging_location.dart';
+import 'package:sidekick/screens/locations/reorder_locations_sheet.dart';
 import 'package:sidekick/screens/location_overrides_dialog/location_overrides_dialog.dart';
 import 'package:sidekick/show_dialog.dart';
 import 'package:sidekick/utils/get_uid.dart';
@@ -91,6 +92,21 @@ ThunkAction<AppState> editRiggingLocation(
           updatedPrimaryLocations..addAll(updatedHybridLocations.toModelMap()),
         ),
       );
+    }
+  };
+}
+
+ThunkAction<AppState> showReorderLocationsSheet(BuildContext context) {
+  return (Store<AppState> store) async {
+    final result = await openShadSheet<List<String>>(
+      context: context,
+      builder: (context) => ReorderLocationsSheet(
+        locations: store.state.fixtureState.locations.values.toList(),
+      ),
+    );
+
+    if (result != null) {
+      store.dispatch(ReorderLocations(result));
     }
   };
 }

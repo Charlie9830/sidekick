@@ -12,6 +12,14 @@ class SetLocations {
   SetLocations(this.locations);
 }
 
+class ReorderLocations {
+  /// Every location uid, in the new desired order. Must be a permutation of
+  /// the current locations key set.
+  final List<String> orderedLocationIds;
+
+  ReorderLocations(this.orderedLocationIds);
+}
+
 class UpdateLocationDelimiter {
   final String locationId;
   final String newValue;

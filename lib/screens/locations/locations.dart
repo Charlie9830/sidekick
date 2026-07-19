@@ -46,15 +46,30 @@ class _LocationsState extends State<Locations> {
 
   @override
   Widget build(BuildContext context) {
-    return TableView.builder(
-      key: locationsPageStorageKey,
-      horizontalDetails: _scrollableDetails,
-      pinnedRowCount: 1,
-      columnCount: 8,
-      rowCount: widget.vm.itemVms.length + 1,
-      columnBuilder: _columnBuilder,
-      rowBuilder: (index) => _rowBuilder(context, index),
-      cellBuilder: _cellBuilder,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Button.outline(
+            leading: const Icon(Icons.swap_vert),
+            onPressed: widget.vm.onReorderLocations,
+            child: const Text('Reorder...'),
+          ),
+        ),
+        Expanded(
+          child: TableView.builder(
+            key: locationsPageStorageKey,
+            horizontalDetails: _scrollableDetails,
+            pinnedRowCount: 1,
+            columnCount: 8,
+            rowCount: widget.vm.itemVms.length + 1,
+            columnBuilder: _columnBuilder,
+            rowBuilder: (index) => _rowBuilder(context, index),
+            cellBuilder: _cellBuilder,
+          ),
+        ),
+      ],
     );
   }
 
