@@ -213,7 +213,8 @@ Future<void> buildMacos(List<String> args) async {
 
   step('Building signed installer (productbuild, Developer ID Installer)');
   final distDir = Directory(p.join(repoRoot, 'dist'))..createSync();
-  final artifactName = '$artifactSlug-macos-universal.pkg';
+  final artifactName = '$artifactSlug-$version-macos-universal.pkg';
+  final stableName = '$artifactSlug-macos-universal.pkg';
   final pkg = File(p.join(distDir.path, artifactName));
   if (pkg.existsSync()) pkg.deleteSync();
   await runChecked('productbuild', [
@@ -247,7 +248,7 @@ Future<void> buildMacos(List<String> args) async {
 
   step('Recording checksum');
   final checksumsFile = File(p.join(distDir.path, 'checksums-$version.txt'));
-  final sha256Hex = recordChecksum(checksumsFile, pkg, artifactName);
+  final sha256Hex = recordChecksum(checksumsFile, pkg, stableName);
   stdout.writeln('SHA-256: $sha256Hex');
 
   // ---------------------------------------------------------------- publish
@@ -259,11 +260,11 @@ Future<void> buildMacos(List<String> args) async {
   }
 
   step('Publishing to $githubRepo');
+  final upload = stableUploadCopy(pkg, stableName);
   final tag = 'v$version';
   final date = DateTime.now().toIso8601String().split('T').first;
-  final notesFile = writeReleaseNotes(
-    tag: tag,
-    displayName: displayName,
+  final notesSection = releaseNotesSection(
+    platform: 'macOS',
     commit: commit,
     dependencies: loadDependencies(config),
     checksumsFile: checksumsFile,
@@ -273,15 +274,17 @@ Future<void> buildMacos(List<String> args) async {
     tag: tag,
     githubRepo: githubRepo,
     title: '$displayName $tag',
-    notesFile: notesFile,
+    platform: 'macOS',
+    notesSection: notesSection,
     draft: draft,
     force: force,
-    assets: [pkg, checksumsFile],
+    assets: [upload, checksumsFile],
   );
 
   step('Done');
   stdout.writeln('Release: $releaseUrl');
   stdout.writeln('Artifact: $artifactName ($sha256Hex)');
+  stdout.writeln('Published as: $stableName');
 }
 
 /// The single `.app` produced under the release products directory.

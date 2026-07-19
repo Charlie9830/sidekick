@@ -147,8 +147,9 @@ Future<void> buildWindows(List<String> args) async {
   step('Verifying artifact');
 
   final distDir = Directory(p.join(repoRoot, 'dist'));
-  final artifactName = '$artifactSlug-windows-x64.msix';
-  final built = _newestBuiltMsix(distDir, exclude: artifactName);
+  final artifactName = '$artifactSlug-$version-windows-x64.msix';
+  final stableName = '$artifactSlug-windows-x64.msix';
+  final built = _newestBuiltMsix(distDir, exclude: {artifactName, stableName});
   final artifact = File(p.join(distDir.path, artifactName));
   built.copySync(artifact.path);
 
@@ -169,11 +170,11 @@ Future<void> buildWindows(List<String> args) async {
   final otherLines = checksumsFile.existsSync()
       ? checksumsFile
             .readAsLinesSync()
-            .where((line) => !line.endsWith('  $artifactName'))
+            .where((line) => !line.endsWith('  $stableName'))
             .toList()
       : <String>[];
   checksumsFile.writeAsStringSync(
-    '${[...otherLines, '$sha256Hex  $artifactName'].join('\n')}\n',
+    '${[...otherLines, '$sha256Hex  $stableName'].join('\n')}\n',
   );
   stdout.writeln('SHA-256: $sha256Hex');
 
@@ -187,78 +188,31 @@ Future<void> buildWindows(List<String> args) async {
 
   step('Publishing to $githubRepo');
 
+  final upload = stableUploadCopy(artifact, stableName);
   final tag = 'v$version';
-  final dependencyNotes = [
-    for (final dependency in loadDependencies(config))
-      '- ${dependency.name} ref: `${dependency.ref}`',
-  ].join('\n');
   final date = DateTime.now().toIso8601String().split('T').first;
-  final notesFile = File(
-    p.join(Directory.systemTemp.path, 'release-notes-$tag.md'),
+  final notesSection = releaseNotesSection(
+    platform: 'Windows',
+    commit: commit,
+    dependencies: loadDependencies(config),
+    checksumsFile: checksumsFile,
+    date: date,
   );
-  notesFile.writeAsStringSync('''
-# $displayName $tag
+  final releaseUrl = await publishRelease(
+    tag: tag,
+    githubRepo: githubRepo,
+    title: '$displayName $tag',
+    platform: 'Windows',
+    notesSection: notesSection,
+    draft: draft,
+    force: force,
+    assets: [upload, checksumsFile],
+  );
 
-- Date: $date
-- Source commit: `$commit`${dependencyNotes.isEmpty ? '' : '\n$dependencyNotes'}
-
-## Checksums (SHA-256)
-
-```
-${checksumsFile.readAsStringSync().trim()}
-```
-''');
-
-  final releaseExists = await succeeds('gh', [
-    'release',
-    'view',
-    tag,
-    '--repo',
-    githubRepo,
-  ]);
-  if (releaseExists) {
-    stdout.writeln('Release $tag exists; uploading assets.');
-    await runChecked('gh', [
-      'release',
-      'upload',
-      tag,
-      '--repo',
-      githubRepo,
-      artifact.path,
-      checksumsFile.path,
-      if (force) '--clobber',
-    ]);
-  } else {
-    await runChecked('gh', [
-      'release',
-      'create',
-      tag,
-      '--repo',
-      githubRepo,
-      '--title',
-      '$displayName $tag',
-      '--notes-file',
-      notesFile.path,
-      if (draft) '--draft',
-      artifact.path,
-      checksumsFile.path,
-    ]);
-  }
-
-  final releaseUrl = await capture('gh', [
-    'release',
-    'view',
-    tag,
-    '--repo',
-    githubRepo,
-    '--json',
-    'url',
-    '--jq',
-    '.url',
-  ]);
   step('Done');
   stdout.writeln('Release: $releaseUrl');
   stdout.writeln('Artifact: $artifactName ($sha256Hex)');
+  stdout.writeln('Published as: $stableName');
 }
 
 /// Locates fastforge on PATH, falling back to the pub global bin
@@ -278,8 +232,8 @@ Future<String> _resolveFastforge() async {
 }
 
 /// The most recently modified fastforge-built .msix under [distDir],
-/// ignoring our own normalized artifact name.
-File _newestBuiltMsix(Directory distDir, {required String exclude}) {
+/// ignoring our own normalized artifact names.
+File _newestBuiltMsix(Directory distDir, {required Set<String> exclude}) {
   if (!distDir.existsSync()) {
     throw ReleaseException('No dist directory at ${distDir.path}.');
   }
@@ -289,7 +243,8 @@ File _newestBuiltMsix(Directory distDir, {required String exclude}) {
           .whereType<File>()
           .where(
             (file) =>
-                file.path.endsWith('.msix') && p.basename(file.path) != exclude,
+                file.path.endsWith('.msix') &&
+                !exclude.contains(p.basename(file.path)),
           )
           .toList()
         ..sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
