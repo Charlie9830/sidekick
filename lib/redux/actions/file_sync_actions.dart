@@ -106,6 +106,17 @@ class ResetFixtureState {
   ResetFixtureState();
 }
 
+/// Flags whether the project holds edits that have not been written to disk.
+///
+/// Dispatched by `unsavedChangesMiddleware` when project content changes. The
+/// flag is cleared by the reducer on [NewProject], [OpenProject] and
+/// [SetProjectFileMetadata], each of which establishes a clean baseline.
+class SetHasUnsavedChanges {
+  final bool value;
+
+  SetHasUnsavedChanges(this.value);
+}
+
 class NewProject {}
 
 class OpenProject {

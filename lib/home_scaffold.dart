@@ -3,6 +3,7 @@ import 'package:sidekick/containers/home_container.dart';
 import 'package:sidekick/global_keys.dart';
 import 'package:sidekick/theme/sidekick_color_scheme.dart';
 import 'package:sidekick/typography.dart';
+import 'package:sidekick/window_close_observer.dart';
 
 class HomeScaffold extends StatelessWidget {
   const HomeScaffold({super.key});
@@ -18,7 +19,9 @@ class HomeScaffold extends StatelessWidget {
       scaling: AdaptiveScaling.desktop,
       title: "It's just a Phase!",
       navigatorKey: navigatorKey,
-      home: const HomeContainer(),
+      // Mounted inside ShadcnApp so the observer has a Navigator above it to
+      // show the unsaved-changes dialog against.
+      home: const WindowCloseObserver(child: HomeContainer()),
     );
   }
 }

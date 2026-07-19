@@ -238,40 +238,56 @@ ThunkAction<AppState> saveProjectFile(
   BuildContext context,
   SaveType saveTypeOverride,
 ) {
-  return (Store<AppState> store) async {
-    // Save the Project.
-    final result = await _saveProjectFile(
-      projectFilePath: store.state.fileState.projectFilePath,
-      lastUsedProjectDirectory: store.state.fileState.lastUsedProjectDirectory,
-      saveTypeOverride: saveTypeOverride,
-      state: store.state,
-    );
+  return (Store<AppState> store) async =>
+      saveProject(store, context, saveTypeOverride);
+}
 
-    // File Saved Succesfully.
-    if (result is _WriteProjectSuccess) {
-      store.dispatch(SetProjectFileMetadata(result.metadata));
-      store.dispatch(
-        SetLastUsedProjectDirectory(result.lastUsedProjectDirectory),
+/// Saves the project held by [store], returning whether it was written.
+///
+/// Returns `false` when the user cancels the 'Save As' dialog or the write
+/// fails; an error toast has already been shown in the failure case. Callers
+/// that need to act on the outcome — such as the unsaved-changes prompt shown
+/// when closing the window — should use this instead of dispatching
+/// [saveProjectFile], whose result cannot be awaited through `store.dispatch`.
+Future<bool> saveProject(
+  Store<AppState> store,
+  BuildContext context,
+  SaveType saveTypeOverride,
+) async {
+  // Save the Project.
+  final result = await _saveProjectFile(
+    projectFilePath: store.state.fileState.projectFilePath,
+    lastUsedProjectDirectory: store.state.fileState.lastUsedProjectDirectory,
+    saveTypeOverride: saveTypeOverride,
+    state: store.state,
+  );
+
+  // File Saved Succesfully.
+  if (result is _WriteProjectSuccess) {
+    store.dispatch(SetProjectFileMetadata(result.metadata));
+    store.dispatch(SetLastUsedProjectDirectory(result.lastUsedProjectDirectory));
+    store.dispatch(SetProjectFilePath(result.projectFilePath));
+
+    if (context.mounted) {
+      showFileSaveSuccessToast(context: context);
+    }
+
+    return true;
+  }
+
+  // An error occurred.
+  if (result is _WriteProjectError) {
+    if (context.mounted) {
+      showGenericErrorToast(
+        context: context,
+        title: 'An error occured.',
+        subtitle: 'Project saving failed.',
+        extendedMessage: result.message,
       );
-      store.dispatch(SetProjectFilePath(result.projectFilePath));
-
-      if (context.mounted) {
-        showFileSaveSuccessToast(context: context);
-      }
     }
+  }
 
-    // An error occurred.
-    if (result is _WriteProjectError) {
-      if (context.mounted) {
-        showGenericErrorToast(
-          context: context,
-          title: 'An error occured.',
-          subtitle: 'Project saving failed.',
-          extendedMessage: result.message,
-        );
-      }
-    }
-  };
+  return false;
 }
 
 Future<_WriteProjectResult> _saveProjectFile({

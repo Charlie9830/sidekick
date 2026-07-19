@@ -14,6 +14,9 @@ class FileState {
   final List<ExportErrorModel> exportErrors;
   final bool isValidatingExportData;
 
+  /// Whether the project holds edits that have not been written to disk.
+  final bool hasUnsavedChanges;
+
   FileState({
     this.fixturePatchImportPath = "",
     this.projectFilePath = "",
@@ -25,6 +28,7 @@ class FileState {
     this.comparisonFilePath = '',
     this.exportErrors = const [],
     this.isValidatingExportData = false,
+    this.hasUnsavedChanges = false,
   });
 
   const FileState.initial()
@@ -37,7 +41,8 @@ class FileState {
       fixtureMappingFilePath = '',
       comparisonFilePath = '',
       exportErrors = const [],
-      isValidatingExportData = false;
+      isValidatingExportData = false,
+      hasUnsavedChanges = false;
 
   FileState copyWith({
     String? fixturePatchImportPath,
@@ -50,6 +55,7 @@ class FileState {
     String? comparisonFilePath,
     List<ExportErrorModel>? exportErrors,
     bool? isValidatingExportData,
+    bool? hasUnsavedChanges,
   }) {
     return FileState(
       fixturePatchImportPath:
@@ -68,6 +74,7 @@ class FileState {
       exportErrors: exportErrors ?? this.exportErrors,
       isValidatingExportData:
           isValidatingExportData ?? this.isValidatingExportData,
+      hasUnsavedChanges: hasUnsavedChanges ?? this.hasUnsavedChanges,
     );
   }
 }

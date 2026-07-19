@@ -15,12 +15,17 @@ FileState fileStateReducer(FileState state, dynamic a) {
     );
   }
 
+  if (a is SetHasUnsavedChanges) {
+    return state.copyWith(hasUnsavedChanges: a.value);
+  }
+
   if (a is NewProject) {
     return state.copyWith(
       fixturePatchImportPath: '',
       projectFilePath: '',
       projectMetadata: const ProjectFileMetadataModel.initial(),
       comparisonFilePath: '',
+      hasUnsavedChanges: false,
     );
   }
 
@@ -74,7 +79,12 @@ FileState fileStateReducer(FileState state, dynamic a) {
   }
 
   if (a is SetProjectFileMetadata) {
-    return state.copyWith(projectMetadata: a.metadata);
+    // Only dispatched once a save has written successfully, so it is the
+    // natural point at which the project becomes clean again.
+    return state.copyWith(
+      projectMetadata: a.metadata,
+      hasUnsavedChanges: false,
+    );
   }
 
   if (a is OpenProject) {
@@ -83,6 +93,7 @@ FileState fileStateReducer(FileState state, dynamic a) {
       projectMetadata: a.project.metadata,
       projectFilePath: a.path,
       comparisonFilePath: '',
+      hasUnsavedChanges: false,
     );
   }
 
