@@ -17,6 +17,7 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
 
+import 'apply_patches.dart';
 import 'common.dart';
 import 'sync_dependencies.dart';
 
@@ -125,6 +126,8 @@ Future<void> buildWindows(List<String> args) async {
   step('flutter clean + pub get');
   await runChecked('flutter', ['clean'], runInShell: true);
   await runChecked('flutter', ['pub', 'get'], runInShell: true);
+
+  applyPatches('windows');
 
   step('flutter test (release gate)');
   await runChecked('flutter', ['test'], runInShell: true);

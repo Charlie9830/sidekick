@@ -25,6 +25,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+import 'apply_patches.dart';
 import 'common.dart';
 import 'sync_dependencies.dart';
 
@@ -100,27 +101,6 @@ Future<void> buildMacos(List<String> args) async {
   }
   stdout.writeln('Releasing version $version');
 
-  // AppDelegate override guard (spec §7.0): a `flutter create` that
-  // regenerates this file drops the window_manager Quit override, which
-  // would silently break the unsaved-changes prompt on ⌘Q.
-  final appDelegate = File(
-    p.join(repoRoot, 'macos', 'Runner', 'AppDelegate.swift'),
-  );
-  if (!appDelegate.existsSync()) {
-    throw ReleaseException('Missing ${appDelegate.path}.');
-  }
-  if (!RegExp(
-    r'func\s+applicationShouldTerminate\s*\(',
-  ).hasMatch(appDelegate.readAsStringSync())) {
-    throw ReleaseException(
-      'AppDelegate.swift is missing the applicationShouldTerminate '
-      'override. It was likely clobbered by `flutter create`; restore the '
-      'window_manager Quit override (see window-management-spec.md §4b) '
-      'before releasing.',
-    );
-  }
-  stdout.writeln('AppDelegate Quit override present.');
-
   // Signing identities must exist in a keychain. `security find-identity`
   // lists both Developer ID Application and Installer certs.
   final identities = await capture('security', ['find-identity', '-v']);
@@ -152,16 +132,6 @@ Future<void> buildMacos(List<String> args) async {
   }
   stdout.writeln('notarytool profile present: $notaryProfile');
 
-  // Hardened runtime is applied at codesign time; here we only confirm
-  // the entitlements file the signing step relies on exists (spec §7.1.5).
-  final entitlements = File(
-    p.join(repoRoot, 'macos', 'Runner', 'Release.entitlements'),
-  );
-  if (!entitlements.existsSync()) {
-    throw ReleaseException('Missing ${entitlements.path}.');
-  }
-  stdout.writeln('Entitlements present: ${p.basename(entitlements.path)}');
-
   if (publishing) {
     await runChecked('gh', ['auth', 'status']);
     await capture('gh', ['repo', 'view', githubRepo, '--json', 'name']);
@@ -178,6 +148,44 @@ Future<void> buildMacos(List<String> args) async {
   await runChecked('flutter', ['clean']);
   await runChecked('flutter', ['pub', 'get']);
 
+  applyPatches('macos');
+
+  // These two guards run *after* patching, not in preflight: the patch
+  // tree is what restores the files, so checking beforehand would fail a
+  // build that the patch step was about to fix. What they catch now is a
+  // patch tree that has itself lost the content (spec §7.0).
+  step('Verifying patched sources');
+
+  final appDelegate = File(
+    p.join(repoRoot, 'macos', 'Runner', 'AppDelegate.swift'),
+  );
+  if (!appDelegate.existsSync() ||
+      !RegExp(
+        r'func\s+applicationShouldTerminate\s*\(',
+      ).hasMatch(appDelegate.readAsStringSync())) {
+    throw ReleaseException(
+      'AppDelegate.swift is missing the applicationShouldTerminate '
+      'override, which would silently break the unsaved-changes prompt on '
+      '⌘Q. Restore the window_manager Quit override in '
+      'patches/macos/macos/Runner/AppDelegate.swift (see '
+      'window-management-spec.md §4b) before releasing.',
+    );
+  }
+  stdout.writeln('AppDelegate Quit override present.');
+
+  // Hardened runtime is applied at codesign time; here we only confirm
+  // the entitlements file the signing step relies on exists (spec §7.1.5).
+  final entitlements = File(
+    p.join(repoRoot, 'macos', 'Runner', 'Release.entitlements'),
+  );
+  if (!entitlements.existsSync()) {
+    throw ReleaseException(
+      'Missing ${entitlements.path}. Expected patches/macos/macos/Runner/'
+      'Release.entitlements to provide it.',
+    );
+  }
+  stdout.writeln('Entitlements present: ${p.basename(entitlements.path)}');
+
   step('flutter test (release gate)');
   await runChecked('flutter', ['test']);
 
@@ -186,7 +194,7 @@ Future<void> buildMacos(List<String> args) async {
   step('flutter build macos (release)');
   await runChecked('flutter', ['build', 'macos', '--release']);
 
-  final appBundle = _locateAppBundle();
+  final appBundle = _renameAppBundle(_locateAppBundle(), displayName);
   stdout.writeln('Built ${p.basename(appBundle.path)}');
 
   // ---------------------------------------------------------- sign the .app
@@ -301,6 +309,28 @@ File _locateAppBundle() {
     );
   }
   return File(apps.single.path);
+}
+
+/// Renames [appBundle] to `<display_name>.app` so the installed
+/// application, not just the release title, carries the product name.
+///
+/// Flutter names the bundle after the Xcode `PRODUCT_NAME` (the Dart
+/// package name), which is an internal detail. Renaming here rather than
+/// in the Xcode project keeps debug builds untouched and keeps
+/// `release_config.yaml` the single source of the product name. The
+/// rename happens before signing so the signature is applied to the
+/// bundle as it ships; the executable inside `Contents/MacOS` keeps its
+/// own name, which `CFBundleExecutable` still points at.
+File _renameAppBundle(File appBundle, String displayName) {
+  // `/` and `:` are the two characters HFS+/APFS and Finder disallow in a
+  // file name; everything else in a display name is safe.
+  final safeName = displayName.replaceAll(RegExp(r'[/:]'), '-');
+  final target = p.join(p.dirname(appBundle.path), '$safeName.app');
+  if (target == appBundle.path) return appBundle;
+  final existing = Directory(target);
+  if (existing.existsSync()) existing.deleteSync(recursive: true);
+  Directory(appBundle.path).renameSync(target);
+  return File(target);
 }
 
 /// Signs nested frameworks/dylibs first, then the app bundle, all with
