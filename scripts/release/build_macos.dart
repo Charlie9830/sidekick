@@ -213,7 +213,7 @@ Future<void> buildMacos(List<String> args) async {
 
   step('Building signed installer (productbuild, Developer ID Installer)');
   final distDir = Directory(p.join(repoRoot, 'dist'))..createSync();
-  final artifactName = '$artifactSlug-$version-macos-universal.pkg';
+  final artifactName = '$artifactSlug-macos-universal.pkg';
   final pkg = File(p.join(distDir.path, artifactName));
   if (pkg.existsSync()) pkg.deleteSync();
   await runChecked('productbuild', [
