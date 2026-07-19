@@ -147,7 +147,7 @@ Future<void> buildWindows(List<String> args) async {
   step('Verifying artifact');
 
   final distDir = Directory(p.join(repoRoot, 'dist'));
-  final artifactName = '$artifactSlug-$version-windows-x64.msix';
+  final artifactName = '$artifactSlug-windows-x64.msix';
   final built = _newestBuiltMsix(distDir, exclude: artifactName);
   final artifact = File(p.join(distDir.path, artifactName));
   built.copySync(artifact.path);
