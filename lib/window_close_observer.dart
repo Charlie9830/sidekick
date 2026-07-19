@@ -74,13 +74,10 @@ class _WindowCloseObserverState extends State<WindowCloseObserver>
 
       switch (result) {
         case CloseRequestResult.cancel:
-        case null:
           return;
         case CloseRequestResult.discard:
           await windowManager.destroy();
         case CloseRequestResult.save:
-          // Re-read the context: the dialog await is a gap during which the
-          // navigator could have been torn down.
           final saveContext = navigatorKey.currentContext;
 
           if (saveContext == null || !saveContext.mounted) {
