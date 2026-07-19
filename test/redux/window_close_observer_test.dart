@@ -71,12 +71,18 @@ void main() {
     expect(pluginCalls, isNot(contains('destroy')));
   });
 
-  testWidgets('cancelling the prompt leaves the app running', (tester) async {
+  testWidgets('dismissing the prompt via the barrier leaves the app running', (
+    tester,
+  ) async {
     appStore.dispatch(SetMaxSequenceBreak('12'));
 
     await pumpAndRequestClose(tester);
-    await tester.tap(find.text('Cancel'));
+
+    // Tap the modal barrier, outside the dialog, to dismiss it.
+    await tester.tapAt(const Offset(10, 10));
     await tester.pumpAndSettle();
+
+    expect(find.text('Unsaved Changes'), findsNothing);
 
     expect(pluginCalls, isNot(contains('destroy')));
     expect(appStore.state.fileState.hasUnsavedChanges, isTrue);
