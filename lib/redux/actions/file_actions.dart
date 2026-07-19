@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_selector/file_selector.dart';
@@ -265,7 +264,9 @@ Future<bool> saveProject(
   // File Saved Succesfully.
   if (result is _WriteProjectSuccess) {
     store.dispatch(SetProjectFileMetadata(result.metadata));
-    store.dispatch(SetLastUsedProjectDirectory(result.lastUsedProjectDirectory));
+    store.dispatch(
+      SetLastUsedProjectDirectory(result.lastUsedProjectDirectory),
+    );
     store.dispatch(SetProjectFilePath(result.projectFilePath));
 
     if (context.mounted) {

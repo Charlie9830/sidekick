@@ -1,8 +1,6 @@
-import 'package:file_selector/file_selector.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/containers/import_container.dart';
 import 'package:sidekick/enums.dart';
-import 'package:sidekick/file_type_groups.dart';
 import 'package:sidekick/generic_dialog/show_generic_dialog.dart';
 import 'package:sidekick/screens/home/app_info.dart';
 import 'package:sidekick/simple_tooltip.dart';
