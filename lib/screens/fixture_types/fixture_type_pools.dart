@@ -67,6 +67,7 @@ class _Sidebar extends StatelessWidget {
             final item = viewModel.fixtureTypeVms[index];
 
             return AvailableItem<String, FixtureTypeModel>(
+              key: ValueKey(item.type.uid),
               controller: _controller,
               id: item.type.uid,
               selectionIndex: index,
