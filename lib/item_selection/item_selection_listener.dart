@@ -28,12 +28,15 @@ class ItemSelectionListener<T> extends StatefulWidget {
 }
 
 class _ItemSelectionListenerState<T> extends State<ItemSelectionListener<T>> {
+  ItemSelectionMessenger<T>? _messenger;
+
   @override
   void didChangeDependencies() {
     _assertAncestorState(context);
 
-    ItemSelectionMessenger.maybeOf<T>(context)
-        ?.registerItemIndex(widget.itemId, widget.index);
+    _messenger = ItemSelectionMessenger.maybeOf<T>(context)
+        as ItemSelectionMessenger<T>?;
+    _messenger?.registerItemIndex(widget.itemId, widget.index);
     super.didChangeDependencies();
   }
 
@@ -41,11 +44,21 @@ class _ItemSelectionListenerState<T> extends State<ItemSelectionListener<T>> {
   void didUpdateWidget(ItemSelectionListener<T> oldWidget) {
     if (oldWidget.index != widget.index || oldWidget.itemId != widget.itemId) {
       _assertAncestorState(context);
-      ItemSelectionMessenger.maybeOf<T>(context)
-          ?.registerItemIndex(widget.itemId, widget.index);
+
+      if (oldWidget.itemId != widget.itemId) {
+        _messenger?.unregisterItemIndex(oldWidget.itemId);
+      }
+
+      _messenger?.registerItemIndex(widget.itemId, widget.index);
     }
 
     super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  void dispose() {
+    _messenger?.unregisterItemIndex(widget.itemId);
+    super.dispose();
   }
 
   @override

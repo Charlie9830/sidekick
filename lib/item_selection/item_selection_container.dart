@@ -87,6 +87,7 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
     return ItemSelectionMessenger<T>(
       onItemPointerEvent: _handleItemPointerEvent,
       onIndexRegistered: _handleItemRegistration,
+      onIndexUnregistered: _handleItemUnregistration,
       child: KeyboardListener(
         focusNode: _keyboardFocusNode,
         onKeyEvent: _dispatchKeyEvent,
@@ -100,6 +101,10 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
         "If mode is set to SelectionMode.multi, all associated [ItemSelectionListener] Widgets must have the index property provided");
 
     _itemIndicies[itemId] = index!;
+  }
+
+  void _handleItemUnregistration(T itemId) {
+    _itemIndicies.remove(itemId);
   }
 
   void _handleSelection(T value) {
