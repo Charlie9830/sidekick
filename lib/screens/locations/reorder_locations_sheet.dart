@@ -32,7 +32,7 @@ class _ReorderLocationsSheetState extends State<ReorderLocationsSheet> {
     };
 
     return SizedBox(
-      width: 320,
+      width: 420,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -111,7 +111,11 @@ class _LocationRow extends StatelessWidget {
             index: index,
             child: const Icon(Icons.drag_handle),
           ),
-          MultiColorChit(height: 18, value: location.color),
+          MultiColorChit(
+            height: 18,
+            value: location.color,
+            showPickerIcon: false,
+          ),
           Expanded(child: Text(location.name, overflow: TextOverflow.ellipsis)),
           if (location.isRiggingOnlyLocation) const RiggingOnlyTag(),
           if (location.isHybrid)
