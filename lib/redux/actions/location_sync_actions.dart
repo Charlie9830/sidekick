@@ -33,3 +33,10 @@ class UpdateLocationColor {
 
   UpdateLocationColor(this.locationId, this.newValue);
 }
+
+class UpdateLocationBreakAtTrussJoins {
+  final String locationId;
+  final bool newValue;
+
+  UpdateLocationBreakAtTrussJoins(this.locationId, this.newValue);
+}

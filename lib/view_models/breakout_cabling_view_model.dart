@@ -27,11 +27,13 @@ class BreakoutCablingViewModel {
 class LocationViewModel {
   final LocationModel location;
   final void Function() onSelect;
+  final void Function(bool value) onSetBreakAtTrussJoins;
   final Map<CableQtyGroup, int> cableQtys;
 
   LocationViewModel({
     required this.location,
     required this.onSelect,
+    required this.onSetBreakAtTrussJoins,
     required this.cableQtys,
   });
 }

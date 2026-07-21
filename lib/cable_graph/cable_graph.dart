@@ -291,6 +291,7 @@ CableGraph buildCableGraph({
       fixtureTypes,
       graph,
       truss,
+      breakAtTrussJoins: location.breakAtTrussJoins,
     );
     graph.addNodes(fixtureNodes);
 
@@ -368,17 +369,20 @@ List<FixtureNode> _buildFixtureNodes(
   List<FixtureModel> fixtures,
   Map<String, FixtureTypeModel> fixtureTypes,
   CableGraph graph,
-  _TrussContext truss,
-) {
+  _TrussContext truss, {
+  required bool breakAtTrussJoins,
+}) {
   final outboundPowerEdgesMap = _buildOutboundPowerLinksMap(
     fixtures,
     graph,
     truss,
+    breakAtTrussJoins: breakAtTrussJoins,
   );
   final outboundDataEdgesMap = _buildOutboundDataLinksMap(
     fixtures,
     graph,
     truss,
+    breakAtTrussJoins: breakAtTrussJoins,
   );
 
   return fixtures.map((fix) {
@@ -397,8 +401,9 @@ List<FixtureNode> _buildFixtureNodes(
 Map<String, List<CableEdge>> _buildOutboundPowerLinksMap(
   Iterable<FixtureModel> fixturesInLocation,
   CableGraph graph,
-  _TrussContext truss,
-) {
+  _TrussContext truss, {
+  required bool breakAtTrussJoins,
+}) {
   final fixturesByPowerPatch = fixturesInLocation
       .groupListsBy((fix) => fix.powerPatch)
       .map((powerPatch, fixtures) => MapEntry(powerPatch, fixtures.sorted()));
@@ -423,6 +428,7 @@ Map<String, List<CableEdge>> _buildOutboundPowerLinksMap(
                 runType: CableRunType.link,
                 locationId: currentFix.locationId,
                 breakpoints: CableLengthBreakpoints.au10A,
+                breakAtTrussJoins: breakAtTrussJoins,
               ),
             );
           }),
@@ -434,8 +440,9 @@ Map<String, List<CableEdge>> _buildOutboundPowerLinksMap(
 Map<String, List<CableEdge>> _buildOutboundDataLinksMap(
   Iterable<FixtureModel> fixturesInLocation,
   CableGraph graph,
-  _TrussContext truss,
-) {
+  _TrussContext truss, {
+  required bool breakAtTrussJoins,
+}) {
   final fixturesByUniverse = fixturesInLocation
       .groupListsBy((fix) => fix.dmxAddress.universe)
       .map((universe, fixtures) => MapEntry(universe, fixtures.sorted()));
@@ -460,6 +467,7 @@ Map<String, List<CableEdge>> _buildOutboundDataLinksMap(
                 runType: CableRunType.link,
                 locationId: fix.locationId,
                 breakpoints: CableLengthBreakpoints.dmx,
+                breakAtTrussJoins: breakAtTrussJoins,
               ),
             );
           }),
@@ -514,6 +522,10 @@ class _TrussContext {
 /// (so the caller can attach them to the source's edge set). A run that crosses
 /// no joins (or whose endpoints aren't both on a truss) yields a single edge,
 /// preserving the previous behaviour.
+///
+/// When [breakAtTrussJoins] is false the run is never split: the whole run is
+/// returned as a single edge whose length follows the run's chord across every
+/// join it would otherwise break at.
 List<CableEdge> _buildRunEdges({
   required CableGraph graph,
   required _TrussContext truss,
@@ -523,6 +535,7 @@ List<CableEdge> _buildRunEdges({
   required CableRunType runType,
   required String locationId,
   required List<double> breakpoints,
+  required bool breakAtTrussJoins,
 }) {
   final split = truss.geometry.splitRun(
     from: Vector3(from.x, from.y, from.z),
@@ -531,8 +544,10 @@ List<CableEdge> _buildRunEdges({
     toAssignment: truss.assignments[to.uid],
   );
 
-  if (!split.hasBreaks) {
-    final length = split.segmentLengths.first;
+  if (!breakAtTrussJoins || !split.hasBreaks) {
+    // A single edge spanning the whole run. The chord length is the sum of the
+    // segment lengths (which is just the one segment when there are no breaks).
+    final length = split.segmentLengths.reduce((a, b) => a + b);
     return [
       CableEdge(
         from: from.uid,

@@ -224,6 +224,9 @@ List<LocationViewModel> _selectLocations(
           location: location,
           onSelect: () =>
               store.dispatch(SetBreakoutCablingLocationId(location.uid)),
+          onSetBreakAtTrussJoins: (value) => store.dispatch(
+            UpdateLocationBreakAtTrussJoins(location.uid, value),
+          ),
         ),
       )
       .toList();

@@ -27,6 +27,12 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
   final LocationOverrideModel overrides;
   final bool isRiggingOnlyLocation;
 
+  /// Whether cables in this location are broken where they cross a truss join.
+  ///
+  /// Defaults to `true`. Set to `false` for locations whose breakouts don't
+  /// need to be built around truss breaks, so runs stay as a single cable.
+  final bool breakAtTrussJoins;
+
   static const Color noColor = Color.fromARGB(0, 0, 0, 0);
 
   LocationModel({
@@ -38,6 +44,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
     this.hybridIds = const {},
     this.overrides = const LocationOverrideModel.none(),
     this.isRiggingOnlyLocation = false,
+    this.breakAtTrussJoins = true,
   });
 
   const LocationModel.none()
@@ -48,7 +55,8 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       delimiter = '',
       hybridIds = const {},
       overrides = const LocationOverrideModel.none(),
-      isRiggingOnlyLocation = false;
+      isRiggingOnlyLocation = false,
+      breakAtTrussJoins = true;
 
   bool get isHybrid => hybridIds.isNotEmpty;
 
@@ -69,6 +77,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
     Set<String>? hybridIds,
     LocationOverrideModel? overrides,
     bool? isRiggingOnlyLocation,
+    bool? breakAtTrussJoins,
   }) {
     return LocationModel(
       uid: uid ?? this.uid,
@@ -80,6 +89,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       overrides: overrides ?? this.overrides,
       isRiggingOnlyLocation:
           isRiggingOnlyLocation ?? this.isRiggingOnlyLocation,
+      breakAtTrussJoins: breakAtTrussJoins ?? this.breakAtTrussJoins,
     );
   }
 
@@ -178,6 +188,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
       'hybridIds': hybridIds.toList(),
       'overrides': overrides.toMap(),
       'isRiggingOnlyLocation': isRiggingOnlyLocation,
+      'breakAtTrussJoins': breakAtTrussJoins,
     };
   }
 
@@ -199,6 +210,7 @@ class LocationModel extends ModelCollectionMember with DiffComparable {
           ? const LocationOverrideModel.none()
           : LocationOverrideModel.fromMap(map['overrides']),
       isRiggingOnlyLocation: map['isRiggingOnlyLocation'] ?? false,
+      breakAtTrussJoins: map['breakAtTrussJoins'] ?? true,
     );
   }
 

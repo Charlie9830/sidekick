@@ -41,6 +41,16 @@ FixtureState? reduceLocationActions(FixtureState state, dynamic a) {
     );
   }
 
+  if (a is UpdateLocationBreakAtTrussJoins) {
+    return state.copyWith(
+      locations: state.locations.clone()
+        ..update(
+          a.locationId,
+          (existing) => existing.copyWith(breakAtTrussJoins: a.newValue),
+        ),
+    );
+  }
+
   if (a is ReorderLocations) {
     return _reorderLocations(state, a.orderedLocationIds);
   }
