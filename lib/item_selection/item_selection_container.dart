@@ -59,13 +59,24 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
   @override
   void didUpdateWidget(covariant ItemSelectionContainer<T> oldWidget) {
     if (kDebugMode && oldWidget.selectedItemIds != widget.selectedItemIds) {
-      final registeredItemIds = _itemIndicies.keys.toSet();
+      // Newly added items register their index via [ItemSelectionListener]
+      // descendants, which build after this Container's own
+      // didUpdateWidget runs. Deferring to a post-frame callback lets that
+      // registration happen first, so this only flags a genuine desync
+      // rather than the normal add-and-select-in-the-same-frame case.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
 
-      if (widget.selectedItemIds.difference(registeredItemIds).isNotEmpty) {
-        // _itemIndicies could be dangerously out of Sync with external state.
-        debugPrint(
-            "// Item Index Warning //\n [ItemSelectionContainer]'s internal _itemIndicies has fallen out of sync with exterior state.\n[ItemSelectionContainer<$T>] has detected selectedIds that are not internally registered.");
-      }
+        final registeredItemIds = _itemIndicies.keys.toSet();
+
+        if (widget.selectedItemIds.difference(registeredItemIds).isNotEmpty) {
+          // _itemIndicies could be dangerously out of Sync with external state.
+          debugPrint(
+              "// Item Index Warning //\n [ItemSelectionContainer]'s internal _itemIndicies has fallen out of sync with exterior state.\n[ItemSelectionContainer<$T>] has detected selectedIds that are not internally registered.");
+        }
+      });
     }
 
     super.didUpdateWidget(oldWidget);
