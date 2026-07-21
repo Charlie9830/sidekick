@@ -136,44 +136,65 @@ ThunkAction<AppState> setSequenceNumbers(BuildContext context) {
         .map((id) => store.state.fixtureState.fixtures[id]!)
         .toList();
 
-    final result = await showDialog(
-      context: context,
-      fullScreen: true,
-      builder: (context) => SequencerDialog(
-        fixtures: selectedFixtures,
-        fixtureTypes: store.state.fixtureState.fixtureTypes,
-        fixtureGeometries: store.state.fixtureState.fixtureGeometries,
-        nextAvailableSequenceNumber: _findNextAvailableSequenceNumber(
-          selectedFixtures.map((fix) => fix.sequence).toList(),
-        ),
+    await _showSequencerDialog(context, store, selectedFixtures);
+  };
+}
+
+ThunkAction<AppState> setSequenceNumbersForLocation(
+  BuildContext context,
+  String locationId,
+) {
+  return (Store<AppState> store) async {
+    final locationFixtures = store.state.fixtureState.fixtures.values
+        .where((fixture) => fixture.locationId == locationId)
+        .toList();
+
+    await _showSequencerDialog(context, store, locationFixtures);
+  };
+}
+
+Future<void> _showSequencerDialog(
+  BuildContext context,
+  Store<AppState> store,
+  List<FixtureModel> fixtures,
+) async {
+  final result = await showDialog(
+    context: context,
+    fullScreen: true,
+    builder: (context) => SequencerDialog(
+      fixtures: fixtures,
+      fixtureTypes: store.state.fixtureState.fixtureTypes,
+      fixtureGeometries: store.state.fixtureState.fixtureGeometries,
+      nextAvailableSequenceNumber: _findNextAvailableSequenceNumber(
+        fixtures.map((fix) => fix.sequence).toList(),
       ),
+    ),
+  );
+
+  if (result == null) {
+    return;
+  }
+
+  if (result is Map<int, FixtureModel>) {
+    final existingFixtures = store.state.fixtureState.fixtures.clone();
+
+    for (final entry in result.entries) {
+      final newSeqNumber = entry.key;
+      final fixtureId = entry.value.uid;
+
+      existingFixtures.update(
+        fixtureId,
+        (fixture) => fixture.copyWith(sequence: newSeqNumber),
+      );
+    }
+
+    final sortedFixtures = FixtureModel.sort(
+      existingFixtures,
+      store.state.fixtureState.locations,
     );
 
-    if (result == null) {
-      return;
-    }
-
-    if (result is Map<int, FixtureModel>) {
-      final existingFixtures = store.state.fixtureState.fixtures.clone();
-
-      for (final entry in result.entries) {
-        final newSeqNumber = entry.key;
-        final fixtureId = entry.value.uid;
-
-        existingFixtures.update(
-          fixtureId,
-          (fixture) => fixture.copyWith(sequence: newSeqNumber),
-        );
-      }
-
-      final sortedFixtures = FixtureModel.sort(
-        existingFixtures,
-        store.state.fixtureState.locations,
-      );
-
-      store.dispatch(SetFixtures(sortedFixtures));
-    }
-  };
+    store.dispatch(SetFixtures(sortedFixtures));
+  }
 }
 
 int _findNextAvailableSequenceNumber(List<int> sequenceNumbers) {

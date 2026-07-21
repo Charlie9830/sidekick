@@ -7,11 +7,7 @@ import 'package:sidekick/widgets/location_header_row.dart';
 class LocationRow extends StatelessWidget {
   final LocationRowViewModel vm;
   final PropertyDeltaSet? deltas;
-  const LocationRow({
-    super.key,
-    required this.vm,
-    this.deltas,
-  });
+  const LocationRow({super.key, required this.vm, this.deltas});
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +19,7 @@ class LocationRow extends StatelessWidget {
         multiCount: vm.multiCount,
         deltas: deltas,
         onLocationSettingsButtonPressed: vm.onSettingsButtonPressed,
+        onSetSequenceButtonPressed: vm.onSetSequenceButtonPressed,
         hasOverrides: vm.location.overrides.hasOverrides,
       ),
     );

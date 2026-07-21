@@ -6,46 +6,63 @@ import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';
 
 List<PowerPatchRowViewModel> selectPowerPatchViewModels(
-    BuildContext context, Store<AppState> store) {
+  BuildContext context,
+  Store<AppState> store,
+) {
   return store.state.fixtureState.locations.values
       .map((location) {
         final associatedMultis = store
-            .state.fixtureState.powerMultiOutlets.values
+            .state
+            .fixtureState
+            .powerMultiOutlets
+            .values
             .where((multi) => multi.locationId == location.uid)
             .toList();
 
         return [
           LocationRowViewModel(
-              location: location,
-              multiCount: associatedMultis.length,
-              onSettingsButtonPressed: () => store.dispatch(
-                  showLocationOverridesDialog(context, location.uid))),
-          ...associatedMultis.map((multi) => MultiOutletRowViewModel(
+            location: location,
+            multiCount: associatedMultis.length,
+            onSettingsButtonPressed: () => store.dispatch(
+              showLocationOverridesDialog(context, location.uid),
+            ),
+            onSetSequenceButtonPressed: () => store.dispatch(
+              setSequenceNumbersForLocation(context, location.uid),
+            ),
+          ),
+          ...associatedMultis.map(
+            (multi) => MultiOutletRowViewModel(
               multi,
               multi.children
                   .map(
                     (outlet) => PowerOutletVM(
-                        outlet: outlet,
-                        poolName: outlet.fixtureTypePoolId.isNotEmpty
-                            ? store
+                      outlet: outlet,
+                      poolName: outlet.fixtureTypePoolId.isNotEmpty
+                          ? store
                                     .state
                                     .fixtureState
                                     .fixtureTypePools[outlet.fixtureTypePoolId]
                                     ?.name ??
                                 ''
-                            : '',
-                        fixtureVms: outlet.fixtureIds
-                            .map((id) => store.state.fixtureState.fixtures[id]!)
-                            .sorted()
-                            .map((fixture) {
-                          return FixtureOutletVM(
-                            fixture: fixture,
-                            type: store.state.fixtureState
-                                .fixtureTypes[fixture.typeId]!,
-                          );
-                        }).toList()),
+                          : '',
+                      fixtureVms: outlet.fixtureIds
+                          .map((id) => store.state.fixtureState.fixtures[id]!)
+                          .sorted()
+                          .map((fixture) {
+                            return FixtureOutletVM(
+                              fixture: fixture,
+                              type: store
+                                  .state
+                                  .fixtureState
+                                  .fixtureTypes[fixture.typeId]!,
+                            );
+                          })
+                          .toList(),
+                    ),
                   )
-                  .toList())),
+                  .toList(),
+            ),
+          ),
         ];
       })
       .flattened

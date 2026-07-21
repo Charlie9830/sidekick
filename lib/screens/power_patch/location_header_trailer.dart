@@ -7,12 +7,14 @@ import 'package:sidekick/screens/power_patch/override_settings_button.dart';
 class LocationHeaderTrailer extends StatelessWidget {
   final PropertyDeltaSet? deltas;
   final void Function() onLocationSettingsButtonPressed;
+  final void Function() onSetSequenceButtonPressed;
   final bool hasOverrides;
 
   const LocationHeaderTrailer({
     super.key,
     required this.multiCount,
     required this.onLocationSettingsButtonPressed,
+    required this.onSetSequenceButtonPressed,
     this.hasOverrides = false,
     this.deltas,
   });
@@ -24,6 +26,12 @@ class LocationHeaderTrailer extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
+        OutlineButton(
+          leading: const Icon(Icons.numbers),
+          onPressed: deltas == null ? onSetSequenceButtonPressed : null,
+          child: const Text('Set Sequence'),
+        ),
+        const SizedBox(width: 8),
         OverrideSettingsButton(
           hasOverrides: hasOverrides,
           onPressed: deltas == null ? onLocationSettingsButtonPressed : null,
@@ -35,8 +43,10 @@ class LocationHeaderTrailer extends StatelessWidget {
             children: [
               const Icon(Icons.electric_bolt, color: Colors.gray),
               const SizedBox(width: 8.0),
-              Text(multiCount.toString(),
-                  style: Theme.of(context).typography.large),
+              Text(
+                multiCount.toString(),
+                style: Theme.of(context).typography.large,
+              ),
             ],
           ),
         ),

@@ -46,10 +46,7 @@ class FeedLoadViewModel {
   final PhaseLoad load;
   final PowerFeedModel feed;
 
-  FeedLoadViewModel({
-    required this.load,
-    required this.feed,
-  });
+  FeedLoadViewModel({required this.load, required this.feed});
 }
 
 abstract class PowerPatchRowViewModel
@@ -60,11 +57,13 @@ class LocationRowViewModel extends PowerPatchRowViewModel {
   final LocationModel location;
   final int multiCount;
   final void Function() onSettingsButtonPressed;
+  final void Function() onSetSequenceButtonPressed;
 
   LocationRowViewModel({
     required this.location,
     required this.multiCount,
     required this.onSettingsButtonPressed,
+    required this.onSetSequenceButtonPressed,
   });
 
   @override
@@ -123,8 +122,5 @@ class FixtureOutletVM {
   final FixtureModel fixture;
   final FixtureTypeModel type;
 
-  FixtureOutletVM({
-    required this.fixture,
-    required this.type,
-  });
+  FixtureOutletVM({required this.fixture, required this.type});
 }
