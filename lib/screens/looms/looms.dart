@@ -94,6 +94,7 @@ class _LoomsState extends State<Looms> {
                                     vm: outletVm);
 
                                 return LongPressDraggableProxy<DragData>(
+                                  key: ValueKey(outletVm.uid),
                                   maxSimultaneousDrags:
                                       outletVm.assigned ? 0 : null,
                                   data: OutletDragData(outletVms: {
@@ -194,9 +195,10 @@ class _LoomsState extends State<Looms> {
 
   Widget _buildOutletDivider(OutletDividerViewModel viewModel) {
     return Padding(
+      key: ValueKey(viewModel.uid),
       padding: const EdgeInsets.all(8.0),
       child: Text(viewModel.title,
-          key: Key(viewModel.uid), style: Theme.of(context).typography.xSmall),
+          style: Theme.of(context).typography.xSmall),
     );
   }
 
@@ -264,6 +266,7 @@ class _LoomsState extends State<Looms> {
                       parentLoomType: loomVm.loom.type.type,
                       missingUpstreamCable: cableVm.missingUpstreamCable);
                   return LongPressDraggableProxy<CableDragData>(
+                    key: ValueKey(cableVm.cable.uid),
                     data: CableDragData(
                       cableIds: widget.vm.selectedCableIds,
                     ),

@@ -384,9 +384,7 @@ ThunkAction<AppState> splitSelectedMultis(BuildContext context) {
     // The split multis no longer exist; select the single cables they were
     // split into instead of leaving selection pointed at removed ids.
     store.dispatch(
-      SetSelectedCableIds(
-        associatedChildren.map((cable) => cable.uid).toSet(),
-      ),
+      SetSelectedCableIds(associatedChildren.map((cable) => cable.uid).toSet()),
     );
   };
 }
