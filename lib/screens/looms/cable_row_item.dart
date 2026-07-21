@@ -163,7 +163,7 @@ class _CableRowItemState extends State<CableRowItem> {
                         Row(
                           children: [
                             if (cable.parentMultiId.isNotEmpty)
-                              const SizedBox(width: 16.0),
+                              const SizedBox(width: SidekickDensity.indent),
                             _getCableTypeIcon(iconColor),
                             const SizedBox(width: SidekickDensity.gap),
                             Text(
@@ -192,7 +192,13 @@ class _CableRowItemState extends State<CableRowItem> {
                         diff: widget.cableDelta?.properties.lookup(
                           PropertyDeltaName.label,
                         ),
-                        child: Text(widget.label, style: labelTypography),
+                        child: Row(
+                          children: [
+                            if (cable.parentMultiId.isNotEmpty)
+                              const SizedBox(width: SidekickDensity.indent),
+                            Text(widget.label, style: labelTypography),
+                          ],
+                        ),
                       ),
                       if (widget.labelHint.isNotEmpty) ...[
                         const SizedBox(width: 24),

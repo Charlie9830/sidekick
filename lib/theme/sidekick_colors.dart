@@ -111,4 +111,6 @@ abstract final class SidekickDensity {
 
   /// Default gap between inline row elements.
   static const double gap = 8.0;
+
+  static const double indent = 16;
 }
