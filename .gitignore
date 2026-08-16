@@ -48,6 +48,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+
 # Test Data
 /test_data/
 
@@ -56,6 +57,3 @@ app.*.map.json
 
 # Excel Junk
 /design_docs/~*
-
-# FVM Version Cache
-.fvm/
