@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:redux/redux.dart';
 import 'package:redux_thunk/redux_thunk.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide IndexedSlot;
@@ -81,23 +82,27 @@ ThunkAction<AppState> unpatchHoist(
   };
 }
 
-ThunkAction<AppState> reorderHoists(
-  int oldIndex,
-  int newIndex,
-  List<HoistModel> hoists,
-  BuildContext context,
-) {
+ThunkAction<AppState> reorderHoists({
+  required int oldIndex,
+  required int newIndex,
+  required List<HoistModel> hoistsInLocation,
+}) {
   return (Store<AppState> store) async {
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
 
-    final items = hoists.toList();
+    final items = hoistsInLocation.toList();
 
     final item = items.removeAt(oldIndex);
     items.insert(newIndex, item);
 
-    store.dispatch(SetHoists(items.toModelMap()));
+    // Assert Number property.
+    final assertedItems = items
+        .mapIndexed((index, item) => item.copyWith(number: index))
+        .toList();
+
+    store.dispatch(SetHoists(assertedItems.toModelMap()));
   };
 }
 

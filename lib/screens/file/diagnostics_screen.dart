@@ -1,4 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/titled_card.dart';
 
 import 'package:sidekick/view_models/diagnostics_view_model.dart';
@@ -15,20 +16,39 @@ class DiagnosticsScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           PrimaryButton(
-              onPressed: vm.onDebugAction, child: const Text("Debug Action")),
+            onPressed: vm.onDebugAction,
+            child: const Text("Debug Action"),
+          ),
           Expanded(
             child: SingleChildScrollView(
-              child: Row(
+              child: Column(
                 children: [
+                  TitledCard(
+                    title: 'Hoist Cables',
+                    child: Column(
+                      children: [
+                        ...vm.appState.fixtureState.cables.values
+                            .where((cable) => cable.type == CableType.hoist)
+                            .map(
+                              (cable) => Text(
+                                '[${cable.type}] Outlet: ${vm.appState.fixtureState.hoists[cable.outletId]?.name ?? '-'}  :     ${cable.uid.substring(0, 8)} ',
+                              ),
+                            ),
+                      ],
+                    ),
+                  ),
                   TitledCard(
                     title: 'Hoist Multi Outlets',
                     child: Column(
                       children: vm.appState.fixtureState.hoistMultis.values
-                          .map((multi) => Text(
-                              '${multi.name}:   ${multi.number},   ${multi.locationId}'))
+                          .map(
+                            (multi) => Text(
+                              '${multi.name}:   ${multi.number},   ${multi.locationId}',
+                            ),
+                          )
                           .toList(),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),

@@ -24,68 +24,84 @@ List<HoistControllerViewModel> selectHoistControllers({
 
   return store.state.fixtureState.hoistControllers.values.map((controller) {
     final childHoists = hoistsByControllerId[controller.uid] ?? [];
-    final childHoistsByChannel = Map<int, HoistModel>.fromEntries(childHoists
-        .map((hoist) => MapEntry(hoist.parentController.channel, hoist)));
+    final childHoistsByChannel = Map<int, HoistModel>.fromEntries(
+      childHoists.map(
+        (hoist) => MapEntry(hoist.parentController.channel, hoist),
+      ),
+    );
 
-    final channelCount = HoistModel.getHighestChannelNumber(childHoists)
-        .greaterOf(controller.ways);
+    final channelCount = HoistModel.getHighestChannelNumber(
+      childHoists,
+    ).greaterOf(controller.ways);
 
     return HoistControllerViewModel(
-        controller: controller,
-        hasOverflowed: channelCount > controller.ways,
-        onNameChanged: (newValue) => store.dispatch(UpdateHoistControllerName(
-            hoistId: controller.uid, value: newValue)),
-        onControllerWaysChanged: (newValue) => store.dispatch(
-            UpdateHoistControllerWayCount(
-                hoistId: controller.uid, value: newValue)),
-        onDelete: () =>
-            store.dispatch(deleteHoistController(context!, controller)),
-        channels: List.generate(channelCount, (index) {
-          final channel = index + 1;
-          final hoist = childHoistsByChannel[channel];
+      controller: controller,
+      hasOverflowed: channelCount > controller.ways,
+      onNameChanged: (newValue) => store.dispatch(
+        UpdateHoistControllerName(hoistId: controller.uid, value: newValue),
+      ),
+      onControllerWaysChanged: (newValue) => store.dispatch(
+        UpdateHoistControllerWayCount(hoistId: controller.uid, value: newValue),
+      ),
+      onDelete: () =>
+          store.dispatch(deleteHoistController(context!, controller)),
+      channels: List.generate(channelCount, (index) {
+        final channel = index + 1;
+        final hoist = childHoistsByChannel[channel];
 
-          return HoistChannelViewModel(
-              number: channel,
-              assignedSelectionIndex:
-                  hoist == null ? null : assignedItemSelectionIndex++,
-              parentControllerId: controller.uid,
-              isOverflowing: channel > controller.ways,
-              onDragStarted: hoist != null
-                  ? () =>
-                      store.dispatch(AppendSelectedHoistChannelId(hoist.uid))
-                  : () {},
-              hoist: hoist == null ? null : hoistViewModels[hoist.uid],
-              onHoistsLanded: (hoistIds) => store.dispatch(
-                  assignHoistsToController(
-                      movingOrIncomingHoistIds: hoistIds,
-                      startingChannelNumber: channel,
-                      targetControllerId: controller.uid)),
-              selected: hoist == null || isDiffing == true
-                  ? false
-                  : store.state.navstate.selectedHoistChannelIds
-                      .contains(hoist.uid),
-              selectedHoistChannelViewModels: selectedHoistChannelViewModelMap,
-              onUnpatchHoist: () =>
-                  store.dispatch(unpatchHoist(controller, hoist)));
-        }));
+        return HoistChannelViewModel(
+          number: channel,
+          assignedSelectionIndex: hoist == null
+              ? null
+              : assignedItemSelectionIndex++,
+          parentControllerId: controller.uid,
+          isOverflowing: channel > controller.ways,
+          onDragStarted: hoist != null
+              ? () => store.dispatch(AppendSelectedHoistChannelId(hoist.uid))
+              : () {},
+          hoist: hoist == null ? null : hoistViewModels[hoist.uid],
+          onHoistsLanded: (hoistIds) => store.dispatch(
+            assignHoistsToController(
+              movingOrIncomingHoistIds: hoistIds,
+              startingChannelNumber: channel,
+              targetControllerId: controller.uid,
+            ),
+          ),
+          selected: hoist == null || isDiffing == true
+              ? false
+              : store.state.navstate.selectedHoistChannelIds.contains(
+                  hoist.uid,
+                ),
+          selectedHoistChannelViewModels: selectedHoistChannelViewModelMap,
+          onUnpatchHoist: () => store.dispatch(unpatchHoist(controller, hoist)),
+        );
+      }),
+    );
   }).toList();
 }
 
-HoistViewModel selectHoistViewModel(
-    {required HoistModel hoist,
-    required Store<AppState> store,
-    required Map<String, List<CableModel>> cablesByOutletId}) {
+HoistViewModel selectHoistViewModel({
+  required HoistModel hoist,
+  required Store<AppState> store,
+  required Map<String, List<CableModel>> cablesByOutletId,
+}) {
   final associatedRootHoistCable = cablesByOutletId[hoist.uid]
       ?.firstWhereOrNull((cable) => cable.upstreamId.isEmpty);
-  final associatedMultiOutlet = store.state.fixtureState.hoistMultis[store.state
-      .fixtureState.cables[associatedRootHoistCable?.parentMultiId]?.outletId];
+  final associatedMultiOutlet =
+      store.state.fixtureState.hoistMultis[store
+          .state
+          .fixtureState
+          .cables[associatedRootHoistCable?.parentMultiId]
+          ?.outletId];
   final associatedRootMultiCable = cablesByOutletId[associatedMultiOutlet?.uid]
       ?.firstWhereOrNull((cable) => cable.upstreamId.isEmpty);
 
   final associatedChildCables = associatedRootMultiCable != null
       ? store.state.fixtureState.cables.values
-          .where((cable) => cable.parentMultiId == associatedRootMultiCable.uid)
-          .toList()
+            .where(
+              (cable) => cable.parentMultiId == associatedRootMultiCable.uid,
+            )
+            .toList()
       : <CableModel>[];
 
   final childIndex = associatedRootHoistCable != null
@@ -98,10 +114,10 @@ HoistViewModel selectHoistViewModel(
     patch: associatedRootHoistCable == null
         ? ''
         : associatedRootHoistCable.parentMultiId.isEmpty
-            ? hoist.name.toString()
-            : childIndex == -1
-                ? ''
-                : (childIndex + 1).toString(),
+        ? hoist.name.toString()
+        : childIndex == -1
+        ? ''
+        : (childIndex + 1).toString(),
     multi: associatedMultiOutlet != null ? associatedMultiOutlet.name : '-',
     locationName:
         store.state.fixtureState.locations[hoist.locationId]?.name ?? '',
@@ -118,23 +134,29 @@ HoistViewModel selectHoistViewModel(
 
 Map<String, List<CableModel>> selectCablesByOutletId(Store<AppState> store) {
   return store.state.fixtureState.cables.values
-      .where((cable) =>
-          cable.type == CableType.hoist || cable.type == CableType.hoistMulti)
+      .where(
+        (cable) =>
+            cable.type == CableType.hoist || cable.type == CableType.hoistMulti,
+      )
       .groupListsBy((cable) => cable.outletId);
 }
 
 Map<String, HoistViewModel> mapSelectedHoistChannelViewModels(
-    Store<AppState> store, Map<String, HoistViewModel> hoistVmMap) {
-  return Map<String, HoistViewModel>.fromEntries(store
-      .state.navstate.selectedHoistChannelIds
-      .map((id) => hoistVmMap[id])
-      .nonNulls
-      .map((vm) => MapEntry(vm.uid, vm)));
+  Store<AppState> store,
+  Map<String, HoistViewModel> hoistVmMap,
+) {
+  return Map<String, HoistViewModel>.fromEntries(
+    store.state.navstate.selectedHoistChannelIds
+        .map((id) => hoistVmMap[id])
+        .nonNulls
+        .map((vm) => MapEntry(vm.uid, vm)),
+  );
 }
 
-Map<String, HoistViewModel> mapHoistViewModels(
-    {required Store<AppState> store,
-    required Map<String, List<CableModel>> cablesByOutletId}) {
+Map<String, HoistViewModel> mapHoistViewModels({
+  required Store<AppState> store,
+  required Map<String, List<CableModel>> cablesByOutletId,
+}) {
   return store.state.fixtureState.hoists.values
       .map(
         (hoist) => selectHoistViewModel(
@@ -146,53 +168,71 @@ Map<String, HoistViewModel> mapHoistViewModels(
       .toModelMap();
 }
 
-List<HoistSidebarLocation> selectSidebarItems(
-    {required BuildContext context, required Store<AppState> store}) {
+List<HoistSidebarLocation> selectSidebarItems({
+  required BuildContext context,
+  required Store<AppState> store,
+}) {
   final hoistsByLocationId = store.state.fixtureState.hoists.values
       .groupListsBy((hoist) => hoist.locationId);
 
-  return store.state.fixtureState.locations.values
-      .foldIndexed(<HoistSidebarLocation>[], (locationIndex, accum, location) {
-    final globalIndexOffset =
-        accum.fold(0, (v, e) => v + e.associatedHoists.length);
+  return store.state.fixtureState.locations.values.foldIndexed(
+    <HoistSidebarLocation>[],
+    (locationIndex, accum, location) {
+      final globalIndexOffset = accum.fold(
+        0,
+        (v, e) => v + e.associatedHoists.length,
+      );
 
-    return [
-      ...accum,
-      HoistSidebarLocation(
-        locationVm: HoistLocationViewModel(
+      return [
+        ...accum,
+        HoistSidebarLocation(
+          locationVm: HoistLocationViewModel(
             location: location,
             locationIndex: locationIndex,
             onHoistReorder: (oldRawIndex, newRawIndex) {
-              store.dispatch(reorderHoists(
-                  oldRawIndex + globalIndexOffset,
-                  newRawIndex + globalIndexOffset,
-                  store.state.fixtureState.hoists.values.toList(),
-                  context));
+              store.dispatch(
+                reorderHoists(
+                  oldIndex: oldRawIndex + globalIndexOffset,
+                  newIndex: newRawIndex + globalIndexOffset,
+                  hoistsInLocation: store.state.fixtureState.hoists.values
+                      .where((hoist) => hoist.locationId == location.uid)
+                      .toList(),
+                ),
+              );
             },
             onDeleteLocation: () =>
                 store.dispatch(deleteLocation(context, location.uid)),
             onAddHoistButtonPressed: () =>
                 store.dispatch(addHoist(location.uid)),
             onEditLocation: () =>
-                store.dispatch(editRiggingLocation(context, location))),
-        associatedHoists: (hoistsByLocationId[location.uid] ?? [])
-            .mapIndexed((hoistsInLocationIndex, hoist) => SidebarHoistItem(
-                uid: hoist.uid,
-                selectionIndex: globalIndexOffset + hoistsInLocationIndex))
-            .toList(),
-      )
-    ];
-  });
+                store.dispatch(editRiggingLocation(context, location)),
+          ),
+          associatedHoists: (hoistsByLocationId[location.uid] ?? [])
+              .mapIndexed(
+                (hoistsInLocationIndex, hoist) => SidebarHoistItem(
+                  uid: hoist.uid,
+                  selectionIndex: globalIndexOffset + hoistsInLocationIndex,
+                ),
+              )
+              .toList(),
+        ),
+      ];
+    },
+  );
 }
 
 Map<String, int> mapAssignedHoistSelectionIndexes(
-    List<HoistControllerViewModel> controllers) {
+  List<HoistControllerViewModel> controllers,
+) {
   final assignedHoistIds = controllers
-      .map((controller) => controller.channels
-          .where((channel) => channel.hoist != null)
-          .map((channel) => channel.hoist!.uid))
+      .map(
+        (controller) => controller.channels
+            .where((channel) => channel.hoist != null)
+            .map((channel) => channel.hoist!.uid),
+      )
       .flattened;
 
   return Map<String, int>.fromEntries(
-      assignedHoistIds.mapIndexed((index, id) => MapEntry(id, index)));
+    assignedHoistIds.mapIndexed((index, id) => MapEntry(id, index)),
+  );
 }

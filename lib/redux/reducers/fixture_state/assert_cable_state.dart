@@ -14,8 +14,6 @@ Map<String, CableModel> assertCableState({
   required Map<String, HoistModel> hoistOutlets,
   required Map<String, HoistMultiModel> hoistMultis,
 }) {
-  final cablesByOutletId = cables.values.groupListsBy((item) => item.outletId);
-
   final powerMultisByLocationId = powerMultiOutlets.values.groupListsBy(
     (element) => element.locationId,
   );
@@ -57,6 +55,8 @@ Map<String, CableModel> assertCableState({
     '', // Spare cables will have an empty outletId field. Therefore we need to include an empty string here, otherwise
     // the spares will get inadvertantly filltered out.
   ];
+
+  final cablesByOutletId = cables.values.groupListsBy((item) => item.outletId);
 
   final orderedCables = orderedOutletIds
       .map((outletId) => cablesByOutletId[outletId] ?? [])
