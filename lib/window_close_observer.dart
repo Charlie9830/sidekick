@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/generic_dialog/show_save_before_closing_dialog.dart';
@@ -70,6 +72,12 @@ class _WindowCloseObserverState extends State<WindowCloseObserver>
         /// https://github.com/leanflutter/window_manager/issues/478
         await windowManager.setPreventClose(false);
         await windowManager.close();
+
+        if (Platform.isMacOS) {
+          // Ensures the application is closed entirely, not kept alive with
+          // no windows open.
+          exit(0);
+        }
         return;
       }
 
@@ -84,6 +92,13 @@ class _WindowCloseObserverState extends State<WindowCloseObserver>
           /// https://github.com/leanflutter/window_manager/issues/478
           await windowManager.setPreventClose(false);
           await windowManager.close();
+
+          if (Platform.isMacOS) {
+            // Ensures the application is closed entirely, not kept alive with
+            // no windows open.
+            exit(0);
+          }
+
         case CloseRequestResult.save:
           final saveContext = navigatorKey.currentContext;
 
@@ -96,6 +111,12 @@ class _WindowCloseObserverState extends State<WindowCloseObserver>
             /// https://github.com/leanflutter/window_manager/issues/478
             await windowManager.setPreventClose(false);
             await windowManager.close();
+
+            if (Platform.isMacOS) {
+              // Ensures the application is closed entirely, not kept alive with
+              // no windows open.
+              exit(0);
+            }
           }
         // Save failed or 'Save As' was cancelled, so abort the close and leave
         // the app running. saveProject has already surfaced any error.
