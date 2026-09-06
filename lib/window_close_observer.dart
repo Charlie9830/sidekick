@@ -66,7 +66,10 @@ class _WindowCloseObserverState extends State<WindowCloseObserver>
       final dialogContext = navigatorKey.currentContext;
 
       if (dialogContext == null || !dialogContext.mounted) {
-        await windowManager.destroy();
+        /// Workaround for
+        /// https://github.com/leanflutter/window_manager/issues/478
+        await windowManager.setPreventClose(false);
+        await windowManager.close();
         return;
       }
 
@@ -76,7 +79,11 @@ class _WindowCloseObserverState extends State<WindowCloseObserver>
         case CloseRequestResult.cancel:
           return;
         case CloseRequestResult.discard:
-          await windowManager.destroy();
+
+          /// Workaround for
+          /// https://github.com/leanflutter/window_manager/issues/478
+          await windowManager.setPreventClose(false);
+          await windowManager.close();
         case CloseRequestResult.save:
           final saveContext = navigatorKey.currentContext;
 
@@ -85,7 +92,10 @@ class _WindowCloseObserverState extends State<WindowCloseObserver>
           }
 
           if (await saveProject(appStore, saveContext, SaveType.save)) {
-            await windowManager.destroy();
+            /// Workaround for
+            /// https://github.com/leanflutter/window_manager/issues/478
+            await windowManager.setPreventClose(false);
+            await windowManager.close();
           }
         // Save failed or 'Save As' was cancelled, so abort the close and leave
         // the app running. saveProject has already surfaced any error.
