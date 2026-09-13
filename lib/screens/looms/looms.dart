@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:material_ui/material_ui.dart' show ReorderableListView;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/builders/build_cable_row_item.dart';
 import 'package:sidekick/drag_overlay_region/drag_overlay_region.dart';
@@ -28,10 +27,7 @@ import 'package:sidekick/widgets/toolbar.dart';
 class Looms extends StatefulWidget {
   final LoomsViewModel vm;
 
-  const Looms({
-    super.key,
-    required this.vm,
-  });
+  const Looms({super.key, required this.vm});
 
   @override
   State<Looms> createState() => _LoomsState();
@@ -47,20 +43,21 @@ class _LoomsState extends State<Looms> {
           children: [
             // Toolbar
             Toolbar(
-                child: LoomsToolbarContents(
-              onDeleteSelectedCables: widget.vm.onDeleteSelectedCables,
-              onCombineIntoMultiButtonPressed:
-                  widget.vm.onCombineSelectedDataCablesIntoSneak,
-              onSplitMultiButtonPressed: widget.vm.onSplitSneakIntoDmxPressed,
-              defaultPowerMultiType: widget.vm.defaultPowerMultiType,
-              onDefaultPowerMultiTypeChanged:
-                  widget.vm.onDefaultPowerMultiTypeChanged,
-              onChangePowerMultiTypeOfSelectedCables:
-                  widget.vm.onChangePowerMultiTypeOfSelectedCables,
-              availabilityDrawOpen: widget.vm.availabilityDrawOpen,
-              onShowAvailabilityDrawPressed:
-                  widget.vm.onShowAvailabilityDrawPressed,
-            )),
+              child: LoomsToolbarContents(
+                onDeleteSelectedCables: widget.vm.onDeleteSelectedCables,
+                onCombineIntoMultiButtonPressed:
+                    widget.vm.onCombineSelectedDataCablesIntoSneak,
+                onSplitMultiButtonPressed: widget.vm.onSplitSneakIntoDmxPressed,
+                defaultPowerMultiType: widget.vm.defaultPowerMultiType,
+                onDefaultPowerMultiTypeChanged:
+                    widget.vm.onDefaultPowerMultiTypeChanged,
+                onChangePowerMultiTypeOfSelectedCables:
+                    widget.vm.onChangePowerMultiTypeOfSelectedCables,
+                availabilityDrawOpen: widget.vm.availabilityDrawOpen,
+                onShowAvailabilityDrawPressed:
+                    widget.vm.onShowAvailabilityDrawPressed,
+              ),
+            ),
 
             // Body
             Expanded(
@@ -69,101 +66,113 @@ class _LoomsState extends State<Looms> {
                   SizedBox(
                     width: 360,
                     child: Card(
-                        borderRadius: const BorderRadius.only(
-                            topLeft: Radius.zero, topRight: Radius.zero),
-                        padding: EdgeInsets.zero,
-                        child: ItemSelectionContainer<String>(
-                          selectedItemIds: widget.vm.selectedLoomOutlets,
-                          onSelectionUpdated:
-                              widget.vm.onSelectedLoomOutletsChanged,
-                          mode: SelectionMode.multi,
-                          child: ListView.builder(
-                              key: loomOutletsPageStorageKey,
-                              itemCount: widget.vm.outlets.length,
-                              itemBuilder: (context, index) {
-                                final outletVm = widget.vm.outlets[index];
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.zero,
+                        topRight: Radius.zero,
+                      ),
+                      padding: EdgeInsets.zero,
+                      child: ItemSelectionContainer<String>(
+                        selectedItemIds: widget.vm.selectedLoomOutlets,
+                        onSelectionUpdated:
+                            widget.vm.onSelectedLoomOutletsChanged,
+                        mode: SelectionMode.multi,
+                        child: ListView.builder(
+                          key: loomOutletsPageStorageKey,
+                          itemCount: widget.vm.outlets.length,
+                          itemBuilder: (context, index) {
+                            final outletVm = widget.vm.outlets[index];
 
-                                if (outletVm is OutletDividerViewModel) {
-                                  return _buildOutletDivider(outletVm);
-                                }
+                            if (outletVm is OutletDividerViewModel) {
+                              return _buildOutletDivider(outletVm);
+                            }
 
-                                final listTile = OutletListItem(
-                                    isSelected: widget.vm.selectedLoomOutlets
-                                        .contains(outletVm.uid),
-                                    key: Key(outletVm.uid),
-                                    vm: outletVm);
+                            final listTile = OutletListItem(
+                              isSelected: widget.vm.selectedLoomOutlets
+                                  .contains(outletVm.uid),
+                              key: Key(outletVm.uid),
+                              vm: outletVm,
+                            );
 
-                                return LongPressDraggableProxy<DragData>(
-                                  key: ValueKey(outletVm.uid),
-                                  maxSimultaneousDrags:
-                                      outletVm.assigned ? 0 : null,
-                                  data: OutletDragData(outletVms: {
-                                    outletVm,
-                                    ...widget.vm.selectedOutletVms,
-                                  }),
-                                  onDragStarted: _handleOutletDragStart,
-                                  onDragCompleted: _handleOutletDragEnd,
-                                  onDraggableCanceled:
-                                      _handleOutletDragCancelled,
-                                  feedback: Opacity(
-                                    opacity: 0.5,
-                                    child: SurfaceCard(
-                                      child: SizedBox(
-                                          width: 360,
-                                          height: 56,
-                                          child: listTile),
-                                    ),
-                                  ),
-                                  child: ItemSelectionListener(
-                                    itemId: outletVm.uid,
-                                    index: outletVm.selectionIndex,
-                                    enabled: !outletVm.assigned,
+                            return LongPressDraggableProxy<DragData>(
+                              key: ValueKey(outletVm.uid),
+                              maxSimultaneousDrags: outletVm.assigned
+                                  ? 0
+                                  : null,
+                              data: OutletDragData(
+                                outletVms: {
+                                  outletVm,
+                                  ...widget.vm.selectedOutletVms,
+                                },
+                              ),
+                              onDragStarted: _handleOutletDragStart,
+                              onDragCompleted: _handleOutletDragEnd,
+                              onDraggableCanceled: _handleOutletDragCancelled,
+                              feedback: Opacity(
+                                opacity: 0.5,
+                                child: SurfaceCard(
+                                  child: SizedBox(
+                                    width: 360,
+                                    height: 56,
                                     child: listTile,
                                   ),
-                                );
-                              }),
-                        )),
+                                ),
+                              ),
+                              child: ItemSelectionListener(
+                                itemId: outletVm.uid,
+                                index: outletVm.selectionIndex,
+                                enabled: !outletVm.assigned,
+                                child: listTile,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
                   ),
                   Expanded(
-                      child: ItemSelectionContainer<String>(
-                    selectedItemIds: widget.vm.selectedCableIds,
-                    onSelectionUpdated: _handleCableSelectionUpdate,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: widget.vm.loomVms.isNotEmpty
-                          ? ReorderableListView.builder(
-                              key: loomsPageStorageKey,
-                              buildDefaultDragHandles: false,
-                              footer: const SizedBox(height: 56),
-                              // Use the proxy Decorator to return a simplified version of a Loom Row Item.
-                              proxyDecorator: _buildProxyLoomItem,
-                              onReorder: widget.vm.onLoomReorder,
-                              itemCount: widget.vm.loomVms.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                return _buildLoomRow(
-                                  loomVm: widget.vm.loomVms[index],
-                                  index: index,
-                                  isLastRow:
-                                      index == widget.vm.loomVms.length - 1,
-                                );
-                              })
-                          : NoLoomsHoverFallback(
-                              onCreateNewLoom: (outletVms, modifier) =>
-                                  _handleCreateNewFeederLoom(outletVms, 0,
-                                      modifier), // No Looms exist already so we can insert this at index 0.
-                            ),
+                    child: ItemSelectionContainer<String>(
+                      selectedItemIds: widget.vm.selectedCableIds,
+                      onSelectionUpdated: _handleCableSelectionUpdate,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: widget.vm.loomVms.isNotEmpty
+                            ? ReorderableList(
+                                key: loomsPageStorageKey,
+                                // Use the proxy Decorator to return a simplified version of a Loom Row Item.
+                                proxyDecorator: _buildProxyLoomItem,
+                                onReorder: widget.vm.onLoomReorder,
+                                itemCount: widget.vm.loomVms.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  return _buildLoomRow(
+                                    loomVm: widget.vm.loomVms[index],
+                                    index: index,
+                                    isLastRow:
+                                        index == widget.vm.loomVms.length - 1,
+                                  );
+                                },
+                              )
+                            : NoLoomsHoverFallback(
+                                onCreateNewLoom: (outletVms, modifier) =>
+                                    _handleCreateNewFeederLoom(
+                                      outletVms,
+                                      0,
+                                      modifier,
+                                    ), // No Looms exist already so we can insert this at index 0.
+                              ),
+                      ),
                     ),
-                  )),
+                  ),
 
                   // Availbility Drawer
                   if (widget.vm.availabilityDrawOpen)
                     QuantatiesDrawer(
-                        itemVms: widget.vm.stockVms,
-                        onSetupButtonPressed:
-                            widget.vm.onSetupQuantiesDrawerButtonPressed)
+                      itemVms: widget.vm.stockVms,
+                      onSetupButtonPressed:
+                          widget.vm.onSetupQuantiesDrawerButtonPressed,
+                    ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -171,22 +180,25 @@ class _LoomsState extends State<Looms> {
   }
 
   /// Builds a simplified Loom Row Item intended to stand in for a loom being drag reordered.
-  Widget _buildProxyLoomItem(_, index, animation) {
+  Widget _buildProxyLoomItem(Widget _, int index, Animation<double> animation) {
     return SurfaceCard(
       child: Opacity(
         opacity: 0.5,
         child: Column(
           children: [
             LoomHeader(
-                loomVm: widget.vm.loomVms[index],
-                reorderableListViewIndex: index),
-            ...widget.vm.loomVms[index].children.map((cableVm) => CableRowItem(
-                  cable: cableVm.cable,
-                  labelColor: cableVm.labelColor,
-                  label: cableVm.label,
-                  typeLabel: cableVm.typeLabel,
-                  onNotesChanged: cableVm.onNotesChanged,
-                )),
+              loomVm: widget.vm.loomVms[index],
+              reorderableListViewIndex: index,
+            ),
+            ...widget.vm.loomVms[index].children.map(
+              (cableVm) => CableRowItem(
+                cable: cableVm.cable,
+                labelColor: cableVm.labelColor,
+                label: cableVm.label,
+                typeLabel: cableVm.typeLabel,
+                onNotesChanged: cableVm.onNotesChanged,
+              ),
+            ),
           ],
         ),
       ),
@@ -197,15 +209,15 @@ class _LoomsState extends State<Looms> {
     return Padding(
       key: ValueKey(viewModel.uid),
       padding: const EdgeInsets.all(8.0),
-      child: Text(viewModel.title,
-          style: Theme.of(context).typography.xSmall),
+      child: Text(viewModel.title, style: Theme.of(context).typography.xSmall),
     );
   }
 
   void _handleCableSelectionUpdate(UpdateType type, Set<String> ids) {
     final selectedIds = switch (type) {
-      UpdateType.addIfAbsentElseRemove => widget.vm.selectedCableIds.toSet()
-        ..addAllIfAbsentElseRemove(ids.cast<String>()),
+      UpdateType.addIfAbsentElseRemove =>
+        widget.vm.selectedCableIds.toSet()
+          ..addAllIfAbsentElseRemove(ids.cast<String>()),
       UpdateType.overwrite => ids.cast<String>(),
     };
 
@@ -218,10 +230,7 @@ class _LoomsState extends State<Looms> {
     required bool isLastRow,
   }) {
     // Helper Function to wrap multiple Divider build Calls.
-    buildDivider({
-      required int dividerIndex,
-      bool expand = false,
-    }) =>
+    buildDivider({required int dividerIndex, bool expand = false}) =>
         LoomItemDivider(
           expand: expand,
           onDropAsFeeder: (outletVms, modifier) =>
@@ -230,7 +239,10 @@ class _LoomsState extends State<Looms> {
               _handleCreateNewExtensionLoom(cableIds, dividerIndex, modifier),
           onDropAsMoveCablesToNewLoom: (cableIds, modifier) =>
               _handleCreateNewLoomFromExistingCables(
-                  cableIds, dividerIndex, modifier),
+                cableIds,
+                dividerIndex,
+                modifier,
+              ),
         );
 
     return Padding(
@@ -248,34 +260,39 @@ class _LoomsState extends State<Looms> {
             key: Key(loomVm.loom.uid),
             childWhenDraggingOver: ModifyExistingLoomDropTargets(
               onOutletsAdded: (outletVms) => loomVm.addOutletsToLoom(
-                  loomVm.loom.uid, outletVms.map((item) => item.uid).toSet()),
+                loomVm.loom.uid,
+                outletVms.map((item) => item.uid).toSet(),
+              ),
               onCablesMoved: (ids) =>
                   loomVm.onMoveCablesIntoLoom(loomVm.loom.uid, ids),
               onCablesAdded: (ids) =>
                   loomVm.onAddCablesIntoLoomAsExtensions(loomVm.loom.uid, ids),
             ),
             child: LoomRowItem(
-                loomVm: loomVm,
-                reorderableListViewIndex: index,
-                children: loomVm.children.mapIndexed((index, cableVm) {
-                  final cableWidget = buildCableRowItem(
-                      vm: cableVm,
-                      index: index,
-                      selectedCableIds: widget.vm.selectedCableIds,
-                      rowVms: widget.vm.loomVms,
-                      parentLoomType: loomVm.loom.type.type,
-                      missingUpstreamCable: cableVm.missingUpstreamCable);
-                  return LongPressDraggableProxy<CableDragData>(
-                    key: ValueKey(cableVm.cable.uid),
-                    data: CableDragData(
-                      cableIds: widget.vm.selectedCableIds,
-                    ),
-                    feedback: SurfaceCard(
-                        child: SizedBox(width: 700, child: cableWidget)),
-                    child:
-                        _wrapSelectionListener(vm: cableVm, child: cableWidget),
-                  );
-                }).toList()),
+              loomVm: loomVm,
+              reorderableListViewIndex: index,
+              children: loomVm.children.mapIndexed((index, cableVm) {
+                final cableWidget = buildCableRowItem(
+                  vm: cableVm,
+                  index: index,
+                  selectedCableIds: widget.vm.selectedCableIds,
+                  rowVms: widget.vm.loomVms,
+                  parentLoomType: loomVm.loom.type.type,
+                  missingUpstreamCable: cableVm.missingUpstreamCable,
+                );
+                return LongPressDraggableProxy<CableDragData>(
+                  key: ValueKey(cableVm.cable.uid),
+                  data: CableDragData(cableIds: widget.vm.selectedCableIds),
+                  feedback: SurfaceCard(
+                    child: SizedBox(width: 700, child: cableWidget),
+                  ),
+                  child: _wrapSelectionListener(
+                    vm: cableVm,
+                    child: cableWidget,
+                  ),
+                );
+              }).toList(),
+            ),
           ),
 
           // Lower Divider
@@ -285,25 +302,43 @@ class _LoomsState extends State<Looms> {
     );
   }
 
-  void _handleCreateNewFeederLoom(List<OutletViewModel> droppedVms,
-      int dividerIndex, Set<CableActionModifier> modifiers) {
+  void _handleCreateNewFeederLoom(
+    List<OutletViewModel> droppedVms,
+    int dividerIndex,
+    Set<CableActionModifier> modifiers,
+  ) {
     widget.vm.onCreateNewFeederLoom(
-        droppedVms.map((item) => item.uid).toList(), dividerIndex, modifiers);
+      droppedVms.map((item) => item.uid).toList(),
+      dividerIndex,
+      modifiers,
+    );
   }
 
-  void _handleCreateNewLoomFromExistingCables(List<String> cableIds,
-      int dividerIndex, Set<CableActionModifier> modifiers) {
-    widget.vm
-        .onCreateNewLoomFromExistingCables(cableIds, dividerIndex, modifiers);
+  void _handleCreateNewLoomFromExistingCables(
+    List<String> cableIds,
+    int dividerIndex,
+    Set<CableActionModifier> modifiers,
+  ) {
+    widget.vm.onCreateNewLoomFromExistingCables(
+      cableIds,
+      dividerIndex,
+      modifiers,
+    );
   }
 
-  void _handleCreateNewExtensionLoom(List<String> cableIds, int dividerIndex,
-      Set<CableActionModifier> modifiers) {
+  void _handleCreateNewExtensionLoom(
+    List<String> cableIds,
+    int dividerIndex,
+    Set<CableActionModifier> modifiers,
+  ) {
     widget.vm.onCreateNewExtensionLoom(cableIds, dividerIndex, modifiers);
   }
 
-  Widget _wrapSelectionListener(
-      {required CableViewModel vm, required Widget child, Key? key}) {
+  Widget _wrapSelectionListener({
+    required CableViewModel vm,
+    required Widget child,
+    Key? key,
+  }) {
     return ItemSelectionListener<String>(
       key: key,
       itemId: vm.cable.uid,
