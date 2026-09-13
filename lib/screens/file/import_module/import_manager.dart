@@ -13,6 +13,7 @@ import 'package:sidekick/redux/models/fixture_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/redux/models/truss_model.dart';
+import 'package:sidekick/redux/models/wiring_object_model.dart';
 import 'package:sidekick/screens/file/import_module/fixture_mapping_step.dart';
 import 'package:sidekick/screens/file/import_module/fixture_mapping_view_model.dart';
 import 'package:sidekick/screens/file/import_module/import_manager_result.dart';
@@ -54,6 +55,7 @@ class _ImportManagerState extends State<ImportManager> {
   List<RawLocationModel> _incomingLocations = const [];
   List<RawTrussModel> _incomingTrusses = const [];
   Map<String, FixtureGeometryModel> _incomingGeometriesBySpec = const {};
+  Map<String, List<WiringObjectModel>> _incomingWiringObjectsBySpec = const {};
   Map<String, String> _locationMapping = {};
   bool _isLoading = false;
 
@@ -593,30 +595,19 @@ class _ImportManagerState extends State<ImportManager> {
       );
     }).toList();
 
-    // Re-key the imported GDTF geometry from spec name to the fixture type it
-    // was mapped to, so views can find it straight from a fixture's typeId.
-    final fixtureGeometries = <String, FixtureGeometryModel>{};
-    for (final incomingFixture in _incomingFixtures) {
-      final geometry = _incomingGeometriesBySpec[incomingFixture.fixtureType];
-      if (geometry == null) {
-        continue;
-      }
+    final fixtureGeometries =
+        _rekeyBySpecToTypeId(
+          _incomingGeometriesBySpec,
+          fixtureTypesByShortName,
+        ).map(
+          (typeId, geometry) =>
+              MapEntry(typeId, geometry.copyWith(uid: typeId)),
+        );
 
-      final fixtureMapping =
-          _fixtureTypeMapping[FixtureMappingModel.getSourceKey(
-            incomingFixture.fixtureType,
-            incomingFixture.fixtureMode,
-          )];
-
-      final typeId =
-          fixtureTypesByShortName[fixtureMapping?.mappedFixtureType]?.uid;
-
-      if (typeId == null || fixtureGeometries.containsKey(typeId)) {
-        continue;
-      }
-
-      fixtureGeometries[typeId] = geometry.copyWith(uid: typeId);
-    }
+    final wiringObjectsByTypeId = _rekeyBySpecToTypeId(
+      _incomingWiringObjectsBySpec,
+      fixtureTypesByShortName,
+    );
 
     final locationIdRemappings = <_LocationIdRemapping>[];
 
@@ -704,6 +695,11 @@ class _ImportManagerState extends State<ImportManager> {
       return incomingType.copyWith(
         maxPiggybacks: existingType?.maxPiggybacks,
         shortName: existingType?.shortName,
+        // Fixture database entries carry no wiring, so keep previously
+        // imported GDTF wiring when this import doesn't supply any.
+        wiringObjects:
+            wiringObjectsByTypeId[incomingType.uid] ??
+            existingType?.wiringObjects,
       );
     }).toList();
 
@@ -736,6 +732,40 @@ class _ImportManagerState extends State<ImportManager> {
         fixtureGeometries: fixtureGeometries.values.toList(),
       ),
     );
+  }
+
+  /// Re-keys imported GDTF data from raw spec name to the uid of the fixture
+  /// type each spec was mapped to, so it can be found from a fixture's typeId.
+  ///
+  /// When several specs map to one fixture type, the first fixture's spec
+  /// wins.
+  Map<String, T> _rekeyBySpecToTypeId<T>(
+    Map<String, T> valuesBySpec,
+    Map<String, FixtureTypeModel> fixtureTypesByShortName,
+  ) {
+    final valuesByTypeId = <String, T>{};
+
+    for (final incomingFixture in _incomingFixtures) {
+      final value = valuesBySpec[incomingFixture.fixtureType];
+      if (value == null) {
+        continue;
+      }
+
+      final fixtureMapping =
+          _fixtureTypeMapping[FixtureMappingModel.getSourceKey(
+            incomingFixture.fixtureType,
+            incomingFixture.fixtureMode,
+          )];
+
+      final typeId =
+          fixtureTypesByShortName[fixtureMapping?.mappedFixtureType]?.uid;
+
+      if (typeId != null) {
+        valuesByTypeId.putIfAbsent(typeId, () => value);
+      }
+    }
+
+    return valuesByTypeId;
   }
 
   Map<String, FixtureTypeModel> _getFixtureDatabaseEntriesByShortName(
@@ -822,6 +852,7 @@ class _ImportManagerState extends State<ImportManager> {
       _incomingLocations = fixtureReadResult.locations;
       _incomingTrusses = trussReadResult.trusses;
       _incomingGeometriesBySpec = fixtureReadResult.geometriesBySpec;
+      _incomingWiringObjectsBySpec = fixtureReadResult.wiringObjectsBySpec;
     });
   }
 

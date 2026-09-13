@@ -5,6 +5,7 @@ import 'package:mvr/mvr.dart';
 import 'package:sidekick/cable_graph/vector3.dart';
 import 'package:sidekick/redux/models/dmx_address_model.dart';
 import 'package:sidekick/redux/models/fixture_geometry_model.dart';
+import 'package:sidekick/redux/models/wiring_object_model.dart';
 import 'package:sidekick/screens/file/import_module/mvr_import_settings.dart';
 import 'package:sidekick/screens/file/import_module/patch_import_settings.dart';
 import 'package:sidekick/screens/file/import_module/raw_fixture_model.dart';
@@ -183,7 +184,42 @@ Future<ImportRawFixturesResult> _readMvrPatch({
     error: null,
     locations: locations.values.toList(),
     geometriesBySpec: _readGeometries(mvrReader, rawFixtures),
+    wiringObjectsBySpec: _readWiringObjects(mvrReader, rawFixtures),
   );
+}
+
+/// Extracts the GDTF wiring objects of every fixture type referenced by
+/// [fixtures], keyed by the raw GDTF spec name.
+///
+/// Like [_readGeometries], wiring is resolved for the DMX mode of the first
+/// fixture seen for each spec. Fixture types without wiring objects are
+/// omitted so they keep [WiringObjectModel.defaultWiringObjects].
+Map<String, List<WiringObjectModel>> _readWiringObjects(
+  MVR mvrReader,
+  Iterable<RawFixtureModel> fixtures,
+) {
+  final wiringObjects = <String, List<WiringObjectModel>>{};
+  final visitedSpecs = <String>{};
+
+  for (final fixture in fixtures) {
+    if (fixture.fixtureType.isEmpty || !visitedSpecs.add(fixture.fixtureType)) {
+      continue;
+    }
+
+    final instances = mvrReader
+        .fixtureTypeByName(fixture.fixtureType)
+        ?.wiringObjectsForMode(fixture.fixtureMode);
+
+    if (instances == null || instances.isEmpty) {
+      continue;
+    }
+
+    wiringObjects[fixture.fixtureType] = instances
+        .map(WiringObjectModel.fromInstance)
+        .toList();
+  }
+
+  return wiringObjects;
 }
 
 /// Extracts the GDTF geometry of every fixture type referenced by [fixtures],
@@ -317,6 +353,10 @@ class ImportRawFixturesResult {
   /// ([RawFixtureModel.fixtureType]). Empty for sources without geometry.
   final Map<String, FixtureGeometryModel> geometriesBySpec;
 
+  /// Imported GDTF wiring objects keyed by the raw GDTF spec name. Specs
+  /// without wiring data are absent.
+  final Map<String, List<WiringObjectModel>> wiringObjectsBySpec;
+
   final String? error;
 
   ImportRawFixturesResult({
@@ -324,5 +364,6 @@ class ImportRawFixturesResult {
     required this.error,
     required this.locations,
     this.geometriesBySpec = const {},
+    this.wiringObjectsBySpec = const {},
   });
 }

@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:sidekick/model_collection/model_collection_member.dart';
+import 'package:sidekick/redux/models/wiring_object_model.dart';
 
 class FixtureTypeModel extends ModelCollectionMember {
   @override
@@ -13,6 +14,12 @@ class FixtureTypeModel extends ModelCollectionMember {
   final double amps;
   final int maxPiggybacks;
 
+  /// The fixture type's electrical connection points.
+  ///
+  /// Captured from GDTF data on MVR import, otherwise
+  /// [WiringObjectModel.defaultWiringObjects].
+  final List<WiringObjectModel> wiringObjects;
+
   FixtureTypeModel({
     required this.uid,
     this.make = '',
@@ -21,6 +28,7 @@ class FixtureTypeModel extends ModelCollectionMember {
     this.shortName = '',
     this.amps = 0.0,
     this.maxPiggybacks = 1,
+    this.wiringObjects = WiringObjectModel.defaultWiringObjects,
   });
 
   const FixtureTypeModel.blank()
@@ -30,7 +38,8 @@ class FixtureTypeModel extends ModelCollectionMember {
       make = '',
       model = '',
       amps = 0,
-      maxPiggybacks = 1;
+      maxPiggybacks = 1,
+      wiringObjects = WiringObjectModel.defaultWiringObjects;
 
   bool get canPiggyback => maxPiggybacks != 1;
 
@@ -42,15 +51,17 @@ class FixtureTypeModel extends ModelCollectionMember {
     String? shortName,
     double? amps,
     int? maxPiggybacks,
+    List<WiringObjectModel>? wiringObjects,
   }) {
     return FixtureTypeModel(
       uid: uid ?? this.uid,
       make: make ?? this.make,
-      model: make ?? this.model,
+      model: model ?? this.model,
       name: name ?? this.name,
       shortName: shortName ?? this.shortName,
       amps: amps ?? this.amps,
       maxPiggybacks: maxPiggybacks ?? this.maxPiggybacks,
+      wiringObjects: wiringObjects ?? this.wiringObjects,
     );
   }
 
@@ -63,10 +74,16 @@ class FixtureTypeModel extends ModelCollectionMember {
       'shortName': shortName,
       'amps': amps,
       'maxPiggybacks': maxPiggybacks,
+      'wiringObjects': wiringObjects.map((object) => object.toMap()).toList(),
     };
   }
 
   factory FixtureTypeModel.fromMap(Map<String, dynamic> map) {
+    final wiringObjects = [
+      for (final object in (map['wiringObjects'] ?? []) as List<dynamic>)
+        if (object is Map<String, dynamic>) WiringObjectModel.fromMap(object),
+    ];
+
     return FixtureTypeModel(
       uid: (map['uid'] ?? '') as String,
       make: (map['make'] ?? '') as String,
@@ -75,6 +92,11 @@ class FixtureTypeModel extends ModelCollectionMember {
       shortName: (map['shortName'] ?? '') as String,
       amps: (map['amps'] ?? 0.0) as double,
       maxPiggybacks: (map['maxPiggybacks'] ?? 0) as int,
+      // Files saved before wiring capture have no entry; treat them as
+      // having no GDTF wiring data.
+      wiringObjects: wiringObjects.isEmpty
+          ? WiringObjectModel.defaultWiringObjects
+          : wiringObjects,
     );
   }
 
