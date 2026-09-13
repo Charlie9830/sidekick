@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/screens/hoists/hoist_location_item.dart';
 import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
@@ -27,18 +28,20 @@ class Sidebar extends StatelessWidget {
                 index == viewModel.sidebarItems.length) {
               return Center(
                 child: TextButton(
-                    leading: const Icon(Icons.add),
-                    onPressed: viewModel.onAddLocationButtonPressed,
-                    child: const Text('Add Rigging Location')),
+                  leading: const Icon(Icons.add),
+                  onPressed: viewModel.onAddLocationButtonPressed,
+                  child: const Text('Add Rigging Location'),
+                ),
               );
             }
 
             final item = viewModel.sidebarItems[index];
 
             return HoistLocationItem(
-                vm: item.locationVm,
-                assignmentController: assignmentController,
-                childHoists: item.associatedHoists);
+              vm: item.locationVm,
+              assignmentController: assignmentController,
+              childHoists: item.associatedHoists,
+            );
           },
         ),
       ),

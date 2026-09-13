@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/shad_list_item.dart';
 import 'package:sidekick/theme/sidekick_colors.dart';
@@ -16,8 +17,10 @@ class OutletListItem extends StatelessWidget {
       selected: isSelected,
       title: Text(_getTitle(vm), style: Theme.of(context).typography.mono),
       leading: _getLeading(vm),
-      trailing:
-          Text(_getTrailing(vm), style: Theme.of(context).typography.mono),
+      trailing: Text(
+        _getTrailing(vm),
+        style: Theme.of(context).typography.mono,
+      ),
     );
   }
 
@@ -30,12 +33,18 @@ class OutletListItem extends StatelessWidget {
 
   Widget _getLeading(OutletViewModel vm) {
     return switch (vm) {
-      PowerMultiOutletViewModel _ =>
-        const Icon(Icons.bolt, color: SidekickColors.powerRun),
-      DataOutletViewModel _ =>
-        const Icon(Icons.settings_input_svideo, color: SidekickColors.control),
-      HoistOutletViewModel _ =>
-        const Icon(Icons.construction, color: SidekickColors.hoist),
+      PowerMultiOutletViewModel _ => const Icon(
+        Icons.bolt,
+        color: SidekickColors.powerRun,
+      ),
+      DataOutletViewModel _ => const Icon(
+        Icons.settings_input_svideo,
+        color: SidekickColors.control,
+      ),
+      HoistOutletViewModel _ => const Icon(
+        Icons.construction,
+        color: SidekickColors.hoist,
+      ),
       _ => const SizedBox.shrink(),
     };
   }

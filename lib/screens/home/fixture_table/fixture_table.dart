@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/page_storage_keys.dart';
@@ -46,18 +47,19 @@ class _FixtureTableState extends State<FixtureTable> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Toolbar(
-              child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              OutlineButton(
-                leading: const Icon(Icons.numbers),
-                onPressed: widget.vm.selectedFixtureIds.isNotEmpty
-                    ? widget.vm.onSetSequenceButtonPressed
-                    : null,
-                child: const Text("Set Sequence"),
-              ),
-            ],
-          )),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                OutlineButton(
+                  leading: const Icon(Icons.numbers),
+                  onPressed: widget.vm.selectedFixtureIds.isNotEmpty
+                      ? widget.vm.onSetSequenceButtonPressed
+                      : null,
+                  child: const Text("Set Sequence"),
+                ),
+              ],
+            ),
+          ),
           FixtureTableHeader(
             hasSelections: widget.vm.hasSelections,
             onSelectAllFixtures: widget.vm.onSelectAllFixtures,
@@ -65,13 +67,14 @@ class _FixtureTableState extends State<FixtureTable> {
           ),
           Expanded(
             child: ListView.builder(
-                key: fixturesTablePageStorageKey,
-                itemCount: rowVms.length,
-                itemBuilder: (context, index) => FixtureTableRow(
-                      vm: rowVms[index],
-                      onSelectChanged: _handleSelectChanged,
-                      rangeSelectFixtureStartId: _rangeSelectStartFixtureId,
-                    )),
+              key: fixturesTablePageStorageKey,
+              itemCount: rowVms.length,
+              itemBuilder: (context, index) => FixtureTableRow(
+                vm: rowVms[index],
+                onSelectChanged: _handleSelectChanged,
+                rangeSelectFixtureStartId: _rangeSelectStartFixtureId,
+              ),
+            ),
           ),
         ],
       ),
@@ -121,13 +124,16 @@ class _FixtureTableState extends State<FixtureTable> {
       if (widget.vm.selectedFixtureIds.contains(uid)) {
         // Already selected, so De select only this row.
         widget.vm.onSelectedFixturesChanged(
-            widget.vm.selectedFixtureIds.toSet()..remove(uid));
+          widget.vm.selectedFixtureIds.toSet()..remove(uid),
+        );
         return;
       }
 
       // Add the current row to the selection collection.
-      widget.vm
-          .onSelectedFixturesChanged({...widget.vm.selectedFixtureIds, uid});
+      widget.vm.onSelectedFixturesChanged({
+        ...widget.vm.selectedFixtureIds,
+        uid,
+      });
       return;
     }
 
@@ -145,14 +151,19 @@ class _FixtureTableState extends State<FixtureTable> {
     if (_rangeSelectStartFixtureId.isEmpty) {
       // Start a new Range Selection.
       _rangeSelectStartFixtureId = uid;
-      widget.vm
-          .onSelectedFixturesChanged({...widget.vm.selectedFixtureIds, uid});
+      widget.vm.onSelectedFixturesChanged({
+        ...widget.vm.selectedFixtureIds,
+        uid,
+      });
       return;
     }
 
     // Complete Range Selection.
-    widget.vm
-        .onRangeSelectFixtures(_rangeSelectStartFixtureId, uid, isAdditive);
+    widget.vm.onRangeSelectFixtures(
+      _rangeSelectStartFixtureId,
+      uid,
+      isAdditive,
+    );
     _rangeSelectStartFixtureId = '';
     return;
   }

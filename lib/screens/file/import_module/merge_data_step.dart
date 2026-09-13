@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/drag_proxy/drag_proxy.dart';
 import 'package:sidekick/redux/models/location_model.dart';
@@ -31,13 +32,18 @@ class MergeDataStep extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text('Incoming Locations',
-                      style: Theme.of(context).typography.lead),
+                  child: Text(
+                    'Incoming Locations',
+                    style: Theme.of(context).typography.lead,
+                  ),
                 ),
                 SizedBox(
-                    width: rightSidebarWidth,
-                    child: Text('Existing Locations',
-                        style: Theme.of(context).typography.lead))
+                  width: rightSidebarWidth,
+                  child: Text(
+                    'Existing Locations',
+                    style: Theme.of(context).typography.lead,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -45,47 +51,60 @@ class MergeDataStep extends StatelessWidget {
               child: Row(
                 children: [
                   Expanded(
-                      child: ListView(
-                    children: incomingLocations.values.map((incoming) {
-                      final existingLocation = existingLocations[
-                          locationMapping[incoming.generatedId]];
-                      return _MatcherRow(
+                    child: ListView(
+                      children: incomingLocations.values.map((incoming) {
+                        final existingLocation =
+                            existingLocations[locationMapping[incoming
+                                .generatedId]];
+                        return _MatcherRow(
                           incoming: incoming,
                           existing: existingLocation,
                           onLocationLanded: (existingLocation) {
                             final otherAssignments = locationMapping.entries
-                                .where((entry) =>
-                                    entry.value == existingLocation.uid)
+                                .where(
+                                  (entry) =>
+                                      entry.value == existingLocation.uid,
+                                )
                                 .map((entry) => entry.key)
                                 .toSet();
 
                             onLocationMappingUpdated(
-                                Map<String, String>.from(locationMapping)
-                                  ..removeWhere((key, value) =>
-                                      otherAssignments.contains(key))
-                                  ..addAll({
-                                    incoming.generatedId: existingLocation.uid,
-                                  }));
+                              Map<String, String>.from(locationMapping)
+                                ..removeWhere(
+                                  (key, value) =>
+                                      otherAssignments.contains(key),
+                                )
+                                ..addAll({
+                                  incoming.generatedId: existingLocation.uid,
+                                }),
+                            );
                           },
                           onClearAssignment: () {
                             onLocationMappingUpdated(
-                                Map<String, String>.from(locationMapping)
-                                  ..remove(incoming.generatedId));
-                          });
-                    }).toList(),
-                  )),
+                              Map<String, String>.from(locationMapping)
+                                ..remove(incoming.generatedId),
+                            );
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ),
                   const VerticalDivider(width: 48),
                   SizedBox(
-                      width: rightSidebarWidth,
-                      child: ListView(
-                        children: existingLocations.values
-                            .map((existingLocation) => _ExistingLocation(
-                                  value: existingLocation,
-                                  isAssigned: assignedExistingLocationIds
-                                      .contains(existingLocation.uid),
-                                ))
-                            .toList(),
-                      ))
+                    width: rightSidebarWidth,
+                    child: ListView(
+                      children: existingLocations.values
+                          .map(
+                            (existingLocation) => _ExistingLocation(
+                              value: existingLocation,
+                              isAssigned: assignedExistingLocationIds.contains(
+                                existingLocation.uid,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -113,41 +132,48 @@ class _ExistingLocation extends StatelessWidget {
   Widget build(BuildContext context) {
     final dragContents = SurfaceCard(
       filled: true,
-      fillColor:
-          isBeingDraggedOver ? Colors.blue.shade500 : Colors.blue.shade900,
+      fillColor: isBeingDraggedOver
+          ? Colors.blue.shade500
+          : Colors.blue.shade900,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: HoverRegionBuilder(builder: (context, isHovering) {
-          return Row(
-            children: [
-              const Icon(Icons.location_on, size: 16, color: Colors.gray),
-              const SizedBox(width: 8),
-              Text(value.name),
-              const Spacer(),
-              if (isHovering && onClearAssignment != null)
-                IconButton.destructive(
-                  icon: const Icon(Icons.clear, size: 16),
-                  onPressed: onClearAssignment,
-                ),
-              switch (isAssigned) {
-                true => const Icon(Icons.check_circle,
-                    color: SidekickColors.success, size: 16),
-                false => const Icon(Icons.highlight_remove,
-                    color: SidekickColors.warning, size: 16)
-              }
-            ],
-          );
-        }),
+        child: HoverRegionBuilder(
+          builder: (context, isHovering) {
+            return Row(
+              children: [
+                const Icon(Icons.location_on, size: 16, color: Colors.gray),
+                const SizedBox(width: 8),
+                Text(value.name),
+                const Spacer(),
+                if (isHovering && onClearAssignment != null)
+                  IconButton.destructive(
+                    icon: const Icon(Icons.clear, size: 16),
+                    onPressed: onClearAssignment,
+                  ),
+                switch (isAssigned) {
+                  true => const Icon(
+                    Icons.check_circle,
+                    color: SidekickColors.success,
+                    size: 16,
+                  ),
+                  false => const Icon(
+                    Icons.highlight_remove,
+                    color: SidekickColors.warning,
+                    size: 16,
+                  ),
+                },
+              ],
+            );
+          },
+        ),
       ),
     );
 
     return DraggableProxy<LocationDragData>(
-        data: LocationDragData(value),
-        feedback: SizedBox(
-          width: 200,
-          child: dragContents,
-        ),
-        child: dragContents);
+      data: LocationDragData(value),
+      feedback: SizedBox(width: 200, child: dragContents),
+      child: dragContents,
+    );
   }
 }
 
@@ -180,40 +206,46 @@ class _MatcherRow extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                  child: Row(
-                children: [
-                  const Icon(Icons.location_on, size: 16, color: Colors.gray),
-                  const SizedBox(width: 8),
-                  Text(incoming.name),
-                ],
-              )),
+                child: Row(
+                  children: [
+                    const Icon(Icons.location_on, size: 16, color: Colors.gray),
+                    const SizedBox(width: 8),
+                    Text(incoming.name),
+                  ],
+                ),
+              ),
               Expanded(
-                  child: DragTargetProxy<LocationDragData>(
-                      onWillAcceptWithDetails: (_) => true,
-                      onAcceptWithDetails: (details) =>
-                          onLocationLanded(details.data.value),
-                      builder: (context, candidateData, rejectedData) {
-                        if (existing != null) {
-                          return _ExistingLocation(
-                              isBeingDraggedOver: candidateData.isNotEmpty,
-                              value: existing!,
-                              isAssigned: true,
-                              onClearAssignment: onClearAssignment);
-                        }
+                child: DragTargetProxy<LocationDragData>(
+                  onWillAcceptWithDetails: (_) => true,
+                  onAcceptWithDetails: (details) =>
+                      onLocationLanded(details.data.value),
+                  builder: (context, candidateData, rejectedData) {
+                    if (existing != null) {
+                      return _ExistingLocation(
+                        isBeingDraggedOver: candidateData.isNotEmpty,
+                        value: existing!,
+                        isAssigned: true,
+                        onClearAssignment: onClearAssignment,
+                      );
+                    }
 
-                        return SurfaceCard(
-                          filled: true,
-                          fillColor: candidateData.isEmpty
-                              ? Colors.blue.shade800
-                              : Colors.blue.shade500,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            alignment: Alignment.centerLeft,
-                            child: Text('Unassigned',
-                                style: Theme.of(context).typography.xSmall),
-                          ),
-                        );
-                      }))
+                    return SurfaceCard(
+                      filled: true,
+                      fillColor: candidateData.isEmpty
+                          ? Colors.blue.shade800
+                          : Colors.blue.shade500,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Unassigned',
+                          style: Theme.of(context).typography.xSmall,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),

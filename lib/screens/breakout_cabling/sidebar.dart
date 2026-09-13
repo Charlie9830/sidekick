@@ -1,4 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:flutter/material.dart' show Icons;
 import 'package:sidekick/simple_tooltip.dart';
 import 'package:sidekick/shad_list_item.dart';
 import 'package:sidekick/theme/sidekick_colors.dart';

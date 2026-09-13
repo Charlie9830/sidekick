@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/editable_text_field.dart';
 import 'package:sidekick/theme/sidekick_colors.dart';
@@ -23,51 +24,52 @@ class HoistItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return HoverRegionBuilder(builder: (context, isHovering) {
-      return Container(
-        height: 40,
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        color: selected ? Theme.of(context).colorScheme.accent : null,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Icon(Icons.construction,
-                size: 16, color: assigned ? Colors.gray : SidekickColors.hoist),
-            const SizedBox(width: 8),
-            SizedBox(
-              width: 148,
-              child: EditableTextField(
-                style: Theme.of(context)
-                    .typography
-                    .mono
-                    .copyWith(color: assigned ? Colors.gray : null),
-                value: name,
-                hintText: 'Hoist name...',
-                onChanged: onNameChanged,
+    return HoverRegionBuilder(
+      builder: (context, isHovering) {
+        return Container(
+          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          color: selected ? Theme.of(context).colorScheme.accent : null,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.construction,
+                size: 16,
+                color: assigned ? Colors.gray : SidekickColors.hoist,
               ),
-            ),
-            const Spacer(),
-            if (isHovering) ...[
-              IconButton.ghost(
-                icon: const Icon(Icons.delete),
-                size: ButtonSize.small,
-                onPressed: onDelete,
-              ),
-              ReorderableDragStartListener(
-                index: reorderableIndex,
-                child: const SizedBox(
-                  width: 32,
-                  child: Center(
-                      child: Icon(
-                    Icons.drag_handle,
-                  )),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 148,
+                child: EditableTextField(
+                  style: Theme.of(context).typography.mono.copyWith(
+                    color: assigned ? Colors.gray : null,
+                  ),
+                  value: name,
+                  hintText: 'Hoist name...',
+                  onChanged: onNameChanged,
                 ),
               ),
-            ]
-          ],
-        ),
-      );
-    });
+              const Spacer(),
+              if (isHovering) ...[
+                IconButton.ghost(
+                  icon: const Icon(Icons.delete),
+                  size: ButtonSize.small,
+                  onPressed: onDelete,
+                ),
+                ReorderableDragStartListener(
+                  index: reorderableIndex,
+                  child: const SizedBox(
+                    width: 32,
+                    child: Center(child: Icon(Icons.drag_handle)),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
   }
 }

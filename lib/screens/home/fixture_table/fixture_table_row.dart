@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide TableRow;
 import 'package:sidekick/diff_state_overlay.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
@@ -23,14 +24,20 @@ class FixtureTableRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return switch (vm) {
       FixtureRowDividerVM row => _buildDivider(context, row),
-      FixtureViewModel row =>
-        _buildTableRow(context, row, rangeSelectFixtureStartId),
+      FixtureViewModel row => _buildTableRow(
+        context,
+        row,
+        rangeSelectFixtureStartId,
+      ),
       _ => const SizedBox(),
     };
   }
 
-  TableRow _buildTableRow(BuildContext context, FixtureViewModel row,
-      String rangeSelectStartFixtureId) {
+  TableRow _buildTableRow(
+    BuildContext context,
+    FixtureViewModel row,
+    String rangeSelectStartFixtureId,
+  ) {
     return TableRow(
       rangeSelected: rangeSelectStartFixtureId == row.uid,
       selected: row.selected,
@@ -45,25 +52,32 @@ class FixtureTableRow extends StatelessWidget {
           ),
         ),
         DiffStateOverlay(
-            diff: deltas?.lookup(PropertyDeltaName.fixtureId),
-            child: Text(row.fid.toString(),
-                style: Theme.of(context).typography.mono)),
+          diff: deltas?.lookup(PropertyDeltaName.fixtureId),
+          child: Text(
+            row.fid.toString(),
+            style: Theme.of(context).typography.mono,
+          ),
+        ),
         DiffStateOverlay(
-            diff: deltas?.lookup(PropertyDeltaName.fixtureType),
-            child: Text(row.type)),
+          diff: deltas?.lookup(PropertyDeltaName.fixtureType),
+          child: Text(row.type),
+        ),
         DiffStateOverlay(
-            diff: deltas?.lookup(PropertyDeltaName.mode),
-            child: Text(row.mode)),
+          diff: deltas?.lookup(PropertyDeltaName.mode),
+          child: Text(row.mode),
+        ),
         DiffStateOverlay(
-            diff: deltas?.lookup(PropertyDeltaName.locationName),
-            child: Text(row.location)),
+          diff: deltas?.lookup(PropertyDeltaName.locationName),
+          child: Text(row.location),
+        ),
         DiffStateOverlay(
-            diff: deltas?.lookup(PropertyDeltaName.address),
-            child: Text(row.address, style: Theme.of(context).typography.mono)),
+          diff: deltas?.lookup(PropertyDeltaName.address),
+          child: Text(row.address, style: Theme.of(context).typography.mono),
+        ),
         DiffStateOverlay(
-            diff: deltas?.lookup(PropertyDeltaName.powerPatch),
-            child:
-                Text(row.powerPatch, style: Theme.of(context).typography.mono)),
+          diff: deltas?.lookup(PropertyDeltaName.powerPatch),
+          child: Text(row.powerPatch, style: Theme.of(context).typography.mono),
+        ),
       ],
     );
   }
@@ -78,11 +92,16 @@ class FixtureTableRow extends StatelessWidget {
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Row(children: [
-              const Icon(Icons.location_on, size: 24, color: Colors.gray),
-              const SizedBox(width: 8),
-              Text(dividerVM.title, style: Theme.of(context).typography.xLarge)
-            ]),
+            child: Row(
+              children: [
+                const Icon(Icons.location_on, size: 24, color: Colors.gray),
+                const SizedBox(width: 8),
+                Text(
+                  dividerVM.title,
+                  style: Theme.of(context).typography.xLarge,
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 8),
           const Divider(height: 0),
@@ -105,11 +124,14 @@ class _SequenceNumberCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(value,
-        style: hasSequenceNumberBreak || hasInvalidSequenceNumber
-            ? Theme.of(context).typography.small.copyWith(
-                color: hasInvalidSequenceNumber ? Colors.red : Colors.orange,
-                fontWeight: FontWeight.bold)
-            : Theme.of(context).typography.small.copyWith(color: Colors.gray));
+    return Text(
+      value,
+      style: hasSequenceNumberBreak || hasInvalidSequenceNumber
+          ? Theme.of(context).typography.small.copyWith(
+              color: hasInvalidSequenceNumber ? Colors.red : Colors.orange,
+              fontWeight: FontWeight.bold,
+            )
+          : Theme.of(context).typography.small.copyWith(color: Colors.gray),
+    );
   }
 }

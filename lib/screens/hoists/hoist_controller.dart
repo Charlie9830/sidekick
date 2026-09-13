@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/diffing/compute_diffs.dart';
 import 'package:sidekick/diff_state_overlay.dart';
@@ -18,11 +19,12 @@ class HoistController extends StatefulWidget {
   final PropertyDeltaSet? deltas;
   final Map<String, HoistChannelDelta> channelDeltas;
 
-  const HoistController(
-      {super.key,
-      required this.viewModel,
-      this.deltas,
-      this.channelDeltas = const {}});
+  const HoistController({
+    super.key,
+    required this.viewModel,
+    this.deltas,
+    this.channelDeltas = const {},
+  });
 
   @override
   State<HoistController> createState() => _HoistControllerState();
@@ -34,55 +36,61 @@ class _HoistControllerState extends State<HoistController> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Card(
-          child: Column(
-        children: [
-          // Controller Header
-          HoverRegionBuilder(builder: (context, isHovering) {
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SizedBox(
-                  width: 360,
-                  child: DiffStateOverlay(
-                    diff: widget.deltas
-                        ?.lookup(PropertyDeltaName.hoistControllerName),
-                    child: EditableTextField(
-                      onChanged: (newValue) =>
-                          widget.viewModel.onNameChanged(newValue),
-                      value: widget.viewModel.controller.name,
-                      style: Theme.of(context).typography.large.copyWith(
-                          color: widget.viewModel.hasOverflowed
-                              ? SidekickColors.warning
-                              : null),
+        child: Column(
+          children: [
+            // Controller Header
+            HoverRegionBuilder(
+              builder: (context, isHovering) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    SizedBox(
+                      width: 360,
+                      child: DiffStateOverlay(
+                        diff: widget.deltas?.lookup(
+                          PropertyDeltaName.hoistControllerName,
+                        ),
+                        child: EditableTextField(
+                          onChanged: (newValue) =>
+                              widget.viewModel.onNameChanged(newValue),
+                          value: widget.viewModel.controller.name,
+                          style: Theme.of(context).typography.large.copyWith(
+                            color: widget.viewModel.hasOverflowed
+                                ? SidekickColors.warning
+                                : null,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                const Spacer(),
-                if (isHovering)
-                  SimpleTooltip(
-                    message: "Delete controller",
-                    child: IconButton.destructive(
-                      size: ButtonSize.small,
-                      icon: const Icon(Icons.delete),
-                      onPressed: widget.viewModel.onDelete,
+                    const Spacer(),
+                    if (isHovering)
+                      SimpleTooltip(
+                        message: "Delete controller",
+                        child: IconButton.destructive(
+                          size: ButtonSize.small,
+                          icon: const Icon(Icons.delete),
+                          onPressed: widget.viewModel.onDelete,
+                        ),
+                      ),
+                    const SizedBox(width: 8.0),
+                    DiffStateOverlay(
+                      diff: widget.deltas?.lookup(
+                        PropertyDeltaName.hoistControllerWays,
+                      ),
+                      child: _TypeSelectButton(viewModel: widget.viewModel),
                     ),
-                  ),
-                const SizedBox(width: 8.0),
-                DiffStateOverlay(
-                  diff: widget.deltas
-                      ?.lookup(PropertyDeltaName.hoistControllerWays),
-                  child: _TypeSelectButton(viewModel: widget.viewModel),
-                ),
-              ],
-            );
-          }),
+                  ],
+                );
+              },
+            ),
 
-          const SizedBox(height: 8),
-          const _ChannelAreaHeader(),
-          const SizedBox(height: 8),
-          _ChannelArea(viewModel: widget.viewModel),
-        ],
-      )),
+            const SizedBox(height: 8),
+            const _ChannelAreaHeader(),
+            const SizedBox(height: 8),
+            _ChannelArea(viewModel: widget.viewModel),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -93,59 +101,67 @@ class _ChannelArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      return Column(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Column(
           children: viewModel.channels.mapIndexed((index, channelVm) {
-        return Slot<String, HoistViewModel>(
-          assignedItemId: channelVm.hoist?.uid,
-          slotIndex: index,
-          selectionIndex: channelVm.assignedSelectionIndex,
-          slotIndexScope: viewModel.controller.uid,
-          onItemsLanded: (items) {
-            channelVm.onHoistsLanded(items.toSet());
-          },
-          builder: (context, assignedItem, selected) => SizedBox(
-            height: 24,
-            child: Container(
-              decoration: BoxDecoration(
-                color: selected ? Theme.of(context).colorScheme.border : null,
-                border: BoxBorder.fromLTRB(
-                  bottom: index != viewModel.channels.length - 1
-                      ? BorderSide(
-                          color: Theme.of(context).colorScheme.border,
-                        )
-                      : BorderSide.none,
-                ),
-              ),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: HoistControllerColumnWidths.columnWidths[0],
-                    child: Center(
-                      child: Text((index + 1).toString(),
-                          style: channelVm.isOverflowing
-                              ? Theme.of(context).typography.normal.copyWith(
+            return Slot<String, HoistViewModel>(
+              assignedItemId: channelVm.hoist?.uid,
+              slotIndex: index,
+              selectionIndex: channelVm.assignedSelectionIndex,
+              slotIndexScope: viewModel.controller.uid,
+              onItemsLanded: (items) {
+                channelVm.onHoistsLanded(items.toSet());
+              },
+              builder: (context, assignedItem, selected) => SizedBox(
+                height: 24,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? Theme.of(context).colorScheme.border
+                        : null,
+                    border: BoxBorder.fromLTRB(
+                      bottom: index != viewModel.channels.length - 1
+                          ? BorderSide(
+                              color: Theme.of(context).colorScheme.border,
+                            )
+                          : BorderSide.none,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: HoistControllerColumnWidths.columnWidths[0],
+                        child: Center(
+                          child: Text(
+                            (index + 1).toString(),
+                            style: channelVm.isOverflowing
+                                ? Theme.of(context).typography.normal.copyWith(
                                     color: channelVm.isOverflowing
                                         ? SidekickColors.warning
                                         : null,
                                   )
-                              : Theme.of(context).typography.extraLight),
-                    ),
+                                : Theme.of(context).typography.extraLight,
+                          ),
+                        ),
+                      ),
+                      const VerticalDivider(),
+                      if (assignedItem != null)
+                        Expanded(
+                          child: HoistChannelContent(
+                            viewModel: assignedItem.item,
+                            onClearButtonPressed: channelVm.onUnpatchHoist,
+                          ),
+                        ),
+                    ],
                   ),
-                  const VerticalDivider(),
-                  if (assignedItem != null)
-                    Expanded(
-                        child: HoistChannelContent(
-                      viewModel: assignedItem.item,
-                      onClearButtonPressed: channelVm.onUnpatchHoist,
-                    ))
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          }).toList(),
         );
-      }).toList());
-    });
+      },
+    );
   }
 }
 
@@ -164,45 +180,31 @@ class _ChannelAreaHeader extends StatelessWidget {
               width: HoistControllerColumnWidths.columnWidths[0],
               child: const Text("Channel"),
             ),
-            const VerticalDivider(
-              width: 8,
-              color: Colors.transparent,
-            ),
+            const VerticalDivider(width: 8, color: Colors.transparent),
             SizedBox(
               width: HoistControllerColumnWidths.columnWidths[1],
               child: const Text("Hoist Name"),
             ),
-            const VerticalDivider(
-              width: 8,
-              color: Colors.transparent,
-            ),
+            const VerticalDivider(width: 8, color: Colors.transparent),
             SizedBox(
               width: HoistControllerColumnWidths.columnWidths[2],
               child: const Text("Location"),
             ),
-            const VerticalDivider(
-              width: 16,
-              color: Colors.transparent,
-            ),
+            const VerticalDivider(width: 16, color: Colors.transparent),
             SizedBox(
               width: HoistControllerColumnWidths.columnWidths[3],
               child: const Text("Multi"),
             ),
-            const VerticalDivider(
-              width: 16,
-              color: Colors.transparent,
-            ),
+            const VerticalDivider(width: 16, color: Colors.transparent),
             SizedBox(
               width: HoistControllerColumnWidths.columnWidths[4],
               child: const Text("Patch"),
             ),
-            const VerticalDivider(
-              width: 16,
-              color: Colors.transparent,
-            ),
+            const VerticalDivider(width: 16, color: Colors.transparent),
             SizedBox(
-                width: HoistControllerColumnWidths.columnWidths[5],
-                child: const Text('Notes')),
+              width: HoistControllerColumnWidths.columnWidths[5],
+              child: const Text('Notes'),
+            ),
           ],
         ),
       ),
@@ -211,38 +213,42 @@ class _ChannelAreaHeader extends StatelessWidget {
 }
 
 class _TypeSelectButton extends StatelessWidget {
-  const _TypeSelectButton({
-    required this.viewModel,
-  });
+  const _TypeSelectButton({required this.viewModel});
 
   final HoistControllerViewModel viewModel;
 
   @override
   Widget build(BuildContext context) {
-    return Builder(builder: (context) {
-      return OutlineButton(
+    return Builder(
+      builder: (context) {
+        return OutlineButton(
           leading: const Icon(Icons.edit),
           size: ButtonSize.small,
           child: Text('${viewModel.controller.ways} Way'),
           onPressed: () {
             showDropdown(
-                context: context,
-                builder: (context) => DropdownMenu(children: [
-                      const MenuLabel(child: Text('Select Controller Type')),
-                      MenuButton(
-                        child: const Text('8way'),
-                        onPressed: (_) => viewModel.onControllerWaysChanged(8),
-                      ),
-                      MenuButton(
-                        child: const Text('16way'),
-                        onPressed: (_) => viewModel.onControllerWaysChanged(16),
-                      ),
-                      MenuButton(
-                        child: const Text('32way'),
-                        onPressed: (_) => viewModel.onControllerWaysChanged(32),
-                      ),
-                    ]));
-          });
-    });
+              context: context,
+              builder: (context) => DropdownMenu(
+                children: [
+                  const MenuLabel(child: Text('Select Controller Type')),
+                  MenuButton(
+                    child: const Text('8way'),
+                    onPressed: (_) => viewModel.onControllerWaysChanged(8),
+                  ),
+                  MenuButton(
+                    child: const Text('16way'),
+                    onPressed: (_) => viewModel.onControllerWaysChanged(16),
+                  ),
+                  MenuButton(
+                    child: const Text('32way'),
+                    onPressed: (_) => viewModel.onControllerWaysChanged(32),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 }

@@ -1,11 +1,15 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:flutter/material.dart' show Icons;
 
 class CombineIntoSneakInfoTag extends StatelessWidget {
   const CombineIntoSneakInfoTag({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Icon(Icons.merge,
-        size: 20, color: Theme.of(context).colorScheme.secondary);
+    return Icon(
+      Icons.merge,
+      size: 20,
+      color: Theme.of(context).colorScheme.secondary,
+    );
   }
 }

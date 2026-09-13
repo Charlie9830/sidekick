@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/screens/hoists/hoist_item.dart';
 import 'package:sidekick/screens/locations/rigging_only_tag.dart';
@@ -25,85 +26,95 @@ class HoistLocationItem extends StatelessWidget {
         // Location Header
         SizedBox(
           height: 48,
-          child: HoverRegionBuilder(builder: (context, isHovering) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(vm.location.name,
+          child: HoverRegionBuilder(
+            builder: (context, isHovering) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      vm.location.name,
                       key: Key(vm.location.uid),
-                      style: Theme.of(context).typography.small),
-                  const Spacer(),
-                  if (vm.location.isRiggingOnlyLocation)
-                    Row(
-                      children: [
-                        if (isHovering)
-                          Row(
-                            children: [
-                              IconButton.ghost(
-                                icon: const Icon(Icons.delete),
-                                size: ButtonSize.small,
-                                onPressed: vm.onDeleteLocation,
-                              ),
-                              IconButton.ghost(
-                                icon: const Icon(Icons.edit),
-                                size: ButtonSize.small,
-                                onPressed: vm.onEditLocation,
-                              ),
-                            ],
-                          ),
-                        const RiggingOnlyTag(),
-                      ],
+                      style: Theme.of(context).typography.small,
                     ),
-                  SimpleTooltip(
-                    message: 'Add Hoist',
-                    child: IconButton.ghost(
+                    const Spacer(),
+                    if (vm.location.isRiggingOnlyLocation)
+                      Row(
+                        children: [
+                          if (isHovering)
+                            Row(
+                              children: [
+                                IconButton.ghost(
+                                  icon: const Icon(Icons.delete),
+                                  size: ButtonSize.small,
+                                  onPressed: vm.onDeleteLocation,
+                                ),
+                                IconButton.ghost(
+                                  icon: const Icon(Icons.edit),
+                                  size: ButtonSize.small,
+                                  onPressed: vm.onEditLocation,
+                                ),
+                              ],
+                            ),
+                          const RiggingOnlyTag(),
+                        ],
+                      ),
+                    SimpleTooltip(
+                      message: 'Add Hoist',
+                      child: IconButton.ghost(
                         icon: const Icon(Icons.add),
                         size: ButtonSize.small,
-                        onPressed: vm.onAddHoistButtonPressed),
-                  )
-                ],
-              ),
-            );
-          }),
+                        onPressed: vm.onAddHoistButtonPressed,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
 
         // Location Hoists.
         ReorderableList(
-            padding: EdgeInsets.zero,
-            shrinkWrap: true,
-            primary: false,
-            onReorderStart: (index) {
-              final id = childHoists.elementAtOrNull(index)?.uid;
-              if (id == null) {
-                return;
-              }
+          padding: EdgeInsets.zero,
+          shrinkWrap: true,
+          primary: false,
+          onReorderStart: (index) {
+            final id = childHoists.elementAtOrNull(index)?.uid;
+            if (id == null) {
+              return;
+            }
 
-              assignmentController.setSelectedAvailableIds({id});
-            },
-            itemBuilder: (context, index) {
-              final hoistItem = childHoists[index];
-              return AvailableItem<String, HoistViewModel>(
-                key: Key(hoistItem.uid),
-                controller: assignmentController,
-                id: hoistItem.uid,
-                selectionIndex: hoistItem.selectionIndex,
-                builder: (context, item, selected) =>
-                    _contentsBuilder(context, item, selected, index),
-              );
-            },
-            itemCount: childHoists.length,
-            onReorder: (oldRawIndex, newRawIndex) {
-              vm.onHoistReorder(oldRawIndex, newRawIndex);
-            })
+            assignmentController.setSelectedAvailableIds({id});
+          },
+          itemBuilder: (context, index) {
+            final hoistItem = childHoists[index];
+            return AvailableItem<String, HoistViewModel>(
+              key: Key(hoistItem.uid),
+              controller: assignmentController,
+              id: hoistItem.uid,
+              selectionIndex: hoistItem.selectionIndex,
+              builder: (context, item, selected) =>
+                  _contentsBuilder(context, item, selected, index),
+            );
+          },
+          itemCount: childHoists.length,
+          onReorder: (oldRawIndex, newRawIndex) {
+            vm.onHoistReorder(oldRawIndex, newRawIndex);
+          },
+        ),
       ],
     );
   }
 
-  Widget _contentsBuilder(BuildContext context,
-      ItemData<String, HoistViewModel>? item, bool selected, int localIndex) {
+  Widget _contentsBuilder(
+    BuildContext context,
+    ItemData<String, HoistViewModel>? item,
+    bool selected,
+    int localIndex,
+  ) {
     if (item == null) {
       return const Text("-");
     }

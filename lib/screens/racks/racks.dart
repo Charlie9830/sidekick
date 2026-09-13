@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/screens/racks/data_racks.dart';
 import 'package:sidekick/screens/racks/power_racks.dart';
@@ -27,8 +28,8 @@ class _RacksState extends State<Racks> {
   @override
   Widget build(BuildContext context) {
     return ToolbarBodyScaffold(
-        toolbar: Toolbar(
-            child: Row(
+      toolbar: Toolbar(
+        child: Row(
           children: [
             if (widget.viewModel.tabIndex == 0) // Power Tab
               SimpleTooltip(
@@ -38,7 +39,8 @@ class _RacksState extends State<Racks> {
                   onPressed: _selectedPowerMultiPlacedIds.isNotEmpty
                       ? () {
                           widget.viewModel.onUnpatchPowerMultis(
-                              _selectedPowerMultiPlacedIds);
+                            _selectedPowerMultiPlacedIds,
+                          );
                         }
                       : null,
                 ),
@@ -51,28 +53,32 @@ class _RacksState extends State<Racks> {
                   onPressed: _selectedDataPatchPlacedIds.isNotEmpty
                       ? () {
                           widget.viewModel.onUnpatchDataOutlets(
-                              _selectedDataPatchPlacedIds);
+                            _selectedDataPatchPlacedIds,
+                          );
                         }
                       : null,
                 ),
               ),
           ],
-        )),
-        body: switch (widget.viewModel.tabIndex) {
-          0 => PowerRacks(
-              viewModel: widget.viewModel,
-              onPowerMultiSelectionChanged:
-                  (selectedAvailabledIds, selectedPlacedIds) => setState(() {
-                        _selectedPowerMultiPlacedIds = selectedPlacedIds;
-                      })),
-          1 => DataRacks(
-              viewModel: widget.viewModel,
-              onDataOutletSelectionChanged:
-                  (selectedAvailableIds, selectedPlacedIds) => setState(() {
+        ),
+      ),
+      body: switch (widget.viewModel.tabIndex) {
+        0 => PowerRacks(
+          viewModel: widget.viewModel,
+          onPowerMultiSelectionChanged:
+              (selectedAvailabledIds, selectedPlacedIds) => setState(() {
+                _selectedPowerMultiPlacedIds = selectedPlacedIds;
+              }),
+        ),
+        1 => DataRacks(
+          viewModel: widget.viewModel,
+          onDataOutletSelectionChanged:
+              (selectedAvailableIds, selectedPlacedIds) => setState(() {
                 _selectedDataPatchPlacedIds = selectedPlacedIds;
               }),
-            ),
-          _ => const Text('Unexpected Tab Index')
-        });
+        ),
+        _ => const Text('Unexpected Tab Index'),
+      },
+    );
   }
 }

@@ -3,6 +3,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/toasts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path/path.dart' as p;
+import 'package:flutter/material.dart' show Icons;
 
 class FileSelectButton extends StatefulWidget {
   final void Function()? onFileSelectPressed;
@@ -32,30 +33,32 @@ class _FileSelectButtonState extends State<FileSelectButton> {
   @override
   Widget build(BuildContext context) {
     return _wrapDropTarget(
-        name: widget.dropTargetName,
-        child: Row(
-          children: [
-            if (widget.onFileSelectPressed != null)
-              TextButton(
-                onPressed: widget.onFileSelectPressed,
-                child: Text(widget.path.isEmpty ? 'Select' : 'Change'),
-              ),
-            if (widget.showOpenButton == true && widget.path.isNotEmpty)
-              IconButton.ghost(
-                onPressed: () => _handleOpenButtonPressed(context),
-                icon: const Icon(Icons.open_in_new),
-              ),
-            const SizedBox(width: 16),
-            if (widget.path.isNotEmpty)
-              Text(widget.path, style: Theme.of(context).typography.xSmall),
-            if (widget.path.isEmpty && widget.hintText != null)
-              Text(widget.hintText!,
-                  style: Theme.of(context)
-                      .typography
-                      .xSmall
-                      .copyWith(color: Colors.gray))
-          ],
-        ));
+      name: widget.dropTargetName,
+      child: Row(
+        children: [
+          if (widget.onFileSelectPressed != null)
+            TextButton(
+              onPressed: widget.onFileSelectPressed,
+              child: Text(widget.path.isEmpty ? 'Select' : 'Change'),
+            ),
+          if (widget.showOpenButton == true && widget.path.isNotEmpty)
+            IconButton.ghost(
+              onPressed: () => _handleOpenButtonPressed(context),
+              icon: const Icon(Icons.open_in_new),
+            ),
+          const SizedBox(width: 16),
+          if (widget.path.isNotEmpty)
+            Text(widget.path, style: Theme.of(context).typography.xSmall),
+          if (widget.path.isEmpty && widget.hintText != null)
+            Text(
+              widget.hintText!,
+              style: Theme.of(
+                context,
+              ).typography.xSmall.copyWith(color: Colors.gray),
+            ),
+        ],
+      ),
+    );
   }
 
   Widget _wrapDropTarget({required String? name, required Widget child}) {
@@ -77,8 +80,10 @@ class _FileSelectButtonState extends State<FileSelectButton> {
 
   void _handleOpenButtonPressed(BuildContext context) async {
     try {
-      final result = await launchUrl(Uri.file(widget.path),
-          mode: LaunchMode.externalApplication);
+      final result = await launchUrl(
+        Uri.file(widget.path),
+        mode: LaunchMode.externalApplication,
+      );
 
       if (result == false && context.mounted) {
         showGenericErrorToast(
@@ -102,9 +107,7 @@ class _FileSelectButtonState extends State<FileSelectButton> {
 
 class _Hovering extends StatelessWidget {
   final String hoveringName;
-  const _Hovering({
-    required this.hoveringName,
-  });
+  const _Hovering({required this.hoveringName});
 
   @override
   Widget build(BuildContext context) {
@@ -116,13 +119,16 @@ class _Hovering extends StatelessWidget {
         spacing: 16,
         children: [
           const SizedBox(width: 8),
-          Icon(Icons.file_download,
-              color: Theme.of(context).colorScheme.primary),
-          Text(hoveringName,
-              style: Theme.of(context)
-                  .typography
-                  .large
-                  .copyWith(color: Theme.of(context).colorScheme.primary)),
+          Icon(
+            Icons.file_download,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          Text(
+            hoveringName,
+            style: Theme.of(context).typography.large.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
         ],
       ),
     );

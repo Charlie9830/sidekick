@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:sidekick/screens/hoists/motor_control_assignment.dart';
@@ -18,13 +19,14 @@ class Hoists extends StatefulWidget {
 
 class _HoistsState extends State<Hoists> {
   late final SlotAssignmentController<String, HoistViewModel>
-      _assignmentController;
+  _assignmentController;
 
   @override
   void initState() {
     super.initState();
     _assignmentController = SlotAssignmentController<String, HoistViewModel>(
-        itemsById: widget.viewModel.assignableItems);
+      itemsById: widget.viewModel.assignableItems,
+    );
   }
 
   @override
@@ -43,26 +45,26 @@ class _HoistsState extends State<Hoists> {
       controller: _assignmentController,
       child: ThreePanelScaffold(
         toolbar: Toolbar(
-            child: Row(
-          children: [
-            SimpleTooltip(
-              message: 'Unpatch selected Motor Control channels',
-              child: IconButton.destructive(
-                icon: const Icon(Icons.clear),
-                onPressed:
-                    widget.viewModel.selectedHoistChannelViewModels.isNotEmpty
-                        ? widget.viewModel.onDeleteSelectedHoistChannels
-                        : null,
+          child: Row(
+            children: [
+              SimpleTooltip(
+                message: 'Unpatch selected Motor Control channels',
+                child: IconButton.destructive(
+                  icon: const Icon(Icons.clear),
+                  onPressed:
+                      widget.viewModel.selectedHoistChannelViewModels.isNotEmpty
+                      ? widget.viewModel.onDeleteSelectedHoistChannels
+                      : null,
+                ),
               ),
-            ),
-          ],
-        )),
-        sidebar: Sidebar(
-            viewModel: widget.viewModel,
-            assignmentController: _assignmentController),
-        body: MotorControllerAssignment(
-          viewModel: widget.viewModel,
+            ],
+          ),
         ),
+        sidebar: Sidebar(
+          viewModel: widget.viewModel,
+          assignmentController: _assignmentController,
+        ),
+        body: MotorControllerAssignment(viewModel: widget.viewModel),
       ),
     );
   }

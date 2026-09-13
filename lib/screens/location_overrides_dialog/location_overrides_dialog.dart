@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/extension_methods/clone_map.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
@@ -68,7 +69,8 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
               fixtures: widget.fixtures,
               fixtureTypes: widget.fixtureTypes,
               locationId: _selectedLocationId,
-            ))
+            ),
+          )
         : <_FixtureOverrideViewModel>[];
 
     return Scaffold(
@@ -76,38 +78,40 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
         AppBar(
           leading: [
             IconButton.ghost(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop()),
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
           ],
           trailing: [
             PrimaryButton(
               child: const Text('Save'),
               onPressed: () => Navigator.of(context).pop(_locations),
-            )
+            ),
           ],
           title: const Text('Adjust Patch Settings'),
-        )
+        ),
       ],
-      child: Builder(builder: (scaffoldContext) {
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Sidebar
-            _Sidebar(
-              locationsList: locationsList,
-              selectedLocationId: _selectedLocationId,
-              onLocationSelected: (id) =>
-                  setState(() => _selectedLocationId = id),
-              onPaste: _handlePaste,
-              clipboard: _clipboard,
-            ),
+      child: Builder(
+        builder: (scaffoldContext) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Sidebar
+              _Sidebar(
+                locationsList: locationsList,
+                selectedLocationId: _selectedLocationId,
+                onLocationSelected: (id) =>
+                    setState(() => _selectedLocationId = id),
+                onPaste: _handlePaste,
+                clipboard: _clipboard,
+              ),
 
-            // Content Zone
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _FloatingContentToolbar(
+              // Content Zone
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _FloatingContentToolbar(
                       selectedLocation: selectedLocation,
                       globalMaxSequenceBreak: widget.globalMaxSequenceBreak,
                       onMaxSequenceBreakChanged: _handleMaxSequenceBreakChanged,
@@ -115,11 +119,15 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
                       onPaste: _handlePaste,
                       clipboard: _clipboard,
                       onCopyButtonPressed: (locationName, overrideContents) =>
-                          setState(() => _clipboard = _ClipboardContents(
+                          setState(
+                            () => _clipboard = _ClipboardContents(
                               sourceLocationName: locationName,
-                              content: overrideContents.copyWith()))),
-                  const CardTitle(title: 'Types'),
-                  Expanded(
+                              content: overrideContents.copyWith(),
+                            ),
+                          ),
+                    ),
+                    const CardTitle(title: 'Types'),
+                    Expanded(
                       flex: 2,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -128,32 +136,39 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
                             fixtureOverrides: overrideViewModels,
                           ),
                         ),
-                      )),
-                  const CardTitle(title: 'Pools'),
-                  Expanded(
+                      ),
+                    ),
+                    const CardTitle(title: 'Pools'),
+                    Expanded(
                       flex: 1,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Card(
                           child: _PoolConfiguration(
-                              pools: widget.fixtureTypePools.values.toList(),
-                              enabledFixtureTypePoolIds: selectedLocation
-                                      ?.overrides.enabledFixtureTypePoolIds ??
-                                  {},
-                              fixtureTypes: widget.fixtureTypes,
-                              onPoolEnableChanged: (poolId, enabled) =>
-                                  _handlePoolEnableStateChanged(
-                                      selectedLocation: selectedLocation,
-                                      poolId: poolId,
-                                      enabled: enabled)),
+                            pools: widget.fixtureTypePools.values.toList(),
+                            enabledFixtureTypePoolIds:
+                                selectedLocation
+                                    ?.overrides
+                                    .enabledFixtureTypePoolIds ??
+                                {},
+                            fixtureTypes: widget.fixtureTypes,
+                            onPoolEnableChanged: (poolId, enabled) =>
+                                _handlePoolEnableStateChanged(
+                                  selectedLocation: selectedLocation,
+                                  poolId: poolId,
+                                  enabled: enabled,
+                                ),
+                          ),
                         ),
-                      )),
-                ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        );
-      }),
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -174,7 +189,7 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
             enabledFixtureTypePoolIds: enabled == true
                 ? {...existing.overrides.enabledFixtureTypePoolIds, poolId}
                 : (existing.overrides.enabledFixtureTypePoolIds.toSet()
-                  ..remove(poolId)),
+                    ..remove(poolId)),
           ),
         ),
       );
@@ -185,15 +200,15 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
   }
 
   Map<String, _LocationFixtureQty> _buildFixtureQtyLookup() {
-    return Map<String, _LocationFixtureQty>.fromEntries(widget.fixtures.values
-        .groupListsBy((fixture) => fixture.locationId)
-        .entries
-        .map((entry) {
-      final locationId = entry.key;
-      final fixtures = entry.value;
+    return Map<String, _LocationFixtureQty>.fromEntries(
+      widget.fixtures.values.groupListsBy((fixture) => fixture.locationId).entries.map((
+        entry,
+      ) {
+        final locationId = entry.key;
+        final fixtures = entry.value;
 
-      // Create a map of <String, int> which represents <FixtureTypeID, qty of Fixtures with that Fixture type ID>.
-      final fixtureQtysByTypeId = fixtures.fold<Map<String, int>>(
+        // Create a map of <String, int> which represents <FixtureTypeID, qty of Fixtures with that Fixture type ID>.
+        final fixtureQtysByTypeId = fixtures.fold<Map<String, int>>(
           <String, int>{},
           (map, current) => map
             ..update(
@@ -203,13 +218,12 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
                   1, // TypeId already exists in map. So iterate the existing value.
               ifAbsent: () =>
                   1, // TypeId doesn't exist in map, so create an entry starting at 1.
-            ));
+            ),
+        );
 
-      return MapEntry(
-        locationId,
-        _LocationFixtureQty(fixtureQtysByTypeId),
-      );
-    }));
+        return MapEntry(locationId, _LocationFixtureQty(fixtureQtysByTypeId));
+      }),
+    );
   }
 
   void _handlePaste(String locationId) {
@@ -226,8 +240,9 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
           (existing) => existing.copyWith(
             overrides: existing.overrides.copyWith(
               maxSequenceBreak: _clipboard!.content.maxSequenceBreak,
-              maxPairings:
-                  Map<String, int>.from(_clipboard!.content.maxPairings),
+              maxPairings: Map<String, int>.from(
+                _clipboard!.content.maxPairings,
+              ),
             ),
           ),
         );
@@ -272,14 +287,14 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
     setState(() {
       _locations = Map<String, LocationModel>.from(_locations)
         ..update(
-            location.uid,
-            (existing) => existing.copyWith(
-                overrides: existing.overrides.copyWith(
-                    maxPairings:
-                        Map<String, int>.from(existing.overrides.maxPairings)
-                          ..addAll({
-                            typeId: parsed,
-                          }))));
+          location.uid,
+          (existing) => existing.copyWith(
+            overrides: existing.overrides.copyWith(
+              maxPairings: Map<String, int>.from(existing.overrides.maxPairings)
+                ..addAll({typeId: parsed}),
+            ),
+          ),
+        );
     });
   }
 
@@ -299,11 +314,13 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
     setState(() {
       _locations = Map<String, LocationModel>.from(_locations)
         ..update(
-            location.uid,
-            (existing) => existing.copyWith(
-                    overrides: existing.overrides.copyWith(
-                  maxSequenceBreak: OptionalInt(parsed),
-                )));
+          location.uid,
+          (existing) => existing.copyWith(
+            overrides: existing.overrides.copyWith(
+              maxSequenceBreak: OptionalInt(parsed),
+            ),
+          ),
+        );
     });
   }
 
@@ -331,23 +348,31 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
     required Map<String, _LocationFixtureQty> fixtureQtyLookup,
   }) {
     return associatedFixtureTypes.values
-        .map((fixtureType) => _FixtureOverrideViewModel(
+        .map(
+          (fixtureType) => _FixtureOverrideViewModel(
             fixtureType: fixtureType,
-            typeCountInLocation: fixtureQtyLookup[location.uid]
-                    ?.qtysByFixtureTypeId[fixtureType.uid] ??
+            typeCountInLocation:
+                fixtureQtyLookup[location.uid]?.qtysByFixtureTypeId[fixtureType
+                    .uid] ??
                 0,
             maxPairings: location.overrides.maxPairings[fixtureType.uid],
             onMaxPairingsChanged: _handleFixtureMaxPairingsChanged,
             onMaxPairingsUnset:
                 location.overrides.maxPairings.containsKey(fixtureType.uid)
-                    ? () => _handleFixtureMaxPairingsOverrideUnset(
-                        location.uid, fixtureType.uid)
-                    : null))
+                ? () => _handleFixtureMaxPairingsOverrideUnset(
+                    location.uid,
+                    fixtureType.uid,
+                  )
+                : null,
+          ),
+        )
         .toList();
   }
 
   void _handleFixtureMaxPairingsOverrideUnset(
-      String locationId, String fixtureTypeId) {
+    String locationId,
+    String fixtureTypeId,
+  ) {
     if (fixtureTypeId.isEmpty) {
       return;
     }
@@ -360,12 +385,14 @@ class _LocationOverridesDialogState extends State<LocationOverridesDialog> {
     setState(() {
       _locations = Map<String, LocationModel>.from(_locations)
         ..update(
-            location.uid,
-            (existing) => existing.copyWith(
-                overrides: existing.overrides.copyWith(
-                    maxPairings:
-                        Map<String, int>.from(existing.overrides.maxPairings)
-                          ..remove(fixtureTypeId))));
+          location.uid,
+          (existing) => existing.copyWith(
+            overrides: existing.overrides.copyWith(
+              maxPairings: Map<String, int>.from(existing.overrides.maxPairings)
+                ..remove(fixtureTypeId),
+            ),
+          ),
+        );
     });
   }
 }
@@ -376,8 +403,10 @@ class _FloatingContentToolbar extends StatelessWidget {
   final void Function(String newValue) onMaxSequenceBreakChanged;
   final void Function() onMaxSequenceBreakUnset;
   final void Function(
-          String locationName, LocationOverrideModel overrideContent)
-      onCopyButtonPressed;
+    String locationName,
+    LocationOverrideModel overrideContent,
+  )
+  onCopyButtonPressed;
   final void Function(String locationId) onPaste;
   final _ClipboardContents? clipboard;
 
@@ -398,8 +427,10 @@ class _FloatingContentToolbar extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Text(selectedLocation?.name ?? 'Location',
-              style: Theme.of(context).typography.lead),
+          child: Text(
+            selectedLocation?.name ?? 'Location',
+            style: Theme.of(context).typography.lead,
+          ),
         ),
         const SizedBox(height: 8),
         Padding(
@@ -412,7 +443,8 @@ class _FloatingContentToolbar extends StatelessWidget {
                 child: PropertyField(
                   textAlign: TextAlign.center,
                   label: 'Max Piggyback Break',
-                  value: selectedLocation?.overrides.maxSequenceBreak.value
+                  value:
+                      selectedLocation?.overrides.maxSequenceBreak.value
                           ?.toString() ??
                       globalMaxSequenceBreak.toString(),
                   onBlur: onMaxSequenceBreakChanged,
@@ -433,9 +465,9 @@ class _FloatingContentToolbar extends StatelessWidget {
                 onPressed: selectedLocation == null
                     ? null
                     : () => onCopyButtonPressed(
-                          selectedLocation!.name,
-                          selectedLocation!.overrides,
-                        ),
+                        selectedLocation!.name,
+                        selectedLocation!.overrides,
+                      ),
                 child: const Text('Copy'),
               ),
               const SizedBox(width: 8),
@@ -445,7 +477,7 @@ class _FloatingContentToolbar extends StatelessWidget {
                     ? () => onPaste(selectedLocation!.uid)
                     : null,
                 child: const Text('Paste'),
-              )
+              ),
             ],
           ),
         ),
@@ -471,9 +503,7 @@ class _FixtureOverrideViewModel {
 }
 
 class _FixtureOverrides extends StatelessWidget {
-  const _FixtureOverrides({
-    required this.fixtureOverrides,
-  });
+  const _FixtureOverrides({required this.fixtureOverrides});
 
   final List<_FixtureOverrideViewModel> fixtureOverrides;
 
@@ -481,16 +511,20 @@ class _FixtureOverrides extends StatelessWidget {
   Widget build(BuildContext context) {
     return FixtureTypeDataTable(
       items: fixtureOverrides
-          .map((override) => FixtureTypeViewModel(
-                qty: override.typeCountInLocation,
-                isMaxPairingsOverriden: override.maxPairings != null,
-                type: override.fixtureType.copyWith(
-                    maxPiggybacks: override
-                        .maxPairings), // Override the max Piggybacks value if we have an active override.
-                onMaxPairingsChanged: (value) => override.onMaxPairingsChanged(
-                    override.fixtureType.uid, value),
-                onMaxPairingsOverrideUnset: override.onMaxPairingsUnset,
-              ))
+          .map(
+            (override) => FixtureTypeViewModel(
+              qty: override.typeCountInLocation,
+              isMaxPairingsOverriden: override.maxPairings != null,
+              type: override.fixtureType.copyWith(
+                maxPiggybacks: override.maxPairings,
+              ), // Override the max Piggybacks value if we have an active override.
+              onMaxPairingsChanged: (value) => override.onMaxPairingsChanged(
+                override.fixtureType.uid,
+                value,
+              ),
+              onMaxPairingsOverrideUnset: override.onMaxPairingsUnset,
+            ),
+          )
           .toList(),
     );
   }
@@ -500,10 +534,7 @@ class _ClipboardContents {
   final String sourceLocationName;
   final LocationOverrideModel content;
 
-  _ClipboardContents({
-    required this.sourceLocationName,
-    required this.content,
-  });
+  _ClipboardContents({required this.sourceLocationName, required this.content});
 }
 
 class _LocationFixtureQty {
@@ -519,34 +550,40 @@ class _Sidebar extends StatelessWidget {
   final void Function(String locationId) onPaste;
   final _ClipboardContents? clipboard;
 
-  const _Sidebar(
-      {required this.locationsList,
-      required this.selectedLocationId,
-      required this.onLocationSelected,
-      required this.clipboard,
-      required this.onPaste});
+  const _Sidebar({
+    required this.locationsList,
+    required this.selectedLocationId,
+    required this.onLocationSelected,
+    required this.clipboard,
+    required this.onPaste,
+  });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 240,
       child: Card(
-          padding: EdgeInsets.zero,
-          child: ListView.builder(
-            itemCount: locationsList.length,
-            itemBuilder: (context, index) {
-              final location = locationsList[index];
+        padding: EdgeInsets.zero,
+        child: ListView.builder(
+          itemCount: locationsList.length,
+          itemBuilder: (context, index) {
+            final location = locationsList[index];
 
-              return HoverRegionBuilder(builder: (context, isHovering) {
+            return HoverRegionBuilder(
+              builder: (context, isHovering) {
                 return ShadListItem(
                   title: Text(location.name),
                   selected: location.uid == selectedLocationId,
                   onTap: () => onLocationSelected(location.uid),
                   leading: location.overrides.hasOverrides
-                      ? const Icon(Icons.check_circle,
-                          size: 12, color: Colors.teal)
+                      ? const Icon(
+                          Icons.check_circle,
+                          size: 12,
+                          color: Colors.teal,
+                        )
                       : null,
-                  trailing: clipboard != null &&
+                  trailing:
+                      clipboard != null &&
                           (isHovering || location.uid == selectedLocationId)
                       ? SizedBox(
                           width: 84,
@@ -570,9 +607,11 @@ class _Sidebar extends StatelessWidget {
                         )
                       : null,
                 );
-              });
-            },
-          )),
+              },
+            );
+          },
+        ),
+      ),
     );
   }
 }
@@ -613,8 +652,10 @@ class _PoolConfiguration extends StatelessWidget {
               const SizedBox(width: 8),
               Text(pool.name),
               const SizedBox(width: 24),
-              Text(_buildChildFixtureSlug(pool, fixtureTypes),
-                  style: Theme.of(context).typography.thin)
+              Text(
+                _buildChildFixtureSlug(pool, fixtureTypes),
+                style: Theme.of(context).typography.thin,
+              ),
             ],
           ),
         );
@@ -623,7 +664,9 @@ class _PoolConfiguration extends StatelessWidget {
   }
 
   String _buildChildFixtureSlug(
-      FixtureTypePoolModel pool, Map<String, FixtureTypeModel> fixtureTypes) {
+    FixtureTypePoolModel pool,
+    Map<String, FixtureTypeModel> fixtureTypes,
+  ) {
     return pool.items.values
         .map((item) => '${item.qty}x ${fixtureTypes[item.typeId]?.shortName}')
         .join(', ');

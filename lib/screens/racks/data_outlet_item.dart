@@ -2,6 +2,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/shad_list_item.dart';
 import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/widgets/hover_region.dart';
+import 'package:flutter/material.dart' show Icons;
 
 class DataOutletItem extends StatelessWidget {
   final bool assigned;
@@ -21,39 +22,49 @@ class DataOutletItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return HoverRegionBuilder(builder: (context, isHovering) {
-      return ShadListItem(
-        selected: selected,
-        enabled: !assigned,
-        leading: Icon(Icons.settings_input_svideo,
-            size: 16, color: assigned ? Colors.gray : SidekickColors.dataRun),
-        title: Text(
-          name,
-          style: Theme.of(context)
-              .typography
-              .mono
-              .copyWith(color: assigned ? Colors.gray : null),
-        ),
-        trailing: Row(
-          children: [
-            if (parentMultiName.isNotEmpty)
-              Card(
-                borderRadius: BorderRadius.circular(4),
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                filled: true,
-                fillColor: Colors.neutral.shade700,
-                child: Text(parentMultiName),
-              ),
-            SizedBox(
+    return HoverRegionBuilder(
+      builder: (context, isHovering) {
+        return ShadListItem(
+          selected: selected,
+          enabled: !assigned,
+          leading: Icon(
+            Icons.settings_input_svideo,
+            size: 16,
+            color: assigned ? Colors.gray : SidekickColors.dataRun,
+          ),
+          title: Text(
+            name,
+            style: Theme.of(
+              context,
+            ).typography.mono.copyWith(color: assigned ? Colors.gray : null),
+          ),
+          trailing: Row(
+            children: [
+              if (parentMultiName.isNotEmpty)
+                Card(
+                  borderRadius: BorderRadius.circular(4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
+                  filled: true,
+                  fillColor: Colors.neutral.shade700,
+                  child: Text(parentMultiName),
+                ),
+              SizedBox(
                 width: 64,
                 child: Align(
                   alignment: Alignment.centerRight,
-                  child: Text('U$universe',
-                      style: Theme.of(context).typography.mono),
-                )),
-          ],
-        ),
-      );
-    });
+                  child: Text(
+                    'U$universe',
+                    style: Theme.of(context).typography.mono,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }

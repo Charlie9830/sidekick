@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/extension_methods/clone_map.dart';
@@ -18,10 +19,7 @@ class PowerFeedManagerResult {
 
 class PowerFeedManager extends StatefulWidget {
   final Map<String, PowerFeedModel> existingPowerFeeds;
-  const PowerFeedManager({
-    super.key,
-    this.existingPowerFeeds = const {},
-  });
+  const PowerFeedManager({super.key, this.existingPowerFeeds = const {}});
 
   @override
   State<PowerFeedManager> createState() => _PowerFeedManagerState();
@@ -63,42 +61,46 @@ class _PowerFeedManagerState extends State<PowerFeedManager> {
             const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
-                  itemCount: feeds.length,
-                  itemBuilder: (context, index) {
-                    final item = feeds[index];
-                    return _FeedItem(
-                      isDefault: item.uid == PowerFeedModel.kDefaultPowerFeedId,
-                      onDelete: () {
-                        if (item.uid == PowerFeedModel.kDefaultPowerFeedId) {
-                          return;
-                        }
+                itemCount: feeds.length,
+                itemBuilder: (context, index) {
+                  final item = feeds[index];
+                  return _FeedItem(
+                    isDefault: item.uid == PowerFeedModel.kDefaultPowerFeedId,
+                    onDelete: () {
+                      if (item.uid == PowerFeedModel.kDefaultPowerFeedId) {
+                        return;
+                      }
 
-                        final updatedFeeds = _feeds.clone()..remove(item.uid);
-                        final deletedFeedIds = {..._deletedFeedIds, item.uid};
+                      final updatedFeeds = _feeds.clone()..remove(item.uid);
+                      final deletedFeedIds = {..._deletedFeedIds, item.uid};
 
-                        setState(() {
-                          _feeds = updatedFeeds;
-                          _deletedFeedIds = deletedFeedIds;
-                        });
-                      },
-                      name: item.name,
-                      capacity: item.capacity,
-                      onCapacityChanged: (newValue) => setState(() {
-                        _feeds = _feeds.clone()
-                          ..update(
-                              item.uid,
-                              (existing) => existing.copyWith(
-                                  capacity: int.tryParse(newValue.trim())));
-                      }),
-                      onNameChanged: (newValue) => setState(() {
-                        _feeds = _feeds.clone()
-                          ..update(
-                              item.uid,
-                              (existing) =>
-                                  existing.copyWith(name: newValue.trim()));
-                      }),
-                    );
-                  }),
+                      setState(() {
+                        _feeds = updatedFeeds;
+                        _deletedFeedIds = deletedFeedIds;
+                      });
+                    },
+                    name: item.name,
+                    capacity: item.capacity,
+                    onCapacityChanged: (newValue) => setState(() {
+                      _feeds = _feeds.clone()
+                        ..update(
+                          item.uid,
+                          (existing) => existing.copyWith(
+                            capacity: int.tryParse(newValue.trim()),
+                          ),
+                        );
+                    }),
+                    onNameChanged: (newValue) => setState(() {
+                      _feeds = _feeds.clone()
+                        ..update(
+                          item.uid,
+                          (existing) =>
+                              existing.copyWith(name: newValue.trim()),
+                        );
+                    }),
+                  );
+                },
+              ),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -109,14 +111,16 @@ class _PowerFeedManagerState extends State<PowerFeedManager> {
                   child: const Text('Cancel'),
                 ),
                 Button.primary(
-                    onPressed: () =>
-                        Navigator.of(context).pop(PowerFeedManagerResult(
-                          powerFeeds: _feeds,
-                          deletedFeedIds: _deletedFeedIds,
-                        )),
-                    child: const Text('Apply')),
+                  onPressed: () => Navigator.of(context).pop(
+                    PowerFeedManagerResult(
+                      powerFeeds: _feeds,
+                      deletedFeedIds: _deletedFeedIds,
+                    ),
+                  ),
+                  child: const Text('Apply'),
+                ),
               ],
-            )
+            ),
           ],
         ),
       ),
@@ -126,9 +130,10 @@ class _PowerFeedManagerState extends State<PowerFeedManager> {
   void _handleAddFeedButtonPressed() {
     setState(() {
       final newFeed = PowerFeedModel(
-          uid: getUid(),
-          name: 'Feed ${_feeds.values.length + 1}',
-          capacity: 400);
+        uid: getUid(),
+        name: 'Feed ${_feeds.values.length + 1}',
+        capacity: 400,
+      );
 
       _feeds = _feeds.clone()..addAll({newFeed.uid: newFeed});
     });
@@ -160,18 +165,14 @@ class _FeedItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(
-        top: 16.0,
-      ),
+      padding: const EdgeInsets.only(top: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (isDefault)
             const Padding(
               padding: EdgeInsets.only(bottom: 4.0),
-              child: Chip(
-                child: Text('Default'),
-              ),
+              child: Chip(child: Text('Default')),
             ),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,7 +180,10 @@ class _FeedItem extends StatelessWidget {
               Expanded(
                 flex: 3,
                 child: PropertyField(
-                    value: name, label: 'Name', onBlur: onNameChanged),
+                  value: name,
+                  label: 'Name',
+                  onBlur: onNameChanged,
+                ),
               ),
               const SizedBox(width: 8.0),
               Expanded(
@@ -189,9 +193,7 @@ class _FeedItem extends StatelessWidget {
                   label: 'Capacity',
                   suffix: 'Amps',
                   onBlur: onCapacityChanged,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 ),
               ),
               const SizedBox(width: 8.0),
@@ -202,7 +204,7 @@ class _FeedItem extends StatelessWidget {
                   size: ButtonSize.small,
                   onPressed: isDefault ? null : onDelete,
                 ),
-              )
+              ),
             ],
           ),
         ],

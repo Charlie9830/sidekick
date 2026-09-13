@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide TableHeader;
 import 'package:sidekick/screens/home/column_widths.dart';
 import 'package:sidekick/screens/home/table_header.dart';
@@ -28,22 +29,21 @@ class FixtureTableHeader extends StatelessWidget {
         }
       },
       columns: const [
-        TableHeaderColumn(
-            width: ColumnWidths.sequence,
-            label: Text(
-              'Seq#',
-            )),
+        TableHeaderColumn(width: ColumnWidths.sequence, label: Text('Seq#')),
         TableHeaderColumn(width: ColumnWidths.fid, label: Text('Fix#')),
         TableHeaderColumn(width: ColumnWidths.type, label: Text('Type')),
         TableHeaderColumn(width: ColumnWidths.mode, label: Text('Mode')),
         TableHeaderColumn(
-            width: ColumnWidths.location, label: Text('Location')),
+          width: ColumnWidths.location,
+          label: Text('Location'),
+        ),
         TableHeaderColumn(width: ColumnWidths.address, label: Text('Address')),
         TableHeaderColumn(
           width: ColumnWidths.powerPatch,
           label: IconLabel(
-              icon: Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
-              label: 'Patch'),
+            icon: Icon(Icons.electric_bolt, color: Colors.yellow, size: 16),
+            label: 'Patch',
+          ),
         ),
       ],
     );

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/diffing/compute_diffs.dart';
 import 'package:sidekick/diff_state_overlay.dart';
@@ -25,44 +26,54 @@ class HoistChannelContent extends StatelessWidget {
   Widget build(BuildContext context) {
     const divider = VerticalDivider(width: 16);
 
-    return HoverRegionBuilder(builder: (context, isHovering) {
-      return Row(
-        children: [
-          DiffStateOverlay(
-            diff: delta?.properties.lookup(PropertyDeltaName.hoistName),
-            child: SizedBox(
+    return HoverRegionBuilder(
+      builder: (context, isHovering) {
+        return Row(
+          children: [
+            DiffStateOverlay(
+              diff: delta?.properties.lookup(PropertyDeltaName.hoistName),
+              child: SizedBox(
                 width: HoistControllerColumnWidths.columnWidths[1],
                 child: Padding(
                   padding: const EdgeInsets.only(left: 8.0),
-                  child: Text(viewModel.hoist.name,
-                      style: Theme.of(context).typography.mono),
-                )),
-          ),
-          divider,
-          DiffStateOverlay(
-            diff: delta?.properties.lookup(PropertyDeltaName.locationName),
-            child: SizedBox(
+                  child: Text(
+                    viewModel.hoist.name,
+                    style: Theme.of(context).typography.mono,
+                  ),
+                ),
+              ),
+            ),
+            divider,
+            DiffStateOverlay(
+              diff: delta?.properties.lookup(PropertyDeltaName.locationName),
+              child: SizedBox(
                 width: HoistControllerColumnWidths.columnWidths[2],
-                child: Text(viewModel.locationName)),
-          ),
-          divider,
-          DiffStateOverlay(
-            diff: delta?.properties.lookup(PropertyDeltaName.hoistMultiName),
-            child: SizedBox(
+                child: Text(viewModel.locationName),
+              ),
+            ),
+            divider,
+            DiffStateOverlay(
+              diff: delta?.properties.lookup(PropertyDeltaName.hoistMultiName),
+              child: SizedBox(
                 width: HoistControllerColumnWidths.columnWidths[3],
-                child: Text(viewModel.multi,
-                    style: Theme.of(context).typography.mono)),
-          ),
-          divider,
-          DiffStateOverlay(
-            diff: delta?.properties.lookup(PropertyDeltaName.hoistPatch),
-            child: SizedBox(
+                child: Text(
+                  viewModel.multi,
+                  style: Theme.of(context).typography.mono,
+                ),
+              ),
+            ),
+            divider,
+            DiffStateOverlay(
+              diff: delta?.properties.lookup(PropertyDeltaName.hoistPatch),
+              child: SizedBox(
                 width: HoistControllerColumnWidths.columnWidths[4],
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(viewModel.patch,
-                        style: Theme.of(context).typography.mono),
+                    Text(
+                      viewModel.patch,
+                      style: Theme.of(context).typography.mono,
+                    ),
                     if (viewModel.hasRootCable == false)
                       const SimpleTooltip(
                         message:
@@ -72,40 +83,42 @@ class HoistChannelContent extends StatelessWidget {
                           size: 20,
                           color: SidekickColors.warning,
                         ),
-                      )
+                      ),
                   ],
-                )),
-          ),
-          divider,
-          DiffStateOverlay(
-            diff: delta?.properties.lookup(PropertyDeltaName.hoistNote),
-            child: SizedBox(
+                ),
+              ),
+            ),
+            divider,
+            DiffStateOverlay(
+              diff: delta?.properties.lookup(PropertyDeltaName.hoistNote),
+              child: SizedBox(
                 width: HoistControllerColumnWidths.columnWidths[5],
                 child: EditableTextField(
-                  style: Theme.of(context)
-                      .typography
-                      .normal
-                      .copyWith(fontStyle: FontStyle.italic),
+                  style: Theme.of(
+                    context,
+                  ).typography.normal.copyWith(fontStyle: FontStyle.italic),
                   value: viewModel.hoist.controllerNote,
                   onChanged: (newValue) => viewModel.onNoteChanged(newValue),
-                )),
-          ),
-          if (isHovering)
-            Expanded(
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: SimpleTooltip(
-                  message: 'Unpatch motor',
-                  child: IconButton.ghost(
-                    size: ButtonSize.small,
-                    icon: const Icon(Icons.clear),
-                    onPressed: onClearButtonPressed,
+                ),
+              ),
+            ),
+            if (isHovering)
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: SimpleTooltip(
+                    message: 'Unpatch motor',
+                    child: IconButton.ghost(
+                      size: ButtonSize.small,
+                      icon: const Icon(Icons.clear),
+                      onPressed: onClearButtonPressed,
+                    ),
                   ),
                 ),
               ),
-            )
-        ],
-      );
-    });
+          ],
+        );
+      },
+    );
   }
 }

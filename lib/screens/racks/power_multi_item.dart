@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/shad_list_item.dart';
 import 'package:sidekick/theme/sidekick_colors.dart';
@@ -17,20 +18,24 @@ class PowerMultiItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return HoverRegionBuilder(builder: (context, isHovering) {
-      return ShadListItem(
-        selected: selected,
-        enabled: !assigned,
-        leading: Icon(Icons.electric_bolt,
-            size: 16, color: assigned ? Colors.gray : SidekickColors.powerRun),
-        title: Text(
-          name,
-          style: Theme.of(context)
-              .typography
-              .mono
-              .copyWith(color: assigned ? Colors.gray : null),
-        ),
-      );
-    });
+    return HoverRegionBuilder(
+      builder: (context, isHovering) {
+        return ShadListItem(
+          selected: selected,
+          enabled: !assigned,
+          leading: Icon(
+            Icons.electric_bolt,
+            size: 16,
+            color: assigned ? Colors.gray : SidekickColors.powerRun,
+          ),
+          title: Text(
+            name,
+            style: Theme.of(
+              context,
+            ).typography.mono.copyWith(color: assigned ? Colors.gray : null),
+          ),
+        );
+      },
+    );
   }
 }

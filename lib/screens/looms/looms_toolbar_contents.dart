@@ -2,6 +2,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/screens/looms/cable_type_select.dart';
 import 'package:sidekick/simple_tooltip.dart';
+import 'package:flutter/material.dart' show Icons;
 
 class LoomsToolbarContents extends StatelessWidget {
   final void Function() onCombineIntoMultiButtonPressed;
@@ -33,25 +34,29 @@ class LoomsToolbarContents extends StatelessWidget {
     return Row(
       children: [
         SimpleTooltip(
-            message: 'Delete selected Cables',
-            child: IconButton.destructive(
-                onPressed: onDeleteSelectedCables,
-                icon: const Icon(Icons.delete))),
+          message: 'Delete selected Cables',
+          child: IconButton.destructive(
+            onPressed: onDeleteSelectedCables,
+            icon: const Icon(Icons.delete),
+          ),
+        ),
         spacer,
         const VerticalDivider(),
         spacer,
         SimpleTooltip(
           message: 'Combine DMX or Motor cable into Sneak/Motor Multi',
           child: IconButton.outline(
-              onPressed: onCombineIntoMultiButtonPressed,
-              icon: const Icon(Icons.merge)),
+            onPressed: onCombineIntoMultiButtonPressed,
+            icon: const Icon(Icons.merge),
+          ),
         ),
         spacer,
         SimpleTooltip(
           message: 'Split Sneak or Motor Multi',
           child: IconButton.outline(
-              onPressed: onSplitMultiButtonPressed,
-              icon: const Icon(Icons.call_split)),
+            onPressed: onSplitMultiButtonPressed,
+            icon: const Icon(Icons.call_split),
+          ),
         ),
         spacer,
         const VerticalDivider(),
@@ -62,16 +67,17 @@ class LoomsToolbarContents extends StatelessWidget {
           allowedTypes: const {CableType.socapex, CableType.wieland6way},
         ),
         SimpleTooltip(
-            message:
-                'Change Selected Power Multi cables to ${switch (defaultPowerMultiType) {
-              CableType.wieland6way => 'Wieland',
-              CableType.socapex => 'Socapex',
-              _ => '',
-            }}',
-            child: IconButton.ghost(
-              icon: const Icon(Icons.change_circle),
-              onPressed: onChangePowerMultiTypeOfSelectedCables,
-            )),
+          message:
+              'Change Selected Power Multi cables to ${switch (defaultPowerMultiType) {
+                CableType.wieland6way => 'Wieland',
+                CableType.socapex => 'Socapex',
+                _ => '',
+              }}',
+          child: IconButton.ghost(
+            icon: const Icon(Icons.change_circle),
+            onPressed: onChangePowerMultiTypeOfSelectedCables,
+          ),
+        ),
         const Spacer(),
         ?infoTrailer,
         SimpleTooltip(
@@ -82,7 +88,7 @@ class LoomsToolbarContents extends StatelessWidget {
             icon: const Icon(Icons.factory),
             onPressed: () => onShowAvailabilityDrawPressed(),
           ),
-        )
+        ),
       ],
     );
   }

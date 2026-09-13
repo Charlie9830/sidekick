@@ -9,8 +9,8 @@ Future<V?> showDialog<V>({
 }) async {
   return showOverlay<V>(
     context,
+    builder: builder,
     DialogConfiguration(
-      builder: builder,
       fullScreen: fullScreen,
       barrierDismissible: barrierDismissible,
       barrierColor: barrierColor,

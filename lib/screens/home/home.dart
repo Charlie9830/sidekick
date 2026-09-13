@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:sidekick/containers/breakout_cabling_container.dart';
 import 'package:sidekick/containers/diagnostics_container.dart';
 import 'package:sidekick/containers/export_container.dart';

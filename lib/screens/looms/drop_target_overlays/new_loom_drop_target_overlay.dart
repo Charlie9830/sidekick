@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/enums.dart';
 import 'package:sidekick/modifier_key_provider.dart';
@@ -10,12 +11,14 @@ import 'package:sidekick/view_models/looms_view_model.dart';
 
 class NewLoomDropTargetOverlay extends StatelessWidget {
   final void Function(
-          List<OutletViewModel> droppedVms, Set<CableActionModifier> modifiers)
-      onDropAsFeeder;
+    List<OutletViewModel> droppedVms,
+    Set<CableActionModifier> modifiers,
+  )
+  onDropAsFeeder;
   final void Function(List<String> cableIds, Set<CableActionModifier> modifiers)
-      onDropAsExtension;
+  onDropAsExtension;
   final void Function(List<String> cableIds, Set<CableActionModifier> modifiers)
-      onDropAsMoveCablesToNewLoom;
+  onDropAsMoveCablesToNewLoom;
 
   const NewLoomDropTargetOverlay({
     super.key,
@@ -35,23 +38,31 @@ class NewLoomDropTargetOverlay extends StatelessWidget {
           title: 'Feeder',
           onAccept: (data) {
             if (data is OutletDragData) {
-              onDropAsFeeder(data.outletVms.toList(),
-                  mapCableActionModifierKeys(keysDown));
+              onDropAsFeeder(
+                data.outletVms.toList(),
+                mapCableActionModifierKeys(keysDown),
+              );
             }
 
             if (data is CableDragData) {
               onDropAsMoveCablesToNewLoom(
-                  data.cableIds.toList(), mapCableActionModifierKeys(keysDown));
+                data.cableIds.toList(),
+                mapCableActionModifierKeys(keysDown),
+              );
             }
           },
           onWillAccept: (data) =>
               data is OutletDragData || data is CableDragData,
-          leadingInfoTag: mapCableActionModifierKeys(keysDown)
-                  .contains(CableActionModifier.convertToPermanent)
+          leadingInfoTag:
+              mapCableActionModifierKeys(
+                keysDown,
+              ).contains(CableActionModifier.convertToPermanent)
               ? const CreateAsPermanentLoomInfoTag()
               : null,
-          trailingInfoTag: mapCableActionModifierKeys(keysDown)
-                  .contains(CableActionModifier.combineIntoMultis)
+          trailingInfoTag:
+              mapCableActionModifierKeys(
+                keysDown,
+              ).contains(CableActionModifier.combineIntoMultis)
               ? const CombineIntoSneakInfoTag()
               : null,
         ),
@@ -61,16 +72,22 @@ class NewLoomDropTargetOverlay extends StatelessWidget {
           onAccept: (data) {
             if (data is CableDragData) {
               onDropAsExtension(
-                  data.cableIds.toList(), mapCableActionModifierKeys(keysDown));
+                data.cableIds.toList(),
+                mapCableActionModifierKeys(keysDown),
+              );
             }
           },
           onWillAccept: (data) => data is CableDragData,
-          leadingInfoTag: mapCableActionModifierKeys(keysDown)
-                  .contains(CableActionModifier.convertToPermanent)
+          leadingInfoTag:
+              mapCableActionModifierKeys(
+                keysDown,
+              ).contains(CableActionModifier.convertToPermanent)
               ? const CreateAsPermanentLoomInfoTag()
               : null,
-          trailingInfoTag: mapCableActionModifierKeys(keysDown)
-                  .contains(CableActionModifier.combineIntoMultis)
+          trailingInfoTag:
+              mapCableActionModifierKeys(
+                keysDown,
+              ).contains(CableActionModifier.combineIntoMultis)
               ? const CombineIntoSneakInfoTag()
               : null,
         ),

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/screens/racks/power_rack.dart';
 import 'package:sidekick/view_models/racks_screen_view_model.dart';
@@ -11,8 +12,9 @@ class PowerRacksAssignment extends StatelessWidget {
   Widget build(BuildContext context) {
     final racks = viewModel.powerRacks;
 
-    final addRackButton =
-        _PowerRackListTrailer(onAddButtonPressed: viewModel.onAddPowerRack);
+    final addRackButton = _PowerRackListTrailer(
+      onAddButtonPressed: viewModel.onAddPowerRack,
+    );
 
     if (racks.isEmpty) {
       return addRackButton;
@@ -27,9 +29,7 @@ class PowerRacksAssignment extends StatelessWidget {
 
         final rackVm = racks[index];
 
-        return PowerRack(
-          viewModel: rackVm,
-        );
+        return PowerRack(viewModel: rackVm);
       },
     );
   }
@@ -38,9 +38,7 @@ class PowerRacksAssignment extends StatelessWidget {
 class _PowerRackListTrailer extends StatelessWidget {
   final void Function() onAddButtonPressed;
 
-  const _PowerRackListTrailer({
-    required this.onAddButtonPressed,
-  });
+  const _PowerRackListTrailer({required this.onAddButtonPressed});
 
   @override
   Widget build(BuildContext context) {

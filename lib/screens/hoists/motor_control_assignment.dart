@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/open_shad_sheet.dart';
 import 'package:sidekick/screens/hoists/hoist_controller.dart';
@@ -20,14 +21,15 @@ class MotorControllerAssignment extends StatelessWidget {
     }
 
     return ListView.builder(
-        itemCount: controllers.length + 1,
-        itemBuilder: (context, index) {
-          if (controllers.isEmpty || index == controllers.length) {
-            return addControllerButton;
-          }
+      itemCount: controllers.length + 1,
+      itemBuilder: (context, index) {
+        if (controllers.isEmpty || index == controllers.length) {
+          return addControllerButton;
+        }
 
-          return HoistController(viewModel: controllers[index]);
-        });
+        return HoistController(viewModel: controllers[index]);
+      },
+    );
   }
 
   void _handleAddButtonPressed(BuildContext context) async {
@@ -70,9 +72,7 @@ class MotorControllerAssignment extends StatelessWidget {
 class _HoistControllerListTrailer extends StatelessWidget {
   final void Function() onAddButtonPressed;
 
-  const _HoistControllerListTrailer({
-    required this.onAddButtonPressed,
-  });
+  const _HoistControllerListTrailer({required this.onAddButtonPressed});
 
   @override
   Widget build(BuildContext context) {

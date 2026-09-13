@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart' show Icons;
 import 'package:redux/redux.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/classes/permanent_composition_selection.dart';

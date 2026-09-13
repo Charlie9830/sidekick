@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/card_subtitle.dart';
 import 'package:sidekick/redux/models/export_error_model.dart';
@@ -15,8 +16,10 @@ class Export extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        TitledCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TitledCard(
             title: 'Export',
             child: SizedBox(
               width: 600,
@@ -25,11 +28,12 @@ class Export extends StatelessWidget {
                 children: [
                   const CardSubtitle('Target Directory'),
                   switch (vm.lastUsedExportDirectory) {
-                    '' => Text('Choose an export location..',
-                        style: Theme.of(context)
-                            .typography
-                            .small
-                            .copyWith(color: Colors.gray)),
+                    '' => Text(
+                      'Choose an export location..',
+                      style: Theme.of(
+                        context,
+                      ).typography.small.copyWith(color: Colors.gray),
+                    ),
                     _ => Text(vm.lastUsedExportDirectory),
                   },
                   const SizedBox(height: 16),
@@ -42,45 +46,51 @@ class Export extends StatelessWidget {
                   SizedBox(
                     width: 200,
                     child: PropertyField(
-                        hintText: 'Enter a project name',
-                        value: vm.projectName,
-                        onBlur: vm.onProjectNameChanged),
+                      hintText: 'Enter a project name',
+                      value: vm.projectName,
+                      onBlur: vm.onProjectNameChanged,
+                    ),
                   ),
                   const SizedBox(height: 32),
                   const CardSubtitle('Settings'),
                   ShadListItem(
-                      trailing: Checkbox(
-                        onChanged: (value) => vm.onOpenAfterExportChanged(
-                            value == CheckboxState.checked),
-                        state: vm.openAfterExport
-                            ? CheckboxState.checked
-                            : CheckboxState.unchecked,
+                    trailing: Checkbox(
+                      onChanged: (value) => vm.onOpenAfterExportChanged(
+                        value == CheckboxState.checked,
                       ),
-                      title: const Text('Open after export')),
+                      state: vm.openAfterExport
+                          ? CheckboxState.checked
+                          : CheckboxState.unchecked,
+                    ),
+                    title: const Text('Open after export'),
+                  ),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       PrimaryButton(
-                          onPressed: vm.onExportButtonPressed,
-                          child: const Text('Export'))
+                        onPressed: vm.onExportButtonPressed,
+                        child: const Text('Export'),
+                      ),
                     ],
-                  )
+                  ),
                 ],
               ),
-            )),
-        TitledCard(
-          title: 'Errors',
-          child: SizedBox(
-            width: 600,
-            child: _ExportErrors(
-              errors: vm.exportErrors,
-              isValidating: vm.isValidating,
-              onRefreshPressed: vm.onValidateButtonPressed,
             ),
           ),
-        )
-      ]),
+          TitledCard(
+            title: 'Errors',
+            child: SizedBox(
+              width: 600,
+              child: _ExportErrors(
+                errors: vm.exportErrors,
+                isValidating: vm.isValidating,
+                onRefreshPressed: vm.onValidateButtonPressed,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -127,13 +137,18 @@ class _ExportErrorItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ShadListItem(
-        leading: switch (errorItem.level) {
-          ExportErrorLevel.warning =>
-            const Icon(Icons.error, color: SidekickColors.warning),
-          ExportErrorLevel.critical =>
-            const Icon(Icons.error, color: SidekickColors.error),
-        },
-        title: Text(errorItem.name),
-        subtitle: Text(errorItem.message));
+      leading: switch (errorItem.level) {
+        ExportErrorLevel.warning => const Icon(
+          Icons.error,
+          color: SidekickColors.warning,
+        ),
+        ExportErrorLevel.critical => const Icon(
+          Icons.error,
+          color: SidekickColors.error,
+        ),
+      },
+      title: Text(errorItem.name),
+      subtitle: Text(errorItem.message),
+    );
   }
 }

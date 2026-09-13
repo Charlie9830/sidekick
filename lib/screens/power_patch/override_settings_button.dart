@@ -1,6 +1,7 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/simple_tooltip.dart';
 import 'package:sidekick/theme/sidekick_colors.dart';
+import 'package:flutter/material.dart' show Icons;
 
 class OverrideSettingsButton extends StatelessWidget {
   const OverrideSettingsButton({
@@ -19,12 +20,13 @@ class OverrideSettingsButton extends StatelessWidget {
           ? 'Global settings have been overridden for this location'
           : null,
       child: OutlineBadge(
-          style: const ButtonStyle.outline(),
-          trailing: hasOverrides
-              ? const Icon(Icons.check_circle, color: SidekickColors.success)
-              : null,
-          onPressed: onPressed,
-          child: const Text('Settings')),
+        style: const ButtonStyle.outline(),
+        trailing: hasOverrides
+            ? const Icon(Icons.check_circle, color: SidekickColors.success)
+            : null,
+        onPressed: onPressed,
+        child: const Text('Settings'),
+      ),
     );
   }
 }

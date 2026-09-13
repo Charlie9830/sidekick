@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/classes/named_colors.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
@@ -8,10 +9,7 @@ import 'package:sidekick/screens/locations/color_chit.dart';
 class ColorSelectDialog extends StatefulWidget {
   final LabelColorModel color;
 
-  const ColorSelectDialog({
-    super.key,
-    required this.color,
-  });
+  const ColorSelectDialog({super.key, required this.color});
 
   @override
   State<ColorSelectDialog> createState() => _ColorSelectDialogState();
@@ -39,31 +37,34 @@ class _ColorSelectDialogState extends State<ColorSelectDialog> {
             const Text('Select Colour'),
             const Spacer(),
             IconButton.ghost(
-                onPressed: () => setState(() {
-                      _color = _color.copyWith(
-                          colors: _color.colors.toList()..removeLast());
-                    }),
-                icon: const Icon(Icons.remove_circle)),
+              onPressed: () => setState(() {
+                _color = _color.copyWith(
+                  colors: _color.colors.toList()..removeLast(),
+                );
+              }),
+              icon: const Icon(Icons.remove_circle),
+            ),
             IconButton.ghost(
-                onPressed: () async {
-                  setState(
-                    () {
-                      _color = _color.copyWith(
-                        colors: _color.colors.toList()..add(NamedColors.none),
-                      );
-                    },
+              onPressed: () async {
+                setState(() {
+                  _color = _color.copyWith(
+                    colors: _color.colors.toList()..add(NamedColors.none),
                   );
+                });
 
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                WidgetsBinding.instance.addPostFrameCallback(
+                  (_) {
                     _scrollController.animateTo(
-                        _scrollController.position.maxScrollExtent,
-                        duration: const Duration(milliseconds: 125),
-                        curve: Curves.easeOutCubic);
+                      _scrollController.position.maxScrollExtent,
+                      duration: const Duration(milliseconds: 125),
+                      curve: Curves.easeOutCubic,
+                    );
                   },
-                      debugLabel:
-                          'Post Frame Callback. Animate to end of ListView');
-                },
-                icon: const Icon(Icons.add_circle)),
+                  debugLabel: 'Post Frame Callback. Animate to end of ListView',
+                );
+              },
+              icon: const Icon(Icons.add_circle),
+            ),
           ],
         ),
         content: SizedBox(
@@ -78,16 +79,15 @@ class _ColorSelectDialogState extends State<ColorSelectDialog> {
                     return Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: _SelectableColorRow(
-                          value: namedColor,
-                          number: index + 1,
-                          onChanged: (newValue) => setState(() {
-                                final newList = _color.colors.toList();
-                                newList[index] = newValue;
+                        value: namedColor,
+                        number: index + 1,
+                        onChanged: (newValue) => setState(() {
+                          final newList = _color.colors.toList();
+                          newList[index] = newValue;
 
-                                _color = _color.copyWith(
-                                  colors: newList,
-                                );
-                              })),
+                          _color = _color.copyWith(colors: newList);
+                        }),
+                      ),
                     );
                   }).toList(),
                 ),
@@ -104,7 +104,7 @@ class _ColorSelectDialogState extends State<ColorSelectDialog> {
           Button.primary(
             child: const Text('Apply'),
             onPressed: () => Navigator.of(context).pop(_color),
-          )
+          ),
         ],
       ),
     );
