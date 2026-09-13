@@ -2,7 +2,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/screens/looms/cable_type_select.dart';
 import 'package:sidekick/simple_tooltip.dart';
-import 'package:flutter/material.dart' show Icons;
+import 'package:material_ui/material_ui.dart' show Icons;
 
 class LoomsToolbarContents extends StatelessWidget {
   final void Function() onCombineIntoMultiButtonPressed;

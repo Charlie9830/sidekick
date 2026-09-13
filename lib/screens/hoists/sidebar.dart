@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' show Icons;
+import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/screens/hoists/hoist_location_item.dart';
 import 'package:sidekick/slotted_list/slot_assignment_controller.dart';

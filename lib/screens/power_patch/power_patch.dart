@@ -7,7 +7,7 @@ import 'package:sidekick/screens/power_patch/power_feeds_drawer.dart';
 import 'package:sidekick/view_models/power_patch_view_model.dart';
 import 'package:sidekick/widgets/property_field.dart';
 import 'package:sidekick/widgets/toolbar.dart';
-import 'package:flutter/material.dart' show Icons;
+import 'package:material_ui/material_ui.dart' show Icons;
 
 class PowerPatch extends StatefulWidget {
   final PowerPatchViewModel vm;

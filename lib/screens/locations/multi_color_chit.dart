@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:sidekick/classes/named_colors.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
 

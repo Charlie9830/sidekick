@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart' as mat;
+import 'package:material_ui/material_ui.dart' as mat;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/diffing/compute_diffs.dart';
 import 'package:sidekick/diff_state_overlay.dart';

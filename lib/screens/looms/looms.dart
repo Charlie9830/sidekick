@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart' show ReorderableListView;
+import 'package:material_ui/material_ui.dart' show ReorderableListView;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/builders/build_cable_row_item.dart';
 import 'package:sidekick/drag_overlay_region/drag_overlay_region.dart';

@@ -3,7 +3,7 @@ import 'package:sidekick/diff_state_overlay.dart';
 import 'package:sidekick/diffing/diff_comparable.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/screens/diffing/property_delta.dart';
-import 'package:flutter/material.dart' show Icons;
+import 'package:material_ui/material_ui.dart' show Icons;
 
 class LocationHeaderRow extends StatelessWidget {
   final LocationModel location;

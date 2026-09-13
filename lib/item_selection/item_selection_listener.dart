@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:sidekick/item_selection/item_selection_messenger.dart';
 
 enum ActivationType {

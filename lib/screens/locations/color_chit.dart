@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:sidekick/redux/models/named_color_model.dart';
 
 class ColorChit extends StatelessWidget {

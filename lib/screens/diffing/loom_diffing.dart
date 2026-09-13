@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:sidekick/builders/build_cable_row_item.dart';
 import 'package:sidekick/diff_state_overlay.dart';
 import 'package:sidekick/page_storage_keys.dart';

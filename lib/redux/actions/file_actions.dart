@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart' show Icons;
+import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:file_selector/file_selector.dart';
 import 'package:path/path.dart' as p;
 import 'package:redux/redux.dart';

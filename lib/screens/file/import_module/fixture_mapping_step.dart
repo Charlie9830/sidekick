@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' show Icons;
+import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/file_select_button.dart';
 import 'package:sidekick/screens/file/import_module/fixture_mapping_view_model.dart';

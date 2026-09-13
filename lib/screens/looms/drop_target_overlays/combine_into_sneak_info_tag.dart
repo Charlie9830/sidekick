@@ -1,5 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:flutter/material.dart' show Icons;
+import 'package:material_ui/material_ui.dart' show Icons;
 
 class CombineIntoSneakInfoTag extends StatelessWidget {
   const CombineIntoSneakInfoTag({super.key});

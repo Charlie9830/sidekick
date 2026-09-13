@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Draws a cable as an orthogonal "channel": it leaves [start] perpendicular to
 /// the truss (vertically), runs parallel to the truss at a plateau, then

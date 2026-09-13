@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ItemSelectionMessenger<T> extends InheritedWidget {
   final void Function(PointerEvent e, T value) onItemPointerEvent;

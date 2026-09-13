@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Provided a Controller class that coordinates the [isDragging] state to child widgets.
 class DragProxyController extends StatefulWidget {
