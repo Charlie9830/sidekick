@@ -589,9 +589,7 @@ class _ImportManagerState extends State<ImportManager> {
         x: incomingFixture.x,
         y: incomingFixture.y,
         z: incomingFixture.z,
-        rotationX: incomingFixture.rotationX,
-        rotationY: incomingFixture.rotationY,
-        rotationZ: incomingFixture.rotationZ,
+        rotation: incomingFixture.rotation,
       );
     }).toList();
 

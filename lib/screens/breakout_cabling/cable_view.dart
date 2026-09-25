@@ -1,8 +1,8 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/cable_graph/cable_graph.dart';
+import 'package:sidekick/cable_graph/vector3.dart';
 import 'package:sidekick/cable_graph/view_projection.dart';
 import 'package:sidekick/cable_graph/viewport_transformer.dart';
-import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/screens/breakout_cabling/route_tuning_control.dart';
 import 'package:sidekick/screens/breakout_cabling/visibility_control.dart';
 import 'package:sidekick/theme/sidekick_colors.dart';
@@ -89,49 +89,47 @@ class _CableViewState extends State<CableView> {
     ViewportTransformer viewport,
     ViewProjection projection,
   ) {
-    final from = _diagramPosition(edge.fromElement, projection);
-    final to = _diagramPosition(edge.toElement, projection);
+    final (fromPoint, toPoint) = switch (edge) {
+      CableEdgeElement() => (edge.fromPoint, edge.toPoint),
+      LogicalEdgeElement() => (null, null),
+    };
+    final from = _endpointPosition(edge.fromElement, fromPoint, projection);
+    final to = _endpointPosition(edge.toElement, toPoint, projection);
     final fromOffset = viewport.transform(from.dx, from.dy);
     final toOffset = viewport.transform(to.dx, to.dy);
 
     return Positioned.fill(
       child: switch (edge) {
-        PsuedoEdgeElement() => const SizedBox(),
-        CableEdgeElement() => switch (edge.type) {
-          CableType.unknown => throw UnimplementedError(),
-          CableType.wieland6way => throw UnimplementedError(),
-          CableType.sneak => throw UnimplementedError(),
-          CableType.hoist => throw UnimplementedError(),
-          CableType.hoistMulti => throw UnimplementedError(),
-          CableType.true1 => throw UnimplementedError(),
-          CableType.dmx => _buildDataCableEdge(
+        LogicalEdgeElement() => const SizedBox(),
+        CableEdgeElement() => switch (edge.type.signal) {
+          CableSignal.power => _buildPowerCableEdge(
             edge: edge,
             fromOffset: fromOffset,
             toOffset: toOffset,
           ),
-          CableType.au10a || CableType.socapex => _buildPowerCableEdge(
+          CableSignal.data => _buildDataCableEdge(
             edge: edge,
             fromOffset: fromOffset,
             toOffset: toOffset,
           ),
-          CableType.socapexToAu10ALampHeader => throw UnimplementedError(),
-          CableType.socapexToTrue1LampHeader => throw UnimplementedError(),
-          CableType.wieland6WayLampHeader => throw UnimplementedError(),
-          CableType.sneakLampHeader => throw UnimplementedError(),
-          CableType.hoistMultiLampHeader => throw UnimplementedError(),
-          CableType.hoistMultiRackHeader => throw UnimplementedError(),
-          CableType.socapexTo6wayAdaptor => throw UnimplementedError(),
-          CableType.sneakRackHeader => throw UnimplementedError(),
-          CableType.nac3Joiner => throw UnimplementedError(),
-          CableType.nac3 => throw UnimplementedError(),
-          CableType.wilco32a => throw UnimplementedError(),
-          CableType.consoleLoom => throw UnimplementedError(),
-          CableType.etherconJoiner => throw UnimplementedError(),
-          CableType.ethercon => throw UnimplementedError(),
-          CableType.wieland6WayRackHeader => throw UnimplementedError(),
+          CableSignal.network ||
+          CableSignal.hoist ||
+          CableSignal.none => const SizedBox(),
         },
       },
     );
+  }
+
+  /// Where an edge meets [node]: the connector [point] when the node is a
+  /// fixture, otherwise the node's own (possibly lifted) diagram position.
+  Offset _endpointPosition(
+    NodeElement node,
+    Vector3? point,
+    ViewProjection projection,
+  ) {
+    return node is FixtureElement && point != null
+        ? projection.projectVector(point)
+        : _diagramPosition(node, projection);
   }
 
   Positioned _buildNode(

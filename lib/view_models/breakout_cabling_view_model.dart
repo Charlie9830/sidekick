@@ -157,64 +157,24 @@ class CableEdgeElement extends EdgeElement {
   final double length;
   final CableRunType runType;
 
+  /// Where the cable plugs in at each end, when that is not the element's
+  /// own position (e.g. a connector at one end of a fixture).
+  final Vector3? fromPoint;
+  final Vector3? toPoint;
+
   CableEdgeElement({
     required this.type,
     required this.length,
     required this.runType,
+    this.fromPoint,
+    this.toPoint,
     required super.toElement,
     required super.fromElement,
   });
 }
 
-class PsuedoEdgeElement extends EdgeElement {
-  PsuedoEdgeElement({required super.toElement, required super.fromElement});
-}
-
-class CableLengthBreakpoints {
-  static List<double> au10A = [1, 2, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
-
-  static List<double> motorMulti = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
-
-  static List<double> socapex = [
-    2,
-    3,
-    5,
-    7.5,
-    10,
-    12.5,
-    15,
-    17.5,
-    20,
-    25,
-    30,
-    35,
-    40,
-    45,
-    50,
-  ];
-
-  static List<double> wieland6Way = [
-    2,
-    3,
-    5,
-    7.5,
-    10,
-    12.5,
-    15,
-    17.5,
-    20,
-    25,
-    30,
-    35,
-    40,
-    45,
-    50,
-  ];
-
-  static List<double> dmx = [1, 2, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
-  static List<double> true1 = [0.7, 1, 2, 3, 5, 10, 15];
-  static List<double> sneak = [2, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
-  static List<double> nac3 = [0.5, 1, 2, 3, 5, 10];
+class LogicalEdgeElement extends EdgeElement {
+  LogicalEdgeElement({required super.toElement, required super.fromElement});
 }
 
 class CableQtyGroup {
@@ -253,6 +213,8 @@ class CableQtyGroup {
       CableType.consoleLoom => 'Console Loom',
       CableType.etherconJoiner => 'Ethercon Joiner',
       CableType.ethercon => 'Ethercon',
+      CableType.au10aToTrue1Adaptor => 'AU10A to True1 Adaptor',
+      CableType.au10aToNac3Adaptor => 'AU10A to Powercon Adaptor',
     };
 
     const lengthLessTypes = {
@@ -267,6 +229,8 @@ class CableQtyGroup {
       CableType.wieland6WayRackHeader,
       CableType.etherconJoiner,
       CableType.nac3Joiner,
+      CableType.au10aToTrue1Adaptor,
+      CableType.au10aToNac3Adaptor,
     };
 
     if (lengthLessTypes.contains(type)) {
@@ -340,6 +304,11 @@ class CableQtyGroup {
     ..._buildQtyGroups(CableLengthBreakpoints.sneak, CableType.sneak),
   ];
 
+  static List<CableQtyGroup> adaptorGroups = [
+    CableQtyGroup(type: CableType.au10aToTrue1Adaptor, length: 0),
+    CableQtyGroup(type: CableType.au10aToNac3Adaptor, length: 0),
+  ];
+
   static List<CableQtyGroup> allGroups = [
     ...socapexGroups,
     ...wieland6WayGroups,
@@ -351,6 +320,7 @@ class CableQtyGroup {
     ...etherconGroups,
     ...wilcoGroups,
     ...nac3Groups,
+    ...adaptorGroups,
   ];
 
   static List<CableQtyGroup> _buildQtyGroups(

@@ -319,6 +319,8 @@ class _CableRowItemState extends State<CableRowItem> {
       CableType.etherconJoiner => throw UnimplementedError(),
       CableType.ethercon => throw UnimplementedError(),
       CableType.wieland6WayRackHeader => throw UnimplementedError(),
+      CableType.au10aToTrue1Adaptor ||
+      CableType.au10aToNac3Adaptor => throw UnimplementedError(),
     };
   }
 

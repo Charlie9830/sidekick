@@ -1,41 +1,66 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
+import 'package:sidekick/redux/models/fixture_type_cabling_override.dart';
+
 class LocationOverrideModel {
   final OptionalInt maxSequenceBreak;
   final Map<String, int> maxPairings;
   final Set<String> enabledFixtureTypePoolIds;
 
+  /// Breakout cabling overrides, keyed by fixture type id.
+  final Map<String, FixtureTypeCablingOverride> cabling;
+
   LocationOverrideModel({
     this.maxPairings = const {},
     this.maxSequenceBreak = const OptionalInt.unset(),
     this.enabledFixtureTypePoolIds = const {},
+    this.cabling = const {},
   });
 
   const LocationOverrideModel.none()
     : maxPairings = const {},
       maxSequenceBreak = const OptionalInt.unset(),
-      enabledFixtureTypePoolIds = const {};
+      enabledFixtureTypePoolIds = const {},
+      cabling = const {};
 
   bool get hasOverrides =>
       maxSequenceBreak != const LocationOverrideModel.none().maxSequenceBreak ||
       maxPairings.isNotEmpty ||
-      enabledFixtureTypePoolIds.isNotEmpty;
+      enabledFixtureTypePoolIds.isNotEmpty ||
+      cabling.isNotEmpty;
 
   int getMaxPairings({required String typeId, required int valueIfAbsent}) {
     return maxPairings[typeId] ?? valueIfAbsent;
   }
 
+  /// The cabling override for [typeId], or an empty one when there is none.
+  FixtureTypeCablingOverride getCabling(String typeId) =>
+      cabling[typeId] ?? const FixtureTypeCablingOverride.none();
+
+  /// These overrides with [typeId]'s cabling replaced by [override], dropping
+  /// the entry altogether when [override] is empty.
+  LocationOverrideModel withCabling(
+    String typeId,
+    FixtureTypeCablingOverride override,
+  ) => copyWith(
+    cabling: Map.of(cabling)
+      ..remove(typeId)
+      ..addAll({if (!override.isEmpty) typeId: override}),
+  );
+
   LocationOverrideModel copyWith({
     OptionalInt? maxSequenceBreak,
     Map<String, int>? maxPairings,
     Set<String>? enabledFixtureTypePoolIds,
+    Map<String, FixtureTypeCablingOverride>? cabling,
   }) {
     return LocationOverrideModel(
       maxSequenceBreak: maxSequenceBreak ?? this.maxSequenceBreak,
       maxPairings: maxPairings ?? this.maxPairings,
       enabledFixtureTypePoolIds:
           enabledFixtureTypePoolIds ?? this.enabledFixtureTypePoolIds,
+      cabling: cabling ?? this.cabling,
     );
   }
 
@@ -44,6 +69,10 @@ class LocationOverrideModel {
       'maxSequenceBreak': maxSequenceBreak.toMap(),
       'maxPairings': maxPairings,
       'enabledFixtureTypePoolIds': enabledFixtureTypePoolIds.toList(),
+      'cabling': {
+        for (final MapEntry(:key, :value) in cabling.entries)
+          key: value.toMap(),
+      },
     };
   }
 
@@ -56,11 +85,19 @@ class LocationOverrideModel {
       enabledFixtureTypePoolIds: Set<String>.from(
         map['enabledFixtureTypePoolIds'] ?? <String>[],
       ),
+      cabling: {
+        for (final MapEntry(:key, :value)
+            in (map['cabling'] as Map<String, dynamic>? ?? {}).entries)
+          key: FixtureTypeCablingOverride.fromMap(
+            value as Map<String, dynamic>,
+          ),
+      },
     );
 
     return raw.maxSequenceBreak.value == null &&
             raw.maxPairings.isEmpty &&
-            raw.enabledFixtureTypePoolIds.isEmpty
+            raw.enabledFixtureTypePoolIds.isEmpty &&
+            raw.cabling.isEmpty
         ? const LocationOverrideModel.none()
         : raw;
   }

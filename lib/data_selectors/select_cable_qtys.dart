@@ -1,6 +1,5 @@
 import 'package:collection/collection.dart';
 import 'package:sidekick/cable_graph/cable_graph.dart';
-import 'package:sidekick/redux/models/cable_model.dart';
 import 'package:sidekick/redux/state/app_state.dart';
 import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
 
@@ -18,80 +17,42 @@ CableGraph buildCableGraphForState(AppState state) {
     dataMultis: state.fixtureState.dataMultis,
     dataPatches: state.fixtureState.dataPatches,
     trusses: state.fixtureState.trusses,
+    defaultPowerMulti: state.fixtureState.defaultPowerMulti,
   );
 }
 
 /// Per-location cable quantities derived from a built [CableGraph].
 ///
-/// Combines the individual cable runs (counted by `(type, length)`) with the
-/// lamp-header quantities implied by each multi header. Runs broken at truss
-/// joins appear as their shorter segments, so the counts reflect the real cable
-/// list. Shared by the breakout-cabling screen, the Excel export and diffing.
+/// Counts every cable run by `(type, length)`, every adaptor those runs need,
+/// and the lamp header of each multi header. Runs broken at truss joins appear
+/// as their shorter segments, so the counts reflect the real cable list.
+/// Shared by the breakout-cabling screen, the Excel export and diffing.
 Map<String, Map<CableQtyGroup, int>> selectCableQtysByLocationId(
-    CableGraph graph) {
-  final cablesByLocationId = _cableQtysByLocationId(graph);
-  final headersByLocationId = _headerQtysByLocationId(graph);
+  CableGraph graph,
+) {
+  final cableEdges = graph.edges.whereType<CableEdge>();
+  final items = <(String, CableQtyGroup)>[
+    for (final edge in cableEdges) ...[
+      (edge.locationId, CableQtyGroup(type: edge.type, length: edge.length)),
+      if (edge.adaptorType case final adaptor?)
+        (edge.locationId, CableQtyGroup(type: adaptor, length: 0)),
+    ],
+    for (final header in graph.nodes.whereType<MultiHeaderNode>())
+      (
+        header.locationId,
+        CableQtyGroup(type: header.lampHeaderType, length: 0),
+      ),
+  ];
 
-  final result = <String, Map<CableQtyGroup, int>>{};
-  final locationIds = {
-    ...cablesByLocationId.keys,
-    ...headersByLocationId.keys,
-  };
+  return items
+      .groupListsBy((item) => item.$1)
+      .map((locationId, located) => MapEntry(locationId, _count(located)));
+}
 
-  for (final locationId in locationIds) {
-    result[locationId] = {
-      ...?cablesByLocationId[locationId],
-      ...?headersByLocationId[locationId],
-    };
+Map<CableQtyGroup, int> _count(Iterable<(String, CableQtyGroup)> items) {
+  final counts = <CableQtyGroup, int>{};
+  for (final (_, group) in items) {
+    counts.update(group, (count) => count + 1, ifAbsent: () => 1);
   }
-
-  return result;
-}
-
-Map<String, Map<CableQtyGroup, int>> _cableQtysByLocationId(CableGraph graph) {
-  return Map<String, Map<CableQtyGroup, int>>.fromEntries(graph.edges
-      .whereType<CableEdge>()
-      .groupListsBy((edge) => edge.locationId)
-      .entries
-      .map((entry) {
-    final groups = entry.value
-        .map((edge) => CableQtyGroup(type: edge.type, length: edge.length));
-
-    final map = <CableQtyGroup, int>{};
-    for (final group in groups) {
-      map.update(group, (count) => count + 1, ifAbsent: () => 1);
-    }
-
-    return MapEntry(entry.key, map);
-  }));
-}
-
-Map<String, Map<CableQtyGroup, int>> _headerQtysByLocationId(CableGraph graph) {
-  return Map<String, Map<CableQtyGroup, int>>.fromEntries(graph.nodes
-      .whereType<MultiHeaderNode>()
-      .groupListsBy((node) => node.locationId)
-      .entries
-      .map((entry) {
-    final groups = entry.value.map((node) => CableQtyGroup(
-        type: switch (node) {
-          DataMultiHeaderNode() => CableType.sneakLampHeader,
-          PowerMultiHeaderNode() => switch (node.cableType) {
-              CableType.socapex => node.edges
-                      .whereType<CableEdge>()
-                      .every((edge) => edge.type == CableType.true1)
-                  ? CableType.socapexToTrue1LampHeader
-                  : CableType.socapexToAu10ALampHeader,
-              CableType.wieland6way => CableType.wieland6WayLampHeader,
-              _ => throw UnimplementedError(),
-            }
-        },
-        length: 0));
-
-    final map = <CableQtyGroup, int>{};
-    for (final group in groups) {
-      map.update(group, (count) => count + 1, ifAbsent: () => 1);
-    }
-
-    return MapEntry(entry.key, map);
-  }));
+  return counts;
 }

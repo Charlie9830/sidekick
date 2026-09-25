@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:sidekick/fixture_type_mapping_parser/fixture_data_mapper/fixture_mapping_errors.dart';
+import 'package:mvr/mvr.dart';
 import 'package:sidekick/redux/models/dmx_address_model.dart';
 
 class RawFixtureModel {
@@ -22,9 +23,9 @@ class RawFixtureModel {
   final double x;
   final double y;
   final double z;
-  final double rotationX;
-  final double rotationY;
-  final double rotationZ;
+
+  /// The fixture's orientation in world space, with no translation.
+  final MVRMatrix rotation;
 
   RawFixtureModel({
     required this.fixtureId,
@@ -46,9 +47,7 @@ class RawFixtureModel {
     this.x = 0,
     this.y = 0,
     this.z = 0,
-    this.rotationX = 0,
-    this.rotationY = 0,
-    this.rotationZ = 0,
+    this.rotation = const MVRMatrix.identity(),
   });
 
   RawFixtureModel copyWith({
@@ -71,9 +70,7 @@ class RawFixtureModel {
     double? x,
     double? y,
     double? z,
-    double? rotationX,
-    double? rotationY,
-    double? rotationZ,
+    MVRMatrix? rotation,
   }) {
     return RawFixtureModel(
       mvrId: mvrId ?? this.mvrId,
@@ -96,9 +93,7 @@ class RawFixtureModel {
       x: x ?? this.x,
       y: y ?? this.y,
       z: z ?? this.z,
-      rotationX: rotationX ?? this.rotationX,
-      rotationY: rotationY ?? this.rotationY,
-      rotationZ: rotationZ ?? this.rotationZ,
+      rotation: rotation ?? this.rotation,
     );
   }
 }

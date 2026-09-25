@@ -1,4 +1,5 @@
 import 'package:mvr/mvr.dart';
+import 'package:sidekick/extension_methods/mvr_matrix_extensions.dart';
 
 /// An electrical connection point of a fixture type, such as a power input or
 /// a DMX thru, captured from a GDTF `WiringObject`.
@@ -86,7 +87,7 @@ class WiringObjectModel {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'name': name,
-      'matrix': _matrixToJson(matrix),
+      'matrix': matrix.toJson(),
       'connectorType': connectorType?.xmlValue,
       'componentType': componentType?.xmlValue,
       'signalType': signalType?.xmlValue,
@@ -96,7 +97,7 @@ class WiringObjectModel {
   factory WiringObjectModel.fromMap(Map<String, dynamic> map) {
     return WiringObjectModel(
       name: (map['name'] ?? '') as String,
-      matrix: _matrixFromJson(map['matrix']),
+      matrix: MVRMatrixExtensions.fromJson(map['matrix']),
       connectorType: GDTFConnectorType.fromXmlValue(
         map['connectorType'] as String?,
       ),
@@ -105,30 +106,5 @@ class WiringObjectModel {
       ),
       signalType: GDTFSignalType.fromXmlValue(map['signalType'] as String?),
     );
-  }
-
-  /// Serializes [matrix] as its four rows of three doubles.
-  ///
-  /// [MVRMatrix] has no JSON support of its own, but its backing
-  /// `List<List<double>>` encodes directly. The rows are copied so the map
-  /// never aliases the matrix's mutable lists.
-  static List<List<double>> _matrixToJson(MVRMatrix matrix) => [
-    for (final row in matrix.matrix) [...row],
-  ];
-
-  /// Parses a 4x3 matrix serialized by [toMap], falling back to identity when
-  /// the value is missing or malformed so a bad entry cannot break file load.
-  static MVRMatrix _matrixFromJson(Object? value) {
-    if (value is! List || value.length != 4) {
-      return const MVRMatrix.identity();
-    }
-
-    final rows = [
-      for (final row in value)
-        if (row is List && row.length == 3 && row.every((cell) => cell is num))
-          [for (final cell in row) (cell as num).toDouble()],
-    ];
-
-    return rows.length == 4 ? MVRMatrix(rows) : const MVRMatrix.identity();
   }
 }

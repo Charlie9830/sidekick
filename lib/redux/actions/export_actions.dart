@@ -14,7 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:sidekick/classes/export_file_paths.dart';
 import 'package:sidekick/excel/create_color_lookup_sheet.dart';
-import 'package:sidekick/cable_graph/cable_graph.dart';
+import 'package:sidekick/data_selectors/select_cable_qtys.dart';
 import 'package:sidekick/excel/create_breakout_cabling_sheet.dart';
 import 'package:sidekick/excel/create_data_multi_sheet.dart';
 import 'package:sidekick/excel/create_data_patch_sheet.dart';
@@ -208,16 +208,7 @@ ThunkAction<AppState> export(BuildContext context) {
     createBreakoutCablingSheet(
       excel: breakoutCablingExcel,
       locations: store.state.fixtureState.locations,
-      cableGraph: buildCableGraph(
-        fixtures: store.state.fixtureState.fixtures,
-        fixtureTypes: store.state.fixtureState.fixtureTypes,
-        powerMultis: store.state.fixtureState.powerMultiOutlets,
-        cables: store.state.fixtureState.cables,
-        locations: store.state.fixtureState.locations,
-        dataMultis: store.state.fixtureState.dataMultis,
-        dataPatches: store.state.fixtureState.dataPatches,
-        trusses: store.state.fixtureState.trusses,
-      ),
+      cableGraph: buildCableGraphForState(store.state),
     );
     breakoutCablingExcel.delete('Sheet1');
 

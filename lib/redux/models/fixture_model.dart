@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:mvr/mvr.dart';
+import 'package:sidekick/extension_methods/mvr_matrix_extensions.dart';
 import 'package:sidekick/extension_methods/to_model_map.dart';
 
 import 'package:sidekick/model_collection/model_collection_member.dart';
@@ -24,9 +26,12 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
   final double x;
   final double y;
   final double z;
-  final double rotationX;
-  final double rotationY;
-  final double rotationZ;
+
+  /// The fixture's orientation in world space, with no translation.
+  ///
+  /// Combine with [x], [y] and [z] via [transform] to map fixture-local points
+  /// (such as wiring object positions) into the world.
+  final MVRMatrix rotation;
 
   FixtureModel({
     this.uid = '',
@@ -42,10 +47,20 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
     this.x = 0,
     this.y = 0,
     this.z = 0,
-    this.rotationX = 0,
-    this.rotationY = 0,
-    this.rotationZ = 0,
+    this.rotation = const MVRMatrix.identity(),
   });
+
+  /// The fixture's world transform: [rotation] placed at ([x], [y], [z]).
+  MVRMatrix get transform => rotation.withTranslation(x, y, z);
+
+  /// Rotation about the X axis in degrees.
+  double get rotationX => rotation.rotationX;
+
+  /// Rotation about the Y axis in degrees.
+  double get rotationY => rotation.rotationY;
+
+  /// Rotation about the Z axis in degrees.
+  double get rotationZ => rotation.rotationZ;
 
   LocationModel lookupLocation(Map<String, LocationModel> locations) {
     return locations[locationId] ?? const LocationModel.none();
@@ -65,9 +80,7 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
     double? x,
     double? y,
     double? z,
-    double? rotationX,
-    double? rotationY,
-    double? rotationZ,
+    MVRMatrix? rotation,
   }) {
     return FixtureModel(
       uid: uid ?? this.uid,
@@ -83,9 +96,7 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
       x: x ?? this.x,
       y: y ?? this.y,
       z: z ?? this.z,
-      rotationX: rotationX ?? this.rotationX,
-      rotationY: rotationY ?? this.rotationY,
-      rotationZ: rotationZ ?? this.rotationZ,
+      rotation: rotation ?? this.rotation,
     );
   }
 
@@ -102,9 +113,7 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
       'x': x,
       'y': y,
       'z': z,
-      'rotationX': rotationX,
-      'rotationY': rotationY,
-      'rotationZ': rotationZ,
+      'rotation': rotation.toJson(),
       'hasMatrixData': hasMatrixData,
       'powerMultiOutletId': powerMultiOutletId,
     };
@@ -123,9 +132,7 @@ class FixtureModel implements ModelCollectionMember, Comparable<FixtureModel> {
       x: map['x'] ?? 0,
       y: map['y'] ?? 0,
       z: map['z'] ?? 0,
-      rotationX: map['rotationX'] ?? 0,
-      rotationY: map['rotationY'] ?? 0,
-      rotationZ: map['rotationZ'] ?? 0,
+      rotation: MVRMatrixExtensions.fromJson(map['rotation']),
       hasMatrixData: map['hasMatrixData'] ?? false,
       powerMultiOutletId: map['powerMultiOutletId'] ?? '',
     );

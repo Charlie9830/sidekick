@@ -23,7 +23,7 @@ class BreakoutCablingContainer extends StatelessWidget {
         return BreakoutCabling(vm: viewModel);
       },
       converter: (Store<AppState> store) {
-        final cableGraph = _selectCableGraph(store);
+        final cableGraph = buildCableGraphForState(store.state);
         final fixtureVms = _selectFixtureVms(store);
         final locationFixtures = _selectLocationFixtures(
           fixtureVms,
@@ -116,15 +116,13 @@ NodeElement _buildNodeElement({
 }) {
   switch (node) {
     case FixtureNode():
-      final fixtureVm = fixtureVms[node.id]!;
-      final fixture = fixtureVm.fixture;
       return FixtureElement(
-        fixtureVm: fixtureVm,
-        position: Vector3(fixture.x, fixture.y, fixture.z),
+        fixtureVm: fixtureVms[node.id]!,
+        position: node.position,
       );
     case PowerMultiHeaderNode():
       return PowerMultiHeaderElement(
-        position: Vector3(node.x, node.y, node.z),
+        position: node.position,
         powerMultiVm: PowerMultiHeaderViewModel(
           type: node.cableType,
           name: node.outletName,
@@ -133,21 +131,21 @@ NodeElement _buildNodeElement({
     case LocationNode():
       return LocationElement(
         locationId: node.locationId,
-        position: Vector3(node.x, node.y, node.z),
+        position: node.position,
       );
     case DataMultiHeaderNode():
       return DataMultiHeaderElement(
         outletName: node.outletName,
-        position: Vector3(node.x, node.y, node.z),
+        position: node.position,
       );
     case DataPatchHeaderNode():
       return DataPatchHeaderElement(
         outletName: node.outletName,
         universe: node.universe,
-        position: Vector3(node.x, node.y, node.z),
+        position: node.position,
       );
     case TrussBreakNode():
-      return TrussBreakElement(position: Vector3(node.x, node.y, node.z));
+      return TrussBreakElement(position: node.position);
   }
 }
 
@@ -157,7 +155,7 @@ EdgeElement _buildEdgeElement({
   required NodeElement toElement,
 }) {
   return switch (edge) {
-    PsuedoEdge() => PsuedoEdgeElement(
+    LogicalEdge() => LogicalEdgeElement(
       fromElement: fromElement,
       toElement: toElement,
     ),
@@ -165,6 +163,8 @@ EdgeElement _buildEdgeElement({
       type: edge.type,
       length: edge.length,
       runType: edge.runType,
+      fromPoint: edge.fromPoint,
+      toPoint: edge.toPoint,
       toElement: toElement,
       fromElement: fromElement,
     ),
@@ -196,19 +196,6 @@ List<Vector3> _trussCorners(TrussModel truss) {
         for (final sh in const [-1.0, 1.0])
           truss.center + halfLength * sl + halfWidth * sw + halfHeight * sh,
   ];
-}
-
-CableGraph _selectCableGraph(Store<AppState> store) {
-  return buildCableGraph(
-    fixtures: store.state.fixtureState.fixtures,
-    fixtureTypes: store.state.fixtureState.fixtureTypes,
-    powerMultis: store.state.fixtureState.powerMultiOutlets,
-    cables: store.state.fixtureState.cables,
-    locations: store.state.fixtureState.locations,
-    dataMultis: store.state.fixtureState.dataMultis,
-    dataPatches: store.state.fixtureState.dataPatches,
-    trusses: store.state.fixtureState.trusses,
-  );
 }
 
 List<LocationViewModel> _selectLocations(

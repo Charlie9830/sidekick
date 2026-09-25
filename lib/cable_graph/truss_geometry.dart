@@ -328,6 +328,26 @@ class TrussGeometry {
     return result;
   }
 
+  /// Re-resolves [fixtureAssignment] for another [point] on the same fixture,
+  /// such as a connector at one end of a bar.
+  ///
+  /// The point stays on its fixture's run; only its foot along the chord and
+  /// its riser move. Returns null when the run has no chord.
+  TrussAssignment? assignmentAt(
+    TrussAssignment fixtureAssignment,
+    Vector3 point,
+  ) {
+    final chord = _runById[fixtureAssignment.runId]?.chord;
+    if (chord == null) return null;
+
+    final projection = chord.project(point);
+    return TrussAssignment(
+      runId: fixtureAssignment.runId,
+      s: projection.s,
+      riser: projection.distance,
+    );
+  }
+
   /// Splits a fixture-to-fixture run into segments, following the truss chord
   /// when both fixtures share a run and breaking at each join between them.
   ///

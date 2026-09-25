@@ -41,6 +41,8 @@ LocationModel? selectCableLocation(CableModel cable, Store<AppState> store) {
 
     CableType.ethercon => throw UnimplementedError(),
     CableType.wieland6WayRackHeader => throw UnimplementedError(),
+    CableType.au10aToTrue1Adaptor ||
+    CableType.au10aToNac3Adaptor => throw UnimplementedError(),
   };
 
   return store.state.fixtureState.locations[locationId];

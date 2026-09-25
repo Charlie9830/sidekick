@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:mvr/mvr.dart';
 import 'package:sidekick/cable_graph/vector3.dart';
+import 'package:sidekick/extension_methods/mvr_matrix_extensions.dart';
 import 'package:sidekick/redux/models/dmx_address_model.dart';
 import 'package:sidekick/redux/models/fixture_geometry_model.dart';
 import 'package:sidekick/redux/models/wiring_object_model.dart';
@@ -300,9 +301,7 @@ RawFixtureModel _mapFixture({
     x: fixture.matrix.x,
     y: fixture.matrix.y,
     z: fixture.matrix.z,
-    rotationX: fixture.matrix.rotationX,
-    rotationY: fixture.matrix.rotationY,
-    rotationZ: fixture.matrix.rotationZ,
+    rotation: fixture.matrix.rotationOnly,
     address: DMXAddressModel.fromGlobal(
       fixture.addresses.singleGlobalAddress ?? 0,
     ),

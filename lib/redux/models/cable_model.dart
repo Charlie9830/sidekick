@@ -29,6 +29,8 @@ enum CableType {
   etherconJoiner,
   ethercon,
   wieland6WayRackHeader,
+  au10aToTrue1Adaptor,
+  au10aToNac3Adaptor,
 }
 
 enum CableClass {
@@ -47,6 +49,9 @@ const _ranking = {
   CableType.hoist: 5,
   CableType.hoistMulti: 6,
 };
+
+/// Sort rank of [type]; unranked types sort after every ranked one.
+int _rank(CableType type) => _ranking[type] ?? _ranking.length;
 
 class CableModel extends ModelCollectionMember {
   @override
@@ -165,6 +170,6 @@ class CableModel extends ModelCollectionMember {
       CableModel.fromMap(json.decode(source));
 
   static int compareByType(CableModel a, CableModel b) {
-    return _ranking[a.type]! - _ranking[b.type]!;
+    return _rank(a.type) - _rank(b.type);
   }
 }
