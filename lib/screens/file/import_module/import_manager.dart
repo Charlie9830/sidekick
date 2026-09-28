@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:collection/collection.dart';
-import 'package:easy_stepper/easy_stepper.dart';
 import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/enums.dart';
@@ -134,35 +133,6 @@ class _ImportManagerState extends State<ImportManager> {
       ],
       child: Row(
         children: [
-          SizedBox(
-            width: 120,
-            child: Card(
-              child: EasyStepper(
-                lineStyle: const LineStyle(lineType: LineType.normal),
-                direction: Axis.vertical,
-                activeStep: widget.vm.step.stepNumber,
-                enableStepTapping: false,
-                showLoadingAnimation: false,
-                defaultStepBorderType: BorderType.normal,
-                stepRadius: 24,
-                activeStepBackgroundColor: Theme.of(
-                  context,
-                ).colorScheme.background,
-                finishedStepBackgroundColor: Theme.of(
-                  context,
-                ).colorScheme.muted,
-                showStepBorder: true,
-                borderThickness: 2,
-                unreachedStepBorderColor: Colors.gray,
-                steps: const [
-                  EasyStep(icon: Icon(Icons.file_open)),
-                  EasyStep(icon: Icon(Icons.cleaning_services)),
-                  EasyStep(icon: Icon(Icons.table_view)),
-                  EasyStep(icon: Icon(Icons.merge)),
-                ],
-              ),
-            ),
-          ),
           Expanded(
             child: Column(
               children: [
