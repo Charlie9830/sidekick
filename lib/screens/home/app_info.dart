@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:material_ui/material_ui.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/serialization/project_file_metadata_model.dart';
 
 class AppInfo extends StatefulWidget {
@@ -32,15 +32,13 @@ class _AppInfoState extends State<AppInfo> {
       children: [
         _Property(label: 'App Version', value: _appVersion),
         _Property(
-            label: 'Project File Version',
-            value: kProjectFileVersion.toString()),
+          label: 'Project File Version',
+          value: kProjectFileVersion.toString(),
+        ),
         _Property(label: 'Installed', value: _installedTime),
         _Property(label: 'Host Name', value: _hostName),
         _Property(label: 'OS', value: _operatingSystem),
         _Property(label: 'OS Version', value: _operatingSystemVersion),
-        TextButton(
-            onPressed: () => showLicensePage(context: context),
-            child: const Text("License"))
       ],
     );
   }
@@ -82,13 +80,14 @@ class _Property extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(label,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall!
-                .copyWith(color: Colors.grey)),
+        Text(
+          label,
+          style: Theme.of(
+            context,
+          ).typography.textMuted.copyWith(color: Colors.gray),
+        ),
         const SizedBox(width: 8),
-        Text(value, style: Theme.of(context).textTheme.bodySmall),
+        Text(value, style: Theme.of(context).typography.textSmall),
       ],
     );
   }
