@@ -23,7 +23,7 @@ dependencies:
     git: https://github.com/Charlie9830/mvr.git
     # A tag (preferred) or full commit SHA. Branch names are rejected by
     # preflight because they are not reproducible.
-    ref: v0.1.0
+    ref: v0.2.0
     # Where the checkout must live, relative to this repo's root, so that
     # pubspec's `path: ../mvr/` resolves.
     path: ../mvr
