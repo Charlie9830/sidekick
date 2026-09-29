@@ -140,6 +140,17 @@ Future<ImportRawFixturesResult> _readMvrPatch({
     );
   }
 
+  final auxData = mvrReader.generalSceneDescription.auxData;
+  final positionLookup = Map<String, MVRPosition>.fromEntries(
+    auxData.children.whereType<MVRPosition>().map(
+      (pos) => MapEntry(pos.uuid, pos),
+    ),
+  );
+
+  final classLookup = Map<String, MVRClass>.fromEntries(
+    auxData.children.whereType<MVRClass>().map((c) => MapEntry(c.uuid, c)),
+  );
+
   final rawFixtures = mvrReader.generalSceneDescription.layers
       .map(
         (layer) => layer.children.map(
@@ -149,6 +160,8 @@ Future<ImportRawFixturesResult> _readMvrPatch({
                 fixture: o,
                 locationSource: settings.mvrLocationDataSource,
                 parentLayer: layer,
+                positionLookup: positionLookup,
+                classLookup: classLookup,
               ),
             ],
             MVRGroupObject g => g.fixtures.map(
@@ -157,6 +170,8 @@ Future<ImportRawFixturesResult> _readMvrPatch({
                 locationSource: settings.mvrLocationDataSource,
                 parentLayer: layer,
                 parentGroup: g,
+                positionLookup: positionLookup,
+                classLookup: classLookup,
               ),
             ),
             MVRTruss() => <RawFixtureModel>[],
@@ -288,6 +303,8 @@ RawFixtureModel _mapFixture({
   required MVRFixture fixture,
   required MVRLayer parentLayer,
   required MvrLocationDataSource locationSource,
+  required Map<String, MVRPosition> positionLookup,
+  required Map<String, MVRClass> classLookup,
   MVRGroupObject? parentGroup,
 }) {
   return RawFixtureModel(
@@ -308,15 +325,15 @@ RawFixtureModel _mapFixture({
     mvrLocationId: switch (locationSource) {
       MvrLocationDataSource.layers => parentLayer.uuid,
       MvrLocationDataSource.grouping => parentGroup?.uuid ?? '',
-      // TODO: Handle this case.
-      MvrLocationDataSource.classes => throw UnimplementedError(),
-      // TODO: Handle this case.
-      MvrLocationDataSource.position => throw UnimplementedError(),
+      MvrLocationDataSource.classes => fixture.classing,
+      MvrLocationDataSource.position => fixture.position,
     },
     locationName: switch (locationSource) {
       MvrLocationDataSource.layers => parentLayer.name,
-      MvrLocationDataSource.classes => fixture.classing,
-      MvrLocationDataSource.position => fixture.position,
+      MvrLocationDataSource.classes =>
+        classLookup[fixture.classing]?.name ?? '',
+      MvrLocationDataSource.position =>
+        positionLookup[fixture.position]?.name ?? '',
       MvrLocationDataSource.grouping => parentGroup?.name ?? '',
     },
   );

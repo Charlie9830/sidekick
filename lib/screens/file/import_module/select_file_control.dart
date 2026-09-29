@@ -7,10 +7,7 @@ import 'package:sidekick/screens/file/import_module/mvr_import_settings.dart';
 import 'package:sidekick/screens/file/import_module/patch_import_settings.dart';
 import 'package:path/path.dart' as p;
 
-enum PatchSource {
-  grandMA2XML,
-  mvr,
-}
+enum PatchSource { grandMA2XML, mvr }
 
 class SelectFileControl extends StatelessWidget {
   final String fixtureMappingFilePath;
@@ -54,69 +51,79 @@ class SelectFileControl extends StatelessWidget {
         _buildSourceSelector(context),
         // Content
         Expanded(
-            child: Padding(
-          padding: const EdgeInsets.only(left: 8, top: 12, right: 8, bottom: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(sourceFileClass, style: Theme.of(context).typography.medium),
-              const Divider(height: 8),
-              FileSelectButton(
-                path: fixturePatchFilePath,
-                onFileSelectPressed: _handlePatchFileSelect,
-                showOpenButton: false,
-                dropTargetName: 'Drop $sourceFileClass here',
-                onFileDropped: onPatchFilePathChanged,
-              ),
-              const SizedBox(height: 16),
-              Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(
+              left: 8,
+              top: 12,
+              right: 8,
+              bottom: 8,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  sourceFileClass,
+                  style: Theme.of(context).typography.medium,
+                ),
+                const Divider(height: 8),
+                FileSelectButton(
+                  path: fixturePatchFilePath,
+                  onFileSelectPressed: _handlePatchFileSelect,
+                  showOpenButton: false,
+                  dropTargetName: 'Drop $sourceFileClass here',
+                  onFileDropped: onPatchFilePathChanged,
+                ),
+                const SizedBox(height: 16),
+                Expanded(
                   child: switch (settings.source) {
-                PatchSource.grandMA2XML => const SizedBox(),
-                PatchSource.mvr => _buildMvrImportSettings(context),
-              }),
-              const Divider(),
-              const SizedBox(height: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Fixture Mapping XML File.
-                  Text('Fixture Name and Mode Mapping file',
-                      style: Theme.of(context).typography.medium),
-                  Row(
-                    spacing: 12,
-                    children: [
-                      FileValidIcon(
-                        isValid: isFixtureMappingValid,
-                      ),
-                      FileSelectButton(
-                        path: fixtureMappingFilePath,
-                        onFileSelectPressed: _handleFixtureTypeMappingSelect,
-                      ),
-                    ],
-                  ),
+                    PatchSource.grandMA2XML => const SizedBox(),
+                    PatchSource.mvr => _buildMvrImportSettings(context),
+                  },
+                ),
+                const Divider(),
+                const SizedBox(height: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Fixture Mapping XML File.
+                    Text(
+                      'Fixture Name and Mode Mapping file',
+                      style: Theme.of(context).typography.medium,
+                    ),
+                    Row(
+                      spacing: 12,
+                      children: [
+                        FileValidIcon(isValid: isFixtureMappingValid),
+                        FileSelectButton(
+                          path: fixtureMappingFilePath,
+                          onFileSelectPressed: _handleFixtureTypeMappingSelect,
+                        ),
+                      ],
+                    ),
 
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                  // Fixture Database Spreadsheet.
-                  Text('Fixture Database',
-                      style: Theme.of(context).typography.medium),
-                  Row(
-                    spacing: 12,
-                    children: [
-                      FileValidIcon(
-                        isValid: isFixtureDatabaseValid,
-                      ),
-                      FileSelectButton(
-                        path: fixtureDatabaseFilePath,
-                        onFileSelectPressed: _handleFixtureDatabaseSelect,
-                      ),
-                    ],
-                  ),
-                ],
-              )
-            ],
+                    // Fixture Database Spreadsheet.
+                    Text(
+                      'Fixture Database',
+                      style: Theme.of(context).typography.medium,
+                    ),
+                    Row(
+                      spacing: 12,
+                      children: [
+                        FileValidIcon(isValid: isFixtureDatabaseValid),
+                        FileSelectButton(
+                          path: fixtureDatabaseFilePath,
+                          onFileSelectPressed: _handleFixtureDatabaseSelect,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ))
+        ),
       ],
     );
   }
@@ -127,33 +134,39 @@ class SelectFileControl extends StatelessWidget {
         Row(
           spacing: 16,
           children: [
-            Text('Fixture Location data source ie: Truss name',
-                style: Theme.of(context).typography.small),
+            Text(
+              'Fixture Location data source ie: Truss name',
+              style: Theme.of(context).typography.small,
+            ),
             SizedBox(
               width: 224,
               child: Select<MvrLocationDataSource>(
                 value: settings.mvrLocationDataSource,
                 onChanged: (value) => onSettingsUpdated(
-                    settings.copyWith(mvrLocationDataSource: value)),
+                  settings.copyWith(mvrLocationDataSource: value),
+                ),
                 popup: const SelectPopup<MvrLocationDataSource>(
-                    items: SelectItemList(children: [
-                  SelectItemButton(
-                    value: MvrLocationDataSource.layers,
-                    child: Text('Layers'),
+                  items: SelectItemList(
+                    children: [
+                      SelectItemButton(
+                        value: MvrLocationDataSource.layers,
+                        child: Text('Layers'),
+                      ),
+                      SelectItemButton(
+                        value: MvrLocationDataSource.grouping,
+                        child: Text('Grouping'),
+                      ),
+                      SelectItemButton(
+                        value: MvrLocationDataSource.classes,
+                        child: Text('Classes'),
+                      ),
+                      SelectItemButton(
+                        value: MvrLocationDataSource.position,
+                        child: Text('Position Attribute'),
+                      ),
+                    ],
                   ),
-                  SelectItemButton(
-                    value: MvrLocationDataSource.grouping,
-                    child: Text('Grouping'),
-                  ),
-                  SelectItemButton(
-                    value: MvrLocationDataSource.classes,
-                    child: Text('Classes'),
-                  ),
-                  SelectItemButton(
-                    value: MvrLocationDataSource.position,
-                    child: Text('Position Attribute'),
-                  ),
-                ])).call,
+                ).call,
                 itemBuilder: (context, value) => Text(switch (value) {
                   MvrLocationDataSource.layers => 'Layers',
                   MvrLocationDataSource.classes => 'Classes',
@@ -202,11 +215,12 @@ class SelectFileControl extends StatelessWidget {
 
   void _handlePatchFileSelect() async {
     final file = await openFile(
-        confirmButtonText: 'Import',
-        acceptedTypeGroups: switch (settings.source) {
-          PatchSource.grandMA2XML => kXmlFileTypes,
-          PatchSource.mvr => kMvrFileTypes,
-        });
+      confirmButtonText: 'Import',
+      acceptedTypeGroups: switch (settings.source) {
+        PatchSource.grandMA2XML => kXmlFileTypes,
+        PatchSource.mvr => kMvrFileTypes,
+      },
+    );
 
     if (file == null) {
       return;
@@ -227,24 +241,26 @@ class SelectFileControl extends StatelessWidget {
               Text('Patch Type', style: Theme.of(context).typography.medium),
               const Divider(height: 16.0),
               RadioGroup<PatchSource>(
-                  value: settings.source,
-                  onChanged: (newValue) =>
-                      onSettingsUpdated(settings.copyWith(source: newValue)),
-                  child: const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _RadioListTile(
-                          value: PatchSource.mvr,
-                          title: 'MVR File',
-                          subtitle: 'My Virtual Rig file.',
-                        ),
-                        SizedBox(height: 8),
-                        _RadioListTile(
-                          value: PatchSource.grandMA2XML,
-                          title: 'GrandMA2 Fixture Layers',
-                          subtitle: 'XML export of GrandMA2 Fixture Layers',
-                        ),
-                      ])),
+                value: settings.source,
+                onChanged: (newValue) =>
+                    onSettingsUpdated(settings.copyWith(source: newValue)),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _RadioListTile(
+                      value: PatchSource.mvr,
+                      title: 'MVR File',
+                      subtitle: 'My Virtual Rig file.',
+                    ),
+                    SizedBox(height: 8),
+                    _RadioListTile(
+                      value: PatchSource.grandMA2XML,
+                      title: 'GrandMA2 Fixture Layers',
+                      subtitle: 'XML export of GrandMA2 Fixture Layers',
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -257,26 +273,32 @@ class _RadioListTile<T> extends StatelessWidget {
   final T value;
   final String title;
   final String? subtitle;
-  const _RadioListTile(
-      {super.key, required this.title, this.subtitle, required this.value});
+  const _RadioListTile({
+    super.key,
+    required this.title,
+    this.subtitle,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
       child: RadioItem<T>(
-          value: value,
-          trailing: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title),
-              if (subtitle != null)
-                Text(subtitle!,
-                    style: Theme.of(context)
-                        .typography
-                        .xSmall
-                        .copyWith(color: Colors.gray))
-            ],
-          )),
+        value: value,
+        trailing: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title),
+            if (subtitle != null)
+              Text(
+                subtitle!,
+                style: Theme.of(
+                  context,
+                ).typography.xSmall.copyWith(color: Colors.gray),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
