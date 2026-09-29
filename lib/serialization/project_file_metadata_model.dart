@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-const kProjectFileVersion = 1;
+const kProjectFileVersion = 2;
 
 class ProjectFileMetadataModel {
   final int fileVersion;
@@ -18,11 +18,11 @@ class ProjectFileMetadataModel {
   });
 
   const ProjectFileMetadataModel.initial()
-      : fileVersion = kProjectFileVersion,
-        created = '',
-        modified = '',
-        lastUsedExportDirectory = '',
-        projectName = '';
+    : fileVersion = kProjectFileVersion,
+      created = '',
+      modified = '',
+      lastUsedExportDirectory = '',
+      projectName = '';
 
   Map<String, dynamic> toMap() {
     return {
