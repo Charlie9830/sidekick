@@ -77,7 +77,7 @@ FixturePorts resolveFixturePorts(
     };
 
     return FixturePort(
-      position: _worldPosition(fixture, wiringObject),
+      position: wiringObjectWorldPosition(fixture, wiringObject),
       cableType:
           override ??
           _cableTypeFor(wiringObject, signal) ??
@@ -99,7 +99,12 @@ CableType? _cableTypeFor(WiringObjectModel? wiringObject, CableSignal signal) {
   return cableType?.signal == signal ? cableType : null;
 }
 
-Vector3 _worldPosition(FixtureModel fixture, WiringObjectModel? wiringObject) {
+/// World position (mm) of [wiringObject] on [fixture], or the fixture origin
+/// when there is no wiring object.
+Vector3 wiringObjectWorldPosition(
+  FixtureModel fixture,
+  WiringObjectModel? wiringObject,
+) {
   final local = wiringObject?.matrix;
   final world = fixture.transform.transform(
     local == null ? MVRVector3(0, 0, 0) : MVRVector3(local.x, local.y, local.z),

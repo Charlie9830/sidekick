@@ -1,248 +1,191 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/cable_graph/cable_graph.dart';
 import 'package:sidekick/cable_graph/vector3.dart';
-import 'package:sidekick/cable_graph/view_projection.dart';
-import 'package:sidekick/cable_graph/viewport_transformer.dart';
-import 'package:sidekick/screens/breakout_cabling/route_tuning_control.dart';
 import 'package:sidekick/screens/breakout_cabling/visibility_control.dart';
+import 'package:sidekick/screens/looms/cable_type_select.dart';
 import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
-import 'package:sidekick/widgets/connector_painters.dart';
-import 'package:sidekick/widgets/rig_viewer/rig_fixture_node.dart';
 import 'package:sidekick/widgets/rig_viewer/rig_viewer.dart';
+import 'package:sidekick/widgets/rig_viewer/scene/oriented_box.dart';
+import 'package:sidekick/widgets/rig_viewer/scene/rig_fixture_builder.dart';
+import 'package:sidekick/widgets/rig_viewer/scene/rig_scene_model.dart';
 
-/// Diagram-space nudge (mm) that lifts header/location markers clear of the
-/// fixtures they serve, so overlapping outlets stay legible. Presentation only;
-/// it never feeds into cable-length calculations.
-const double _kHeaderDiagramOffsetMm = 600;
+/// Height (mm) header and location markers float above their true position,
+/// so they stand clear of the fixture bodies they sit among. Presentation
+/// only; it never feeds into cable-length calculations.
+const double _kMarkerLiftMm = 600;
 
-/// The breakout cabling graph: trusses, fixtures, headers and cables drawn in
-/// a shared [RigViewer].
-class CableView extends StatefulWidget {
+/// Edge length (mm) of a header or location marker.
+const double _kMarkerSizeMm = 200;
+
+/// Edge length (mm) of a truss-break dot.
+const double _kBreakSizeMm = 80;
+
+/// Line width (mm) of links and fixture runs; home runs are drawn double.
+const double _kCableWidthMm = 15;
+
+/// The breakout cabling graph in the 3D rig viewer: fixtures with their
+/// connectors, trusses, header markers and every cable along its routed path.
+///
+/// Display only: nothing is selectable, and orbits turn around the centre of
+/// the view. The visibility filter hides cables by signal and run type.
+class CableView extends StatelessWidget {
   final CableViewViewModel vm;
 
   const CableView({super.key, required this.vm});
 
   @override
-  State<CableView> createState() => _CableViewState();
-}
-
-class _CableViewState extends State<CableView> {
-  CableRouteTuning _tuning = const CableRouteTuning();
-
-  @override
   Widget build(BuildContext context) {
-    if (widget.vm.elements.isEmpty) {
+    if (vm.elements.isEmpty) {
       return const SizedBox.shrink();
     }
 
     return RigViewer(
-      fitPoints: [for (final element in widget.vm.elements) element.position],
-      trussCorners: [for (final truss in widget.vm.trusses) truss.corners],
-      underlayBuilder: (context, viewport, projection, labelOpacity) => [
-        for (final edge in widget.vm.edges)
-          _buildEdge(edge, viewport, projection),
-      ],
-      nodesBuilder: (context, viewport, projection, labelOpacity) => [
-        for (final node in widget.vm.elements)
-          _buildNode(node, viewport, projection, labelOpacity),
-      ],
+      scene: RigSceneModel(
+        fixtures: [
+          for (final element in vm.elements)
+            if (element is FixtureElement) _buildFixture(element),
+        ],
+        trusses: [
+          for (final truss in vm.trusses)
+            if (truss.corners.length == 8)
+              OrientedBox.fromCorners(truss.corners),
+        ],
+        markers: [for (final element in vm.elements) ?_buildMarker(element)],
+        lines: [
+          for (final edge in vm.edges)
+            if (edge is CableEdgeElement) ?_buildCable(edge),
+        ],
+      ),
       overlays: [
         Positioned(
           top: 8,
-          left: 8,
+          right: 8,
           width: 164,
           child: VisibilityControl(
-            state: widget.vm.cableVisibility,
-            onVisibilityChanged: widget.vm.onVisibilityChanged,
+            state: vm.cableVisibility,
+            onVisibilityChanged: vm.onVisibilityChanged,
           ),
         ),
-        const Positioned(bottom: 8, left: 8, child: _Legend()),
-        Positioned(
-          top: 8,
-          right: 8,
-          width: 200,
-          child: RouteTuningControl(
-            tuning: _tuning,
-            onChanged: (tuning) => setState(() => _tuning = tuning),
-          ),
-        ),
+        const Positioned(bottom: 8, right: 8, child: _Legend()),
       ],
     );
   }
 
-  /// Projects [node] into diagram space, lifting header/location markers
-  /// clear of the fixtures they serve so overlapping outlets stay legible.
-  Offset _diagramPosition(NodeElement node, ViewProjection projection) {
-    final p = projection.projectVector(node.position);
-    return switch (node) {
-      LocationElement() ||
-      PowerMultiHeaderElement() ||
-      DataMultiHeaderElement() ||
-      DataPatchHeaderElement() => p.translate(0, -_kHeaderDiagramOffsetMm),
-      FixtureElement() || TrussBreakElement() => p,
-    };
-  }
+  RigFixture _buildFixture(FixtureElement element) {
+    final fixtureVm = element.fixtureVm;
+    final fixture = fixtureVm.fixture;
+    final shortName = fixtureVm.fixtureType.shortName;
 
-  Widget _buildEdge(
-    EdgeElement edge,
-    ViewportTransformer viewport,
-    ViewProjection projection,
-  ) {
-    final (fromPoint, toPoint) = switch (edge) {
-      CableEdgeElement() => (edge.fromPoint, edge.toPoint),
-      LogicalEdgeElement() => (null, null),
-    };
-    final from = _endpointPosition(edge.fromElement, fromPoint, projection);
-    final to = _endpointPosition(edge.toElement, toPoint, projection);
-    final fromOffset = viewport.transform(from.dx, from.dy);
-    final toOffset = viewport.transform(to.dx, to.dy);
-
-    return Positioned.fill(
-      child: switch (edge) {
-        LogicalEdgeElement() => const SizedBox(),
-        CableEdgeElement() => switch (edge.type.signal) {
-          CableSignal.power => _buildPowerCableEdge(
-            edge: edge,
-            fromOffset: fromOffset,
-            toOffset: toOffset,
-          ),
-          CableSignal.data => _buildDataCableEdge(
-            edge: edge,
-            fromOffset: fromOffset,
-            toOffset: toOffset,
-          ),
-          CableSignal.network ||
-          CableSignal.hoist ||
-          CableSignal.none => const SizedBox(),
-        },
-      },
+    return buildRigFixture(
+      fixture: fixture,
+      geometry: fixtureVm.geometry,
+      fixtureType: fixtureVm.fixtureType,
+      color: SidekickColors.rigMesh,
+      label: fixture.fid.toString(),
+      tooltip: '#${fixture.fid}${shortName.isEmpty ? '' : ' · $shortName'}',
     );
   }
 
-  /// Where an edge meets [node]: the connector [point] when the node is a
-  /// fixture, otherwise the node's own (possibly lifted) diagram position.
-  Offset _endpointPosition(
-    NodeElement node,
-    Vector3? point,
-    ViewProjection projection,
-  ) {
-    return node is FixtureElement && point != null
-        ? projection.projectVector(point)
-        : _diagramPosition(node, projection);
-  }
-
-  Positioned _buildNode(
-    NodeElement node,
-    ViewportTransformer viewport,
-    ViewProjection projection,
-    double labelOpacity,
-  ) {
-    final diagram = _diagramPosition(node, projection);
-    final origin = viewport.transform(diagram.dx, diagram.dy);
-    return switch (node) {
-      LocationElement() => Positioned(
-        width: 10,
-        height: 10,
-        left: origin.dx,
-        top: origin.dy,
-        child: const FractionalTranslation(
-          translation: Offset(-0.5, -0.5),
-          child: _LocationNode(),
-        ),
+  /// The marker drawn for a non-fixture node, or null for fixtures.
+  RigMarker? _buildMarker(NodeElement element) {
+    final position = _markerPosition(element);
+    return switch (element) {
+      FixtureElement() => null,
+      LocationElement() => RigMarker(
+        position: position,
+        color: SidekickColors.locationMarker,
+        size: _kMarkerSizeMm,
+        shape: RigSolidShape.cylinder,
       ),
-      FixtureElement() => RigFixtureNode.positioned(
-        diagramPosition: diagram,
-        viewport: viewport,
-        fallbackSize: 16,
-        geometry: node.fixtureVm.geometry,
-        rotationZ: node.fixtureVm.fixture.rotationZ,
-        projection: projection,
-        label: node.fixtureVm.fixture.fid.toString(),
-        subLabel: node.fixtureVm.fixtureType.shortName,
-        labelOpacity: labelOpacity,
+      PowerMultiHeaderElement() => RigMarker(
+        position: position,
+        color: SidekickColors.powerMultiNode,
+        size: _kMarkerSizeMm,
+        shape: RigSolidShape.cylinder,
+        label: element.powerMultiVm.name,
       ),
-      PowerMultiHeaderElement() => Positioned(
-        width: 16,
-        height: 16,
-        left: origin.dx,
-        top: origin.dy,
-        child: FractionalTranslation(
-          translation: const Offset(-0.5, -0.5),
-          child: _PowerMultiNode(vm: node.powerMultiVm),
-        ),
+      DataMultiHeaderElement() => RigMarker(
+        position: position,
+        color: SidekickColors.dataMultiNode,
+        size: _kMarkerSizeMm,
+        label: element.outletName,
       ),
-      DataMultiHeaderElement() => Positioned(
-        width: 16,
-        height: 16,
-        left: origin.dx,
-        top: origin.dy,
-        child: FractionalTranslation(
-          translation: const Offset(-0.5, -0.5),
-          child: _DataMultiNode(outletName: node.outletName),
-        ),
+      DataPatchHeaderElement() => RigMarker(
+        position: position,
+        color: SidekickColors.dataMultiNode,
+        size: _kMarkerSizeMm,
+        shape: RigSolidShape.cylinder,
+        label: 'U${element.universe}',
       ),
-      DataPatchHeaderElement() => Positioned(
-        width: 16,
-        height: 16,
-        left: origin.dx,
-        top: origin.dy,
-        child: FractionalTranslation(
-          translation: const Offset(-0.5, -0.5),
-          child: _DataPatchNode(
-            outletName: node.outletName,
-            universe: node.universe,
-          ),
-        ),
-      ),
-      TrussBreakElement() => Positioned(
-        width: 6,
-        height: 6,
-        left: origin.dx,
-        top: origin.dy,
-        child: const FractionalTranslation(
-          translation: Offset(-0.5, -0.5),
-          child: _TrussBreakNode(),
-        ),
+      TrussBreakElement() => RigMarker(
+        position: position,
+        color: SidekickColors.rigTruss,
+        size: _kBreakSizeMm,
       ),
     };
   }
 
-  Widget _buildDataCableEdge({
-    required CableEdgeElement edge,
-    required Offset fromOffset,
-    required Offset toOffset,
-  }) {
-    if (widget.vm.cableVisibility.dataState.contains(edge.runType) == false) {
-      return const SizedBox();
+  /// Where [element]'s marker is drawn: headers and the location are lifted
+  /// clear of the fixtures by [_kMarkerLiftMm]; everything else stays put.
+  Vector3 _markerPosition(NodeElement element) => switch (element) {
+    LocationElement() ||
+    PowerMultiHeaderElement() ||
+    DataMultiHeaderElement() ||
+    DataPatchHeaderElement() =>
+      element.position + const Vector3(0, 0, _kMarkerLiftMm),
+    FixtureElement() || TrussBreakElement() => element.position,
+  };
+
+  /// The cable as a line along its routed path, or null when it is hidden by
+  /// the visibility filter or carries neither power nor data.
+  RigLine? _buildCable(CableEdgeElement edge) {
+    final visibleRuns = switch (edge.type.signal) {
+      CableSignal.power => vm.cableVisibility.powerState,
+      CableSignal.data => vm.cableVisibility.dataState,
+      CableSignal.network || CableSignal.hoist || CableSignal.none => null,
+    };
+    if (visibleRuns == null || !visibleRuns.contains(edge.runType)) {
+      return null;
     }
 
-    return _DataCableEdge(
-      from: fromOffset,
-      to: toOffset,
-      runType: edge.runType,
-      label: _formatLength(edge.length),
-      tuning: _tuning,
+    return RigLine(
+      points: _cablePoints(edge),
+      color: _cableColor(edge),
+      width: edge.runType == CableRunType.homeRun
+          ? _kCableWidthMm * 2
+          : _kCableWidthMm,
+      tooltip:
+          '${humanFriendlyCableTypeName(edge.type)} · '
+          '${_formatLength(edge.length)}',
     );
   }
 
-  Widget _buildPowerCableEdge({
-    required CableEdgeElement edge,
-    required Offset fromOffset,
-    required Offset toOffset,
-  }) {
-    if (widget.vm.cableVisibility.powerState.contains(edge.runType) == false) {
-      return const SizedBox();
-    }
+  /// The cable's routed path, joined up to any lifted marker at its ends.
+  /// Cables without a routed path run straight between their end points.
+  List<Vector3> _cablePoints(CableEdgeElement edge) {
+    final from = edge.fromPoint ?? edge.fromElement.position;
+    final to = edge.toPoint ?? edge.toElement.position;
+    final path = edge.path.length >= 2 ? edge.path : [from, to];
 
-    return _PowerCableEdge(
-      from: fromOffset,
-      to: toOffset,
-      label: _formatLength(edge.length),
-      runType: edge.runType,
-      tuning: _tuning,
-    );
+    final fromMarker = _markerPosition(edge.fromElement);
+    final toMarker = _markerPosition(edge.toElement);
+    return [
+      if (fromMarker != edge.fromElement.position) fromMarker,
+      ...path,
+      if (toMarker != edge.toElement.position) toMarker,
+    ];
   }
+
+  Color _cableColor(CableEdgeElement edge) =>
+      switch ((edge.type.signal, edge.runType)) {
+        (CableSignal.power, CableRunType.link) => SidekickColors.powerLink,
+        (CableSignal.power, CableRunType.fixtureRun) => SidekickColors.powerRun,
+        (CableSignal.power, CableRunType.homeRun) => SidekickColors.powerHome,
+        (_, CableRunType.link) => SidekickColors.dataLink,
+        (_, CableRunType.fixtureRun) => SidekickColors.dataRun,
+        (_, CableRunType.homeRun) => SidekickColors.dataHome,
+      };
 
   String _formatLength(double length) {
     return length.remainder(1) == 0
@@ -251,37 +194,8 @@ class _CableViewState extends State<CableView> {
   }
 }
 
-class _LocationNode extends StatelessWidget {
-  const _LocationNode();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: SidekickColors.locationMarker,
-      ),
-    );
-  }
-}
-
-class _TrussBreakNode extends StatelessWidget {
-  const _TrussBreakNode();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Theme.of(context).colorScheme.background,
-        border: Border.all(color: Theme.of(context).colorScheme.border),
-      ),
-    );
-  }
-}
-
-/// A compact key explaining the graph's colour (cable type) and line-weight
-/// (run type) encodings.
+/// A compact key explaining the colour (cable type) and line-weight (run
+/// type) encodings.
 class _Legend extends StatelessWidget {
   const _Legend();
 
@@ -331,10 +245,15 @@ class _Legend extends StatelessWidget {
             label: 'Location',
             style: labelStyle,
           ),
+          _LegendSwatch(
+            color: SidekickColors.rigConnector,
+            label: 'Connector',
+            style: labelStyle,
+          ),
           const SizedBox(height: 8),
           _LegendLine(weight: 1, label: 'Link', style: labelStyle),
-          _LegendLine(weight: 2, label: 'Fixture run', style: labelStyle),
-          _LegendLine(weight: 3, label: 'Home run', style: labelStyle),
+          _LegendLine(weight: 1, label: 'Fixture run', style: labelStyle),
+          _LegendLine(weight: 2, label: 'Home run', style: labelStyle),
         ],
       ),
     );
@@ -404,154 +323,6 @@ class _LegendLine extends StatelessWidget {
           Text(label, style: style),
         ],
       ),
-    );
-  }
-}
-
-class _PowerMultiNode extends StatelessWidget {
-  final PowerMultiHeaderViewModel vm;
-  const _PowerMultiNode({required this.vm});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: SidekickColors.powerMultiNode,
-        border: Border.all(color: Theme.of(context).colorScheme.border),
-      ),
-      child: Text(
-        vm.name,
-        style: Theme.of(context).typography.mono.copyWith(fontSize: 6),
-        textAlign: TextAlign.center,
-        overflow: TextOverflow.clip,
-      ),
-    );
-  }
-}
-
-class _DataMultiNode extends StatelessWidget {
-  final String outletName;
-
-  const _DataMultiNode({required this.outletName});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.rectangle,
-        color: SidekickColors.dataMultiNode,
-        border: Border.all(color: Theme.of(context).colorScheme.border),
-      ),
-      child: Text(
-        outletName,
-        style: Theme.of(context).typography.mono.copyWith(fontSize: 6),
-        textAlign: TextAlign.center,
-        overflow: TextOverflow.clip,
-      ),
-    );
-  }
-}
-
-class _DataPatchNode extends StatelessWidget {
-  final String outletName;
-  final int universe;
-
-  const _DataPatchNode({required this.outletName, required this.universe});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: SidekickColors.dataMultiNode,
-        border: Border.all(color: Theme.of(context).colorScheme.border),
-      ),
-      child: Text(
-        'U$universe',
-        style: Theme.of(context).typography.mono.copyWith(fontSize: 6),
-        textAlign: TextAlign.center,
-        overflow: TextOverflow.clip,
-      ),
-    );
-  }
-}
-
-class _PowerCableEdge extends StatelessWidget {
-  final Offset from;
-  final Offset to;
-  final String? label;
-  final CableRunType runType;
-  final CableRouteTuning tuning;
-
-  const _PowerCableEdge({
-    required this.from,
-    required this.to,
-    required this.runType,
-    required this.tuning,
-    this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ChannelConnector(
-      start: from,
-      end: to,
-      color: switch (runType) {
-        CableRunType.link => SidekickColors.powerLink,
-        CableRunType.fixtureRun => SidekickColors.powerRun,
-        CableRunType.homeRun => SidekickColors.powerHome,
-      },
-      width: switch (runType) {
-        CableRunType.link => 1,
-        CableRunType.fixtureRun => 1,
-        CableRunType.homeRun => 2,
-      },
-      label: label,
-      riser: tuning.powerRiser((to.dx - from.dx).abs()),
-      cornerRadius: tuning.cornerRadius,
-      directionUp: CableRouteTuning.directionUpFor(runType),
-    );
-  }
-}
-
-class _DataCableEdge extends StatelessWidget {
-  final Offset from;
-  final Offset to;
-  final String? label;
-  final CableRunType runType;
-  final CableRouteTuning tuning;
-
-  const _DataCableEdge({
-    required this.from,
-    required this.to,
-    required this.runType,
-    required this.tuning,
-    this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ChannelConnector(
-      start: from,
-      end: to,
-      color: switch (runType) {
-        CableRunType.link => SidekickColors.dataLink,
-        CableRunType.fixtureRun => SidekickColors.dataRun,
-        CableRunType.homeRun => SidekickColors.dataHome,
-      },
-      label: label,
-      width: switch (runType) {
-        CableRunType.link => 1,
-        CableRunType.fixtureRun => 1,
-        CableRunType.homeRun => 2,
-      },
-      riser: tuning.dataRiser((to.dx - from.dx).abs()),
-      cornerRadius: tuning.cornerRadius,
-      directionUp: CableRouteTuning.directionUpFor(runType),
     );
   }
 }

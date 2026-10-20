@@ -171,5 +171,136 @@ void main() {
       expect(length, isNotNull);
       expect(length!, greaterThan(straight));
     });
+
+    test('route path matches the length and ends at the fixture', () {
+      final geometry = TrussGeometry.fromTrusses([straightTruss()]);
+      final assignments =
+          geometry.assignFixtures([fixture('a', -1000, 0, -1000)]);
+      const header = Vector3(1500, 0, -1500);
+      const fixturePoint = Vector3(-1000, 0, -1000);
+
+      final route = geometry.homeRunRoute(
+        from: header,
+        to: fixturePoint,
+        assignment: assignments['a']!,
+      )!;
+
+      expect(
+        route.length,
+        closeTo(
+          geometry.homeRunLength(
+            from: header,
+            assignment: assignments['a']!,
+          )!,
+          1e-6,
+        ),
+      );
+      expect(pathLength(route.path), closeTo(route.length, 1e-6));
+      expect(route.path.first, header);
+      expect(route.path.last, fixturePoint);
+    });
+  });
+
+  group('paths', () {
+    test('a single-stick link path rises, runs the chord and drops', () {
+      final geometry = TrussGeometry.fromTrusses([straightTruss()]);
+      final assignments = geometry.assignFixtures([
+        fixture('a', -1000, 0, -1000),
+        fixture('b', 1000, 0, -1000),
+      ]);
+      const from = Vector3(-1000, 0, -1000);
+      const to = Vector3(1000, 0, -1000);
+
+      final split = geometry.splitRun(
+        from: from,
+        to: to,
+        fromAssignment: assignments['a'],
+        toAssignment: assignments['b'],
+      );
+
+      final path = split.segmentPaths.single;
+      expect(path.first, from);
+      expect(path.last, to);
+      // Both feet sit on the top chord.
+      expect(path[1].z, closeTo(150, 1));
+      expect(path[2].z, closeTo(150, 1));
+      expect(pathLength(path), closeTo(split.segmentLengths.single, 1e-6));
+    });
+
+    test('split segments each match their length and meet at the break', () {
+      final geometry = TrussGeometry.fromTrusses([
+        straightTruss(uid: 't1', center: const Vector3(-2000, 0, 0)),
+        straightTruss(uid: 't2', center: const Vector3(2000, 0, 0)),
+      ]);
+      final assignments = geometry.assignFixtures([
+        fixture('a', -3000, 0, -1000),
+        fixture('b', 3000, 0, -1000),
+      ]);
+
+      final split = geometry.splitRun(
+        from: const Vector3(-3000, 0, -1000),
+        to: const Vector3(3000, 0, -1000),
+        fromAssignment: assignments['a'],
+        toAssignment: assignments['b'],
+      );
+
+      expect(split.segmentPaths, hasLength(2));
+      for (var i = 0; i < 2; i++) {
+        expect(
+          pathLength(split.segmentPaths[i]),
+          closeTo(split.segmentLengths[i], 1e-6),
+        );
+      }
+      final breakPoint = split.breakPoints.single;
+      expect(split.segmentPaths[0].last.distanceTo(breakPoint), lessThan(1e-6));
+      expect(split.segmentPaths[1].first.distanceTo(breakPoint),
+          lessThan(1e-6));
+      expect(pathLength(split.path),
+          closeTo(split.segmentLengths.reduce((a, b) => a + b), 1e-6));
+    });
+
+    test('a link around a corner follows the corner', () {
+      final alongX = straightTruss(uid: 'x', center: const Vector3(-2000, 0, 0));
+      final alongY = TrussModel(
+        uid: 'y',
+        center: const Vector3(0, 2000, 0),
+        lengthAxis: Vector3.unitY,
+        widthAxis: const Vector3(-1, 0, 0),
+        heightAxis: Vector3.unitZ,
+        length: 4000,
+        width: 300,
+        height: 300,
+      );
+      final geometry = TrussGeometry.fromTrusses([alongX, alongY]);
+      final assignments = geometry.assignFixtures([
+        fixture('a', -3000, 0, -1000),
+        fixture('b', 0, 3000, -1000),
+      ]);
+
+      final split = geometry.splitRun(
+        from: const Vector3(-3000, 0, -1000),
+        to: const Vector3(0, 3000, -1000),
+        fromAssignment: assignments['a'],
+        toAssignment: assignments['b'],
+      );
+
+      expect(pathLength(split.path),
+          closeTo(split.segmentLengths.reduce((a, b) => a + b), 1e-6));
+    });
+
+    test('a floor link runs level between its two ends', () {
+      final geometry = TrussGeometry.fromTrusses(const []);
+      const from = Vector3(0, 0, 0);
+      const to = Vector3(3000, 0, 0);
+
+      final split = geometry.splitRun(
+        from: from,
+        to: to,
+        fromAssignment: null,
+        toAssignment: null,
+      );
+
+      expect(split.path, [from, to]);
+    });
   });
 }

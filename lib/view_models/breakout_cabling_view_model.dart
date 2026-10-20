@@ -80,9 +80,8 @@ class CableViewViewModel {
 
 /// A single truss stick, carried as its eight world-space corners (mm).
 ///
-/// The rig viewer projects the corners through its current view and paints
-/// their convex hull, so the footprint is correct for any orientation and any
-/// viewpoint without the view model knowing which view is selected.
+/// The corners follow `OrientedBox.fromCorners` order, so the 3D rig viewer
+/// can rebuild the stick's box from them in any orientation.
 class TrussViewModel {
   final String uid;
   final String name;
@@ -96,8 +95,7 @@ class TrussViewModel {
 }
 
 sealed class NodeElement {
-  /// Position in world space (mm, Z-up), projected per-view by the rig
-  /// viewer's layer builders.
+  /// Position in world space (mm, Z-up).
   final Vector3 position;
 
   NodeElement({required this.position});
@@ -162,12 +160,17 @@ class CableEdgeElement extends EdgeElement {
   final Vector3? fromPoint;
   final Vector3? toPoint;
 
+  /// The world polyline (mm) the cable is routed along; empty when it has
+  /// none.
+  final List<Vector3> path;
+
   CableEdgeElement({
     required this.type,
     required this.length,
     required this.runType,
     this.fromPoint,
     this.toPoint,
+    this.path = const [],
     required super.toElement,
     required super.fromElement,
   });

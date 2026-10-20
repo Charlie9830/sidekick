@@ -48,13 +48,53 @@ class TrussAssignment {
 /// [segmentLengths] always has one more entry than [breakPoints]. Lengths are
 /// the raw run length (mm) of each segment — including the vertical risers at
 /// the two ends — before rounding to a cable breakpoint.
+///
+/// [segmentPaths] holds the world polyline each segment is drawn along. A
+/// segment routed along the truss has a path exactly as long as its length;
+/// floor and cross-run segments use the flat `riser + horizontal + riser`
+/// allowance, which no single path matches, so theirs is a representative
+/// route rather than an exact one.
 class RunSplit {
   final List<double> segmentLengths;
   final List<Vector3> breakPoints;
+  final List<List<Vector3>> segmentPaths;
 
-  const RunSplit({required this.segmentLengths, required this.breakPoints});
+  const RunSplit({
+    required this.segmentLengths,
+    required this.breakPoints,
+    required this.segmentPaths,
+  });
 
   bool get hasBreaks => breakPoints.isNotEmpty;
+
+  /// The whole run as one path, through every break point.
+  List<Vector3> get path => joinPaths(segmentPaths);
+}
+
+/// A routed cable: its raw length (mm) and the world polyline it follows.
+typedef CableRoute = ({double length, List<Vector3> path});
+
+/// Concatenates [paths] end to end, dropping the duplicate point where one
+/// path ends and the next begins.
+List<Vector3> joinPaths(Iterable<List<Vector3>> paths) {
+  final joined = <Vector3>[];
+  for (final path in paths) {
+    for (final point in path) {
+      if (joined.isEmpty || joined.last.distanceTo(point) > 1e-6) {
+        joined.add(point);
+      }
+    }
+  }
+  return joined;
+}
+
+/// Total length (mm) of the polyline through [points].
+double pathLength(List<Vector3> points) {
+  var total = 0.0;
+  for (var i = 1; i < points.length; i++) {
+    total += points[i - 1].distanceTo(points[i]);
+  }
+  return total;
 }
 
 /// One physical truss stick, modelled as an oriented box.
@@ -230,6 +270,22 @@ class _Polyline {
     }
     return points.last;
   }
+
+  /// The stretch of the polyline between arc-lengths [from] and [to], in
+  /// travel order (reversed when [to] < [from]), including its corners.
+  List<Vector3> slice(double from, double to) {
+    if (to < from) return slice(to, from).reversed.toList();
+
+    final lo = from.clamp(0.0, length);
+    final hi = to.clamp(0.0, length);
+    return [
+      pointAt(lo),
+      for (var i = 0; i < points.length; i++)
+        if (_cumulative[i] > lo + 1e-6 && _cumulative[i] < hi - 1e-6)
+          points[i],
+      pointAt(hi),
+    ];
+  }
 }
 
 /// Pre-computed truss topology: sticks grouped into connected runs, each with a
@@ -365,14 +421,18 @@ class TrussGeometry {
         fromAssignment.runId == toAssignment.runId) {
       final run = _runById[fromAssignment.runId];
       if (run?.chord != null) {
-        return _splitAlongRun(run!, fromAssignment, toAssignment);
+        return _splitAlongRun(run!, from, to, fromAssignment, toAssignment);
       }
     }
 
     final riserFrom = fromAssignment?.riser ?? kFloorRiserMm;
     final riserTo = toAssignment?.riser ?? kFloorRiserMm;
     final total = riserFrom + _horizontalDistance(from, to) + riserTo;
-    return RunSplit(segmentLengths: [total], breakPoints: const []);
+    return RunSplit(
+      segmentLengths: [total],
+      breakPoints: const [],
+      segmentPaths: [_fallbackPath(from, to, fromAssignment, toAssignment)],
+    );
   }
 
   /// Length of a home run from [from] to a fixture, following the fixture's run
@@ -392,7 +452,61 @@ class TrussGeometry {
     return entry.distance + along + assignment.riser;
   }
 
-  RunSplit _splitAlongRun(_Run run, TrussAssignment a, TrussAssignment b) {
+  /// The route of a home run from [from] to the fixture point [to] whose
+  /// foot on its run is [assignment]: straight to the nearest point of the
+  /// chord, along it, and down the riser. Its path is exactly as long as
+  /// [homeRunLength].
+  ///
+  /// Returns `null` when the fixture's run has no chord.
+  CableRoute? homeRunRoute({
+    required Vector3 from,
+    required Vector3 to,
+    required TrussAssignment assignment,
+  }) {
+    final chord = _runById[assignment.runId]?.chord;
+    if (chord == null) return null;
+
+    final entry = chord.project(from);
+    return (
+      length: entry.distance + (assignment.s - entry.s).abs() + assignment.riser,
+      path: joinPaths([
+        [from],
+        chord.slice(entry.s, assignment.s),
+        [to],
+      ]),
+    );
+  }
+
+  /// A representative route for a run that does not follow one chord: each
+  /// end drops to its foot (on its own chord when trussed, otherwise level
+  /// with the lower end) and the feet are joined directly.
+  List<Vector3> _fallbackPath(
+    Vector3 from,
+    Vector3 to,
+    TrussAssignment? fromAssignment,
+    TrussAssignment? toAssignment,
+  ) {
+    final floorLevel = math.min(from.z, to.z);
+
+    Vector3 foot(Vector3 point, TrussAssignment? assignment) {
+      final chord =
+          assignment == null ? null : _runById[assignment.runId]?.chord;
+      return chord?.pointAt(assignment!.s) ??
+          Vector3(point.x, point.y, floorLevel);
+    }
+
+    return joinPaths([
+      [from, foot(from, fromAssignment), foot(to, toAssignment), to],
+    ]);
+  }
+
+  RunSplit _splitAlongRun(
+    _Run run,
+    Vector3 from,
+    Vector3 to,
+    TrussAssignment a,
+    TrussAssignment b,
+  ) {
     final chord = run.chord!;
     final low = math.min(a.s, b.s);
     final high = math.max(a.s, b.s);
@@ -416,7 +530,21 @@ class TrussGeometry {
     segments[0] += a.riser;
     segments[segments.length - 1] += b.riser;
 
-    return RunSplit(segmentLengths: segments, breakPoints: breakPoints);
+    final lastIndex = boundaries.length - 2;
+    final paths = <List<Vector3>>[
+      for (var i = 0; i <= lastIndex; i++)
+        joinPaths([
+          if (i == 0) [from],
+          chord.slice(boundaries[i], boundaries[i + 1]),
+          if (i == lastIndex) [to],
+        ]),
+    ];
+
+    return RunSplit(
+      segmentLengths: segments,
+      breakPoints: breakPoints,
+      segmentPaths: paths,
+    );
   }
 
   /// Groups sticks into connected runs via union-find on coincident end-points

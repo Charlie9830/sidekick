@@ -239,7 +239,8 @@ class _LocationBuilder {
     CableEdge edge(
       String fromId,
       String toId,
-      double length, {
+      double length,
+      List<Vector3> path, {
       Vector3? fromPoint,
       Vector3? toPoint,
     }) => CableEdge(
@@ -252,6 +253,7 @@ class _LocationBuilder {
       type: type,
       fromPoint: fromPoint,
       toPoint: toPoint,
+      path: path,
     );
 
     if (!location.breakAtTrussJoins || !split.hasBreaks) {
@@ -260,6 +262,7 @@ class _LocationBuilder {
           from.fixtureId,
           to.fixtureId,
           split.segmentLengths.sum,
+          split.path,
           fromPoint: from.position,
           toPoint: to.position,
         ),
@@ -282,6 +285,7 @@ class _LocationBuilder {
           ids[i],
           ids[i + 1],
           split.segmentLengths[i],
+          split.segmentPaths[i],
           fromPoint: i == 0 ? from.position : null,
           toPoint: i == lastIndex ? to.position : null,
         ),
@@ -386,7 +390,7 @@ class _LocationBuilder {
     CableType tail,
     FixturePort input,
   ) {
-    final length = context.router.homeRunLength(
+    final route = context.router.homeRun(
       from: from,
       to: (fixtureId: fixture.uid, position: input.position),
     );
@@ -394,13 +398,14 @@ class _LocationBuilder {
     return CableEdge(
       from: headerId,
       to: fixture.uid,
-      euclidianLength: length,
-      length: roundUpToStock(length, tail.stockLengths),
+      euclidianLength: route.length,
+      length: roundUpToStock(route.length, tail.stockLengths),
       locationId: location.uid,
       runType: CableRunType.fixtureRun,
       type: tail,
       toPoint: input.position,
       adaptorType: adaptorFor(tail: tail, input: input.cableType),
+      path: route.path,
     );
   }
 
@@ -416,6 +421,7 @@ class _LocationBuilder {
       locationId: location.uid,
       runType: CableRunType.homeRun,
       type: header.cableType,
+      path: [_origin, header.position],
     );
   }
 

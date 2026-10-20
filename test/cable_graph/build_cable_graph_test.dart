@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sidekick/cable_graph/cable_graph.dart';
+import 'package:sidekick/cable_graph/truss_geometry.dart';
 import 'package:sidekick/cable_graph/vector3.dart';
 import 'package:sidekick/data_selectors/select_cable_qtys.dart';
 import 'package:sidekick/redux/models/cable_model.dart';
@@ -227,6 +228,26 @@ void main() {
         totalFor(whole, CableType.au10a),
         closeTo(totalFor(broken, CableType.au10a), 1e-6),
       );
+    });
+
+    test('every trussed cable is drawn along a path as long as it', () {
+      for (final breakAtTrussJoins in [true, false]) {
+        final graph = _build(
+          fixtures: fixtures,
+          trusses: trusses,
+          breakAtTrussJoins: breakAtTrussJoins,
+        );
+
+        for (final edge in graph.edges.whereType<CableEdge>()) {
+          expect(edge.path.length, greaterThanOrEqualTo(2));
+          if (edge.runType == CableRunType.homeRun) continue;
+          expect(
+            pathLength(edge.path),
+            closeTo(edge.euclidianLength, 1e-6),
+            reason: '${edge.from} → ${edge.to} (${edge.type.name})',
+          );
+        }
+      }
     });
   });
 }

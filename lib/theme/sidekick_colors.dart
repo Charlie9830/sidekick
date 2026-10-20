@@ -96,6 +96,31 @@ abstract final class SidekickColors {
 
   /// Accent reserved for selection / active / focus rings.
   static const Color selectionAccent = Color(0xFF3B82F6);
+
+  // ── 3D Rig Viewer ────────────────────────────────────────────────────
+  // The viewer keeps the grandMA3 3D window's dark stage in both app themes,
+  // so these are fixed rather than derived from the colour scheme.
+
+  /// Stage background behind the 3D scene.
+  static const Color rigBackground = Color(0xFF15171C);
+
+  /// Floor grid lines.
+  static const Color rigGrid = Color(0xFF2A2E37);
+
+  /// Fixture bodies.
+  static const Color rigMesh = Color(0xFF8A8F99);
+
+  /// Truss tubes.
+  static const Color rigTruss = Color(0xFF5E636D);
+
+  /// Selected / focused fixtures, as yellow as the console's selection.
+  static const Color rigSelection = Color(0xFFFFD400);
+
+  /// Fixtures already handled (e.g. assigned a sequence number).
+  static const Color rigAssigned = Color(0xFF4F7FBF);
+
+  /// Cable connectors (GDTF wiring objects) on fixture bodies.
+  static const Color rigConnector = Color(0xFFE02828);
 }
 
 /// Layout density tokens for tables and dense lists.

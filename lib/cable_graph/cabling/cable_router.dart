@@ -32,17 +32,28 @@ class CableRouter {
     return CableRouter._(geometry, assignments);
   }
 
-  /// Length of a home run from a header at [from] to [to].
+  /// The route (length and path) of a home run from a header at [from] to
+  /// [to].
   ///
   /// Trussed fixtures follow their run's chord (entering at the nearest point);
   /// floor fixtures fall back to a straight line plus a [kFloorRiserMm] riser.
-  double homeRunLength({required Vector3 from, required RoutePoint to}) {
+  /// The floor fallback is drawn as a straight line; its riser allowance has
+  /// no place on the path.
+  CableRoute homeRun({required Vector3 from, required RoutePoint to}) {
     final assignment = _assignmentOf(to);
     final alongTruss = assignment == null
         ? null
-        : _geometry.homeRunLength(from: from, assignment: assignment);
+        : _geometry.homeRunRoute(
+            from: from,
+            to: to.position,
+            assignment: assignment,
+          );
 
-    return alongTruss ?? from.distanceTo(to.position) + kFloorRiserMm;
+    return alongTruss ??
+        (
+          length: from.distanceTo(to.position) + kFloorRiserMm,
+          path: [from, to.position],
+        );
   }
 
   /// Splits a link run into segments at each truss join it crosses.

@@ -41,6 +41,10 @@ class CableEdge extends Edge {
   /// counted alongside the cable itself.
   final CableType? adaptorType;
 
+  /// The world polyline (mm) the cable is routed along, from its `from` end to
+  /// its `to` end. Empty when the cable has no routed path.
+  final List<Vector3> path;
+
   const CableEdge({
     required super.from,
     required super.to,
@@ -52,6 +56,7 @@ class CableEdge extends Edge {
     this.fromPoint,
     this.toPoint,
     this.adaptorType,
+    this.path = const [],
   });
 }
 

@@ -2,7 +2,8 @@
 
 `macos/` and `windows/` are generated directories. Any hand-made edit in
 them — the window_manager Quit override in `AppDelegate.swift`, the
-release entitlements — is lost the moment those folders are regenerated.
+release entitlements, the Flutter GPU switch in `Info.plist` and the
+Windows runner — is lost the moment those folders are regenerated.
 This directory holds the authoritative copy of every such file, and the
 release scripts restore them on every build.
 
@@ -17,8 +18,9 @@ reads `patches/macos/` only, `build_windows.dart` reads `patches/windows/`
 only. Everything after it is the destination path, verbatim.
 
 A bucket that does not exist is not an error — the build reports that
-there is nothing to apply and carries on. `patches/windows/` is absent for
-that reason; create it when Windows has its first patch.
+there is nothing to apply and carries on. `patches/windows/` holds the
+runner's `main.cpp`, which turns on Flutter GPU for the 3D Rig Viewer
+(`project.set_enable_flutter_gpu(true)`).
 
 So the macOS AppDelegate lives at:
 

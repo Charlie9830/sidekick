@@ -1,253 +1,581 @@
+import 'dart:developer' as developer;
+import 'dart:math' as math;
+
+import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_scene/scene.dart' show Scene, SceneView;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:sidekick/cable_graph/vector3.dart';
-import 'package:sidekick/cable_graph/view_projection.dart';
-import 'package:sidekick/cable_graph/viewport_transformer.dart';
-import 'package:sidekick/widgets/hover_region.dart';
-import 'package:sidekick/widgets/rig_viewer/truss_painter.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
+import 'package:sidekick/widgets/rig_viewer/camera/rig_camera.dart';
+import 'package:sidekick/widgets/rig_viewer/camera/rig_camera_state.dart';
+import 'package:sidekick/widgets/rig_viewer/chrome/label_layer.dart';
+import 'package:sidekick/widgets/rig_viewer/chrome/tool_bar.dart';
+import 'package:sidekick/widgets/rig_viewer/scene/picking.dart';
+import 'package:sidekick/widgets/rig_viewer/scene/rig_scene_model.dart';
+import 'package:sidekick/widgets/rig_viewer/scene/rig_scene_renderer.dart';
+import 'package:sidekick/widgets/rig_viewer/scene/world_space.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 
-/// Below [_kLabelFadeStart] node labels are hidden; above [_kLabelFadeEnd]
-/// they are fully opaque. Between the two they fade in — semantic zoom that
-/// keeps the rig uncluttered when zoomed out and legible when zoomed in,
-/// instead of rendering sub-pixel text.
-const double _kLabelFadeStart = 1.6;
-const double _kLabelFadeEnd = 3.2;
+/// Pointer travel (px) after which a press counts as a drag, not a click.
+const double _kDragSlop = 4;
 
-/// Builds the widgets of one rig layer, given the fitted viewport, the
-/// projection of the currently selected orthogonal view, and the zoom-driven
-/// label opacity. Content must project its own world coordinates through
-/// [projection] so every layer re-orients together when the view changes.
-/// Returned widgets sit directly in the viewer's Stack, so they must be
-/// [Positioned] (or otherwise Stack-legal).
-typedef RigViewerLayerBuilder =
-    List<Widget> Function(
-      BuildContext context,
-      ViewportTransformer viewport,
-      ViewProjection projection,
-      double labelOpacity,
-    );
+/// Radians of orbit per pixel dragged.
+const double _kOrbitRate = 0.008;
 
-/// A pannable, zoomable, 2D view of the rig, shared by the cable view and the
-/// sequencer plan view.
+/// Zoom factor per pixel of scroll (or of drag in Zoom mode).
+const double _kZoomRate = 0.0015;
+
+const Duration _kFlightDuration = Duration(milliseconds: 250);
+
+/// How close (px) the pointer must be to a line to show its tooltip.
+const double _kLineHoverSlop = 6;
+
+/// A 3D view of the rig modelled on the grandMA3 3D window.
 ///
-/// The viewer owns the chrome both views used to duplicate: the
-/// [InteractiveViewer], the [ViewportTransformer] fit over [fitPoints], the
-/// truss footprint underlay, the zoom-driven label fade, and the orthogonal
-/// view selector (Top / Bottom / Front / Back / Left / Right). The selected
-/// view's projection is handed to the layer builders, so all inputs are
-/// world-space (mm, Z-up). Content stays with the caller — [underlayBuilder]
-/// draws beneath the nodes (cables, sequence paths) and [nodesBuilder] places
-/// the nodes themselves, both receiving the fitted viewport and projection so
-/// everything shares one world-to-screen mapping. [overlays] are screen-fixed
-/// chrome (legends, controls) outside the pan/zoom surface.
+/// Draws [scene] with flutter_scene and navigates like the console: a left
+/// drag follows the active [RigToolMode] (Move, Rotate Center, Zoom, Rotate
+/// Selection...), a right drag always orbits the selection, a middle drag
+/// always moves, and the scroll wheel zooms toward the pointer. The
+/// selection is [focusIds]; with nothing selected, orbits turn around the
+/// centre of the view. F fits the rig and Shift+F fits the selection.
+///
+/// Pages describe what to draw as a [RigSceneModel] and react to clicks via
+/// [onFixtureTap]; [overlays] are screen-fixed widgets (legends, filters)
+/// stacked above the view.
 class RigViewer extends StatefulWidget {
-  /// World-space points (mm) the viewport must fit around, in addition to the
-  /// corners of [trussCorners]. An empty list collapses the viewer to nothing.
-  final List<Vector3> fitPoints;
+  final RigSceneModel scene;
 
-  /// Inset kept clear around the plot so edge nodes aren't clipped.
-  final double fitPadding;
+  /// Called when a fixture is clicked in [RigToolMode.select].
+  final ValueChanged<String>? onFixtureTap;
 
-  final double maxScale;
+  /// Called when the fixture under the pointer changes (null when none).
+  final ValueChanged<String?>? onFixtureHover;
 
-  /// World-space corner sets, one per truss, whose projected outlines are
-  /// painted beneath everything else.
-  final List<List<Vector3>> trussCorners;
+  /// The selection: framed by Fit Selected and orbited by Rotate Selection.
+  /// Empty disables Fit Selected.
+  final Set<String> focusIds;
 
-  final RigViewerLayerBuilder? underlayBuilder;
-  final RigViewerLayerBuilder nodesBuilder;
+  final RigViewPreset initialPreset;
+  final RigToolMode initialMode;
 
-  /// Screen-fixed widgets stacked over the viewer (legends, control panels).
+  /// Whether connector boxes start visible; the toolbar toggles them.
+  final bool initialShowConnectors;
   final List<Widget> overlays;
-
-  /// The orthogonal view shown until the user selects another.
-  final OrthogonalView initialView;
 
   const RigViewer({
     super.key,
-    required this.fitPoints,
-    required this.nodesBuilder,
-    this.underlayBuilder,
-    this.fitPadding = 240,
-    this.maxScale = 50,
-    this.trussCorners = const [],
+    required this.scene,
+    this.onFixtureTap,
+    this.onFixtureHover,
+    this.focusIds = const {},
+    this.initialPreset = RigViewPreset.perspective,
+    this.initialMode = RigToolMode.rotateSelection,
+    this.initialShowConnectors = true,
     this.overlays = const [],
-    this.initialView = OrthogonalView.top,
   });
 
   @override
   State<RigViewer> createState() => _RigViewerState();
 }
 
-class _RigViewerState extends State<RigViewer> {
-  final TransformationController _controller = TransformationController();
-  double _labelOpacity = 0;
-  late OrthogonalView _view = widget.initialView;
+class _RigViewerState extends State<RigViewer>
+    with SingleTickerProviderStateMixin {
+  static final Future<void> _staticResources =
+      Scene.initializeStaticResources();
+
+  final RigSceneRenderer _renderer = RigSceneRenderer();
+  final ValueNotifier<RigCameraState?> _camera = ValueNotifier(null);
+  final FocusNode _focusNode = FocusNode(debugLabel: 'RigViewer');
+
+  late final AnimationController _flight = AnimationController(
+    vsync: this,
+    duration: _kFlightDuration,
+  )..addListener(_handleFlightTick);
+  RigCameraState? _flightFrom;
+  RigCameraState? _flightTo;
+
+  late RigToolMode _mode = widget.initialMode;
+  bool _showLabels = true;
+  late bool _showConnectors = widget.initialShowConnectors;
+  Size _viewSize = Size.zero;
+
+  Offset? _pressPosition;
+  int _pressButtons = 0;
+  bool _dragged = false;
+  double _lastPanZoomScale = 1;
+
+  String? _hoveredId;
+  String? _hoverTooltip;
+  Offset? _hoverPosition;
 
   @override
   void initState() {
     super.initState();
-    _controller.addListener(_handleTransformChanged);
+    _renderer.update(widget.scene);
+  }
+
+  @override
+  void didUpdateWidget(RigViewer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _renderer.update(widget.scene);
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_handleTransformChanged);
-    _controller.dispose();
+    _flight.dispose();
+    _camera.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
-  void _handleTransformChanged() {
-    final scale = _controller.value.getMaxScaleOnAxis();
-    final opacity =
-        ((scale - _kLabelFadeStart) / (_kLabelFadeEnd - _kLabelFadeStart))
-            .clamp(0.0, 1.0);
-    if ((opacity - _labelOpacity).abs() > 0.02) {
-      setState(() => _labelOpacity = opacity);
+  RigCameraState get _currentCamera =>
+      _camera.value ?? RigCameraState.preset(widget.initialPreset);
+
+  void _setCamera(RigCameraState camera) {
+    _flight.stop();
+    _camera.value = camera;
+  }
+
+  void _flyTo(RigCameraState target) {
+    _flightFrom = _currentCamera;
+    _flightTo = target;
+    _flight.forward(from: 0);
+  }
+
+  void _handleFlightTick() {
+    final from = _flightFrom;
+    final to = _flightTo;
+    if (from == null || to == null) return;
+    _camera.value = RigCameraState.lerp(
+      from,
+      to,
+      Curves.easeInOut.transform(_flight.value),
+    );
+  }
+
+  // ── Camera commands ─────────────────────────────────────────────────────
+
+  void _fit() {
+    final bounds = _renderer.bounds;
+    if (bounds == null || _viewSize.isEmpty) return;
+    _flyTo(_currentCamera.framing(bounds, _viewSize));
+  }
+
+  void _fitSelected() {
+    final bounds = _focusBounds();
+    if (bounds == null || _viewSize.isEmpty) return;
+    _flyTo(_currentCamera.framing(bounds, _viewSize));
+  }
+
+  void _applyPreset(RigViewPreset preset) {
+    final turned = _currentCamera.withPreset(preset);
+    final bounds = _renderer.bounds;
+    _flyTo(
+      bounds == null || _viewSize.isEmpty
+          ? turned
+          : turned.framing(bounds, _viewSize),
+    );
+  }
+
+  vm.Aabb3? _focusBounds() {
+    final points = [
+      for (final fixture in widget.scene.fixtures)
+        if (widget.focusIds.contains(fixture.id))
+          for (final part in fixture.parts)
+            for (final corner in part.box.corners) WorldSpace.toScene(corner),
+    ];
+    if (points.isEmpty) return null;
+
+    final bounds = vm.Aabb3.minMax(points.first.clone(), points.first.clone());
+    for (final point in points.skip(1)) {
+      bounds.hullPoint(point);
+    }
+    return bounds;
+  }
+
+  // ── Picking ─────────────────────────────────────────────────────────────
+
+  PickHit? _pickAt(Offset position) {
+    if (_viewSize.isEmpty) return null;
+    final camera = _currentCamera;
+    final ray = WorldRay(
+      WorldSpace.fromScene(camera.eye),
+      WorldSpace.directionFromScene(camera.rayThrough(position, _viewSize)),
+    );
+    return pick(ray, _renderer.pickTargets);
+  }
+
+  // ── Pointer input ───────────────────────────────────────────────────────
+
+  void _handlePointerDown(PointerDownEvent event) {
+    _focusNode.requestFocus();
+    _flight.stop();
+    _pressPosition = event.localPosition;
+    _pressButtons = event.buttons;
+    _dragged = false;
+  }
+
+  void _handlePointerMove(PointerMoveEvent event) {
+    final press = _pressPosition;
+    if (press == null) return;
+    if (!_dragged && (event.localPosition - press).distance < _kDragSlop) {
+      return;
+    }
+    _dragged = true;
+    _drag(event.delta, _pressButtons);
+  }
+
+  void _drag(Offset delta, int buttons) {
+    final camera = _currentCamera;
+    final orbitYaw = delta.dx * _kOrbitRate;
+    final orbitPitch = delta.dy * _kOrbitRate;
+
+    if (buttons & kSecondaryMouseButton != 0) {
+      _setCamera(_orbitSelection(camera, orbitYaw, orbitPitch));
+      return;
+    }
+    if (buttons & kMiddleMouseButton != 0) {
+      _setCamera(camera.move(delta, _viewSize));
+      return;
+    }
+
+    switch (_mode) {
+      case RigToolMode.select:
+        return;
+      case RigToolMode.move:
+        _setCamera(camera.move(delta, _viewSize));
+      case RigToolMode.rotateCenter:
+        _setCamera(camera.orbit(orbitYaw, orbitPitch));
+      case RigToolMode.zoom:
+        _setCamera(
+          camera.zoomToward(
+            _viewSize.center(Offset.zero),
+            _viewSize,
+            math.exp(delta.dy * _kZoomRate * 4),
+          ),
+        );
+      case RigToolMode.rotateSelection:
+        _setCamera(_orbitSelection(camera, orbitYaw, orbitPitch));
     }
   }
 
-  void _handleViewChanged(OrthogonalView view) {
-    if (view == _view) return;
-    setState(() {
-      _view = view;
-      // A new view has new bounds; reset pan/zoom so the fit is visible.
-      _controller.value = Matrix4.identity();
-    });
+  /// Orbits around the centre of the selection, or around the centre of the
+  /// view when nothing is selected.
+  RigCameraState _orbitSelection(
+    RigCameraState camera,
+    double yaw,
+    double pitch,
+  ) {
+    final selection = _focusBounds();
+    return selection == null
+        ? camera.orbit(yaw, pitch)
+        : camera.orbitAround(selection.center, yaw, pitch);
   }
+
+  void _handlePointerUp(PointerUpEvent event) {
+    final press = _pressPosition;
+    _pressPosition = null;
+    if (press == null || _dragged || _pressButtons != kPrimaryMouseButton) {
+      return;
+    }
+    _click(event.localPosition);
+  }
+
+  void _click(Offset position) {
+    if (_mode != RigToolMode.select) return;
+    final hit = _pickAt(position);
+    if (hit != null) widget.onFixtureTap?.call(hit.id);
+  }
+
+  void _handleScroll(PointerSignalEvent event) {
+    if (event is! PointerScrollEvent) return;
+    _setCamera(
+      _currentCamera.zoomToward(
+        event.localPosition,
+        _viewSize,
+        math.exp(event.scrollDelta.dy * _kZoomRate),
+      ),
+    );
+  }
+
+  void _handlePanZoomStart(PointerPanZoomStartEvent event) {
+    _flight.stop();
+    _lastPanZoomScale = 1;
+  }
+
+  void _handlePanZoomUpdate(PointerPanZoomUpdateEvent event) {
+    var camera = _currentCamera.move(event.panDelta, _viewSize);
+    if (event.scale > 0 && event.scale != _lastPanZoomScale) {
+      camera = camera.zoomToward(
+        event.localPosition,
+        _viewSize,
+        _lastPanZoomScale / event.scale,
+      );
+      _lastPanZoomScale = event.scale;
+    }
+    _setCamera(camera);
+  }
+
+  void _handleHover(PointerHoverEvent event) {
+    final position = event.localPosition;
+    final id = _pickAt(position)?.id;
+    final tooltip = id != null
+        ? _fixtureById(id)?.tooltip
+        : _lineAt(position)?.tooltip;
+    if (id == _hoveredId && tooltip == null && _hoverTooltip == null) return;
+
+    final changed = id != _hoveredId;
+    setState(() {
+      _hoveredId = id;
+      _hoverTooltip = tooltip;
+      _hoverPosition = position;
+    });
+    if (changed) widget.onFixtureHover?.call(id);
+  }
+
+  void _handleExit(PointerExitEvent event) {
+    if (_hoveredId == null && _hoverTooltip == null) return;
+    final hadFixture = _hoveredId != null;
+    setState(() {
+      _hoveredId = null;
+      _hoverTooltip = null;
+    });
+    if (hadFixture) widget.onFixtureHover?.call(null);
+  }
+
+  /// The line with a tooltip passing nearest [position] on screen, within
+  /// [_kLineHoverSlop] pixels.
+  RigLine? _lineAt(Offset position) {
+    if (_viewSize.isEmpty) return null;
+    final camera = rigCamera(_currentCamera);
+
+    RigLine? nearest;
+    var nearestDistance = _kLineHoverSlop;
+    for (final line in widget.scene.lines) {
+      if (line.tooltip == null) continue;
+      Offset? previous;
+      for (final point in line.points) {
+        final screen = camera.worldToScreen(
+          WorldSpace.toScene(point),
+          _viewSize,
+        );
+        if (previous != null && screen != null) {
+          final distance = _distanceToSegment(position, previous, screen);
+          if (distance < nearestDistance) {
+            nearestDistance = distance;
+            nearest = line;
+          }
+        }
+        previous = screen;
+      }
+    }
+    return nearest;
+  }
+
+  static double _distanceToSegment(Offset p, Offset a, Offset b) {
+    final ab = b - a;
+    final lengthSquared = ab.distanceSquared;
+    final t = lengthSquared == 0
+        ? 0.0
+        : (((p - a).dx * ab.dx + (p - a).dy * ab.dy) / lengthSquared).clamp(
+            0.0,
+            1.0,
+          );
+    return (p - (a + ab * t)).distance;
+  }
+
+  RigFixture? _fixtureById(String id) =>
+      widget.scene.fixtures.where((fixture) => fixture.id == id).firstOrNull;
+
+  // ── Build ───────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    if (widget.fitPoints.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    return FutureBuilder<void>(
+      future: _staticResources,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          developer.log(
+            '3D rig view failed to initialise',
+            name: 'sidekick.rig_viewer',
+            level: 1000,
+            error: snapshot.error,
+            stackTrace: snapshot.stackTrace,
+          );
+          return _Unavailable(error: snapshot.error!);
+        }
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const ColoredBox(
+            color: SidekickColors.rigBackground,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        return _buildViewer();
+      },
+    );
+  }
 
-    final hulls = [
-      for (final corners in widget.trussCorners)
-        convexHull([for (final corner in corners) _view.projectVector(corner)]),
-    ];
-
-    final fitPoints = [
-      for (final point in widget.fitPoints) _view.projectVector(point),
-      for (final hull in hulls) ...hull,
-    ];
-
-    return Stack(
-      children: [
-        InteractiveViewer(
-          maxScale: widget.maxScale,
-          transformationController: _controller,
+  Widget _buildViewer() {
+    return Semantics(
+      label: '3D rig view',
+      child: CallbackShortcuts(
+        bindings: {
+          const SingleActivator(LogicalKeyboardKey.keyF): _fit,
+          const SingleActivator(LogicalKeyboardKey.keyF, shift: true):
+              _fitSelected,
+        },
+        child: Focus(
+          focusNode: _focusNode,
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final viewport = ViewportTransformer.fit(
-                points: fitPoints,
-                constraints: constraints,
-                padding: widget.fitPadding,
-              );
-
+              _viewSize = constraints.biggest;
+              _frameInitially();
               return Stack(
                 children: [
-                  if (hulls.isNotEmpty)
-                    Positioned.fill(
-                      child: CustomPaint(
-                        painter: TrussPainter(
-                          hulls: hulls,
-                          viewport: viewport,
-                          color: Theme.of(context).colorScheme.mutedForeground,
-                        ),
-                      ),
+                  Positioned.fill(child: _buildScene()),
+                  Positioned.fill(child: _buildCameraOverlays()),
+                  // Scrolls rather than overflows in short panes, such as
+                  // the sequencer's top placement.
+                  Positioned(
+                    left: 8,
+                    top: 8,
+                    bottom: 8,
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: SingleChildScrollView(child: _buildToolBar()),
                     ),
-                  ...?widget.underlayBuilder?.call(
-                    context,
-                    viewport,
-                    _view,
-                    _labelOpacity,
                   ),
-                  ...widget.nodesBuilder(
-                    context,
-                    viewport,
-                    _view,
-                    _labelOpacity,
-                  ),
+                  ...widget.overlays,
                 ],
               );
             },
           ),
         ),
-        Positioned(
-          top: 8,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: _ViewSelector(
-              selected: _view,
-              onChanged: _handleViewChanged,
-            ),
-          ),
-        ),
-        ...widget.overlays,
-      ],
+      ),
     );
   }
-}
 
-/// Segmented control switching the viewer between the six orthogonal views.
-class _ViewSelector extends StatelessWidget {
-  final OrthogonalView selected;
-  final ValueChanged<OrthogonalView> onChanged;
+  /// Frames the whole rig the first time the view has a size.
+  void _frameInitially() {
+    if (_camera.value != null || _viewSize.isEmpty) return;
+    final preset = RigCameraState.preset(widget.initialPreset);
+    final bounds = _renderer.bounds;
+    _camera.value = bounds == null ? preset : preset.framing(bounds, _viewSize);
+  }
 
-  const _ViewSelector({required this.selected, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return HoverRegionBuilder(
-      builder: (context, isHovering) {
-        return Opacity(
-          opacity: isHovering ? 1 : 0.25,
-          child: Card(
-            padding: const EdgeInsets.all(4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 2,
-              children: [
-                for (final view in OrthogonalView.values)
-                  _ViewSegment(
-                    view: view,
-                    selected: view == selected,
-                    onPressed: () => onChanged(view),
-                  ),
-              ],
-            ),
+  Widget _buildScene() {
+    _renderer.showConnectors = _showConnectors;
+    return ColoredBox(
+      color: SidekickColors.rigBackground,
+      child: Listener(
+        onPointerDown: _handlePointerDown,
+        onPointerMove: _handlePointerMove,
+        onPointerUp: _handlePointerUp,
+        onPointerSignal: _handleScroll,
+        onPointerPanZoomStart: _handlePanZoomStart,
+        onPointerPanZoomUpdate: _handlePanZoomUpdate,
+        child: MouseRegion(
+          onHover: _handleHover,
+          onExit: _handleExit,
+          child: SceneView(
+            _renderer.scene,
+            cameraBuilder: (_) => rigCamera(_currentCamera),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCameraOverlays() {
+    return ValueListenableBuilder<RigCameraState?>(
+      valueListenable: _camera,
+      builder: (context, state, _) {
+        final camera = rigCamera(state ?? _currentCamera);
+        final tooltip = _hoverTooltip;
+        final hoverPosition = _hoverPosition;
+
+        return Stack(
+          children: [
+            if (_showLabels)
+              Positioned.fill(
+                child: RigLabelLayer(
+                  labels: _labels(),
+                  camera: camera,
+                  viewSize: _viewSize,
+                ),
+              ),
+            if (tooltip != null && hoverPosition != null)
+              Positioned(
+                left: hoverPosition.dx + 14,
+                top: hoverPosition.dy + 14,
+                child: IgnorePointer(
+                  child: SurfaceCard(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    child: Text(tooltip),
+                  ),
+                ),
+              ),
+          ],
         );
       },
     );
   }
+
+  List<RigLabel> _labels() => [
+    for (final fixture in widget.scene.fixtures)
+      if (fixture.label != null)
+        (
+          anchor: fixture.labelAnchor,
+          text: fixture.label!,
+          emphasised:
+              fixture.id == _hoveredId ||
+              fixture.color == SidekickColors.rigSelection,
+        ),
+    for (final marker in widget.scene.markers)
+      if (marker.label != null)
+        (anchor: marker.position, text: marker.label!, emphasised: false),
+  ];
+
+  Widget _buildToolBar() {
+    return RigToolBar(
+      mode: _mode,
+      onModeChanged: (mode) => setState(() => _mode = mode),
+      onFit: _fit,
+      onFitSelected: widget.focusIds.isEmpty ? null : _fitSelected,
+      onPreset: _applyPreset,
+      showLabels: _showLabels,
+      onShowLabelsChanged: (value) => setState(() => _showLabels = value),
+      showConnectors: _showConnectors,
+      onShowConnectorsChanged: (value) =>
+          setState(() => _showConnectors = value),
+    );
+  }
 }
 
-class _ViewSegment extends StatelessWidget {
-  final OrthogonalView view;
-  final bool selected;
-  final VoidCallback onPressed;
+/// Shown instead of the view when Flutter GPU cannot start, e.g. on a
+/// machine whose graphics driver Impeller does not support.
+class _Unavailable extends StatelessWidget {
+  final Object error;
 
-  const _ViewSegment({
-    required this.view,
-    required this.selected,
-    required this.onPressed,
-  });
+  const _Unavailable({required this.error});
 
   @override
   Widget build(BuildContext context) {
-    final label = Text(view.label);
-    return selected
-        ? PrimaryButton(
-            size: ButtonSize.small,
-            onPressed: onPressed,
-            child: label,
-          )
-        : GhostButton(
-            size: ButtonSize.small,
-            onPressed: onPressed,
-            child: label,
-          );
+    return Center(
+      child: Card(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 8,
+          children: [
+            const Icon(LucideIcons.triangleAlert),
+            const Text('3D view unavailable').semiBold(),
+            Text('$error').muted().small(),
+          ],
+        ),
+      ),
+    );
   }
 }

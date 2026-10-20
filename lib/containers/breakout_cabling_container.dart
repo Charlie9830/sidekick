@@ -165,6 +165,7 @@ EdgeElement _buildEdgeElement({
       runType: edge.runType,
       fromPoint: edge.fromPoint,
       toPoint: edge.toPoint,
+      path: edge.path,
       toElement: toElement,
       fromElement: fromElement,
     ),

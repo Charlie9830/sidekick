@@ -52,38 +52,4 @@ void main() {
       }
     });
   });
-
-  group('convexHull', () {
-    test('returns the four corners of an axis-aligned square', () {
-      final hull = convexHull(const [
-        Offset(0, 0),
-        Offset(2, 0),
-        Offset(2, 2),
-        Offset(0, 2),
-        Offset(1, 1), // interior point is dropped
-      ]);
-      expect(hull.length, 4);
-      expect(hull.toSet(), {
-        const Offset(0, 0),
-        const Offset(2, 0),
-        const Offset(2, 2),
-        const Offset(0, 2),
-      });
-    });
-
-    test('collapses a projected box (8 corners) to a 4-point footprint', () {
-      // Eight corners of a 2 x 2 x 10 box: the two Z layers coincide in plan.
-      final corners = <Offset>[
-        for (final x in const [0.0, 2.0])
-          for (final y in const [0.0, 2.0])
-            for (final _ in const [0.0, 10.0]) Offset(x, y),
-      ];
-      expect(convexHull(corners).length, 4);
-    });
-
-    test('returns points unchanged when fewer than three', () {
-      expect(convexHull(const [Offset(1, 1)]).length, 1);
-      expect(convexHull(const [Offset(1, 1), Offset(2, 2)]).length, 2);
-    });
-  });
 }
