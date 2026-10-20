@@ -3,15 +3,9 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:sidekick/item_selection/item_selection_messenger.dart';
 
-enum UpdateType {
-  overwrite,
-  addIfAbsentElseRemove,
-}
+enum UpdateType { overwrite, addIfAbsentElseRemove }
 
-enum SelectionMode {
-  multi,
-  single,
-}
+enum SelectionMode { multi, single }
 
 class ItemSelectionContainer<T> extends StatefulWidget {
   final Widget child;
@@ -21,14 +15,15 @@ class ItemSelectionContainer<T> extends StatefulWidget {
   final bool debug;
   final void Function(UpdateType updateType, Set<T> values) onSelectionUpdated;
 
-  const ItemSelectionContainer(
-      {super.key,
-      required this.child,
-      required this.selectedItemIds,
-      this.mode = SelectionMode.multi,
-      required this.onSelectionUpdated,
-      this.debug = false,
-      this.focusNode});
+  const ItemSelectionContainer({
+    super.key,
+    required this.child,
+    required this.selectedItemIds,
+    this.mode = SelectionMode.multi,
+    required this.onSelectionUpdated,
+    this.debug = false,
+    this.focusNode,
+  });
 
   @override
   State<ItemSelectionContainer<T>> createState() =>
@@ -51,7 +46,7 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
     super.initState();
   }
 
-  bool _servicesEventHandler(event) {
+  bool _servicesEventHandler(KeyEvent event) {
     _dispatchKeyEvent(event);
     return false;
   }
@@ -74,7 +69,8 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
         if (widget.selectedItemIds.difference(registeredItemIds).isNotEmpty) {
           // _itemIndicies could be dangerously out of Sync with external state.
           debugPrint(
-              "// Item Index Warning //\n [ItemSelectionContainer]'s internal _itemIndicies has fallen out of sync with exterior state.\n[ItemSelectionContainer<$T>] has detected selectedIds that are not internally registered.");
+            "// Item Index Warning //\n [ItemSelectionContainer]'s internal _itemIndicies has fallen out of sync with exterior state.\n[ItemSelectionContainer<$T>] has detected selectedIds that are not internally registered.",
+          );
         }
       });
     }
@@ -97,8 +93,10 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
   }
 
   void _handleItemRegistration(T itemId, int? index) {
-    assert((widget.mode == SelectionMode.multi && index == null) != true,
-        "If mode is set to SelectionMode.multi, all associated [ItemSelectionListener] Widgets must have the index property provided");
+    assert(
+      (widget.mode == SelectionMode.multi && index == null) != true,
+      "If mode is set to SelectionMode.multi, all associated [ItemSelectionListener] Widgets must have the index property provided",
+    );
 
     _itemIndicies[itemId] = index!;
   }
@@ -137,17 +135,18 @@ class _ItemSelectionContainerState<T> extends State<ItemSelectionContainer<T>> {
 
     final [int lower, int upper] = [
       _itemIndicies[widget.selectedItemIds.first] ?? 0,
-      _itemIndicies[value] ?? 0
+      _itemIndicies[value] ?? 0,
     ]..sort();
     final diff = upper - lower;
 
     final selectionRange = [
       ...List<int>.generate(diff, (baseIndex) => baseIndex + lower),
-      upper
+      upper,
     ];
 
     final inverseLookup = Map<int, T>.fromEntries(
-        _itemIndicies.entries.map((entry) => MapEntry(entry.value, entry.key)));
+      _itemIndicies.entries.map((entry) => MapEntry(entry.value, entry.key)),
+    );
 
     final updatedItems = selectionRange
         .map((index) => inverseLookup[index])
