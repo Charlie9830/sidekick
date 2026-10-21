@@ -149,6 +149,19 @@ void main() {
       expect(_screen(next, focus), _closeToOffset(pointer));
     });
 
+    test('zoomTowardPoint keeps a point off the target plane in place', () {
+      // Something well behind the target, under an off-centre pixel.
+      const pointer = Offset(150, 420);
+      final focus = pose.eye + pose.rayThrough(pointer, _view) * 30;
+
+      final next = pose.zoomTowardPoint(focus, 0.6);
+
+      expect(_screen(next, focus), _closeToOffset(pointer));
+      expect(next.distance, closeTo(pose.distance * 0.6, 1e-9));
+      expect(next.yaw, pose.yaw);
+      expect(next.pitch, pose.pitch);
+    });
+
     test('zoom never passes the minimum distance', () {
       final next = pose.zoomToward(const Offset(400, 300), _view, 1e-9);
       expect(next.distance, RigCameraState.minDistance);

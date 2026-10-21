@@ -24,23 +24,12 @@ class BreakoutCablingContainer extends StatelessWidget {
       },
       converter: (Store<AppState> store) {
         final cableGraph = buildCableGraphForState(store.state);
-        final fixtureVms = _selectFixtureVms(store);
-        final locationFixtures = _selectLocationFixtures(
-          fixtureVms,
-          store.state.navstate.selectedBreakoutCablingLocationId,
-        );
 
         return BreakoutCablingViewModel(
-          selectedLocationId:
-              store.state.navstate.selectedBreakoutCablingLocationId,
           locationVms: _selectLocations(store, cableGraph),
-          locationFixtureVms: locationFixtures,
-          fixtureMap: store.state.fixtureState.fixtures,
           cableViewVm: _selectCableViewVm(
             graph: cableGraph,
-            fixtureVms: fixtureVms,
-            selectedLocationId:
-                store.state.navstate.selectedBreakoutCablingLocationId,
+            fixtureVms: _selectFixtureVms(store),
             store: store,
           ),
         );
@@ -49,29 +38,25 @@ class BreakoutCablingContainer extends StatelessWidget {
   }
 }
 
+/// The whole rig's cabling: every location's graph, walked from each location
+/// node. A node reached from more than one location contributes its cables
+/// once.
 CableViewViewModel _selectCableViewVm({
   required CableGraph graph,
   required Map<String, FixtureViewModel> fixtureVms,
-  required String selectedLocationId,
   required Store<AppState> store,
 }) {
-  final locationNode = graph.getNode(selectedLocationId);
-
-  if (locationNode == null) {
-    return CableViewViewModel(
-      elements: [],
-      edges: [],
-      trusses: _selectTrussVms(store),
-      cableVisibility: store.state.navstate.breakoutCableVisibility,
-      onVisibilityChanged: (value) =>
-          store.dispatch(SetBreakoutCableVisibilityState(value)),
-    );
-  }
-
   final nodeElements = <String, NodeElement>{};
   final edgeElements = <EdgeElement>[];
+  final visited = <String>{};
 
-  for (final node in graph.walk(locationNode)) {
+  final walked = [
+    for (final location in graph.nodes.whereType<LocationNode>())
+      ...graph.walk(location),
+  ];
+
+  for (final node in walked) {
+    if (!visited.add(node.id)) continue;
     nodeElements.putIfAbsent(
       node.id,
       () => _buildNodeElement(node: node, fixtureVms: fixtureVms),
@@ -210,23 +195,12 @@ List<LocationViewModel> _selectLocations(
         (location) => LocationViewModel(
           cableQtys: cablesByLocationId[location.uid] ?? {},
           location: location,
-          onSelect: () =>
-              store.dispatch(SetBreakoutCablingLocationId(location.uid)),
           onSetBreakAtTrussJoins: (value) => store.dispatch(
             UpdateLocationBreakAtTrussJoins(location.uid, value),
           ),
         ),
       )
       .toList();
-}
-
-Map<String, FixtureViewModel> _selectLocationFixtures(
-  Map<String, FixtureViewModel> fixtureVms,
-  String selectedLocationId,
-) {
-  return fixtureVms.values
-      .where((vm) => vm.fixture.locationId == selectedLocationId)
-      .toModelMap();
 }
 
 Map<String, FixtureViewModel> _selectFixtureVms(Store<AppState> store) {

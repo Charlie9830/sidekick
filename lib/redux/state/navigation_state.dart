@@ -21,7 +21,6 @@ class NavigationState {
   final int selectedRacksTabIndex;
   final Set<String> selectedFixtureTypeIds;
   final int fixtureTypesTabIndex;
-  final String selectedBreakoutCablingLocationId;
   final CableVisibilityModel breakoutCableVisibility;
 
   NavigationState({
@@ -43,7 +42,6 @@ class NavigationState {
     required this.selectedRacksTabIndex,
     required this.selectedFixtureTypeIds,
     required this.fixtureTypesTabIndex,
-    required this.selectedBreakoutCablingLocationId,
     required this.breakoutCableVisibility,
   });
 
@@ -66,7 +64,6 @@ class NavigationState {
       selectedRacksTabIndex = 0,
       selectedFixtureTypeIds = const {},
       fixtureTypesTabIndex = 0,
-      selectedBreakoutCablingLocationId = '',
       breakoutCableVisibility = const CableVisibilityModel.all();
 
   NavigationState copyWith({
@@ -88,7 +85,6 @@ class NavigationState {
     int? selectedRacksTabIndex,
     Set<String>? selectedFixtureTypeIds,
     int? fixtureTypesTabIndex,
-    String? selectedBreakoutCablingLocationId,
     CableVisibilityModel? breakoutCableVisibility,
   }) {
     return NavigationState(
@@ -116,9 +112,6 @@ class NavigationState {
       selectedFixtureTypeIds:
           selectedFixtureTypeIds ?? this.selectedFixtureTypeIds,
       fixtureTypesTabIndex: fixtureTypesTabIndex ?? this.fixtureTypesTabIndex,
-      selectedBreakoutCablingLocationId:
-          selectedBreakoutCablingLocationId ??
-          this.selectedBreakoutCablingLocationId,
       breakoutCableVisibility:
           breakoutCableVisibility ?? this.breakoutCableVisibility,
     );

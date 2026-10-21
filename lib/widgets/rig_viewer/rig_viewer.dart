@@ -27,6 +27,10 @@ const double _kZoomRate = 0.0015;
 
 const Duration _kFlightDuration = Duration(milliseconds: 250);
 
+/// Furthest the floor may be, as a multiple of the target distance, and still
+/// be what a zoom heads for; beyond it zooms aim at the target's depth.
+const double _kMaxFloorFocusRatio = 3;
+
 /// How close (px) the pointer must be to a line to show its tooltip.
 const double _kLineHoverSlop = 6;
 
@@ -35,7 +39,8 @@ const double _kLineHoverSlop = 6;
 /// Draws [scene] with flutter_scene and navigates like the console: a left
 /// drag follows the active [RigToolMode] (Move, Rotate Center, Zoom, Rotate
 /// Selection...), a right drag always orbits the selection, a middle drag
-/// always moves, and the scroll wheel zooms toward the pointer. The
+/// always moves, and the scroll wheel (or a trackpad's two-finger scroll and
+/// pinch) zooms toward whatever is under the pointer. The
 /// selection is [focusIds]; with nothing selected, orbits turn around the
 /// centre of the view. F fits the rig and Shift+F fits the selection.
 ///
@@ -247,12 +252,9 @@ class _RigViewerState extends State<RigViewer>
       case RigToolMode.rotateCenter:
         _setCamera(camera.orbit(orbitYaw, orbitPitch));
       case RigToolMode.zoom:
-        _setCamera(
-          camera.zoomToward(
-            _viewSize.center(Offset.zero),
-            _viewSize,
-            math.exp(delta.dy * _kZoomRate * 4),
-          ),
+        _zoomAt(
+          _pressPosition ?? _viewSize.center(Offset.zero),
+          math.exp(delta.dy * _kZoomRate * 4),
         );
       case RigToolMode.rotateSelection:
         _setCamera(_orbitSelection(camera, orbitYaw, orbitPitch));
@@ -289,13 +291,7 @@ class _RigViewerState extends State<RigViewer>
 
   void _handleScroll(PointerSignalEvent event) {
     if (event is! PointerScrollEvent) return;
-    _setCamera(
-      _currentCamera.zoomToward(
-        event.localPosition,
-        _viewSize,
-        math.exp(event.scrollDelta.dy * _kZoomRate),
-      ),
-    );
+    _zoomAt(event.localPosition, math.exp(event.scrollDelta.dy * _kZoomRate));
   }
 
   void _handlePanZoomStart(PointerPanZoomStartEvent event) {
@@ -303,17 +299,39 @@ class _RigViewerState extends State<RigViewer>
     _lastPanZoomScale = 1;
   }
 
+  /// Trackpads report two-finger scrolling and pinching as one gesture; both
+  /// zoom toward the pointer, matching the mouse wheel.
   void _handlePanZoomUpdate(PointerPanZoomUpdateEvent event) {
-    var camera = _currentCamera.move(event.panDelta, _viewSize);
+    var factor = math.exp(-event.panDelta.dy * _kZoomRate * 2);
     if (event.scale > 0 && event.scale != _lastPanZoomScale) {
-      camera = camera.zoomToward(
-        event.localPosition,
-        _viewSize,
-        _lastPanZoomScale / event.scale,
-      );
+      factor *= _lastPanZoomScale / event.scale;
       _lastPanZoomScale = event.scale;
     }
-    _setCamera(camera);
+    if (factor != 1) _zoomAt(event.localPosition, factor);
+  }
+
+  /// Zooms toward whatever is under [position] in the view.
+  void _zoomAt(Offset position, double factor) {
+    final camera = _currentCamera;
+    _setCamera(camera.zoomTowardPoint(_focusUnder(camera, position), factor));
+  }
+
+  /// The scene point under [position]: the fixture there, else the floor
+  /// (when it is not so far off that one notch would leap toward the
+  /// horizon), else the point at the camera target's depth.
+  vm.Vector3 _focusUnder(RigCameraState camera, Offset position) {
+    final hit = _pickAt(position);
+    if (hit != null) return WorldSpace.toScene(hit.point);
+
+    final eye = camera.eye;
+    final ray = camera.rayThrough(position, _viewSize);
+    if (ray.y.abs() > 1e-6) {
+      final toFloor = -eye.y / ray.y;
+      if (toFloor > 0 && toFloor < camera.distance * _kMaxFloorFocusRatio) {
+        return eye + ray * toFloor;
+      }
+    }
+    return eye + ray * (camera.distance / ray.dot(camera.forward));
   }
 
   void _handleHover(PointerHoverEvent event) {

@@ -9,30 +9,22 @@ import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 
 class BreakoutCablingViewModel {
-  final String selectedLocationId;
   final List<LocationViewModel> locationVms;
-  final Map<String, FixtureViewModel> locationFixtureVms;
-  final Map<String, FixtureModel> fixtureMap;
   final CableViewViewModel cableViewVm;
 
   BreakoutCablingViewModel({
     required this.locationVms,
-    required this.locationFixtureVms,
-    required this.selectedLocationId,
-    required this.fixtureMap,
     required this.cableViewVm,
   });
 }
 
 class LocationViewModel {
   final LocationModel location;
-  final void Function() onSelect;
   final void Function(bool value) onSetBreakAtTrussJoins;
   final Map<CableQtyGroup, int> cableQtys;
 
   LocationViewModel({
     required this.location,
-    required this.onSelect,
     required this.onSetBreakAtTrussJoins,
     required this.cableQtys,
   });

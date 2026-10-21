@@ -1,15 +1,17 @@
+import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/simple_tooltip.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
+/// Cable quantities per location: one column per location, one row per cable
+/// type and length. Each column header carries the location's "break at truss
+/// joins" toggle.
 class CableQtySpreadsheet extends StatelessWidget {
   final List<LocationViewModel> locationVms;
-  final String selectedLocationId;
-  const CableQtySpreadsheet({
-    super.key,
-    required this.locationVms,
-    required this.selectedLocationId,
-  });
+
+  const CableQtySpreadsheet({super.key, required this.locationVms});
 
   @override
   Widget build(BuildContext context) {
@@ -26,12 +28,7 @@ class CableQtySpreadsheet extends StatelessWidget {
             return const TableSpan(extent: FixedSpanExtent(124));
           }
 
-          final location = locationVms.elementAtOrNull(index - 1);
-
           return TableSpan(
-            backgroundDecoration: location?.location.uid == selectedLocationId
-                ? SpanDecoration(color: Colors.gray.shade900)
-                : null,
             foregroundDecoration: SpanDecoration(
               border: SpanBorder(leading: borderSide),
             ),
@@ -87,16 +84,25 @@ class CableQtySpreadsheet extends StatelessWidget {
     final location = locationVms.elementAtOrNull(columnIndex - 1);
     return TableViewCell(
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 8.0),
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: RotatedBox(
-            quarterTurns: 3,
-            child: Text(
-              location?.location.name ?? '',
-              style: Theme.of(context).typography.small,
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Column(
+          spacing: 8,
+          children: [
+            if (location != null) _TrussBreakToggle(locationVm: location),
+            Expanded(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: RotatedBox(
+                  quarterTurns: 3,
+                  child: Text(
+                    location?.location.name ?? '',
+                    style: Theme.of(context).typography.small,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -134,5 +140,45 @@ class CableQtySpreadsheet extends StatelessWidget {
     final cellValue = location.cableQtys[qtyGroup]?.toString() ?? '';
 
     return TableViewCell(child: Center(child: Text(cellValue)));
+  }
+}
+
+/// Column-header control signalling and toggling whether cables in a
+/// location break where they cross a truss join.
+///
+/// The default (breaking) state is kept quiet so the eye catches the
+/// exceptions: locations set to run cables through joins show a loud accent
+/// badge instead.
+class _TrussBreakToggle extends StatelessWidget {
+  final LocationViewModel locationVm;
+
+  const _TrussBreakToggle({required this.locationVm});
+
+  @override
+  Widget build(BuildContext context) {
+    final breaks = locationVm.location.breakAtTrussJoins;
+
+    return SimpleTooltip(
+      message: breaks
+          ? 'Cables break at truss joins'
+          : 'Cables run through truss joins (no break)',
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: () => locationVm.onSetBreakAtTrussJoins(!breaks),
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: Icon(
+              breaks ? Icons.content_cut : Icons.block,
+              size: 12,
+              color: breaks
+                  ? Theme.of(context).colorScheme.mutedForeground
+                  : SidekickColors.warning,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

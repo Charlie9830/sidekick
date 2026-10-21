@@ -11,12 +11,6 @@ class SetBreakoutCableVisibilityState {
   SetBreakoutCableVisibilityState(this.value);
 }
 
-class SetBreakoutCablingLocationId {
-  final String value;
-
-  SetBreakoutCablingLocationId(this.value);
-}
-
 class UpdateLoomName {
   final String uid;
   final String value;

@@ -139,12 +139,21 @@ class RigCameraState {
   /// Zoom: moves the camera along the ray through [screenPoint], scaling its
   /// distance by [factor] (below 1 moves closer). The point under the pointer
   /// stays under the pointer, as the scroll wheel does on the console.
+  ///
+  /// The zoom heads for the point at the target's depth under the pointer;
+  /// use [zoomTowardPoint] to head for something specific under it instead.
   RigCameraState zoomToward(Offset screenPoint, Size viewSize, double factor) {
     final ray = rayThrough(screenPoint, viewSize);
-    final eye = this.eye;
-    final focus = eye + ray * (distance / ray.dot(forward));
+    return zoomTowardPoint(eye + ray * (distance / ray.dot(forward)), factor);
+  }
+
+  /// Moves the camera straight toward (factor below 1) or away from [focus],
+  /// scaling its distance from it by [factor]. Whatever is at [focus] stays
+  /// at the same place on screen, and the angle never changes.
+  RigCameraState zoomTowardPoint(vm.Vector3 focus, double factor) {
     final nextDistance = math.max(distance * factor, minDistance);
-    final nextEye = focus - (focus - eye) * (nextDistance / distance);
+    final scale = nextDistance / distance;
+    final nextEye = focus + (eye - focus) * scale;
 
     return copyWith(
       target: nextEye + forward * nextDistance,

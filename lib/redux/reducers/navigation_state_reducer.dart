@@ -6,10 +6,6 @@ NavigationState navStateReducer(NavigationState state, dynamic a) {
     return state.copyWith(breakoutCableVisibility: a.value);
   }
 
-  if (a is SetBreakoutCablingLocationId) {
-    return state.copyWith(selectedBreakoutCablingLocationId: a.value);
-  }
-
   if (a is SetFixtureTypesTabIndex) {
     return state.copyWith(fixtureTypesTabIndex: a.value);
   }
