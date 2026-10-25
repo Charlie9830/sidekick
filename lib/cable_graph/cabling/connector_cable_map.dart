@@ -67,6 +67,11 @@ CableSignal? cableSignalFor(GDTFSignalType? signal) => switch (signal) {
 CableType fallbackCableType(CableSignal signal) => switch (signal) {
   CableSignal.power => CableType.au10a,
   CableSignal.data => CableType.dmx,
-  CableSignal.network || CableSignal.hoist || CableSignal.none =>
-    throw ArgumentError.value(signal, 'signal', 'No fixture cable fallback'),
+  CableSignal.network => CableType.ethercon,
+  CableSignal.hoist => CableType.hoist,
+  CableSignal.none => throw ArgumentError.value(
+    signal,
+    'signal',
+    'No fixture cable fallback',
+  ),
 };

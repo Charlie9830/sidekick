@@ -62,15 +62,18 @@ FixturePorts resolveFixturePorts(
   CableType? powerOverride,
   CableType? dataOverride,
 }) {
-  FixturePort port(GDTFComponentType role, CableSignal signal) {
+  FixturePort selectPort(GDTFComponentType role, CableSignal signal) {
     final wiringObject = type.wiringObjects
         .where(
           (object) =>
-              object.componentType == role &&
-              cableSignalFor(object.signalType) == signal,
+              object.componentType ==
+                  role && // EG: Input, Output, Network Input etc.
+              _signalTypeFor(object.connectorType) ==
+                  signal, // Derive a Connector type from our desired Signal type.
         )
         .sortedBy((object) => object.name)
         .firstOrNull;
+
     final override = switch (signal) {
       CableSignal.power => powerOverride,
       _ => dataOverride,
@@ -86,11 +89,25 @@ FixturePorts resolveFixturePorts(
   }
 
   return FixturePorts(
-    powerIn: port(GDTFComponentType.input, CableSignal.power),
-    powerOut: port(GDTFComponentType.output, CableSignal.power),
-    dataIn: port(GDTFComponentType.input, CableSignal.data),
-    dataOut: port(GDTFComponentType.output, CableSignal.data),
+    powerIn: selectPort(GDTFComponentType.input, CableSignal.power),
+    powerOut: selectPort(GDTFComponentType.output, CableSignal.power),
+    dataIn: selectPort(GDTFComponentType.input, CableSignal.data),
+    dataOut: selectPort(GDTFComponentType.output, CableSignal.data),
   );
+}
+
+CableSignal _signalTypeFor(GDTFConnectorType? connectorType) {
+  if (connectorType is GDTFPredefinedConnectorType) {
+    return switch (connectorType) {
+      .xlr5 => CableSignal.data,
+      .rj45 => CableSignal.network,
+      .powerconTrue1 || .nac3fca || .nac3fcb => CableSignal.power,
+      _ => CableSignal.none,
+    };
+  }
+
+  // Custom Cable Signal.
+  return CableSignal.none;
 }
 
 /// The connector's cable, provided it carries the port's [signal].

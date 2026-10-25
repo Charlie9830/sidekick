@@ -14,11 +14,22 @@ const double kTrussAssignmentToleranceMm = 2500;
 /// the sticks therefore share a join (whether in-line or around a corner).
 const double kJoinCoincidenceToleranceMm = 250;
 
-/// Cables are dressed to the truss chord that is *furthest* from the fixtures,
-/// but only if that chord is no more than this far beyond the nearest chord.
-/// This picks the far rail for normal box truss while guarding against routing
-/// cable to an absurd corner on an oversized or compound truss line.
+/// On a horizontal stick with fixtures hanging below, cables are dressed to the
+/// top chord *furthest* from the fixtures, but only if that chord is no more
+/// than this far beyond the nearest top chord. This picks the far rail for
+/// normal box truss while guarding against routing cable to an absurd corner on
+/// an oversized or compound truss line.
 const double kFurthestChordCapMm = 800;
+
+/// A stick counts as vertical (a tower, leg or vertical ladder) once the
+/// world-Z component of its length axis reaches this value, i.e. it is tilted
+/// more than 45° from horizontal.
+const double kVerticalStickThreshold = math.sqrt1_2;
+
+/// Tolerance (mm) for treating two chords as level with each other (when
+/// finding the top or most upstage chords) and for treating a fixture as level
+/// with the top or bottom of a truss.
+const double kChordLevelToleranceMm = 50;
 
 /// The vertical allowance (in mm) added at each end of a run for a floor
 /// (un-trussed) fixture, standing in for the drop from the cable to the fixture.
@@ -97,6 +108,20 @@ double pathLength(List<Vector3> points) {
   return total;
 }
 
+/// One of a stick's four longitudinal chords, as the signs of its offset along
+/// the stick's width and height axes.
+typedef _Corner = ({double signW, double signH});
+
+const List<_Corner> _corners = [
+  (signW: -1, signH: -1),
+  (signW: -1, signH: 1),
+  (signW: 1, signH: -1),
+  (signW: 1, signH: 1),
+];
+
+/// Where a fixture sits relative to a horizontal stick's cross-section.
+enum _Placement { below, inside, above }
+
 /// One physical truss stick, modelled as an oriented box.
 class _Stick {
   final String uid;
@@ -122,8 +147,8 @@ class _Stick {
     required this.halfL,
     required this.halfW,
     required this.halfH,
-  })  : startEnd = center - lAxis * halfL,
-        finishEnd = center + lAxis * halfL;
+  }) : startEnd = center - lAxis * halfL,
+       finishEnd = center + lAxis * halfL;
 
   Vector3 get rawEnd0 => center - lAxis * halfL;
   Vector3 get rawEnd1 => center + lAxis * halfL;
@@ -139,10 +164,59 @@ class _Stick {
     final oz = lz - lz.clamp(-halfH, halfH);
     return math.sqrt(ox * ox + oy * oy + oz * oz);
   }
+
+  bool get isVertical => lAxis.z.abs() >= kVerticalStickThreshold;
+
+  /// World offset from the stick's centre-line to the chord at [corner].
+  Vector3 chordOffset(_Corner corner) =>
+      wAxis * (corner.signW * halfW) + hAxis * (corner.signH * halfH);
+
+  /// Distance from [p] to the chord at [corner] along this stick alone.
+  double distanceToChord(Vector3 p, _Corner corner) {
+    final offset = chordOffset(corner);
+    return _Polyline([
+      startEnd + offset,
+      finishEnd + offset,
+    ]).project(p).distance;
+  }
+
+  /// The chords level with the highest one in world Z. Independent of how the
+  /// stick is rolled about its length axis.
+  List<_Corner> get topCorners {
+    final top = _corners.map((c) => chordOffset(c).z).reduce(math.max);
+    return _corners
+        .where((c) => chordOffset(c).z >= top - kChordLevelToleranceMm)
+        .toList();
+  }
+
+  /// The most upstage chord (world Y positive), tie-broken toward world X
+  /// negative, e.g. between the two rails of a ladder facing the audience.
+  _Corner get upstageCorner => _corners.reduce((a, b) {
+    final offsetA = chordOffset(a);
+    final offsetB = chordOffset(b);
+    if ((offsetB.y - offsetA.y).abs() > kChordLevelToleranceMm) {
+      return offsetB.y > offsetA.y ? b : a;
+    }
+    return offsetB.x < offsetA.x ? b : a;
+  });
+
+  /// Whether [p] sits below, inside or above the stick's cross-section, judged
+  /// by world height relative to its lowest and highest chords.
+  _Placement placementOf(Vector3 p) {
+    final d = p - center;
+    final height = (d - lAxis * d.dot(lAxis)).z;
+    final chordHeights = _corners.map((c) => chordOffset(c).z);
+    final bottom = chordHeights.reduce(math.min);
+    final top = chordHeights.reduce(math.max);
+
+    if (height <= bottom + kChordLevelToleranceMm) return _Placement.below;
+    if (height >= top - kChordLevelToleranceMm) return _Placement.above;
+    return _Placement.inside;
+  }
 }
 
 /// A connected chain of sticks (possibly bending around corners), plus the
-/// single cable chord chosen for it once its fixtures are known.
+/// cable chord chosen for it once its fixtures are known.
 class _Run {
   final String id;
   final List<_Stick> sticks;
@@ -155,40 +229,106 @@ class _Run {
 
   _Run(this.id, this.sticks);
 
-  /// Picks the cable chord: the longitudinal edge furthest from [fixtures] whose
-  /// mean fixture distance is within [kFurthestChordCapMm] of the nearest edge.
-  void chooseChord(List<Vector3> fixtures) {
-    const patterns = [(-1.0, -1.0), (-1.0, 1.0), (1.0, -1.0), (1.0, 1.0)];
+  /// Picks a chord on each stick and joins them into the run's cable chord,
+  /// crossing over between chords at any join where the choice changes.
+  ///
+  /// Vertical sticks use their most upstage chord. Horizontal sticks use a top
+  /// chord, chosen by where the majority of [fixturesByStick] sit: the far one
+  /// (capped by [kFurthestChordCapMm]) for fixtures hanging below, otherwise
+  /// the one nearest the fixtures. Horizontal sticks with no fixtures take the
+  /// top chord that continues most directly from their neighbour.
+  void chooseChord(Map<_Stick, List<Vector3>> fixturesByStick) {
+    final corners = <_Corner?>[
+      for (final stick in sticks)
+        stick.isVertical
+            ? stick.upstageCorner
+            : _horizontalCorner(stick, fixturesByStick[stick] ?? const []),
+    ];
+    _fillFromNeighbours(corners);
 
-    final candidates = patterns.map((pattern) {
-      final built = _buildChord(pattern.$1, pattern.$2);
-      final mean = fixtures.isEmpty
-          ? 0.0
-          : fixtures
-                  .map((f) => built.poly.project(f).distance)
-                  .reduce((a, b) => a + b) /
-              fixtures.length;
-      return (poly: built.poly, joins: built.joinArcLengths, mean: mean);
-    }).toList();
+    final built = _buildChord([
+      for (final corner in corners) corner ?? _corners.last,
+    ]);
+    chord = built.poly;
+    joinArcLengths = built.joinArcLengths;
+  }
 
-    final near = candidates.map((c) => c.mean).reduce(math.min);
-    final eligible =
-        candidates.where((c) => c.mean <= near + kFurthestChordCapMm);
-    final chosen = eligible.reduce((a, b) => b.mean > a.mean ? b : a);
+  static _Corner? _horizontalCorner(_Stick stick, List<Vector3> fixtures) {
+    if (fixtures.isEmpty) return null;
 
-    chord = chosen.poly;
-    joinArcLengths = chosen.joins;
+    final meanDistance = {
+      for (final corner in stick.topCorners)
+        corner:
+            fixtures
+                .map((f) => stick.distanceToChord(f, corner))
+                .reduce((a, b) => a + b) /
+            fixtures.length,
+    };
+    final near = meanDistance.values.reduce(math.min);
+
+    final eligible = switch (_majorityPlacement(stick, fixtures)) {
+      _Placement.below => meanDistance.entries.where(
+        (e) => e.value <= near + kFurthestChordCapMm,
+      ),
+      _Placement.inside ||
+      _Placement.above => meanDistance.entries.where((e) => e.value == near),
+    };
+    return eligible.reduce((a, b) => b.value > a.value ? b : a).key;
+  }
+
+  /// The most common placement of [fixtures] on [stick]. Ties fall to the
+  /// earlier [_Placement] value.
+  static _Placement _majorityPlacement(_Stick stick, List<Vector3> fixtures) {
+    final counts = {for (final placement in _Placement.values) placement: 0};
+    for (final fixture in fixtures) {
+      counts.update(stick.placementOf(fixture), (count) => count + 1);
+    }
+    return _Placement.values.reduce((a, b) => counts[b]! > counts[a]! ? b : a);
+  }
+
+  /// Resolves sticks with no chord yet to the top chord that continues most
+  /// directly from an already-resolved neighbour, so the cable does not cross
+  /// over needlessly.
+  void _fillFromNeighbours(List<_Corner?> corners) {
+    _Corner nearestTop(
+      _Stick stick,
+      Vector3 Function(_Corner) end,
+      Vector3 target,
+    ) => stick.topCorners.reduce(
+      (a, b) => end(b).distanceTo(target) < end(a).distanceTo(target) ? b : a,
+    );
+
+    for (var i = 1; i < sticks.length; i++) {
+      final previous = corners[i - 1];
+      if (corners[i] != null || previous == null) continue;
+      final stick = sticks[i];
+      corners[i] = nearestTop(
+        stick,
+        (c) => stick.startEnd + stick.chordOffset(c),
+        sticks[i - 1].finishEnd + sticks[i - 1].chordOffset(previous),
+      );
+    }
+    for (var i = sticks.length - 2; i >= 0; i--) {
+      final next = corners[i + 1];
+      if (corners[i] != null || next == null) continue;
+      final stick = sticks[i];
+      corners[i] = nearestTop(
+        stick,
+        (c) => stick.finishEnd + stick.chordOffset(c),
+        sticks[i + 1].startEnd + sticks[i + 1].chordOffset(next),
+      );
+    }
   }
 
   ({_Polyline poly, List<double> joinArcLengths}) _buildChord(
-      double signW, double signH) {
+    List<_Corner> corners,
+  ) {
     final rawPoints = <Vector3>[];
     final joinIndices = <int>[];
 
     for (var i = 0; i < sticks.length; i++) {
       final stick = sticks[i];
-      final offset =
-          stick.wAxis * (signW * stick.halfW) + stick.hAxis * (signH * stick.halfH);
+      final offset = stick.chordOffset(corners[i]);
       rawPoints.add(stick.startEnd + offset);
       rawPoints.add(stick.finishEnd + offset);
       if (i < sticks.length - 1) joinIndices.add(rawPoints.length - 1);
@@ -198,7 +338,9 @@ class _Run {
     // [_Polyline] only removes zero-length segments, so these stay valid.
     final cumulative = <double>[0];
     for (var i = 1; i < rawPoints.length; i++) {
-      cumulative.add(cumulative[i - 1] + rawPoints[i - 1].distanceTo(rawPoints[i]));
+      cumulative.add(
+        cumulative[i - 1] + rawPoints[i - 1].distanceTo(rawPoints[i]),
+      );
     }
 
     return (
@@ -281,8 +423,7 @@ class _Polyline {
     return [
       pointAt(lo),
       for (var i = 0; i < points.length; i++)
-        if (_cumulative[i] > lo + 1e-6 && _cumulative[i] < hi - 1e-6)
-          points[i],
+        if (_cumulative[i] > lo + 1e-6 && _cumulative[i] < hi - 1e-6) points[i],
       pointAt(hi),
     ];
   }
@@ -308,16 +449,18 @@ class TrussGeometry {
     final sticks = <_Stick>[];
     for (final truss in trusses) {
       if (truss.length <= 0) continue;
-      sticks.add(_Stick(
-        uid: truss.uid,
-        center: truss.center,
-        lAxis: truss.lengthAxis.normalized,
-        wAxis: truss.widthAxis.normalized,
-        hAxis: truss.heightAxis.normalized,
-        halfL: truss.length / 2,
-        halfW: truss.width / 2,
-        halfH: truss.height / 2,
-      ));
+      sticks.add(
+        _Stick(
+          uid: truss.uid,
+          center: truss.center,
+          lAxis: truss.lengthAxis.normalized,
+          wAxis: truss.widthAxis.normalized,
+          hAxis: truss.heightAxis.normalized,
+          halfL: truss.length / 2,
+          halfW: truss.width / 2,
+          halfH: truss.height / 2,
+        ),
+      );
     }
 
     final runs = _groupIntoRuns(sticks);
@@ -342,7 +485,7 @@ class TrussGeometry {
     if (_runs.isEmpty) return result;
 
     final fixturePositions = <String, Vector3>{};
-    final runOfFixture = <String, _Run>{};
+    final stickOfFixture = <String, _Stick>{};
 
     for (final fixture in fixtures) {
       final point = Vector3(fixture.x, fixture.y, fixture.z);
@@ -360,16 +503,23 @@ class TrussGeometry {
 
       if (nearest != null && nearestDistance <= kTrussAssignmentToleranceMm) {
         fixturePositions[fixture.uid] = point;
-        runOfFixture[fixture.uid] = _runByStickUid[nearest.uid]!;
+        stickOfFixture[fixture.uid] = nearest;
       }
     }
 
     final fixturesByRun = <_Run, List<String>>{};
-    runOfFixture.forEach((uid, run) =>
-        fixturesByRun.putIfAbsent(run, () => []).add(uid));
+    final positionsByRun = <_Run, Map<_Stick, List<Vector3>>>{};
+    stickOfFixture.forEach((uid, stick) {
+      final run = _runByStickUid[stick.uid]!;
+      fixturesByRun.putIfAbsent(run, () => []).add(uid);
+      positionsByRun
+          .putIfAbsent(run, () => {})
+          .putIfAbsent(stick, () => [])
+          .add(fixturePositions[uid]!);
+    });
 
     fixturesByRun.forEach((run, uids) {
-      run.chooseChord(uids.map((uid) => fixturePositions[uid]!).toList());
+      run.chooseChord(positionsByRun[run]!);
       final chord = run.chord!;
       for (final uid in uids) {
         final projection = chord.project(fixturePositions[uid]!);
@@ -468,7 +618,8 @@ class TrussGeometry {
 
     final entry = chord.project(from);
     return (
-      length: entry.distance + (assignment.s - entry.s).abs() + assignment.riser,
+      length:
+          entry.distance + (assignment.s - entry.s).abs() + assignment.riser,
       path: joinPaths([
         [from],
         chord.slice(entry.s, assignment.s),
@@ -489,8 +640,9 @@ class TrussGeometry {
     final floorLevel = math.min(from.z, to.z);
 
     Vector3 foot(Vector3 point, TrussAssignment? assignment) {
-      final chord =
-          assignment == null ? null : _runById[assignment.runId]?.chord;
+      final chord = assignment == null
+          ? null
+          : _runById[assignment.runId]?.chord;
       return chord?.pointAt(assignment!.s) ??
           Vector3(point.x, point.y, floorLevel);
     }
@@ -511,10 +663,11 @@ class TrussGeometry {
     final low = math.min(a.s, b.s);
     final high = math.max(a.s, b.s);
 
-    final joinsBetween = run.joinArcLengths
-        .where((js) => js > low + 1e-6 && js < high - 1e-6)
-        .toList()
-      ..sort();
+    final joinsBetween =
+        run.joinArcLengths
+            .where((js) => js > low + 1e-6 && js < high - 1e-6)
+            .toList()
+          ..sort();
     // Order the joins from `a` toward `b` so the break nodes chain correctly.
     final ordered = b.s >= a.s ? joinsBetween : joinsBetween.reversed.toList();
 
@@ -597,8 +750,11 @@ class TrussGeometry {
     bool match(Vector3 a, Vector3 b) =>
         a.distanceTo(b) <= kJoinCoincidenceToleranceMm;
 
-    bool shared(Vector3 end, _Stick self) => sticks.any((s) =>
-        !identical(s, self) && (match(s.rawEnd0, end) || match(s.rawEnd1, end)));
+    bool shared(Vector3 end, _Stick self) => sticks.any(
+      (s) =>
+          !identical(s, self) &&
+          (match(s.rawEnd0, end) || match(s.rawEnd1, end)),
+    );
 
     var startStick = sticks.first;
     var startFree = sticks.first.rawEnd0;
@@ -633,9 +789,11 @@ class TrussGeometry {
 
       final exit = current.finishEnd;
       entry = exit;
-      current = sticks.firstWhereOrNull((s) =>
-          !used.contains(s.uid) &&
-          (match(s.rawEnd0, exit) || match(s.rawEnd1, exit)));
+      current = sticks.firstWhereOrNull(
+        (s) =>
+            !used.contains(s.uid) &&
+            (match(s.rawEnd0, exit) || match(s.rawEnd1, exit)),
+      );
     }
 
     // Any sticks not reached (disconnected/branching) keep their raw order.
