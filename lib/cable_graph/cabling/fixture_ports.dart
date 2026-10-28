@@ -101,7 +101,10 @@ CableSignal _signalTypeFor(GDTFConnectorType? connectorType) {
     return switch (connectorType) {
       .xlr5 => CableSignal.data,
       .rj45 => CableSignal.network,
-      .powerconTrue1 || .nac3fca || .nac3fcb => CableSignal.power,
+      .powerconTrue1 ||
+      .powerconTrue1Top ||
+      .nac3fca ||
+      .nac3fcb => CableSignal.power,
       _ => CableSignal.none,
     };
   }

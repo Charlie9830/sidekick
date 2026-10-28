@@ -69,6 +69,7 @@ void main() {
 
     expect(find.text('Unsaved Changes'), findsOneWidget);
     expect(pluginCalls, isNot(contains('destroy')));
+    expect(pluginCalls, isNot(contains('close')));
   });
 
   testWidgets('dismissing the prompt via the barrier leaves the app running', (
@@ -85,6 +86,7 @@ void main() {
     expect(find.text('Unsaved Changes'), findsNothing);
 
     expect(pluginCalls, isNot(contains('destroy')));
+    expect(pluginCalls, isNot(contains('close')));
     expect(appStore.state.fileState.hasUnsavedChanges, isTrue);
   });
 
@@ -95,6 +97,8 @@ void main() {
     await tester.tap(find.text('Discard'));
     await tester.pumpAndSettle();
 
-    expect(pluginCalls, contains('destroy'));
+    // Closes via setPreventClose(false) + close() rather than destroy(), to
+    // work around https://github.com/leanflutter/window_manager/issues/478.
+    expect(pluginCalls, containsAllInOrder(['setPreventClose', 'close']));
   });
 }
