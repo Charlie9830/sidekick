@@ -51,6 +51,21 @@ FixtureState? reduceLocationActions(FixtureState state, dynamic a) {
     );
   }
 
+  if (a is UpdateLocationCablingOverride) {
+    return state.copyWith(
+      locations: state.locations.clone()
+        ..update(
+          a.locationId,
+          (existing) => existing.copyWith(
+            overrides: existing.overrides.withCabling(
+              a.fixtureTypeId,
+              a.newValue,
+            ),
+          ),
+        ),
+    );
+  }
+
   if (a is ReorderLocations) {
     return _reorderLocations(state, a.orderedLocationIds);
   }

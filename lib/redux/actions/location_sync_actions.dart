@@ -1,3 +1,4 @@
+import 'package:sidekick/redux/models/fixture_type_cabling_override.dart';
 import 'package:sidekick/redux/models/label_color_model.dart';
 import 'package:sidekick/redux/models/location_model.dart';
 
@@ -39,4 +40,20 @@ class UpdateLocationBreakAtTrussJoins {
   final bool newValue;
 
   UpdateLocationBreakAtTrussJoins(this.locationId, this.newValue);
+}
+
+/// Sets one fixture type's breakout cabling override within a location.
+///
+/// Cabling overrides only feed the cable graph, so unlike [SetLocations] this
+/// does not re-run the power patch.
+class UpdateLocationCablingOverride {
+  final String locationId;
+  final String fixtureTypeId;
+  final FixtureTypeCablingOverride newValue;
+
+  UpdateLocationCablingOverride(
+    this.locationId,
+    this.fixtureTypeId,
+    this.newValue,
+  );
 }

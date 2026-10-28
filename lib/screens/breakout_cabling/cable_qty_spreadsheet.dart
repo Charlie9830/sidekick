@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart' show Icons;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sidekick/containers/location_cabling_settings_container.dart';
+import 'package:sidekick/redux/models/location_model.dart';
 import 'package:sidekick/simple_tooltip.dart';
 import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/view_models/breakout_cabling_view_model.dart';
@@ -7,7 +9,7 @@ import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
 /// Cable quantities per location: one column per location, one row per cable
 /// type and length. Each column header carries the location's "break at truss
-/// joins" toggle.
+/// joins" toggle and a button opening its cabling settings.
 class CableQtySpreadsheet extends StatelessWidget {
   final List<LocationViewModel> locationVms;
 
@@ -88,7 +90,10 @@ class CableQtySpreadsheet extends StatelessWidget {
         child: Column(
           spacing: 8,
           children: [
-            if (location != null) _TrussBreakToggle(locationVm: location),
+            if (location != null) ...[
+              _EditSettingsButton(location: location.location),
+              _TrussBreakToggle(locationVm: location),
+            ],
             Expanded(
               child: Align(
                 alignment: Alignment.bottomCenter,
@@ -140,6 +145,36 @@ class CableQtySpreadsheet extends StatelessWidget {
     final cellValue = location.cableQtys[qtyGroup]?.toString() ?? '';
 
     return TableViewCell(child: Center(child: Text(cellValue)));
+  }
+}
+
+/// Column-header button opening a location's cabling settings in a popover.
+class _EditSettingsButton extends StatelessWidget {
+  final LocationModel location;
+
+  const _EditSettingsButton({required this.location});
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleTooltip(
+      message: 'Edit ${location.name} cabling settings',
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: () =>
+              showLocationCablingSettingsPopover(context, location.uid),
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: Icon(
+              Icons.tune,
+              size: 14,
+              color: Theme.of(context).colorScheme.mutedForeground,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
