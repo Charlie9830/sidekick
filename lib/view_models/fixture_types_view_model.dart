@@ -1,4 +1,5 @@
 import 'package:sidekick/model_collection/model_collection_member.dart';
+import 'package:sidekick/redux/models/fixture_geometry_model.dart';
 import 'package:sidekick/redux/models/fixture_type_model.dart';
 import 'package:sidekick/redux/models/fixture_type_pool_model.dart';
 import 'package:sidekick/slotted_list/slot_assignment_controller.dart';
@@ -14,6 +15,12 @@ class FixtureTypesViewModel {
   final void Function() onCreatePoolButtonPressed;
   final void Function(int oldIndex, int newIndex) onPoolReorder;
 
+  /// The fixture type shown in the 3D preview, or null when none is selected.
+  final String? selectedFixtureTypeId;
+
+  /// Selects a fixture type for the 3D preview; null clears the selection.
+  final void Function(String? id) onFixtureTypeSelected;
+
   FixtureTypesViewModel({
     required this.fixtureTypeVms,
     required this.showAllFixtureTypes,
@@ -24,6 +31,8 @@ class FixtureTypesViewModel {
     required this.poolVms,
     required this.onCreatePoolButtonPressed,
     required this.onPoolReorder,
+    required this.selectedFixtureTypeId,
+    required this.onFixtureTypeSelected,
   });
 }
 
@@ -38,8 +47,12 @@ class FixtureTypeViewModel extends ModelCollectionMember {
   final void Function()? onMaxPairingsOverrideUnset;
   final bool isMaxPairingsOverriden;
 
+  /// Imported GDTF geometry, or null when the type has none.
+  final FixtureGeometryModel? geometry;
+
   FixtureTypeViewModel({
     required this.type,
+    this.geometry,
     required this.qty,
     required this.onMaxPairingsChanged,
     this.isMaxPairingsOverriden = false,

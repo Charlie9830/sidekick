@@ -40,7 +40,11 @@ class FixtureTypesContainer extends StatelessWidget {
                 store.dispatch(createFixtureTypePool()),
             onPoolReorder: (oldIndex, newIndex) => store.dispatch(
                 ReorderFixtureTypePools(
-                    oldIndex: oldIndex, newIndex: newIndex)));
+                    oldIndex: oldIndex, newIndex: newIndex)),
+            selectedFixtureTypeId:
+                store.state.navstate.selectedFixtureTypeIds.firstOrNull,
+            onFixtureTypeSelected: (id) =>
+                store.dispatch(SetSelectedFixtureTypeIds({?id})));
       },
     );
   }
@@ -118,6 +122,7 @@ class FixtureTypesContainer extends StatelessWidget {
                   .where((fixture) => fixture.typeId == type.uid)
                   .length,
               type: type,
+              geometry: store.state.fixtureState.fixtureGeometries[type.uid],
               onMaxPairingsChanged: (newValue) => store
                   .dispatch(UpdateFixtureTypeMaxPiggybacks(type.uid, newValue)),
               onShortNameChanged: (newValue) => store

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sidekick/page_storage_keys.dart';
 import 'package:sidekick/table_view_config.dart';
+import 'package:sidekick/theme/sidekick_colors.dart';
 import 'package:sidekick/view_models/fixture_types_view_model.dart';
 import 'package:sidekick/widgets/property_field.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
@@ -19,7 +20,19 @@ class _Columns {
 class FixtureTypeDataTable extends StatelessWidget {
   final List<FixtureTypeViewModel> items;
 
-  const FixtureTypeDataTable({super.key, required this.items});
+  /// The highlighted row's fixture type uid.
+  final String? selectedId;
+
+  /// Called with a row's fixture type uid when any of its cells is clicked.
+  /// Null makes rows unselectable.
+  final ValueChanged<String>? onSelected;
+
+  const FixtureTypeDataTable({
+    super.key,
+    required this.items,
+    this.selectedId,
+    this.onSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -81,51 +94,65 @@ class FixtureTypeDataTable extends StatelessWidget {
     final maxPiggybackedLoad = (item.type.amps * item.type.maxPiggybacks)
         .toStringAsFixed(1);
 
+    // A Listener rather than a gesture recognizer so clicking a row's text
+    // fields both selects the row and still focuses the field.
     return TableViewCell(
-      child: switch (vicinity.column) {
-        _Columns.make => Align(
-          alignment: Alignment.centerLeft,
-          child: Text(item.type.name),
-        ),
-        _Columns.shortName => PropertyField(
-          enabled: item.onShortNameChanged != null,
-          value: item.type.shortName,
-          onBlur: (newValue) => item.onShortNameChanged?.call(newValue),
-        ),
-        _Columns.qty => Align(
-          alignment: Alignment.center,
-          child: Text(item.qty.toString()),
-        ),
-        _Columns.maxPiggybacks => Row(
-          children: [
-            Expanded(
-              child: PropertyField(
-                value: item.type.maxPiggybacks.toString(),
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                onBlur: (newValue) => item.onMaxPairingsChanged(newValue),
-              ),
-            ),
-            if (item.isMaxPairingsOverriden)
-              IconButton.ghost(
-                size: ButtonSize.small,
-                icon: const Icon(Icons.clear),
-                onPressed: item.onMaxPairingsOverrideUnset,
-              ),
-          ],
-        ),
-        _Columns.fixtureAmps => Align(
-          alignment: Alignment.center,
-          child: Text('${item.type.amps}A'),
-        ),
-        _Columns.maxAmps => Align(
-          alignment: Alignment.center,
-          child: Text(
-            item.type.maxPiggybacks == 1 ? '-' : '${maxPiggybackedLoad}A',
-          ),
-        ),
-        _ => throw "Unexpected Vicinity $vicinity",
-      },
+      child: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (_) => onSelected?.call(item.uid),
+        child: _buildCellContent(vicinity.column, item, maxPiggybackedLoad),
+      ),
     );
+  }
+
+  Widget _buildCellContent(
+    int columnIndex,
+    FixtureTypeViewModel item,
+    String maxPiggybackedLoad,
+  ) {
+    return switch (columnIndex) {
+      _Columns.make => Align(
+        alignment: Alignment.centerLeft,
+        child: Text(item.type.name),
+      ),
+      _Columns.shortName => PropertyField(
+        enabled: item.onShortNameChanged != null,
+        value: item.type.shortName,
+        onBlur: (newValue) => item.onShortNameChanged?.call(newValue),
+      ),
+      _Columns.qty => Align(
+        alignment: Alignment.center,
+        child: Text(item.qty.toString()),
+      ),
+      _Columns.maxPiggybacks => Row(
+        children: [
+          Expanded(
+            child: PropertyField(
+              value: item.type.maxPiggybacks.toString(),
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              onBlur: (newValue) => item.onMaxPairingsChanged(newValue),
+            ),
+          ),
+          if (item.isMaxPairingsOverriden)
+            IconButton.ghost(
+              size: ButtonSize.small,
+              icon: const Icon(Icons.clear),
+              onPressed: item.onMaxPairingsOverrideUnset,
+            ),
+        ],
+      ),
+      _Columns.fixtureAmps => Align(
+        alignment: Alignment.center,
+        child: Text('${item.type.amps}A'),
+      ),
+      _Columns.maxAmps => Align(
+        alignment: Alignment.center,
+        child: Text(
+          item.type.maxPiggybacks == 1 ? '-' : '${maxPiggybackedLoad}A',
+        ),
+      ),
+      _ => throw "Unexpected Column Index $columnIndex",
+    };
   }
 
   TableSpan _rowBuilder(int index) {
@@ -135,7 +162,13 @@ class FixtureTypeDataTable extends StatelessWidget {
     }
 
     // Data Row
-    return const TableSpan(extent: FixedSpanExtent(40));
+    final isSelected = items[index - 1].uid == selectedId;
+    return TableSpan(
+      extent: const FixedSpanExtent(40),
+      backgroundDecoration: isSelected
+          ? const SpanDecoration(color: SidekickColors.rowSelected)
+          : null,
+    );
   }
 
   TableSpan _columnBuilder(int index) {
