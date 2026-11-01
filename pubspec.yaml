@@ -170,7 +170,7 @@ msix_config:
   msix_version: 1.3.0.0
   logo_path: ./windows_resources/msix_logo_512px.png
   trim_logo: false
-  signtool_options: /sha1 3526b5fc655d9e858cf5c3488a645e60c856fb5b /fd sha256 /tr
+  signtool_options: /sha1 f82c0155a1c0a39ff00a12de4b3675c698d76dc5 /fd sha256 /tr
     http://ts.ssl.com /td sha256
   install_certificate: false
   publisher: CN=Charlie Hall, O=Charlie Hall, L=Richmond, S=Victoria, C=AU
